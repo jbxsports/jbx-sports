@@ -72,7 +72,7 @@
     background: var(--black);
     overflow: hidden;
   }
-  .hero-accent {
+  .hero-accent { display:none; } .hero-accent-off {
     position: absolute; top: 0; right: 0;
     width: 55%; height: 100%;
     background: linear-gradient(135deg, transparent 30%, rgba(255,117,31,0.10) 100%);
@@ -428,8 +428,17 @@
 <!-- HERO -->
 <section id="hero">
   <div class="hero-line"></div>
-  <div class="hero-accent"></div>
-  <div class="topo-pattern">
+  <!-- VIDEO BACKGROUND -->
+  <video
+    id="hero-video"
+    autoplay muted loop playsinline
+    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.45;"
+  >
+    <source src="https://drive.google.com/uc?export=download&id=1FyHePYXOkYKIHh74QjtCWovdh67sksgp" type="video/mp4">
+  </video>
+  <!-- GRADIENT OVERLAY -->
+  <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(10,10,10,0.92) 40%, rgba(10,10,10,0.3) 100%);z-index:1;"></div>
+  <div class="topo-pattern" style="z-index:2;">
     <svg viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice" fill="none" stroke="white" stroke-width="1">
       <ellipse cx="700" cy="400" rx="600" ry="300"/>
       <ellipse cx="700" cy="400" rx="500" ry="240"/>
@@ -445,15 +454,15 @@
     </svg>
   </div>
 
-  <div class="hero-tag">🏃 Próximo evento em 23 dias</div>
-  <h1>Sua <em>corrida</em><br>começa aqui.</h1>
-  <p class="hero-sub">Eventos esportivos de alto padrão com inscrição simples, segura e em minutos. Do conceito à chegada, a JBX cuida de tudo.</p>
-  <div class="hero-actions">
+  <div class="hero-tag" style="position:relative;z-index:3;">🏃 Próximo evento em 23 dias</div>
+  <h1 style="position:relative;z-index:3;">Sua <em>corrida</em><br>começa aqui.</h1>
+  <p class="hero-sub" style="position:relative;z-index:3;">Eventos esportivos de alto padrão com inscrição simples, segura e em minutos. Do conceito à chegada, a JBX cuida de tudo.</p>
+  <div class="hero-actions" style="position:relative;z-index:3;">
     <a href="#eventos" class="btn-primary">Ver eventos</a>
     <a href="#sobre" class="btn-secondary">Sobre a JBX</a>
   </div>
 
-  <div class="hero-stats">
+  <div class="hero-stats" style="z-index:3;">
     <div class="stat">
       <div class="stat-num">40+</div>
       <div class="stat-label">Eventos realizados</div>
