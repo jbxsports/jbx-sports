@@ -461,17 +461,14 @@
 
   <div class="hero-stats" style="z-index:3;">
     <div class="stat">
-      <div class="stat-num">40+</div>
+      <div class="stat-num">+40</div>
       <div class="stat-label">Eventos realizados</div>
     </div>
     <div class="stat">
-      <div class="stat-num">12K+</div>
+      <div class="stat-num">+50.000</div>
       <div class="stat-label">Atletas inscritos</div>
     </div>
-    <div class="stat">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">Pagamento seguro</div>
-    </div>
+
   </div>
 </section>
 
@@ -563,10 +560,7 @@
     </div>
     <div class="footer-col">
       <h5>Eventos</h5>
-      <a href="#">Night Run</a>
-      <a href="#">Trail Challenge</a>
-      <a href="#">City Run</a>
-      <a href="#">Calendário completo</a>
+      <div id="footer-eventos"><a href="#eventos">Ver eventos</a></div>
     </div>
     <div class="footer-col">
       <h5>Empresa</h5>
@@ -692,7 +686,8 @@
 <script>
 // Countdown
 function updateCountdown() {
-  const target = new Date('2026-09-27T20:00:00');
+  const targetStr = window._proximoEvento || '2026-06-27T17:30:00';
+  const target = new Date(targetStr);
   const now = new Date();
   const diff = target - now;
   if (diff <= 0) return;
@@ -871,6 +866,23 @@ async function carregarEventos() {
 }
 
 carregarEventos();
+
+async function carregarFooterEventos() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const eventos = await res.json();
+    const el = document.getElementById('footer-eventos');
+    if (!el || !eventos || !eventos.length) return;
+    el.innerHTML = eventos.map(ev =>
+      `<a href="#eventos">${ev.nome}</a>`
+    ).join('');
+  } catch(e) {}
+}
+carregarFooterEventos();
 
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
