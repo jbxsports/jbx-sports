@@ -173,7 +173,7 @@
   }
   .event-card:hover { transform: translateY(-6px); border-color: rgba(255,117,31,0.4); box-shadow: 0 24px 48px rgba(0,0,0,0.5); }
   .event-card-img {
-    height: 180px; position: relative; overflow: hidden;
+    height: 280px; position: relative; overflow: hidden;
     background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
   }
   .event-card-img .ev-bg {
@@ -842,13 +842,13 @@ function renderCard(ev, idx, bannerUrl) {
     ? `background:${bgEv[idx % bgEv.length]};`
     : `background:${bgEv[idx % bgEv.length]};`;
   const imgContent = bannerUrl
-    ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" onerror="this.style.display='none'">`
+    ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">`
     : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`;
 
   return `
   <div class="event-card" onclick="openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')">
     <div class="event-card-img" style="${imgStyle}">
-      ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
+      ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
       <span class="event-badge ${statusMap[ev.status] || 'badge-soon'}">${statusLabel[ev.status] || 'Em breve'}</span>
       <div class="event-dist">${pills}</div>
