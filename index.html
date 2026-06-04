@@ -500,108 +500,10 @@
     </div>
   </div>
 
-  <div class="eventos-grid">
-
-    <!-- Evento 1 -->
-    <div class="event-card" onclick="openModal('JBX Night Run Ribeirão Preto','27 Set 2026 – 20h00','A partir de R$ 89')">
-      <div class="event-card-img" style="background: linear-gradient(135deg, #1a0a00, #2d1200);">
-        <div class="ev-bg">🌙</div>
-        <div class="ev-overlay"></div>
-        <span class="event-badge badge-open">Inscrições abertas</span>
-        <div class="event-dist">
-          <span class="dist-pill">5K</span>
-          <span class="dist-pill">10K</span>
-        </div>
-      </div>
-      <div class="event-card-body">
-        <div class="event-name">JBX Night Run</div>
-        <div class="event-meta">
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            27 Set 2026 · 20h00
-          </div>
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Ribeirão Preto, SP
-          </div>
-        </div>
-        <div class="event-price-row">
-          <div class="event-price">
-            <div class="price-from">a partir de</div>
-            <div class="price-val">R$ 89</div>
-          </div>
-          <button class="btn-inscricao" onclick="event.stopPropagation(); openModal('JBX Night Run Ribeirão Preto','27 Set 2026 – 20h00','A partir de R$ 89')">Inscrever-se</button>
-        </div>
-      </div>
+  <div class="eventos-grid" id="eventos-grid">
+    <div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">
+      Carregando eventos...
     </div>
-
-    <!-- Evento 2 -->
-    <div class="event-card" onclick="openModal('JBX Trail Challenge','18 Out 2026 – 07h00','A partir de R$ 149')">
-      <div class="event-card-img" style="background: linear-gradient(135deg, #0a1500, #1a2d00);">
-        <div class="ev-bg">⛰️</div>
-        <div class="ev-overlay"></div>
-        <span class="event-badge badge-open">Inscrições abertas</span>
-        <div class="event-dist">
-          <span class="dist-pill">15K</span>
-          <span class="dist-pill">30K</span>
-        </div>
-      </div>
-      <div class="event-card-body">
-        <div class="event-name">JBX Trail Challenge</div>
-        <div class="event-meta">
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            18 Out 2026 · 07h00
-          </div>
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Franca, SP
-          </div>
-        </div>
-        <div class="event-price-row">
-          <div class="event-price">
-            <div class="price-from">a partir de</div>
-            <div class="price-val">R$ 149</div>
-          </div>
-          <button class="btn-inscricao" onclick="event.stopPropagation(); openModal('JBX Trail Challenge','18 Out 2026 – 07h00','A partir de R$ 149')">Inscrever-se</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Evento 3 -->
-    <div class="event-card" onclick="openModal('JBX City Run','15 Nov 2026 – 07h00','A partir de R$ 79')">
-      <div class="event-card-img" style="background: linear-gradient(135deg, #0a0015, #1a0030);">
-        <div class="ev-bg">🏙️</div>
-        <div class="ev-overlay"></div>
-        <span class="event-badge badge-soon">Em breve</span>
-        <div class="event-dist">
-          <span class="dist-pill">5K</span>
-          <span class="dist-pill">10K</span>
-          <span class="dist-pill">21K</span>
-        </div>
-      </div>
-      <div class="event-card-body">
-        <div class="event-name">JBX City Run</div>
-        <div class="event-meta">
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            15 Nov 2026 · 07h00
-          </div>
-          <div class="event-meta-item">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Ribeirão Preto, SP
-          </div>
-        </div>
-        <div class="event-price-row">
-          <div class="event-price">
-            <div class="price-from">a partir de</div>
-            <div class="price-val">R$ 79</div>
-          </div>
-          <button class="btn-inscricao" onclick="event.stopPropagation(); openModal('JBX City Run','15 Nov 2026 – 07h00','A partir de R$ 79')">Inscrever-se</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -907,6 +809,96 @@ function handlePagamento() {
     }, 2000);
   }, 1800);
 }
+
+// ── CARREGAR EVENTOS DO SUPABASE ──
+const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_KEY = 'sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
+
+const iconesEv = ['🏃','🌙','⛰️','🏙️','🚴','🏊','🎽','🏆'];
+const bgEv = [
+  'linear-gradient(135deg,#1a0800,#2d1500)',
+  'linear-gradient(135deg,#0a1500,#1a2d00)',
+  'linear-gradient(135deg,#0a0015,#1a0030)',
+  'linear-gradient(135deg,#150a00,#2d1a00)',
+];
+
+function formatarData(dataStr, hora) {
+  if (!dataStr) return '—';
+  const d = new Date(dataStr + 'T12:00:00');
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}${hora ? ' · ' + hora : ''}`;
+}
+
+function renderCard(ev, idx) {
+  const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
+  const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
+  const dists = ev.distancias ? ev.distancias.split(',').map(d => d.trim()) : [];
+  const pills = dists.slice(0,3).map(d => `<span class="dist-pill">${d}</span>`).join('');
+  const preco = ev.preco_min ? `R$ ${parseFloat(ev.preco_min).toFixed(2).replace('.',',')}` : '—';
+  const titulo = `${ev.nome} · ${formatarData(ev.data, ev.hora)}`;
+  const disabled = ev.status === 'closed' ? 'disabled' : '';
+
+  return `
+  <div class="event-card" onclick="openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')">
+    <div class="event-card-img" style="background:${bgEv[idx % bgEv.length]}">
+      <div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>
+      <div class="ev-overlay"></div>
+      <span class="event-badge ${statusMap[ev.status] || 'badge-soon'}">${statusLabel[ev.status] || 'Em breve'}</span>
+      <div class="event-dist">${pills}</div>
+    </div>
+    <div class="event-card-body">
+      <div class="event-name">${ev.nome}</div>
+      <div class="event-meta">
+        <div class="event-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          ${formatarData(ev.data, ev.hora)}
+        </div>
+        <div class="event-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          ${ev.local || '—'}
+        </div>
+      </div>
+      <div class="event-price-row">
+        <div class="event-price">
+          <div class="price-from">a partir de</div>
+          <div class="price-val">${preco}</div>
+        </div>
+        <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();${ev.status !== 'closed' ? `openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')` : ''}">
+          ${ev.status === 'closed' ? 'Encerrado' : 'Inscrever-se'}
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function carregarEventos() {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/eventos?order=data.asc&select=*`, {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': `Bearer ${SB_KEY}`
+      }
+    });
+    const eventos = await res.json();
+    const grid = document.getElementById('eventos-grid');
+    if (!eventos.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Nenhum evento disponível no momento.</div>';
+      return;
+    }
+    grid.innerHTML = eventos.map((ev, i) => renderCard(ev, i)).join('');
+
+    // Atualizar countdown com o próximo evento aberto
+    const proximo = eventos.find(e => e.status === 'open' && e.data);
+    if (proximo) {
+      document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
+      window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
+    }
+  } catch(e) {
+    document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Erro ao carregar eventos.</div>';
+  }
+}
+
+carregarEventos();
 
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
