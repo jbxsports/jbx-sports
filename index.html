@@ -907,3 +907,32 @@ async function carregarEventos() {
       return renderCard(ev, i, banner ? banner.url : null);
     }).join('');
 
+    // Atualizar countdown com o próximo evento aberto
+    const proximo = eventos.find(e => e.status === 'open' && e.data);
+    if (proximo) {
+      document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
+      window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
+    }
+  } catch(e) {
+    document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Erro ao carregar eventos.</div>';
+  }
+}
+
+carregarEventos();
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({behavior:'smooth'}); }
+  });
+});
+
+// Nav shadow on scroll
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.borderBottomColor =
+    window.scrollY > 40 ? 'rgba(255,117,31,0.3)' : 'rgba(255,117,31,0.15)';
+});
+</script>
+</body>
+</html>
