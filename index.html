@@ -881,19 +881,21 @@ function renderCard(ev, idx, bannerUrl) {
 async function carregarEventos() {
   try {
     const [evRes, banRes] = await Promise.all([
-      fetch(`${SB_URL}/rest/v1/rpc/get_eventos_publicos`, {
+      fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
         method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
         body: '{}'
       }),
-      fetch(`${SB_URL}/rest/v1/rpc/get_banners_publicos`, {
+      fetch(`${SB_URL}/rest/v1/rpc/banners_publicos`, {
         method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
         body: '{}'
       })
     ]);
-    const eventos = await evRes.json();
-    const banners = await banRes.json();
+    const evJson = await evRes.json();
+    const banJson = await banRes.json();
+    const eventos = Array.isArray(evJson) ? evJson : (evJson || []);
+    const banners = Array.isArray(banJson) ? banJson : (banJson || []);
 
     const grid = document.getElementById('eventos-grid');
     if (!eventos.length) {
@@ -905,5 +907,3 @@ async function carregarEventos() {
       return renderCard(ev, i, banner ? banner.url : null);
     }).join('');
 
-    // Atualizar countdown com o próximo evento aberto
-   
