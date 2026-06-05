@@ -372,6 +372,14 @@
   .kit-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
   .kit-price { font-size: 24px; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
   .kit-desc { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
+  .kit-img {
+    position: relative; width: 100%; aspect-ratio: 1 / 1;
+    border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+    background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kit-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .kit-img-ph { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; line-height: 1.8; letter-spacing: 0.5px; }
 
   .step-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
   .btn-step-back, .btn-step-next {
@@ -653,11 +661,25 @@
         <div class="form-section-title">Escolha seu kit</div>
         <div class="kit-options">
           <div class="kit-option selected" onclick="selectKit(this, 99.90, 'Kit Starter')">
+            <div class="kit-img">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" alt="Produtos do Kit Starter" onerror="this.style.display='none'">
+              <span class="kit-img-ph">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <br>Foto do kit
+              </span>
+            </div>
             <div class="kit-name">Kit Starter</div>
             <div class="kit-price">R$ 99,90</div>
             <div class="kit-desc">Número de peito, chip de cronometragem, camiseta e medalha de participação.</div>
           </div>
           <div class="kit-option" onclick="selectKit(this, 159.90, 'Kit Vip JBX Sports')">
+            <div class="kit-img">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" alt="Produtos do Kit Vip JBX Sports" onerror="this.style.display='none'">
+              <span class="kit-img-ph">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <br>Foto do kit
+              </span>
+            </div>
             <div class="kit-name">Kit Vip JBX Sports</div>
             <div class="kit-price">R$ 159,90</div>
             <div class="kit-desc">Tudo do Starter + camiseta premium, sacochila exclusiva, brindes e retirada prioritária.</div>
