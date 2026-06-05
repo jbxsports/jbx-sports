@@ -449,6 +449,10 @@
   .ed-mapa { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 18px; background: #1a1a1a; }
   .ed-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .ed-mapa-texto { white-space: pre-wrap; }
+  .ed-mapa-tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .ed-mapa-tab { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; }
+  .ed-mapa-tab:hover { border-color: var(--orange); color: #fff; }
+  .ed-mapa-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
   @media (max-width: 768px) { .ed-mapa { aspect-ratio: 4 / 3; } }
   @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
 
@@ -1506,29 +1510,68 @@ function extrairUrlMapa(raw) {
   return s.trim();
 }
 
+// Monta a lista de mapas a partir do campo (aceita JSON [{rotulo,url}] ou link único)
+function parseMapas(raw) {
+  if (!raw) return [];
+  const s = String(raw).trim();
+  let lista = [];
+  if (s[0] === '[') {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) {
+        lista = arr.map(o => ({ rotulo: (o && o.rotulo) || '', url: extrairUrlMapa(o && o.url) }));
+      }
+    } catch (e) { lista = []; }
+  }
+  if (!lista.length) {
+    const u = extrairUrlMapa(s);
+    if (u) lista = [{ rotulo: '', url: u }];
+  }
+  // mantém só URLs válidas de mapa do Google
+  return lista.filter(m => /^https:\/\/(www\.)?google\.com\/maps\//.test(m.url) || /^https:\/\/maps\.google\.com\//.test(m.url));
+}
+
 function montarPercurso(det) {
   const el = document.getElementById('ed-percurso');
   el.classList.remove('ed-empty');
   el.innerHTML = '';
   let mapaRaw = det && det.percurso_mapa ? det.percurso_mapa : '';
   let texto = det && det.percurso ? String(det.percurso).trim() : '';
-  // tolera o link colado no campo de texto por engano
-  if (!extrairUrlMapa(mapaRaw) && /google\.com\/maps\//.test(texto)) {
-    mapaRaw = texto;
-    texto = '';
+
+  let mapas = parseMapas(mapaRaw);
+  // tolera link/lista colado no campo de texto por engano
+  if (!mapas.length && /google\.com\/maps\//.test(texto)) {
+    mapas = parseMapas(texto);
+    if (mapas.length) texto = '';
   }
-  const mapa = extrairUrlMapa(mapaRaw);
-  // só aceita URLs de mapa do Google (evita incorporar conteúdo arbitrário)
-  const mapaOk = /^https:\/\/(www\.)?google\.com\/maps\//.test(mapa) || /^https:\/\/maps\.google\.com\//.test(mapa);
-  if (mapaOk) {
+
+  if (mapas.length) {
     const box = document.createElement('div');
     box.className = 'ed-mapa';
     const ifr = document.createElement('iframe');
-    ifr.src = mapa;
+    ifr.src = mapas[0].url;
     ifr.loading = 'lazy';
     ifr.referrerPolicy = 'no-referrer-when-downgrade';
     ifr.setAttribute('allowfullscreen', '');
     box.appendChild(ifr);
+
+    if (mapas.length > 1) { // botões de distância (estilo Iguana)
+      const tabs = document.createElement('div');
+      tabs.className = 'ed-mapa-tabs';
+      mapas.forEach((m, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ed-mapa-tab' + (i === 0 ? ' active' : '');
+        b.textContent = m.rotulo || ('Mapa ' + (i + 1));
+        b.onclick = () => {
+          ifr.src = m.url;
+          tabs.querySelectorAll('.ed-mapa-tab').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+        };
+        tabs.appendChild(b);
+      });
+      el.appendChild(tabs);
+    }
     el.appendChild(box);
   }
   if (texto) {
@@ -1537,7 +1580,7 @@ function montarPercurso(det) {
     p.textContent = texto;
     el.appendChild(p);
   }
-  if (!mapaOk && !texto) {
+  if (!mapas.length && !texto) {
     el.textContent = 'Percurso em breve.';
     el.classList.add('ed-empty');
   }
