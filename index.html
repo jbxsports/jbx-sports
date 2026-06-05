@@ -495,6 +495,9 @@
   .cupom-msg.cm-info { color: rgba(255,255,255,0.5); }
   .cupom-msg.cm-ok { color: #22c55e; }
   .cupom-msg.cm-erro { color: #ff6b6b; }
+  .cpf-aviso { display: none; }
+  .cpf-aviso.show { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: var(--orange); background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.25); border-radius: 8px; padding: 8px 12px; }
+  .cpf-aviso .btn-usar { padding: 6px 14px; font-size: 12px; }
   @media (max-width: 600px) { .cupom-row { flex-direction: column; } .btn-cupom { padding: 11px; } }
 
   /* ── SOBRE ── */
@@ -863,6 +866,7 @@
         <div class="form-group">
           <label>CPF *</label>
           <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
+          <div id="cpf-aviso" class="cpf-aviso"></div>
         </div>
       </div>
       <div class="form-row">
@@ -1286,7 +1290,14 @@ async function buscarAtleta() {
 
 function usarAtleta() {
   if (!_achadoAtleta) return;
-  currentRef = _achadoAtleta.ref;
+  aplicarCadastro(_achadoAtleta.ref, _achadoAtleta.rotulo);
+  const br = document.getElementById('busca-resultado'); if (br) { br.innerHTML = ''; br.className = 'busca-resultado'; }
+}
+
+// Aplica o modo protegido (dados vêm do servidor via referência)
+// modo: 'nome' (busca por nome, permite preencher manual) ou 'cpf' (bloqueio: só corrigir o CPF)
+function aplicarCadastro(ref, rotulo, modo) {
+  currentRef = ref;
   document.getElementById('dados-wrap').style.display = 'none';
   const card = document.getElementById('dados-protegidos');
   card.style.display = 'block';
@@ -1294,19 +1305,60 @@ function usarAtleta() {
   const wrap = document.createElement('div'); wrap.className = 'protegido-card';
   const ico = document.createElement('div'); ico.className = 'protegido-ico'; ico.textContent = '🔒';
   const mid = document.createElement('div');
-  const n = document.createElement('div'); n.className = 'protegido-nome'; n.textContent = 'Usando o cadastro de ' + _achadoAtleta.rotulo;
-  const s = document.createElement('div'); s.className = 'protegido-sub'; s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio. Você não tem acesso a eles.';
+  const n = document.createElement('div'); n.className = 'protegido-nome';
+  const s = document.createElement('div'); s.className = 'protegido-sub';
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-trocar';
+  if (modo === 'cpf') {
+    n.textContent = rotulo ? ('Cadastro encontrado: ' + rotulo) : 'Encontramos um cadastro com este CPF';
+    s.textContent = 'Os dados salvos serão usados automaticamente, com segurança. Não é necessário (nem possível) preencher de novo.';
+    btn.textContent = 'Corrigir CPF';
+    btn.onclick = corrigirCpf;
+  } else {
+    n.textContent = rotulo ? ('Usando o cadastro de ' + rotulo) : 'Usando o cadastro já existente deste CPF';
+    s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio. Você não tem acesso a eles.';
+    btn.textContent = 'Trocar / preencher eu mesmo';
+    btn.onclick = limparAtleta;
+  }
   mid.appendChild(n); mid.appendChild(s);
-  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-trocar'; btn.textContent = 'Trocar / preencher eu mesmo'; btn.onclick = limparAtleta;
   wrap.appendChild(ico); wrap.appendChild(mid); wrap.appendChild(btn);
   card.appendChild(wrap);
-  const br = document.getElementById('busca-resultado'); br.innerHTML = ''; br.className = 'busca-resultado';
 }
 
 function limparAtleta() {
   currentRef = '';
   const wrap = document.getElementById('dados-wrap'); if (wrap) wrap.style.display = '';
   const card = document.getElementById('dados-protegidos'); if (card) { card.style.display = 'none'; card.innerHTML = ''; }
+  const av = document.getElementById('cpf-aviso'); if (av) { av.innerHTML = ''; av.className = 'cpf-aviso'; }
+}
+
+// Saída do bloqueio por CPF: limpa o CPF e volta ao formulário
+function corrigirCpf() {
+  limparAtleta();
+  const el = document.getElementById('f-cpf');
+  if (el) { el.value = ''; el.focus(); }
+}
+
+// ── DETECÇÃO DE CPF JÁ CADASTRADO (bloqueia e usa o cadastro existente) ──
+let _cpfRef = '';
+async function checarCpf() {
+  if (currentRef) return; // já está num cadastro protegido
+  const el = document.getElementById('f-cpf');
+  if (!el) return;
+  const cpf = (el.value || '').replace(/\D/g, '');
+  _cpfRef = '';
+  if (cpf.length !== 11) return;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/buscar_por_cpf`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_cpf: cpf })
+    });
+    const arr = await r.json();
+    const achou = Array.isArray(arr) && arr.length ? arr[0] : null;
+    if (!achou) return;
+    _cpfRef = achou.ref;
+    aplicarCadastro(_cpfRef, '', 'cpf'); // trava automaticamente
+  } catch (e) { /* silencioso: segue o preenchimento manual */ }
 }
 
 // Validação dos campos obrigatórios da etapa 3
@@ -1810,6 +1862,15 @@ window.addEventListener('scroll', () => {
       cepInput.style.borderColor = corOriginal; // falhou: preenche manual
     }
   }
+})();
+
+// ── LIGA A DETECÇÃO DE CPF AO CAMPO ──
+(function () {
+  const cpf = document.getElementById('f-cpf');
+  if (!cpf) return;
+  let t;
+  cpf.addEventListener('input', () => { clearTimeout(t); t = setTimeout(checarCpf, 400); });
+  cpf.addEventListener('blur', checarCpf);
 })();
 </script>
 </body>
