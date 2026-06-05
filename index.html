@@ -774,7 +774,11 @@ setInterval(updateCountdown, 1000);
 // Modal
 let currentPrice = 99.90;
 let currentModalidade = "Corrida 4KM";
+let currentEvento = "";
+let currentKit = "";            // ainda não há etapa de kit no form; fica pronto para o futuro
+let currentPagamento = "Cartão"; // método pré-selecionado por padrão
 function openModal(title, info, price) {
+  currentEvento = title;
   document.getElementById('modal-title').textContent = title;
   document.getElementById('modal-info').textContent = info;
   document.getElementById('modal').classList.add('active');
@@ -803,10 +807,11 @@ function selectCat(el, price, modalidade) {
 function selectPay(el) {
   document.querySelectorAll('.pay-method').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
+  currentPagamento = el.textContent.trim(); // "Cartão" ou "PIX"
 }
 
-// Payment handler (Stripe integration point)
-function handlePagamento() {
+// Payment handler — grava a inscrição no Supabase via RPC criar_inscricao
+async function handlePagamento() {
   const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
   for (const id of obrigatorios) {
     const el = document.getElementById(id);
@@ -818,19 +823,68 @@ function handlePagamento() {
       return;
     }
   }
+
   const btn = document.querySelector('.btn-pagar');
+  const textoOriginal = btn.textContent;
   btn.textContent = '⏳ Processando...';
   btn.disabled = true;
-  setTimeout(() => {
+
+  const val = id => (document.getElementById(id)?.value || '').trim();
+  const dados = {
+    evento: currentEvento,
+    kit: currentKit,             // vazio por enquanto (sem etapa de kit no form atual)
+    modalidade: currentModalidade,
+    valor: currentPrice,
+    nome: val('f-nome'),
+    cpf: val('f-cpf'),
+    nascimento: val('f-nasc'),
+    genero: val('f-genero'),
+    email: val('f-email'),
+    telefone: val('f-tel'),
+    tamanho_camisa: val('f-camisa'),
+    cep: val('f-cep'),
+    rua: val('f-rua'),
+    numero: val('f-num'),
+    complemento: val('f-comp'),
+    bairro: val('f-bairro'),
+    cidade: val('f-cidade'),
+    estado: val('f-estado'),
+    emergencia_nome: val('f-emerg-nome'),
+    emergencia_telefone: val('f-emerg-tel'),
+    forma_pagamento: currentPagamento
+  };
+
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ dados })
+    });
+
+    if (!res.ok) {
+      const detalhe = await res.text();
+      throw new Error(detalhe || ('HTTP ' + res.status));
+    }
+
     btn.textContent = '✅ Inscrição confirmada!';
     btn.style.background = '#22c55e';
     setTimeout(() => {
-      closeModal('inscricao');
-      btn.textContent = '🔒 Finalizar inscrição';
+      closeModal();
+      btn.textContent = textoOriginal;
       btn.style.background = '';
       btn.disabled = false;
+      // limpa o formulário para a próxima inscrição
+      ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-comp','f-bairro','f-cidade','f-emerg-nome','f-emerg-tel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
     }, 2500);
-  }, 1800);
+  } catch (e) {
+    btn.textContent = textoOriginal;
+    btn.style.background = '';
+    btn.disabled = false;
+    alert('Não foi possível concluir a inscrição. Tente novamente.\n\nDetalhe: ' + e.message);
+  }
 }
 
 // ── CARREGAR EVENTOS DO SUPABASE ──
