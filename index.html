@@ -393,6 +393,61 @@
 
   @media (max-width: 600px) { .kit-options { grid-template-columns: 1fr; } }
 
+  /* ── PÁGINA DO EVENTO ── */
+  #evento-detalhe {
+    position: fixed; inset: 0; z-index: 150;
+    background: var(--black); overflow-y: auto; display: none;
+  }
+  #evento-detalhe.active { display: block; }
+  .ed-topbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; height: 64px; padding: 0 5%;
+    background: rgba(10,10,10,0.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,117,31,0.15);
+  }
+  .ed-back {
+    background: none; border: none; color: rgba(255,255,255,0.8);
+    font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Ubuntu', sans-serif;
+    transition: color 0.2s;
+  }
+  .ed-back:hover { color: var(--orange); }
+  .ed-banner {
+    height: 320px; background: linear-gradient(135deg,#1e1e1e,#2a2a2a);
+    background-size: cover; background-position: center;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ed-banner-ph { color: rgba(255,255,255,0.22); font-size: 22px; font-weight: 700; letter-spacing: 3px; }
+  .ed-banner.has-img .ed-banner-ph { display: none; }
+  .ed-wrap { max-width: 960px; margin: 0 auto; padding: 0 5% 80px; }
+  .ed-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap;
+  }
+  .ed-header .event-badge { position: static; display: inline-block; margin-bottom: 12px; }
+  .ed-title { font-size: clamp(26px,4vw,40px); font-weight: 700; letter-spacing: -1px; line-height: 1.1; }
+  .ed-meta { font-size: 15px; color: rgba(255,255,255,0.55); margin-top: 12px; }
+  .ed-price { font-size: 22px; font-weight: 700; color: var(--orange); margin-top: 14px; }
+  .ed-inscrever {
+    background: var(--orange); color: #fff; border: none;
+    padding: 16px 36px; border-radius: 8px; font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; white-space: nowrap;
+  }
+  .ed-inscrever:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,117,31,0.35); }
+  .ed-inscrever.disabled { background: #444; cursor: not-allowed; transform: none; box-shadow: none; }
+  .ed-tabs { display: flex; gap: 4px; margin-top: 8px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .ed-tab {
+    background: none; border: none; cursor: pointer; font-family: 'Ubuntu', sans-serif;
+    color: rgba(255,255,255,0.5); font-size: 15px; font-weight: 500;
+    padding: 16px 18px; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap;
+  }
+  .ed-tab:hover { color: rgba(255,255,255,0.85); }
+  .ed-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .ed-content { padding-top: 28px; }
+  .ed-pane { display: none; font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.75); white-space: pre-wrap; }
+  .ed-pane.active { display: block; }
+  .ed-pane.ed-empty { color: rgba(255,255,255,0.4); font-style: italic; }
+  @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
+
   /* ── SOBRE ── */
   #sobre { background: #0d0d0d; }
   .sobre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-top: 56px; }
@@ -635,6 +690,37 @@
     </div>
   </div>
 </footer>
+
+<!-- PÁGINA DO EVENTO -->
+<div id="evento-detalhe">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="voltarDoEvento()">← Voltar aos eventos</button>
+  </div>
+  <div class="ed-banner" id="ed-banner"><span class="ed-banner-ph">JBX SPORTS</span></div>
+  <div class="ed-wrap">
+    <div class="ed-header">
+      <div>
+        <span class="event-badge badge-soon" id="ed-status">Em breve</span>
+        <h1 class="ed-title" id="ed-nome">Evento</h1>
+        <div class="ed-meta" id="ed-meta"></div>
+        <div class="ed-price" id="ed-price"></div>
+      </div>
+      <button class="ed-inscrever" id="ed-inscrever">Inscreva-se →</button>
+    </div>
+    <div class="ed-tabs">
+      <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
+      <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
+      <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
+      <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
+    </div>
+    <div class="ed-content">
+      <div class="ed-pane active" data-pane="info" id="ed-info"></div>
+      <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
+      <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
+      <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL INSCRIÇÃO -->
 <div class="modal-overlay" id="modal">
@@ -892,7 +978,9 @@ function openModal(title, info, price) {
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('active');
-  document.body.style.overflow = '';
+  const ed = document.getElementById('evento-detalhe');
+  const edAtivo = ed && ed.classList.contains('active');
+  document.body.style.overflow = edAtivo ? 'hidden' : '';
 }
 document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
@@ -1098,7 +1186,7 @@ function renderCard(ev, idx, bannerUrl) {
     : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`;
 
   return `
-  <div class="event-card" onclick="openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')">
+  <div class="event-card" onclick="irParaEvento('${ev.id}')">
     <div class="event-card-img" style="${imgStyle}">
       ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
@@ -1122,8 +1210,8 @@ function renderCard(ev, idx, bannerUrl) {
           <div class="price-from">a partir de</div>
           <div class="price-val">${preco}</div>
         </div>
-        <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();${ev.status !== 'closed' ? `openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')` : ''}">
-          ${ev.status === 'closed' ? 'Encerrado' : 'Inscrever-se'}
+        <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();irParaEvento('${ev.id}')">
+          ${ev.status === 'closed' ? 'Ver evento' : 'Ver evento'}
         </button>
       </div>
     </div>
@@ -1148,6 +1236,8 @@ async function carregarEventos() {
     const banJson = await banRes.json();
     const eventos = Array.isArray(evJson) ? evJson : (evJson || []);
     const banners = Array.isArray(banJson) ? banJson : (banJson || []);
+    window._eventos = eventos;   // usado pela página do evento
+    window._banners = banners;
 
     const grid = document.getElementById('eventos-grid');
     if (!eventos.length) {
@@ -1164,10 +1254,117 @@ async function carregarEventos() {
     if (proximo) {
       document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
       window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
+      const cta = document.querySelector('.countdown-cta');
+      if (cta) cta.onclick = (e) => { e.preventDefault(); irParaEvento(proximo.id); };
     }
+
+    tratarRotaEvento(); // se a URL já vier com #evento/<id> (link compartilhado)
   } catch(e) {
     document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Erro ao carregar eventos.</div>';
   }
+}
+
+// ── PÁGINA DO EVENTO (detalhe em tela cheia + rota por hash) ──
+function irParaEvento(id) {
+  location.hash = 'evento/' + encodeURIComponent(id);
+}
+function voltarDoEvento() {
+  location.hash = 'eventos';
+}
+function edTab(name) {
+  document.querySelectorAll('.ed-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.ed-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
+}
+function tratarRotaEvento() {
+  const m = location.hash.match(/^#evento\/(.+)$/);
+  if (m) abrirEventoPorId(decodeURIComponent(m[1]));
+  else fecharEvento(true);
+}
+window.addEventListener('hashchange', tratarRotaEvento);
+
+function fecharEvento(semHash) {
+  const ov = document.getElementById('evento-detalhe');
+  if (ov) ov.classList.remove('active');
+  document.body.style.overflow = '';
+}
+function abrirOverlayEvento() {
+  const ov = document.getElementById('evento-detalhe');
+  if (ov) { ov.classList.add('active'); ov.scrollTop = 0; }
+  document.body.style.overflow = 'hidden';
+}
+
+async function abrirEventoPorId(id) {
+  const eventos = window._eventos || [];
+  const ev = eventos.find(e => String(e.id) === String(id));
+  if (!ev) return; // lista ainda não carregou ou id inexistente
+  const banner = (window._banners || []).find(b => b.evento_id === ev.id);
+  renderEventoBase(ev, banner ? banner.url : null);
+  abrirOverlayEvento();
+  preencherConteudo(null, true); // estado "carregando"
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/evento_detalhe`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: String(ev.id) })
+    });
+    const arr = await res.json();
+    const det = Array.isArray(arr) ? arr[0] : arr;
+    preencherConteudo(det || {}, false);
+  } catch (e) {
+    preencherConteudo({}, false);
+  }
+}
+
+function renderEventoBase(ev, bannerUrl) {
+  const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
+  const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
+  const preco = ev.preco_min ? `R$ ${parseFloat(ev.preco_min).toFixed(2).replace('.', ',')}` : '—';
+
+  const banner = document.getElementById('ed-banner');
+  if (bannerUrl) {
+    banner.style.backgroundImage = `url('${bannerUrl}')`;
+    banner.classList.add('has-img');
+  } else {
+    banner.style.backgroundImage = '';
+    banner.classList.remove('has-img');
+  }
+  const st = document.getElementById('ed-status');
+  st.textContent = statusLabel[ev.status] || 'Em breve';
+  st.className = 'event-badge ' + (statusMap[ev.status] || 'badge-soon');
+
+  document.getElementById('ed-nome').textContent = ev.nome || '';
+  document.getElementById('ed-meta').textContent =
+    formatarData(ev.data, ev.hora) + (ev.local ? '  ·  ' + ev.local : '');
+  document.getElementById('ed-price').textContent = ev.preco_min ? ('a partir de ' + preco) : '';
+
+  const btn = document.getElementById('ed-inscrever');
+  if (ev.status === 'closed') {
+    btn.textContent = 'Inscrições encerradas';
+    btn.classList.add('disabled');
+    btn.onclick = null;
+  } else {
+    btn.textContent = 'Inscreva-se →';
+    btn.classList.remove('disabled');
+    btn.onclick = () => openModal(ev.nome, formatarData(ev.data, ev.hora) + (ev.local ? ' · ' + ev.local : ''), 'A partir de ' + preco);
+  }
+  edTab('info');
+}
+
+function preencherConteudo(det, loading) {
+  const campos = [
+    ['ed-info', 'descricao', 'Informações do evento em breve.'],
+    ['ed-percurso', 'percurso', 'Percurso em breve.'],
+    ['ed-retirada', 'retirada_kit', 'Informações de retirada de kit em breve.'],
+    ['ed-regulamento', 'regulamento', 'Regulamento em breve.']
+  ];
+  campos.forEach(([elId, key, vazio]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (loading) { el.textContent = 'Carregando…'; el.classList.add('ed-empty'); return; }
+    const txt = det && det[key] ? String(det[key]).trim() : '';
+    el.textContent = txt || vazio;
+    el.classList.toggle('ed-empty', !txt);
+  });
 }
 
 carregarEventos();
