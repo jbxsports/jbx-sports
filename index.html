@@ -446,6 +446,10 @@
   .ed-pane { display: none; font-size: 16px; line-height: 1.8; color: rgba(255,255,255,0.75); white-space: pre-wrap; }
   .ed-pane.active { display: block; }
   .ed-pane.ed-empty { color: rgba(255,255,255,0.4); font-style: italic; }
+  .ed-mapa { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 18px; background: #1a1a1a; }
+  .ed-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .ed-mapa-texto { white-space: pre-wrap; }
+  @media (max-width: 768px) { .ed-mapa { aspect-ratio: 4 / 3; } }
   @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
 
   /* ── BUSCA DE ATLETA CADASTRADO ── */
@@ -1472,7 +1476,6 @@ function renderEventoBase(ev, bannerUrl) {
 function preencherConteudo(det, loading) {
   const campos = [
     ['ed-info', 'descricao', 'Informações do evento em breve.'],
-    ['ed-percurso', 'percurso', 'Percurso em breve.'],
     ['ed-retirada', 'retirada_kit', 'Informações de retirada de kit em breve.'],
     ['ed-regulamento', 'regulamento', 'Regulamento em breve.']
   ];
@@ -1484,6 +1487,43 @@ function preencherConteudo(det, loading) {
     el.textContent = txt || vazio;
     el.classList.toggle('ed-empty', !txt);
   });
+  // Percurso: mapa interativo (Google My Maps) + texto
+  const pc = document.getElementById('ed-percurso');
+  if (pc) {
+    if (loading) { pc.innerHTML = ''; pc.textContent = 'Carregando…'; pc.classList.add('ed-empty'); }
+    else montarPercurso(det || {});
+  }
+}
+
+function montarPercurso(det) {
+  const el = document.getElementById('ed-percurso');
+  el.classList.remove('ed-empty');
+  el.innerHTML = '';
+  const mapa = det && det.percurso_mapa ? String(det.percurso_mapa).trim() : '';
+  const texto = det && det.percurso ? String(det.percurso).trim() : '';
+  // só aceita URLs de mapa do Google (evita incorporar conteúdo arbitrário)
+  const mapaOk = /^https:\/\/(www\.)?google\.com\/maps\//.test(mapa) || /^https:\/\/maps\.google\.com\//.test(mapa);
+  if (mapaOk) {
+    const box = document.createElement('div');
+    box.className = 'ed-mapa';
+    const ifr = document.createElement('iframe');
+    ifr.src = mapa;
+    ifr.loading = 'lazy';
+    ifr.referrerPolicy = 'no-referrer-when-downgrade';
+    ifr.setAttribute('allowfullscreen', '');
+    box.appendChild(ifr);
+    el.appendChild(box);
+  }
+  if (texto) {
+    const p = document.createElement('div');
+    p.className = 'ed-mapa-texto';
+    p.textContent = texto;
+    el.appendChild(p);
+  }
+  if (!mapaOk && !texto) {
+    el.textContent = 'Percurso em breve.';
+    el.classList.add('ed-empty');
+  }
 }
 
 carregarEventos();
