@@ -185,14 +185,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val" id="g-ticket">—</div></div>
         </div>
 
-        <button class="cupom-float-btn" onclick="showInner('cupons')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          Gerenciar Cupons de Desconto
-        </button>
-
         <div class="eventos-grid-admin" id="ev-grid">
-          <div class="empty-state">Carregando eventos…</div>
-        </div>
       </div>
 
       <!-- ── TELA 2: CUPONS ── -->
@@ -327,7 +320,8 @@ async function rpc(fn, params={}) {
     body: JSON.stringify(params)
   });
   if (!r.ok) throw new Error(await r.text());
-  return r.json();
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;  // suporta funções void (body vazio)
 }
 const brl = v => 'R$ ' + Number(v||0).toFixed(2).replace('.',',');
 const fmt = n => Number(n||0).toLocaleString('pt-BR');
