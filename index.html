@@ -662,7 +662,7 @@
         <div class="kit-options">
           <div class="kit-option selected" onclick="selectKit(this, 99.90, 'Kit Starter')">
             <div class="kit-img">
-              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" alt="Produtos do Kit Starter" onerror="this.style.display='none'">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg.jpeg" alt="Produtos do Kit Starter" onerror="imgKitFallback(this)">
               <span class="kit-img-ph">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                 <br>Foto do kit
@@ -674,7 +674,7 @@
           </div>
           <div class="kit-option" onclick="selectKit(this, 159.90, 'Kit Vip JBX Sports')">
             <div class="kit-img">
-              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" alt="Produtos do Kit Vip JBX Sports" onerror="this.style.display='none'">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg.jpeg" alt="Produtos do Kit Vip JBX Sports" onerror="imgKitFallback(this)">
               <span class="kit-img-ph">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                 <br>Foto do kit
@@ -943,6 +943,17 @@ function atualizarResumo() {
   if (elKit) elKit.textContent = currentKit;
   if (elMod) elMod.textContent = currentModalidade;
   if (elTotal) elTotal.textContent = fmt(currentPrice);
+}
+
+// Imagem do kit: tenta nomes alternativos antes de mostrar o placeholder
+function imgKitFallback(img) {
+  const lista = (img.dataset.fallbacks || '').split('|').filter(Boolean);
+  if (lista.length) {
+    img.dataset.fallbacks = lista.slice(1).join('|');
+    img.src = lista[0];
+  } else {
+    img.style.display = 'none';
+  }
 }
 
 // Kit selection (o PREÇO vem daqui)
