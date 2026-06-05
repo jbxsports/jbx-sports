@@ -202,9 +202,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <div class="form-g"><label>Código</label><input id="c-codigo" placeholder="Ex: JBXRUN10" style="text-transform:uppercase"></div>
             <div class="form-g">
               <label>Desconto (%)</label>
+              <input id="c-pct" type="number" min="1" max="100" placeholder="Ex: 10">
+            </div>
+            <div class="form-g">
+              <label>Período de validade</label>
               <div class="form-row2">
-                <input id="c-pct" type="number" min="1" max="100" placeholder="Ex: 10">
-                <input id="c-validade" type="date" placeholder="Validade (opcional)">
+                <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Início</div><input id="c-inicio" type="date"></div>
+                <div><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Fim (opcional)</div><input id="c-validade" type="date"></div>
               </div>
             </div>
             <div class="form-g">
@@ -368,7 +372,12 @@ function showInner(name) {
   document.getElementById('screen-'+name).classList.add('active');
   const nb = document.getElementById('nav-'+name); if (nb) nb.classList.add('active');
   if (name==='dash') loadDashboard();
-  if (name==='cupons') loadCupons();
+  if (name==='cupons') {
+    // preenche data início com hoje ao abrir
+    const hoje = new Date().toISOString().split('T')[0];
+    const ci = document.getElementById('c-inicio'); if (ci && !ci.value) ci.value = hoje;
+    loadCupons();
+  }
 }
 
 /* ── TELA 1: DASHBOARD ── */
@@ -559,11 +568,14 @@ async function salvarEdicao() {
 }
 
 /* ── TELA 2: CUPONS ── */
+let _adminEventos = []; // cache dos eventos para resolver nomes nos cupons
+
 async function loadCupons() {
   try {
     const [cupons, eventos] = await Promise.all([rpc('admin_listar_cupons'), rpc('admin_lista_eventos')]);
+    _adminEventos = eventos||[];
     renderCuponsList(cupons||[]);
-    renderEventosCheck(eventos||[]);
+    renderEventosCheck(_adminEventos);
   } catch(e) { console.error(e); }
 }
 function renderEventosCheck(evs) {
@@ -572,18 +584,27 @@ function renderEventosCheck(evs) {
   el.innerHTML = evs.map(e=>`
     <label><input type="checkbox" class="ev-check" value="${e.id}"> ${e.nome}</label>`).join('');
 }
+function nomeEventosCupom(ids) {
+  try {
+    const arr = typeof ids==='string' ? JSON.parse(ids) : (ids||[]);
+    if (!arr.length) return '<span style="color:var(--muted)">Todos</span>';
+    return arr.map(id=>{ const ev=_adminEventos.find(e=>e.id===id); return ev?ev.nome:id.slice(0,6)+'…'; }).join(', ');
+  } catch(e){ return '—'; }
+}
 function renderCuponsList(cupons) {
   const el = document.getElementById('cupons-lista');
   if (!cupons.length){el.innerHTML='<div class="empty-state">Nenhum cupom cadastrado ainda.</div>';return;}
   el.innerHTML = `<table class="data-table">
-    <thead><tr><th>Código</th><th>Nome</th><th>%</th><th>Usos</th><th>Validade</th><th>Status</th></tr></thead>
+    <thead><tr><th>Código</th><th>Nome</th><th>%</th><th>Usos</th><th>Início</th><th>Validade</th><th>Eventos</th><th>Status</th></tr></thead>
     <tbody>${cupons.map(c=>`
       <tr>
         <td style="font-weight:700;color:var(--orange);">${c.codigo}</td>
         <td style="color:var(--muted);font-size:12px;">${c.nome||'—'}</td>
         <td>${c.percentual}%</td>
         <td>${c.usos_atuais}${c.max_usos?'/'+c.max_usos:''}</td>
+        <td style="font-size:12px;color:var(--muted);">${c.data_inicio?fmtDataSimples(c.data_inicio):'—'}</td>
         <td style="font-size:12px;color:var(--muted);">${c.validade?fmtDataSimples(c.validade):'Sem prazo'}</td>
+        <td style="font-size:12px;max-width:180px;">${nomeEventosCupom(c.evento_ids)}</td>
         <td><span class="${c.ativo?'badge-ativo':'badge-inativo'}">${c.ativo?'Ativo':'Inativo'}</span></td>
       </tr>`).join('')}
     </tbody></table>`;
@@ -598,6 +619,7 @@ async function salvarCupom() {
   const evento_ids = [...document.querySelectorAll('.ev-check:checked')].map(cb=>cb.value);
   const dados = {
     nome: get('c-nome'), codigo, percentual,
+    data_inicio: get('c-inicio')||null,
     validade: get('c-validade')||null,
     max_usos: get('c-max-usos')||null,
     max_por_cpf: get('c-max-cpf')||'1',
@@ -609,6 +631,9 @@ async function salvarCupom() {
     await rpc('admin_criar_cupom',{dados});
     fb.className='form-feedback ok'; fb.textContent='✓ Cupom salvo!';
     ['c-nome','c-codigo','c-pct','c-validade','c-max-usos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    // reinicia data início para hoje
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('c-inicio').value = hoje;
     document.getElementById('c-max-cpf').value='1';
     document.querySelectorAll('.ev-check').forEach(cb=>cb.checked=false);
     loadCupons();
