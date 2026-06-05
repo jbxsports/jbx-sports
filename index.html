@@ -448,6 +448,30 @@
   .ed-pane.ed-empty { color: rgba(255,255,255,0.4); font-style: italic; }
   @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
 
+  /* ── BUSCA DE ATLETA CADASTRADO ── */
+  .busca-atleta { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 16px 18px; margin-bottom: 22px; }
+  .busca-atleta-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .busca-atleta-sub { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; margin-bottom: 12px; }
+  .busca-atleta-row { display: flex; gap: 8px; }
+  .busca-atleta-row input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 14px; color: #fff; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; }
+  .busca-atleta-row input:focus { outline: none; border-color: var(--orange); }
+  .btn-buscar { background: rgba(255,117,31,0.15); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 0 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Ubuntu', sans-serif; white-space: nowrap; transition: all 0.2s; }
+  .btn-buscar:hover { background: var(--orange); color: #fff; }
+  .busca-resultado { font-size: 13px; margin-top: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .busca-resultado:empty { display: none; }
+  .busca-resultado.br-info { color: rgba(255,255,255,0.5); }
+  .busca-resultado.br-erro { color: #ff6b6b; }
+  .busca-resultado.br-ok { color: #22c55e; }
+  .btn-usar { background: var(--orange); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Ubuntu', sans-serif; }
+  .btn-usar:hover { background: var(--orange-dark); }
+  .protegido-card { display: flex; align-items: center; gap: 16px; background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.25); border-radius: 10px; padding: 18px 20px; flex-wrap: wrap; }
+  .protegido-ico { font-size: 24px; }
+  .protegido-nome { font-size: 15px; font-weight: 700; }
+  .protegido-sub { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; margin-top: 2px; }
+  .btn-trocar { margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Ubuntu', sans-serif; }
+  .btn-trocar:hover { border-color: #fff; color: #fff; }
+  @media (max-width: 600px) { .busca-atleta-row { flex-direction: column; } .btn-buscar { padding: 11px; } .btn-trocar { margin-left: 0; } }
+
   /* ── SOBRE ── */
   #sobre { background: #0d0d0d; }
   .sobre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-top: 56px; }
@@ -791,6 +815,20 @@
 
       <!-- ETAPA 3: DADOS -->
       <div class="step-panel" data-panel="3">
+
+      <div class="busca-atleta">
+        <div class="busca-atleta-title">Inscrevendo outra pessoa ou já participou antes?</div>
+        <div class="busca-atleta-sub">Busque pelo nome completo para reaproveitar um cadastro. Por segurança, os dados pessoais ficam protegidos — você só confirma quem selecionou, sem ver as informações.</div>
+        <div class="busca-atleta-row">
+          <input type="text" id="f-busca-nome" placeholder="Nome completo do atleta">
+          <button type="button" class="btn-buscar" onclick="buscarAtleta()">Buscar</button>
+        </div>
+        <div id="busca-resultado" class="busca-resultado"></div>
+      </div>
+
+      <div id="dados-protegidos" style="display:none;"></div>
+
+      <div id="dados-wrap">
       <div class="form-section-title" style="margin-top:0;">Dados pessoais</div>
       <div class="form-row">
         <div class="form-group">
@@ -899,6 +937,7 @@
         </div>
       </div>
 
+      </div><!-- /dados-wrap -->
       </div><!-- /etapa 3 -->
 
       <!-- ETAPA 4: PAGAMENTO -->
@@ -966,6 +1005,8 @@ let currentEvento = "";
 let currentKit = "Kit Starter";  // kit padrão (define o preço)
 let currentPagamento = "Cartão"; // método pré-selecionado por padrão
 let currentStep = 1;
+let currentRef = "";      // referência a um cadastro existente (busca por nome)
+let _achadoAtleta = null; // último resultado da busca
 const TOTAL_STEPS = 4;
 
 function openModal(title, info, price) {
@@ -1000,6 +1041,9 @@ function resetWizard() {
   currentModalidade = 'Corrida 4KM';
 
   atualizarResumo();
+  if (typeof limparAtleta === 'function') limparAtleta();
+  const bn = document.getElementById('f-busca-nome'); if (bn) bn.value = '';
+  const br = document.getElementById('busca-resultado'); if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
   showStep(1);
 }
 function showStep(n) {
@@ -1068,8 +1112,82 @@ function selectPay(el) {
   currentPagamento = el.textContent.trim(); // "Cartão" ou "PIX"
 }
 
+// ── BUSCA DE ATLETA CADASTRADO (segura, por referência) ──
+async function buscarAtleta() {
+  const nome = (document.getElementById('f-busca-nome').value || '').trim();
+  const res = document.getElementById('busca-resultado');
+  res.className = 'busca-resultado';
+  if (nome.length < 4 || !nome.includes(' ')) {
+    res.textContent = 'Digite o nome completo do atleta.';
+    res.classList.add('br-erro');
+    return;
+  }
+  res.textContent = 'Buscando…';
+  res.classList.add('br-info');
+  _achadoAtleta = null;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/buscar_atleta`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_nome: nome })
+    });
+    const arr = await r.json();
+    const achou = Array.isArray(arr) && arr.length ? arr[0] : null;
+    res.className = 'busca-resultado';
+    if (!achou) {
+      res.textContent = 'Nenhum cadastro com esse nome. Pode preencher os dados normalmente.';
+      res.classList.add('br-info');
+      return;
+    }
+    _achadoAtleta = { ref: achou.ref, rotulo: achou.rotulo || nome };
+    res.classList.add('br-ok');
+    res.innerHTML = '';
+    const span = document.createElement('span');
+    span.textContent = '✓ Cadastro encontrado: ';
+    const strong = document.createElement('strong');
+    strong.textContent = _achadoAtleta.rotulo;   // textContent = sem risco de injeção
+    span.appendChild(strong);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-usar';
+    btn.textContent = 'Usar este cadastro';
+    btn.onclick = usarAtleta;
+    res.appendChild(span);
+    res.appendChild(btn);
+  } catch (e) {
+    res.className = 'busca-resultado br-erro';
+    res.textContent = 'Não foi possível buscar agora. Preencha os dados manualmente.';
+  }
+}
+
+function usarAtleta() {
+  if (!_achadoAtleta) return;
+  currentRef = _achadoAtleta.ref;
+  document.getElementById('dados-wrap').style.display = 'none';
+  const card = document.getElementById('dados-protegidos');
+  card.style.display = 'block';
+  card.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.className = 'protegido-card';
+  const ico = document.createElement('div'); ico.className = 'protegido-ico'; ico.textContent = '🔒';
+  const mid = document.createElement('div');
+  const n = document.createElement('div'); n.className = 'protegido-nome'; n.textContent = 'Usando o cadastro de ' + _achadoAtleta.rotulo;
+  const s = document.createElement('div'); s.className = 'protegido-sub'; s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio. Você não tem acesso a eles.';
+  mid.appendChild(n); mid.appendChild(s);
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-trocar'; btn.textContent = 'Trocar / preencher eu mesmo'; btn.onclick = limparAtleta;
+  wrap.appendChild(ico); wrap.appendChild(mid); wrap.appendChild(btn);
+  card.appendChild(wrap);
+  const br = document.getElementById('busca-resultado'); br.innerHTML = ''; br.className = 'busca-resultado';
+}
+
+function limparAtleta() {
+  currentRef = '';
+  const wrap = document.getElementById('dados-wrap'); if (wrap) wrap.style.display = '';
+  const card = document.getElementById('dados-protegidos'); if (card) { card.style.display = 'none'; card.innerHTML = ''; }
+}
+
 // Validação dos campos obrigatórios da etapa 3
 function validarDados() {
+  if (currentRef) return true; // dados vêm do cadastro protegido (servidor)
   const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
   for (const id of obrigatorios) {
     const el = document.getElementById(id);
@@ -1095,6 +1213,7 @@ async function handlePagamento() {
   const val = id => (document.getElementById(id)?.value || '').trim();
   const dados = {
     evento: currentEvento,
+    ref: currentRef,             // se preenchido, o servidor copia os dados pessoais
     kit: currentKit,             // nome do kit escolhido (define o preço)
     modalidade: currentModalidade,
     valor: currentPrice,
