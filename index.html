@@ -636,7 +636,6 @@
             <option value="">Selecione</option>
             <option>Masculino</option>
             <option>Feminino</option>
-            <option>Prefiro não informar</option>
           </select>
         </div>
       </div>
@@ -1027,6 +1026,51 @@ window.addEventListener('scroll', () => {
   document.querySelector('nav').style.borderBottomColor =
     window.scrollY > 40 ? 'rgba(255,117,31,0.3)' : 'rgba(255,117,31,0.15)';
 });
+
+// ── AUTOPREENCHIMENTO DE ENDEREÇO POR CEP (ViaCEP) ──
+(function () {
+  const cepInput = document.getElementById('f-cep');
+  if (!cepInput) return;
+
+  // máscara 00000-000 e busca quando completar 8 dígitos
+  cepInput.addEventListener('input', () => {
+    let v = cepInput.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+    cepInput.value = v;
+    if (v.replace(/\D/g, '').length === 8) buscarEndereco();
+  });
+
+  async function buscarEndereco() {
+    const cep = cepInput.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    const rua    = document.getElementById('f-rua');
+    const bairro = document.getElementById('f-bairro');
+    const cidade = document.getElementById('f-cidade');
+    const estado = document.getElementById('f-estado');
+    const corOriginal = cepInput.style.borderColor;
+    cepInput.style.borderColor = 'var(--orange)'; // feedback "buscando"
+
+    try {
+      const res  = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (data.erro) { // CEP inexistente
+        cepInput.style.borderColor = '#ff4444';
+        setTimeout(() => cepInput.style.borderColor = corOriginal, 2000);
+        return;
+      }
+      if (rua    && data.logradouro) rua.value    = data.logradouro;
+      if (bairro && data.bairro)     bairro.value = data.bairro;
+      if (cidade && data.localidade) cidade.value = data.localidade;
+      if (estado && data.uf)         estado.value = data.uf;
+      cepInput.style.borderColor = corOriginal;
+      const num = document.getElementById('f-num'); // ViaCEP não traz número
+      if (num) num.focus();
+    } catch (e) {
+      cepInput.style.borderColor = corOriginal; // falhou: preenche manual
+    }
+  }
+})();
 </script>
 </body>
 </html>
