@@ -453,6 +453,9 @@
   .ed-mapa-tab { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; }
   .ed-mapa-tab:hover { border-color: var(--orange); color: #fff; }
   .ed-mapa-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .ed-retirada-texto { white-space: pre-wrap; }
+  .btn-termo { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; background: rgba(255,117,31,0.12); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 12px 22px; font-size: 14px; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+  .btn-termo:hover { background: var(--orange); color: #fff; }
   @media (max-width: 768px) { .ed-mapa { aspect-ratio: 4 / 3; } }
   @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
 
@@ -479,6 +482,20 @@
   .btn-trocar { margin-left: auto; background: transparent; border: 1px solid rgba(255,255,255,0.25); color: rgba(255,255,255,0.8); border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Ubuntu', sans-serif; }
   .btn-trocar:hover { border-color: #fff; color: #fff; }
   @media (max-width: 600px) { .busca-atleta-row { flex-direction: column; } .btn-buscar { padding: 11px; } .btn-trocar { margin-left: 0; } }
+
+  /* ── CUPOM DE DESCONTO ── */
+  .cupom-box { margin-bottom: 16px; }
+  .cupom-row { display: flex; gap: 8px; }
+  .cupom-row input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 14px; color: #fff; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; text-transform: uppercase; }
+  .cupom-row input:focus { outline: none; border-color: var(--orange); }
+  .btn-cupom { background: rgba(255,117,31,0.15); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 0 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Ubuntu', sans-serif; white-space: nowrap; transition: all 0.2s; }
+  .btn-cupom:hover { background: var(--orange); color: #fff; }
+  .cupom-msg { font-size: 13px; margin-top: 8px; }
+  .cupom-msg:empty { display: none; }
+  .cupom-msg.cm-info { color: rgba(255,255,255,0.5); }
+  .cupom-msg.cm-ok { color: #22c55e; }
+  .cupom-msg.cm-erro { color: #ff6b6b; }
+  @media (max-width: 600px) { .cupom-row { flex-direction: column; } .btn-cupom { padding: 11px; } }
 
   /* ── SOBRE ── */
   #sobre { background: #0d0d0d; }
@@ -962,9 +979,20 @@
         </div>
       </div>
 
+      <div class="form-section-title">Cupom de desconto</div>
+      <div class="cupom-box">
+        <div class="cupom-row">
+          <input type="text" id="f-cupom" placeholder="Tem um cupom? Digite aqui">
+          <button type="button" class="btn-cupom" onclick="aplicarCupom()">Aplicar</button>
+        </div>
+        <div id="cupom-msg" class="cupom-msg"></div>
+      </div>
+
       <div class="order-summary">
         <div class="order-row"><span>Kit</span><span id="label-kit">Kit Starter</span></div>
         <div class="order-row"><span>Modalidade</span><span id="label-mod">Corrida 4KM</span></div>
+        <div class="order-row"><span>Valor</span><span id="price-base">R$ 99,90</span></div>
+        <div class="order-row" id="row-desconto" style="display:none;"><span id="label-desconto">Desconto</span><span id="price-desconto">- R$ 0,00</span></div>
         <div class="order-row"><span>Total</span><span id="price-total">R$ 99,90</span></div>
       </div>
 
@@ -1015,6 +1043,8 @@ let currentPagamento = "Cartão"; // método pré-selecionado por padrão
 let currentStep = 1;
 let currentRef = "";      // referência a um cadastro existente (busca por nome)
 let _achadoAtleta = null; // último resultado da busca
+let currentCupom = "";    // código do cupom aplicado
+let currentCupomPct = 0;  // percentual do cupom aplicado
 const TOTAL_STEPS = 4;
 
 function openModal(title, info, price) {
@@ -1050,9 +1080,49 @@ function resetWizard() {
 
   atualizarResumo();
   if (typeof limparAtleta === 'function') limparAtleta();
+  currentCupom = ''; currentCupomPct = 0;
+  const fc = document.getElementById('f-cupom'); if (fc) fc.value = '';
+  const cm = document.getElementById('cupom-msg'); if (cm) { cm.textContent = ''; cm.className = 'cupom-msg'; }
   const bn = document.getElementById('f-busca-nome'); if (bn) bn.value = '';
   const br = document.getElementById('busca-resultado'); if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
   showStep(1);
+}
+
+// ── CUPOM DE DESCONTO ──
+async function aplicarCupom() {
+  const code = (document.getElementById('f-cupom').value || '').trim();
+  const msg = document.getElementById('cupom-msg');
+  msg.className = 'cupom-msg';
+  if (!code) {
+    currentCupom = ''; currentCupomPct = 0;
+    msg.textContent = ''; atualizarResumo();
+    return;
+  }
+  msg.textContent = 'Validando…'; msg.classList.add('cm-info');
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/validar_cupom`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_codigo: code })
+    });
+    const arr = await r.json();
+    const ok = Array.isArray(arr) && arr.length && arr[0].valido;
+    msg.className = 'cupom-msg';
+    if (ok) {
+      currentCupom = code.toUpperCase();
+      currentCupomPct = arr[0].percentual;
+      msg.textContent = `Cupom aplicado: ${currentCupomPct}% de desconto.`;
+      msg.classList.add('cm-ok');
+    } else {
+      currentCupom = ''; currentCupomPct = 0;
+      msg.textContent = 'Cupom inválido ou expirado.';
+      msg.classList.add('cm-erro');
+    }
+    atualizarResumo();
+  } catch (e) {
+    msg.className = 'cupom-msg cm-erro';
+    msg.textContent = 'Não foi possível validar o cupom agora.';
+  }
 }
 function showStep(n) {
   currentStep = n;
@@ -1069,20 +1139,66 @@ function showStep(n) {
   if (next) next.style.display = (n === TOTAL_STEPS) ? 'none' : 'block';
   const body = document.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
+  if (n === TOTAL_STEPS) atualizarResumo(); // reflete 60+/cupom no resumo
 }
 function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
 function nextStep() {
   if (currentStep === 3 && !validarDados()) return; // valida dados antes do pagamento
   if (currentStep < TOTAL_STEPS) showStep(currentStep + 1);
 }
+// idade a partir da data de nascimento (yyyy-mm-dd)
+function idadeDe(nascStr) {
+  if (!nascStr) return null;
+  const d = new Date(nascStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return null;
+  const hoje = new Date();
+  let i = hoje.getFullYear() - d.getFullYear();
+  const m = hoje.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < d.getDate())) i--;
+  return i;
+}
+
+// desconto vigente (não acumulativo: o maior entre 60+ e cupom)
+function descontoAtual() {
+  let pct60 = 0;
+  if (!currentRef) { // sem referência conseguimos ler a data de nascimento
+    const idade = idadeDe(document.getElementById('f-nasc') && document.getElementById('f-nasc').value);
+    if (idade !== null && idade >= 60) pct60 = 50;
+  }
+  const pctCup = currentCupomPct || 0;
+  if (pct60 > 0 && pct60 >= pctCup) return { pct: pct60, motivo: 'Desconto 60+ (50%)' };
+  if (pctCup > 0) return { pct: pctCup, motivo: 'Cupom ' + currentCupom + ' (' + pctCup + '%)' };
+  return { pct: 0, motivo: '' };
+}
+
 function atualizarResumo() {
   const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
   const elKit = document.getElementById('label-kit');
   const elMod = document.getElementById('label-mod');
+  const elBase = document.getElementById('price-base');
   const elTotal = document.getElementById('price-total');
+  const rowDesc = document.getElementById('row-desconto');
+  const lblDesc = document.getElementById('label-desconto');
+  const elDesc = document.getElementById('price-desconto');
   if (elKit) elKit.textContent = currentKit;
   if (elMod) elMod.textContent = currentModalidade;
-  if (elTotal) elTotal.textContent = fmt(currentPrice);
+
+  const base = Number(currentPrice);
+  const d = descontoAtual();
+  const valorDesc = base * (d.pct / 100);
+  const total = base - valorDesc;
+
+  if (elBase) elBase.textContent = fmt(base);
+  if (rowDesc) {
+    if (d.pct > 0) {
+      rowDesc.style.display = '';
+      if (lblDesc) lblDesc.textContent = d.motivo;
+      if (elDesc) elDesc.textContent = '- ' + fmt(valorDesc);
+    } else {
+      rowDesc.style.display = 'none';
+    }
+  }
+  if (elTotal) elTotal.textContent = fmt(total);
 }
 
 // Imagem do kit: tenta nomes alternativos antes de mostrar o placeholder
@@ -1222,9 +1338,10 @@ async function handlePagamento() {
   const dados = {
     evento: currentEvento,
     ref: currentRef,             // se preenchido, o servidor copia os dados pessoais
+    cupom: currentCupom,         // o servidor valida e aplica (ou ignora se inválido)
     kit: currentKit,             // nome do kit escolhido (define o preço)
     modalidade: currentModalidade,
-    valor: currentPrice,
+    valor: currentPrice,         // preço BASE; desconto (60+/cupom) é aplicado no servidor
     nome: val('f-nome'),
     cpf: val('f-cpf'),
     nascimento: val('f-nasc'),
@@ -1480,7 +1597,6 @@ function renderEventoBase(ev, bannerUrl) {
 function preencherConteudo(det, loading) {
   const campos = [
     ['ed-info', 'descricao', 'Informações do evento em breve.'],
-    ['ed-retirada', 'retirada_kit', 'Informações de retirada de kit em breve.'],
     ['ed-regulamento', 'regulamento', 'Regulamento em breve.']
   ];
   campos.forEach(([elId, key, vazio]) => {
@@ -1497,6 +1613,40 @@ function preencherConteudo(det, loading) {
     if (loading) { pc.innerHTML = ''; pc.textContent = 'Carregando…'; pc.classList.add('ed-empty'); }
     else montarPercurso(det || {});
   }
+  // Retirada de kit: texto + botão do termo (PDF)
+  const rk = document.getElementById('ed-retirada');
+  if (rk) {
+    if (loading) { rk.innerHTML = ''; rk.textContent = 'Carregando…'; rk.classList.add('ed-empty'); }
+    else montarRetirada(det || {});
+  }
+}
+
+// Link do termo (PDF) hospedado no repositório
+const TERMO_URL = 'https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/termo-retirada-terceiros.pdf';
+function montarRetirada(det) {
+  const el = document.getElementById('ed-retirada');
+  el.innerHTML = '';
+  el.classList.remove('ed-empty');
+  const txt = det && det.retirada_kit ? String(det.retirada_kit).trim() : '';
+  if (txt) {
+    const p = document.createElement('div');
+    p.className = 'ed-retirada-texto';
+    p.textContent = txt;
+    el.appendChild(p);
+  } else {
+    const p = document.createElement('div');
+    p.textContent = 'Informações de retirada de kit em breve.';
+    el.appendChild(p);
+    el.classList.add('ed-empty');
+  }
+  const a = document.createElement('a');
+  a.className = 'btn-termo';
+  a.href = TERMO_URL;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.setAttribute('download', '');
+  a.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> TERMO DE RETIRADA PARA TERCEIROS';
+  el.appendChild(a);
 }
 
 // Extrai a URL limpa do mapa de qualquer coisa colada:
@@ -1527,7 +1677,6 @@ function parseMapas(raw) {
     const u = extrairUrlMapa(s);
     if (u) lista = [{ rotulo: '', url: u }];
   }
-  // mantém só URLs válidas de mapa do Google
   return lista.filter(m => /^https:\/\/(www\.)?google\.com\/maps\//.test(m.url) || /^https:\/\/maps\.google\.com\//.test(m.url));
 }
 
@@ -1539,7 +1688,6 @@ function montarPercurso(det) {
   let texto = det && det.percurso ? String(det.percurso).trim() : '';
 
   let mapas = parseMapas(mapaRaw);
-  // tolera link/lista colado no campo de texto por engano
   if (!mapas.length && /google\.com\/maps\//.test(texto)) {
     mapas = parseMapas(texto);
     if (mapas.length) texto = '';
