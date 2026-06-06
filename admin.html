@@ -164,6 +164,27 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-primary-sm{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-ghost-sm{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 
+/* FINANCEIRO */
+.fin-section-title{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin:28px 0 14px;display:flex;align-items:center;gap:10px;}
+.fin-section-title::after{content:'';flex:1;height:1px;background:rgba(255,117,31,.15);}
+.contas-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px;}
+.conta-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;}
+.conta-card .cc-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.conta-card .cc-nome{font-size:15px;font-weight:700;margin-bottom:8px;}
+.conta-card .cc-val{font-size:30px;font-weight:700;line-height:1;}
+.tag-pendente{background:rgba(255,200,0,.12);color:#ffd000;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.tag-pago{background:rgba(34,197,94,.12);color:#22c55e;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
+.fin-ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;}
+.fin-ev-card:hover{border-color:rgba(255,117,31,.4);}
+.fin-ev-card-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
+.fin-ev-card-body{padding:16px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.fin-stat .fl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.fin-stat .fv{font-size:16px;font-weight:700;margin-top:2px;}
+.btn-pagar-ok{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
+.btn-pagar-ok:hover{background:rgba(34,197,94,.2);}
+.fin-ev-grid{display:flex;flex-direction:column;gap:12px;}
+@media(max-width:600px){.contas-row{grid-template-columns:1fr;}.fin-ev-card-body{grid-template-columns:1fr 1fr;}}
+
 @media(max-width:900px){.two-col,.ev-form-grid{grid-template-columns:1fr;}.charts-grid{grid-template-columns:1fr;}.admin-content{padding:16px;}}
 @media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}.form-row2,.form-row3{grid-template-columns:1fr;}}
 </style>
@@ -188,6 +209,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <nav class="admin-nav">
         <button class="nav-btn active" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
+        <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
       </nav>
       <button class="admin-logout" onclick="doLogout()">Sair</button>
     </header>
@@ -413,6 +435,149 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
       </div>
 
+      <!-- TELA: CONTROLE FINANCEIRO -->
+      <div class="inner-screen" id="screen-financeiro">
+        <div class="page-hd"><h1>Controle Financeiro</h1></div>
+
+        <!-- Stats globais -->
+        <div class="stats-row">
+          <div class="stat-card"><div class="sc-label">Receitas Inscrições</div><div class="sc-val orange" id="fin-rec-insc">—</div></div>
+          <div class="stat-card"><div class="sc-label">Patrocínios &amp; Extras</div><div class="sc-val" style="color:#22c55e" id="fin-rec-ext">—</div></div>
+          <div class="stat-card"><div class="sc-label">Total Despesas</div><div class="sc-val" style="color:#ff6b6b" id="fin-desp-tot">—</div></div>
+          <div class="stat-card"><div class="sc-label">Resultado Geral</div><div class="sc-val" id="fin-resultado">—</div></div>
+          <div class="stat-card"><div class="sc-label">A pagar (30 dias)</div><div class="sc-val orange" id="fin-pend-30">—</div></div>
+        </div>
+
+        <!-- Saldo por conta -->
+        <div class="contas-row">
+          <div class="conta-card">
+            <div class="cc-label">Resultado</div>
+            <div class="cc-nome">🏦 JBX Sports</div>
+            <div class="cc-val" id="fin-saldo-jbx">—</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;">Extras recebidos − Despesas pagas</div>
+          </div>
+          <div class="conta-card">
+            <div class="cc-label">Resultado</div>
+            <div class="cc-nome">🏦 Mind</div>
+            <div class="cc-val" id="fin-saldo-mind">—</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:6px;">Extras recebidos − Despesas pagas</div>
+          </div>
+        </div>
+
+        <!-- 7 dias -->
+        <div class="fin-section-title">⚠ Contas a pagar — próximos 7 dias</div>
+        <div id="fin-7dias"><div class="empty-state">Carregando…</div></div>
+
+        <!-- Formulários de lançamento -->
+        <div class="fin-section-title">Lançamentos</div>
+        <div class="two-col">
+          <div class="panel">
+            <h2>+ Despesa</h2>
+            <div class="form-g"><label>Descrição *</label><input id="gd-descricao" placeholder="Ex: Medalhas, cronometragem…"></div>
+            <div class="form-row2">
+              <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="gd-valor" type="number" step="0.01" placeholder="0,00"></div>
+              <div class="form-g" style="margin:0"><label>Vencimento *</label><input id="gd-data" type="date"></div>
+            </div>
+            <div class="form-g"><label>Evento / Origem</label>
+              <select id="gd-evento"><option value="">Escritório</option></select>
+            </div>
+            <div class="form-row2">
+              <div class="form-g" style="margin:0"><label>Tipo</label>
+                <select id="gd-tipo"><option>pix</option><option>boleto</option><option>cartao</option></select>
+              </div>
+              <div class="form-g" style="margin:0"><label>Conta</label>
+                <select id="gd-conta"><option>JBX Sports</option><option>Mind</option></select>
+              </div>
+            </div>
+            <button class="btn-save" onclick="salvarDespesaGlobal()">Salvar Despesa</button>
+            <div class="form-feedback" id="gd-feedback"></div>
+          </div>
+          <div class="panel">
+            <h2>+ Receita Extra</h2>
+            <div class="form-g"><label>Tipo</label>
+              <select id="gr-tipo"><option value="patrocinio">Patrocínio</option><option value="produto">Venda de produto</option><option value="outro">Outro</option></select>
+            </div>
+            <div class="form-g"><label>Descrição *</label><input id="gr-descricao" placeholder="Ex: Patrocínio Empresa X"></div>
+            <div class="form-row2">
+              <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="gr-valor" type="number" step="0.01" placeholder="0,00"></div>
+              <div class="form-g" style="margin:0"><label>Data *</label><input id="gr-data" type="date"></div>
+            </div>
+            <div class="form-g"><label>Evento vinculado</label>
+              <select id="gr-evento"><option value="">Geral</option></select>
+            </div>
+            <div class="form-g"><label>Conta</label>
+              <select id="gr-conta"><option>JBX Sports</option><option>Mind</option></select>
+            </div>
+            <button class="btn-save" onclick="salvarReceitaGlobal()">Salvar Receita</button>
+            <div class="form-feedback" id="gr-feedback"></div>
+          </div>
+        </div>
+
+        <!-- Por evento -->
+        <div class="fin-section-title">Por evento</div>
+        <div class="fin-ev-grid" id="fin-ev-grid"><div class="empty-state">Carregando…</div></div>
+      </div>
+
+      <!-- TELA: DETALHE FINANCEIRO DO EVENTO -->
+      <div class="inner-screen" id="screen-fin-evento">
+        <div class="page-hd">
+          <button class="back-btn" onclick="showInner('financeiro')">← Financeiro</button>
+          <h1 id="fin-ev-nome">Evento</h1>
+        </div>
+        <div class="stats-row" id="fin-ev-stats"></div>
+
+        <div class="two-col">
+          <!-- Receitas extras do evento -->
+          <div>
+            <div class="fin-section-title">Receitas Extras</div>
+            <div class="table-wrap" style="margin-bottom:16px;"><div id="fin-ev-receitas"></div></div>
+            <div class="panel">
+              <h3 style="margin-bottom:14px;">+ Receita Extra</h3>
+              <div class="form-g"><label>Tipo</label>
+                <select id="fr-tipo"><option value="patrocinio">Patrocínio</option><option value="produto">Venda de produto</option><option value="outro">Outro</option></select>
+              </div>
+              <div class="form-g"><label>Descrição *</label><input id="fr-descricao" placeholder="Ex: Patrocínio Empresa X"></div>
+              <div class="form-row2">
+                <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="fr-valor" type="number" step="0.01"></div>
+                <div class="form-g" style="margin:0"><label>Data *</label><input id="fr-data" type="date"></div>
+              </div>
+              <div class="form-g"><label>Conta</label>
+                <select id="fr-conta"><option>JBX Sports</option><option>Mind</option></select>
+              </div>
+              <button class="btn-save" onclick="salvarReceita()">Salvar Receita</button>
+              <div class="form-feedback" id="fr-feedback"></div>
+            </div>
+          </div>
+
+          <!-- Despesas do evento -->
+          <div>
+            <div class="fin-section-title">Despesas</div>
+            <div class="table-wrap" style="margin-bottom:16px;"><div id="fin-ev-despesas"></div></div>
+            <div class="panel">
+              <h3 style="margin-bottom:14px;">+ Despesa</h3>
+              <div class="form-g"><label>Descrição *</label><input id="fd-descricao" placeholder="Ex: Medalhas, cronometragem…"></div>
+              <div class="form-row2">
+                <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="fd-valor" type="number" step="0.01"></div>
+                <div class="form-g" style="margin:0"><label>Vencimento *</label><input id="fd-data" type="date"></div>
+              </div>
+              <div class="form-row2">
+                <div class="form-g" style="margin:0"><label>Tipo</label>
+                  <select id="fd-tipo"><option>pix</option><option>boleto</option><option>cartao</option></select>
+                </div>
+                <div class="form-g" style="margin:0"><label>Conta</label>
+                  <select id="fd-conta"><option>JBX Sports</option><option>Mind</option></select>
+                </div>
+              </div>
+              <div class="form-g"><label>Status</label>
+                <select id="fd-status"><option value="pendente">Pendente</option><option value="pago">Pago</option></select>
+              </div>
+              <button class="btn-save" onclick="salvarDespesa()">Salvar Despesa</button>
+              <div class="form-feedback" id="fd-feedback"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -486,6 +651,8 @@ function showInner(name){
   const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
+  if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
+  if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
 }
 
 /* ── DASHBOARD ── */
@@ -892,6 +1059,225 @@ async function salvarCupom(){
     document.querySelectorAll('.ev-check').forEach(cb=>cb.checked=false);loadCupons();
   }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
+
+/* ══════════════════════════════════════════════════
+   CONTROLE FINANCEIRO
+   ══════════════════════════════════════════════════ */
+let finCurrentEvento = null;
+
+async function loadFinanceiro() {
+  const hoje = new Date().toISOString().split('T')[0];
+  ['gd-data','gr-data'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=hoje;});
+  try {
+    const [resumo, dias7, eventos, evLista] = await Promise.all([
+      rpc('fin_resumo_geral'), rpc('fin_contas_pagar_7dias'),
+      rpc('fin_lista_eventos_fin'), rpc('admin_lista_eventos')
+    ]);
+    renderFinGlobal(resumo||{});
+    render7Dias(dias7||[]);
+    renderFinEventos(eventos||[]);
+    preencherSeletorEventos(evLista||[]);
+  } catch(e){ console.error(e); }
+}
+
+function renderFinGlobal(r) {
+  const recTotal = Number(r.receitas_inscricoes||0) + Number(r.receitas_extras||0);
+  const despTotal = Number(r.despesas_total||0);
+  const resultado = recTotal - despTotal;
+  const saldoJBX = Number(r.receitas_extras_jbx||0) - Number(r.despesas_jbx||0);
+  const saldoMind = Number(r.receitas_extras_mind||0) - Number(r.despesas_mind||0);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  const setColor=(id,v)=>{const el=document.getElementById(id);if(el)el.style.color=v>=0?'#22c55e':'#ff6b6b';};
+  set('fin-rec-insc',brl(r.receitas_inscricoes));
+  set('fin-rec-ext',brl(r.receitas_extras));
+  set('fin-desp-tot',brl(r.despesas_total));
+  set('fin-resultado',brl(resultado)); setColor('fin-resultado',resultado);
+  set('fin-pend-30',brl(r.despesas_pendentes_30d));
+  set('fin-saldo-jbx',brl(saldoJBX)); setColor('fin-saldo-jbx',saldoJBX);
+  set('fin-saldo-mind',brl(saldoMind)); setColor('fin-saldo-mind',saldoMind);
+}
+
+function render7Dias(arr) {
+  const el=document.getElementById('fin-7dias');
+  if(!arr.length){el.innerHTML='<div class="empty-state" style="padding:16px;background:var(--card);border-radius:12px;border:1px solid var(--border);">✅ Nenhum vencimento nos próximos 7 dias.</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table class="data-table">
+    <thead><tr><th>Vencimento</th><th>Origem</th><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Conta</th><th></th></tr></thead>
+    <tbody>${arr.map(d=>{
+      const venc=new Date(d.data_pagamento+'T12:00:00');
+      const diff=Math.round((venc-new Date())/(1000*60*60*24));
+      const cor=diff<=0?'#ff6b6b':diff<=2?'#ffd000':'var(--orange)';
+      return `<tr>
+        <td style="font-weight:700;color:${cor};">${fmtDS(d.data_pagamento)}</td>
+        <td style="font-size:12px;color:var(--muted);">${d.evento_nome}</td>
+        <td>${d.descricao}</td>
+        <td style="font-weight:700;">${brl(d.valor)}</td>
+        <td style="font-size:12px;">${d.tipo_pagamento||'—'}</td>
+        <td style="font-size:12px;">${d.conta_bancaria||'—'}</td>
+        <td><button class="btn-pagar-ok" onclick="finMarcarPago('${d.id}')">✓ Pago</button></td>
+      </tr>`;}).join('')}
+    </tbody></table></div>`;
+}
+
+function renderFinEventos(evs) {
+  const el=document.getElementById('fin-ev-grid');
+  if(!evs.length){el.innerHTML='<div class="empty-state">Nenhum evento.</div>';return;}
+  el.innerHTML=evs.map(e=>{
+    const recTotal=Number(e.inscricoes_valor||0)+Number(e.receitas_extras||0);
+    const res=recTotal-Number(e.despesas||0);
+    return `<div class="fin-ev-card" onclick="abrirFinEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}')">
+      <div class="fin-ev-card-header">
+        <div>
+          <div style="font-weight:700;font-size:15px;">${e.nome}</div>
+          <div style="font-size:12px;color:var(--muted);">${e.data?fmtDS(e.data):''}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--muted);">Resultado</div>
+          <div style="font-size:22px;font-weight:700;color:${res>=0?'#22c55e':'#ff6b6b'};">${brl(res)}</div>
+        </div>
+      </div>
+      <div class="fin-ev-card-body">
+        <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(e.inscricoes_valor)}</div></div>
+        <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(e.receitas_extras)}</div></div>
+        <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(e.despesas)}</div></div>
+        <div class="fin-stat"><div class="fl">Ver detalhes</div><div class="fv" style="color:var(--muted);font-size:20px;">→</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function preencherSeletorEventos(evs) {
+  ['gd-evento','gr-evento'].forEach(selId=>{
+    const sel=document.getElementById(selId);
+    if(!sel)return;
+    const def=sel.options[0].cloneNode(true);
+    sel.innerHTML=''; sel.appendChild(def);
+    evs.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent=e.nome;sel.appendChild(o);});
+  });
+}
+
+async function abrirFinEvento(id, nome) {
+  finCurrentEvento={id,nome};
+  document.getElementById('fin-ev-nome').textContent=nome;
+  showInner('fin-evento');
+  document.getElementById('nav-financeiro').classList.add('active');
+  const hoje=new Date().toISOString().split('T')[0];
+  ['fr-data','fd-data'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=hoje;});
+  await loadFinEvento();
+}
+
+async function loadFinEvento() {
+  if(!finCurrentEvento)return;
+  try {
+    const [resumo,receitas,despesas]=await Promise.all([
+      rpc('fin_resumo_evento',{p_evento_id:finCurrentEvento.id}),
+      rpc('fin_listar_receitas',{p_evento_id:finCurrentEvento.id}),
+      rpc('fin_listar_despesas',{p_evento_id:finCurrentEvento.id})
+    ]);
+    const recTotal=Number(resumo.receitas_inscricoes||0)+Number(resumo.receitas_extras||0);
+    const res=recTotal-Number(resumo.despesas||0);
+    document.getElementById('fin-ev-stats').innerHTML=`
+      <div class="stat-card"><div class="sc-label">Receitas Inscrições</div><div class="sc-val orange">${brl(resumo.receitas_inscricoes)}</div></div>
+      <div class="stat-card"><div class="sc-label">Receitas Extras</div><div class="sc-val" style="color:#22c55e">${brl(resumo.receitas_extras)}</div></div>
+      <div class="stat-card"><div class="sc-label">Despesas</div><div class="sc-val" style="color:#ff6b6b">${brl(resumo.despesas)}</div></div>
+      <div class="stat-card"><div class="sc-label">Resultado</div><div class="sc-val" style="color:${res>=0?'#22c55e':'#ff6b6b'}">${brl(res)}</div></div>`;
+    renderFinReceitas(receitas||[]);
+    renderFinDespesas(despesas||[]);
+  }catch(e){console.error(e);}
+}
+
+function renderFinReceitas(arr) {
+  const el=document.getElementById('fin-ev-receitas');
+  if(!arr.length){el.innerHTML='<div class="empty-state" style="padding:16px;">Nenhuma receita extra lançada.</div>';return;}
+  el.innerHTML=`<table class="data-table">
+    <thead><tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Conta</th><th></th></tr></thead>
+    <tbody>${arr.map(r=>`<tr>
+      <td style="font-size:12px;color:var(--muted);">${fmtDS(r.data)}</td>
+      <td><span class="tag-pago">${r.tipo}</span></td>
+      <td>${r.descricao}</td>
+      <td style="color:#22c55e;font-weight:700;">${brl(r.valor)}</td>
+      <td style="font-size:12px;">${r.conta_bancaria}</td>
+      <td><button class="edit-btn" onclick="finDeletarReceita('${r.id}')">🗑</button></td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+function renderFinDespesas(arr) {
+  const el=document.getElementById('fin-ev-despesas');
+  if(!arr.length){el.innerHTML='<div class="empty-state" style="padding:16px;">Nenhuma despesa lançada.</div>';return;}
+  el.innerHTML=`<table class="data-table">
+    <thead><tr><th>Vencimento</th><th>Descrição</th><th>Valor</th><th>Tipo</th><th>Conta</th><th>Status</th><th></th></tr></thead>
+    <tbody>${arr.map(d=>`<tr>
+      <td style="font-size:12px;">${fmtDS(d.data_pagamento)}</td>
+      <td>${d.descricao}</td>
+      <td style="color:#ff6b6b;font-weight:700;">${brl(d.valor)}</td>
+      <td style="font-size:12px;">${d.tipo_pagamento||'—'}</td>
+      <td style="font-size:12px;">${d.conta_bancaria}</td>
+      <td><span class="${d.status==='pago'?'tag-pago':'tag-pendente'}">${d.status}</span></td>
+      <td style="display:flex;gap:4px;">
+        ${d.status!=='pago'?`<button class="btn-pagar-ok" onclick="finMarcarPagoEv('${d.id}')">✓</button>`:''}
+        <button class="edit-btn" onclick="finDeletarDespesa('${d.id}')">🗑</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+}
+
+// Salvar a partir do detalhe do evento
+async function salvarReceita() {
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('fr-descricao')||!get('fr-valor')||!get('fr-data')){alert('Preencha descrição, valor e data.');return;}
+  const dados={id:'',evento_id:finCurrentEvento.id,tipo:get('fr-tipo'),descricao:get('fr-descricao'),valor:get('fr-valor'),data:get('fr-data'),conta_bancaria:get('fr-conta')};
+  const fb=document.getElementById('fr-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('fin_salvar_receita',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Receita salva!';
+    ['fr-descricao','fr-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    await loadFinEvento();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+
+async function salvarDespesa() {
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('fd-descricao')||!get('fd-valor')||!get('fd-data')){alert('Preencha descrição, valor e data.');return;}
+  const dados={id:'',evento_id:finCurrentEvento.id,descricao:get('fd-descricao'),valor:get('fd-valor'),data_pagamento:get('fd-data'),tipo_pagamento:get('fd-tipo'),conta_bancaria:get('fd-conta'),status:get('fd-status')};
+  const fb=document.getElementById('fd-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('fin_salvar_despesa',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Despesa salva!';
+    ['fd-descricao','fd-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    await loadFinEvento();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+
+// Salvar a partir da tela global
+async function salvarDespesaGlobal() {
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('gd-descricao')||!get('gd-valor')||!get('gd-data')){alert('Preencha os campos obrigatórios.');return;}
+  const dados={id:'',evento_id:get('gd-evento')||'',descricao:get('gd-descricao'),valor:get('gd-valor'),data_pagamento:get('gd-data'),tipo_pagamento:get('gd-tipo'),conta_bancaria:get('gd-conta'),status:'pendente'};
+  const fb=document.getElementById('gd-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('fin_salvar_despesa',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Despesa salva!';
+    ['gd-descricao','gd-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    await loadFinanceiro();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+
+async function salvarReceitaGlobal() {
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('gr-descricao')||!get('gr-valor')||!get('gr-data')){alert('Preencha os campos obrigatórios.');return;}
+  const dados={id:'',evento_id:get('gr-evento')||'',tipo:get('gr-tipo'),descricao:get('gr-descricao'),valor:get('gr-valor'),data:get('gr-data'),conta_bancaria:get('gr-conta')};
+  const fb=document.getElementById('gr-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('fin_salvar_receita',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Receita salva!';
+    ['gr-descricao','gr-valor'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    await loadFinanceiro();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+
+// Deletar e marcar pago
+async function finDeletarReceita(id){if(!confirm('Remover esta receita?'))return;try{await rpc('fin_deletar_receita',{p_id:id});await loadFinEvento();}catch(e){alert('Erro.');}}
+async function finDeletarDespesa(id){if(!confirm('Remover esta despesa?'))return;try{await rpc('fin_deletar_despesa',{p_id:id});await loadFinEvento();}catch(e){alert('Erro.');}}
+async function finMarcarPago(id){try{await rpc('fin_marcar_pago',{p_id:id,p_status:'pago'});await loadFinanceiro();}catch(e){alert('Erro.');}}
+async function finMarcarPagoEv(id){try{await rpc('fin_marcar_pago',{p_id:id,p_status:'pago'});await loadFinEvento();}catch(e){alert('Erro.');}}
 
 /* ── INIT ── */
 if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();
