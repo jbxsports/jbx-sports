@@ -144,8 +144,14 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .lote-preco-item .qtd-v{font-size:11px;color:var(--muted);margin-top:1px;}
 .kit-preco-inputs{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
 .kit-preco-inputs .kit-label{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px;}
-/* DIVIDER */
-.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+/* UPLOAD DE IMAGEM */
+.kit-upload-area{width:100%;height:160px;border:2px dashed rgba(255,255,255,.12);border-radius:8px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.03);transition:border-color .2s;}
+.kit-upload-area:hover{border-color:var(--orange);}
+.kit-upload-area img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.kit-upload-ph{display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:12px;text-align:center;pointer-events:none;}
+.btn-upload{background:rgba(255,255,255,.07);color:var(--text);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
+.btn-upload:hover{border-color:var(--orange);color:var(--orange);}
+.upload-row{display:flex;gap:8px;align-items:center;margin-top:8px;}
 /* DRAWER */
 .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);display:none;align-items:flex-end;}
 .drawer-overlay.open{display:flex;}
@@ -362,9 +368,22 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <input type="hidden" id="nkit-id">
             <div class="form-g"><label>Nome do kit *</label><input id="nkit-nome" placeholder="Ex: Kit Starter"></div>
             <div class="form-g"><label>Descrição</label><input id="nkit-desc" placeholder="O que inclui este kit…"></div>
-            <div class="form-g"><label>URL da foto</label>
-              <input id="nkit-foto" placeholder="https://...">
-              <p class="hint">Link direto da imagem (raw do GitHub, etc).</p>
+            <div class="form-g">
+              <label>Foto do kit</label>
+              <div class="kit-upload-area" id="kit-upload-area" onclick="document.getElementById('nkit-foto-file').click()" style="cursor:pointer;" title="Clique para escolher uma foto">
+                <img id="kit-foto-preview" src="" style="display:none;">
+                <div class="kit-upload-ph" id="kit-upload-ph">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  Clique para escolher uma foto
+                </div>
+              </div>
+              <input type="file" id="nkit-foto-file" accept="image/*" style="display:none;" onchange="uploadKitFoto(this)">
+              <div class="upload-row">
+                <button type="button" class="btn-upload" onclick="document.getElementById('nkit-foto-file').click()">📁 Escolher foto</button>
+                <span id="kit-upload-status" style="font-size:12px;color:var(--muted);"></span>
+              </div>
+              <input id="nkit-foto" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewKitFoto(this.value)">
+              <p class="hint">⚠ Antes do primeiro upload, crie o bucket <strong>imagens</strong> no Supabase Storage (Storage → New bucket → nome: imagens → Public).</p>
             </div>
             <div class="form-g"><label>Ordem de exibição</label><input id="nkit-ordem" type="number" value="0" min="0"></div>
             <button class="btn-save" id="kit-save-btn" onclick="salvarKit()">Adicionar Kit</button>
@@ -632,12 +651,57 @@ function editarLote(l){
   });
   document.getElementById('nlote-nome').scrollIntoView({behavior:'smooth',block:'center'});
 }
+const STORAGE_BUCKET = 'imagens';
+
+function previewKitFoto(url) {
+  const preview = document.getElementById('kit-foto-preview');
+  const ph = document.getElementById('kit-upload-ph');
+  if (!preview || !ph) return;
+  if (url && url.trim()) {
+    preview.src = url.trim();
+    preview.style.display = 'block';
+    ph.style.display = 'none';
+    preview.onerror = () => { preview.style.display = 'none'; ph.style.display = 'flex'; };
+  } else {
+    preview.style.display = 'none';
+    preview.src = '';
+    ph.style.display = 'flex';
+  }
+}
+
+async function uploadKitFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const status = document.getElementById('kit-upload-status');
+  status.textContent = 'Enviando…'; status.style.color = 'var(--muted)';
+  const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+  const nome = `kit_${Date.now()}.${ext}`;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) { const e = await r.text(); throw new Error(e); }
+    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('nkit-foto').value = url;
+    previewKitFoto(url);
+    status.textContent = '✓ Foto enviada!'; status.style.color = '#22c55e';
+  } catch(e) {
+    status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
+    console.error(e);
+  }
+}
+
 function editarKit(k){
   document.getElementById('nkit-id').value=k.id;
   document.getElementById('nkit-nome').value=k.nome||'';
   document.getElementById('nkit-desc').value=k.descricao||'';
   document.getElementById('nkit-foto').value=k.foto_url||'';
   document.getElementById('nkit-ordem').value=k.ordem||'0';
+  previewKitFoto(k.foto_url||'');
+  document.getElementById('kit-upload-status').textContent='';
   document.getElementById('kit-form-titulo').textContent='Editar Kit';
   document.getElementById('kit-save-btn').textContent='Salvar alterações';
   document.getElementById('kit-cancel-btn').style.display='';
@@ -648,6 +712,8 @@ function cancelarEdicaoKit(){
   document.getElementById('nkit-id').value='';
   ['nkit-nome','nkit-desc','nkit-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nkit-ordem').value='0';
+  previewKitFoto('');
+  document.getElementById('kit-upload-status').textContent='';
   document.getElementById('kit-form-titulo').textContent='Adicionar Kit';
   document.getElementById('kit-save-btn').textContent='Adicionar Kit';
   document.getElementById('kit-cancel-btn').style.display='none';
@@ -663,6 +729,7 @@ async function salvarKit(){
     await rpc('admin_salvar_kit',{dados});
     fb.className='form-feedback ok';fb.textContent=editando?'✓ Kit atualizado!':'✓ Kit adicionado!';
     cancelarEdicaoKit();
+    const fi=document.getElementById('nkit-foto-file');if(fi)fi.value='';
     loadKitsLotes();
   }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
