@@ -363,6 +363,9 @@
   @keyframes fadeStep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
   .kit-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lote-badge { display: none; align-items: center; gap: 8px; background: rgba(255,117,31,0.12); border: 1px solid rgba(255,117,31,0.3); color: var(--orange); padding: 6px 16px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; width: fit-content; }
+  .lote-badge.show { display: inline-flex; }
+  .lote-badge::before { content: '🏷'; margin-right: 2px; }
   .kit-option {
     border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px;
     cursor: pointer; transition: all 0.2s;
@@ -652,7 +655,7 @@
     <div class="timer-unit"><span class="timer-num" id="t-min">37</span><div class="timer-label">min</div></div>
     <div class="timer-unit"><span class="timer-num" id="t-sec">00</span><div class="timer-label">seg</div></div>
   </div>
-  <a href="#" class="countdown-cta" onclick="openModal('Night Run Ribeirão Preto','27 Set 2026 – 20h00','A partir de R$ 89'); return false;">Inscreva-se agora</a>
+  <a href="#" class="countdown-cta" onclick="abrirProximoEvento(); return false;">Inscreva-se agora</a>
 </div>
 
 <!-- EVENTOS -->
@@ -810,27 +813,23 @@
 
       <!-- ETAPA 1: KIT -->
       <div class="step-panel active" data-panel="1">
+        <div id="lote-badge" class="lote-badge"></div>
         <div class="form-section-title">Escolha seu kit</div>
-        <div class="kit-options">
-          <div class="kit-option selected" onclick="selectKit(this, 99.90, 'Kit Starter')">
+        <div class="kit-options" id="kits-container">
+          <!-- preenchido dinamicamente por loadKitsEvento(); fallback abaixo se evento não tiver kits no BD -->
+          <div class="kit-option selected" id="kit-fallback-starter" onclick="selectKit(this, 99.90, 'Kit Starter')">
             <div class="kit-img">
-              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg.jpeg" alt="Produtos do Kit Starter" onerror="imgKitFallback(this)">
-              <span class="kit-img-ph">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                <br>Foto do kit
-              </span>
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg.jpeg" alt="Kit Starter" onerror="imgKitFallback(this)">
+              <span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>
             </div>
             <div class="kit-name">Kit Starter</div>
             <div class="kit-price">R$ 99,90</div>
             <div class="kit-desc">Número de peito, chip de cronometragem, camiseta e medalha de participação.</div>
           </div>
-          <div class="kit-option" onclick="selectKit(this, 159.90, 'Kit Vip JBX Sports')">
+          <div class="kit-option" id="kit-fallback-vip" onclick="selectKit(this, 159.90, 'Kit Vip JBX Sports')">
             <div class="kit-img">
-              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg.jpeg" alt="Produtos do Kit Vip JBX Sports" onerror="imgKitFallback(this)">
-              <span class="kit-img-ph">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                <br>Foto do kit
-              </span>
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg.jpeg" alt="Kit Vip JBX Sports" onerror="imgKitFallback(this)">
+              <span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>
             </div>
             <div class="kit-name">Kit Vip JBX Sports</div>
             <div class="kit-price">R$ 159,90</div>
@@ -1060,23 +1059,92 @@ setInterval(updateCountdown, 1000);
 let currentPrice = 99.90;
 let currentModalidade = "Corrida 4KM";
 let currentEvento = "";
-let currentKit = "Kit Starter";  // kit padrão (define o preço)
-let currentPagamento = "Cartão"; // método pré-selecionado por padrão
+let currentEventoId = "";   // uuid do evento (para carregar kits do banco)
+let currentKit = "Kit Starter";
+let currentKitId = "";      // uuid do kit (banco)
+let currentLoteId = "";     // uuid do lote ativo
+let currentLoteNome = "";   // nome do lote ativo (ex: "Lote 1")
+let currentPagamento = "Cartão";
 let currentStep = 1;
-let currentRef = "";      // referência a um cadastro existente (busca por nome)
-let _achadoAtleta = null; // último resultado da busca
-let currentCupom = "";    // código do cupom aplicado
-let currentCupomPct = 0;  // percentual do cupom aplicado
-let cart = [];            // atletas já adicionados (carrinho)
+let currentRef = "";
+let _achadoAtleta = null;
+let currentCupom = "";
+let currentCupomPct = 0;
+let cart = [];
 const TOTAL_STEPS = 4;
 
-function openModal(title, info, price) {
+function openModal(eventoId, title, info) {
+  currentEventoId = eventoId || "";
   currentEvento = title;
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-info').textContent = info;
+  document.getElementById('modal-info').textContent = info || '';
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
   resetWizard();
+  // carrega kits e lote do banco (se evento tiver id)
+  if (eventoId) loadKitsEvento(eventoId);
+}
+
+// Carrega kits e lote ativo do banco; fallback para os kits hardcoded
+async function loadKitsEvento(eventoId) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/kits_evento_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_evento_id: eventoId })
+    });
+    const data = await res.json();
+    const lote = data && data.lote;
+    const kits = data && Array.isArray(data.kits) ? data.kits : [];
+
+    // badge do lote
+    const badge = document.getElementById('lote-badge');
+    if (badge) {
+      if (lote && lote.nome) {
+        badge.textContent = lote.nome;
+        badge.classList.add('show');
+        currentLoteId = lote.id || '';
+        currentLoteNome = lote.nome || '';
+      } else {
+        badge.textContent = '';
+        badge.classList.remove('show');
+        currentLoteId = '';
+        currentLoteNome = '';
+      }
+    }
+
+    // se há kits no banco, substitui os hardcoded
+    if (kits.length > 0) {
+      const container = document.getElementById('kits-container');
+      container.innerHTML = kits.map((k, i) => {
+        const esgotado = k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite;
+        const preco = Number(k.preco || 0);
+        const precoFmt = 'R$ ' + preco.toFixed(2).replace('.', ',');
+        return `<div class="kit-option${i === 0 && !esgotado ? ' selected' : ''}${esgotado ? ' disabled' : ''}"
+          onclick="${esgotado ? '' : `selectKit(this,${preco},'${k.nome.replace(/'/g,"\\'")}','${k.id}','${currentLoteId}')`}"
+          style="${esgotado ? 'opacity:.5;cursor:not-allowed;' : 'cursor:pointer;'}">
+          <div class="kit-img">
+            ${k.foto_url
+              ? `<img src="${k.foto_url}" alt="${k.nome}" style="width:100%;height:100%;object-fit:cover;">`
+              : `<span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>`}
+          </div>
+          <div class="kit-name">${k.nome}${esgotado ? ' <span style="font-size:11px;color:#888;">(esgotado)</span>' : ''}</div>
+          <div class="kit-price">${precoFmt}</div>
+          ${k.descricao ? `<div class="kit-desc">${k.descricao}</div>` : ''}
+        </div>`;
+      }).join('');
+      // seleciona automaticamente o primeiro disponível
+      const primeiro = kits.find(k => !(k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite));
+      if (primeiro) {
+        currentKit = primeiro.nome;
+        currentPrice = Number(primeiro.preco);
+        currentKitId = primeiro.id;
+      }
+      atualizarResumo();
+    }
+  } catch (e) {
+    // em caso de erro, mantém os kits hardcoded (fallback silencioso)
+  }
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('active');
@@ -1105,6 +1173,18 @@ function resetRegistro() {
   if (kits[0]) kits[0].classList.add('selected');
   currentKit = 'Kit Starter';
   currentPrice = 99.90;
+  currentKitId = '';
+  currentLoteId = '';
+  currentLoteNome = '';
+  // restaura badge e kits hardcoded (recarregado por loadKitsEvento se evento tiver id)
+  const badge = document.getElementById('lote-badge');
+  if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
+  const container = document.getElementById('kits-container');
+  if (container && document.getElementById('kit-fallback-starter') &&
+      !container.querySelector('#kit-fallback-starter')) {
+    // já foi substituído pelos dinâmicos; ao resetar, recarrega do banco
+    if (currentEventoId) loadKitsEvento(currentEventoId);
+  }
 
   const cats = document.querySelectorAll('.cat-option');
   cats.forEach(c => c.classList.remove('selected'));
@@ -1127,6 +1207,9 @@ function snapshotAtual() {
   const val = id => ((document.getElementById(id) || {}).value || '').trim();
   const it = {
     kit: currentKit,
+    kit_id: currentKitId,
+    lote_id: currentLoteId,
+    lote_nome: currentLoteNome,
     valorBase: Number(currentPrice),
     modalidade: currentModalidade,
     camisa: val('f-camisa'),
@@ -1306,11 +1389,13 @@ function imgKitFallback(img) {
 }
 
 // Kit selection (o PREÇO vem daqui)
-function selectKit(el, price, nome) {
+function selectKit(el, price, nome, kitId, loteId) {
   document.querySelectorAll('.kit-option').forEach(k => k.classList.remove('selected'));
   el.classList.add('selected');
   currentPrice = price;
   currentKit = nome;
+  currentKitId = kitId || '';
+  currentLoteId = loteId || currentLoteId; // mantém o lote ativo se não for passado
   atualizarResumo();
 }
 
@@ -1479,6 +1564,8 @@ function montarDadosItem(it, pedido) {
     ref: it.ref || '',
     cupom: currentCupom,
     kit: it.kit,
+    kit_id: it.kit_id || '',      // servidor usa para preço autoritativo pelo lote
+    lote_id: it.lote_id || '',    // servidor valida quantidade disponível
     modalidade: it.modalidade,
     valor: it.valorBase,
     tamanho_camisa: it.camisa,
@@ -1637,6 +1724,8 @@ async function carregarEventos() {
     if (proximo) {
       document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
       window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
+      window._proximoEventoId = proximo.id || '';
+      window._proximoEventoNome = proximo.nome || '';
       const cta = document.querySelector('.countdown-cta');
       if (cta) cta.onclick = (e) => { e.preventDefault(); irParaEvento(proximo.id); };
     }
@@ -1728,7 +1817,7 @@ function renderEventoBase(ev, bannerUrl) {
   } else {
     btn.textContent = 'Inscreva-se →';
     btn.classList.remove('disabled');
-    btn.onclick = () => openModal(ev.nome, formatarData(ev.data, ev.hora) + (ev.local ? ' · ' + ev.local : ''), 'A partir de ' + preco);
+    btn.onclick = () => openModal(ev.id, ev.nome, formatarData(ev.data, ev.hora) + (ev.local ? ' · ' + ev.local : ''));
   }
   edTab('info');
 }
@@ -1891,6 +1980,12 @@ async function carregarFooterEventos() {
   } catch(e) {}
 }
 carregarFooterEventos();
+
+function abrirProximoEvento() {
+  const id   = window._proximoEventoId   || '';
+  const nome = window._proximoEventoNome || 'Próximo Evento';
+  openModal(id, nome, '');
+}
 
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
