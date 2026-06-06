@@ -6,13 +6,14 @@
 <title>JBX Sports — Admin</title>
 <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <style>
-:root{--orange:#ff751f;--orange-dark:#e05a08;--black:#0a0a0a;--bg:#111;--card:#1a1a1a;--card2:#222;--border:rgba(255,255,255,0.08);--text:rgba(255,255,255,0.85);--muted:rgba(255,255,255,0.45);}
+:root{--orange:#ff751f;--orange-dark:#e05a08;--black:#0a0a0a;--bg:#111;--card:#1a1a1a;--border:rgba(255,255,255,0.08);--text:rgba(255,255,255,0.85);--muted:rgba(255,255,255,0.45);}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.screen{display:none;} .screen.active{display:block;}
+.screen{display:none;}.screen.active{display:block;}
 
-/* ── LOGIN ── */
+/* LOGIN */
 #login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--black);}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;}
 .login-logo{font-size:22px;font-weight:700;color:#fff;letter-spacing:-1px;margin-bottom:6px;}
@@ -24,7 +25,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .login-box button:hover{background:var(--orange-dark);}
 .login-err{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px;}
 
-/* ── LAYOUT ADMIN ── */
+/* LAYOUT */
 .admin-shell{display:grid;grid-template-rows:60px 1fr;min-height:100vh;}
 .admin-header{background:rgba(10,10,10,.95);border-bottom:1px solid rgba(255,117,31,.15);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50;}
 .admin-nav{display:flex;gap:24px;}
@@ -33,95 +34,106 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{color:#fff;border-color:rgba(255,255,255,.3);}
 .admin-content{padding:32px;max-width:1400px;margin:0 auto;width:100%;}
+.inner-screen{display:none;}.inner-screen.active{display:block;}
 
-/* ── TELAS INTERNAS ── */
-.inner-screen{display:none;} .inner-screen.active{display:block;}
-
-/* page header */
-.page-hd{display:flex;align-items:center;gap:16px;margin-bottom:28px;flex-wrap:wrap;}
+/* PAGE HEADER */
+.page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;}
-.page-hd .back-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
-.page-hd .back-btn:hover{color:#fff;}
-
-/* tag de status */
+.back-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
+.back-btn:hover{color:#fff;}
 .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
 .tag-open{background:rgba(255,117,31,.2);color:var(--orange);}
 .tag-soon{background:rgba(255,200,0,.15);color:#ffd000;}
 .tag-closed{background:rgba(136,136,136,.2);color:#888;}
 
-/* ── STAT CARDS ── */
+/* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
 .stat-card .sc-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
 .stat-card .sc-val{font-size:28px;font-weight:700;color:#fff;line-height:1;}
 .stat-card .sc-val.orange{color:var(--orange);}
 
-/* ── EVENT CARDS GRID ── */
+/* EVENT CARDS */
+.dash-actions{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.btn-new-ev{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.btn-new-ev:hover{background:var(--orange-dark);}
 .eventos-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
-.ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .25s;}
-.ev-card:hover{border-color:rgba(255,117,31,.4);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+.ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .25s;}
+.ev-card:hover{border-color:rgba(255,117,31,.4);box-shadow:0 16px 40px rgba(0,0,0,.4);}
 .ev-card-header{background:linear-gradient(135deg,#1e1e1e,#2a2a2a);padding:20px;display:flex;justify-content:space-between;align-items:flex-start;}
 .ev-card-header h3{font-size:16px;font-weight:700;max-width:75%;}
 .ev-card-stats{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.ev-stat{} .ev-stat .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);} .ev-stat .v{font-size:18px;font-weight:700;color:var(--orange);margin-top:2px;}
-.ev-card-footer{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.ev-card-footer .meta{font-size:12px;color:var(--muted);}
-.ev-open-btn{background:var(--orange);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
-.ev-open-btn:hover{background:var(--orange-dark);}
+.ev-stat .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.ev-stat .v{font-size:18px;font-weight:700;color:var(--orange);margin-top:2px;}
+.ev-card-footer{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ev-card-footer .meta{font-size:12px;color:var(--muted);flex:1;}
+.btn-sm{border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-sm-orange{background:var(--orange);color:#fff;}.btn-sm-orange:hover{background:var(--orange-dark);}
+.btn-sm-ghost{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid rgba(255,255,255,.1);}.btn-sm-ghost:hover{color:#fff;border-color:rgba(255,255,255,.3);}
 
-/* botão cupom na tela 1 */
-.cupom-float-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,117,31,.1);border:1px solid rgba(255,117,31,.3);color:var(--orange);border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;margin-bottom:28px;}
-.cupom-float-btn:hover{background:var(--orange);color:#fff;}
-
-/* ── TELA 2: CUPONS ── */
+/* CUPONS */
 .two-col{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;}
 .panel h2{font-size:16px;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
 .form-g{margin-bottom:14px;}
 .form-g label{display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.form-g input,.form-g select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Ubuntu',sans-serif;transition:border .2s;}
-.form-g input:focus,.form-g select:focus{outline:none;border-color:var(--orange);}
-.form-g input::placeholder{color:rgba(255,255,255,.25);}
-.form-g .form-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-g input,.form-g select,.form-g textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Ubuntu',sans-serif;transition:border .2s;}
+.form-g input:focus,.form-g select:focus,.form-g textarea:focus{outline:none;border-color:var(--orange);}
+.form-g input::placeholder,.form-g textarea::placeholder{color:rgba(255,255,255,.25);}
+.form-g select option{background:#222;}
+.form-g textarea{resize:vertical;min-height:90px;line-height:1.6;}
+.form-g textarea.tall{min-height:160px;}
+.form-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 .eventos-check{max-height:140px;overflow-y:auto;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;}
 .eventos-check label{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;}
 .eventos-check input[type=checkbox]{accent-color:var(--orange);}
 .btn-save{width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;margin-top:6px;transition:background .2s;}
 .btn-save:hover{background:var(--orange-dark);}
 .form-feedback{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
-.form-feedback.ok{color:#22c55e;} .form-feedback.err{color:#ff6b6b;}
-
-/* tabela de cupons */
+.form-feedback.ok{color:#22c55e;}.form-feedback.err{color:#ff6b6b;}
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}
 .data-table th{text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);}
 .data-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
 .data-table tr:last-child td{border-bottom:none;}
-.toggle-ativo{background:none;border:1px solid rgba(255,255,255,.15);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
-.toggle-ativo:hover{border-color:var(--orange);color:var(--orange);}
 .badge-ativo{color:#22c55e;font-size:11px;font-weight:700;}
 .badge-inativo{color:#888;font-size:11px;font-weight:700;}
 .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
 
-/* ── TELA 3: EVENTO DETALHE ── */
+/* EVENTO FORM */
+.ev-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.ev-form-section{margin-bottom:8px;}
+.ev-form-section-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:16px;margin-top:24px;padding-bottom:8px;border-bottom:1px solid rgba(255,117,31,.15);}
+.ev-form-section-title:first-child{margin-top:0;}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.form-actions{display:flex;gap:12px;margin-top:28px;}
+.btn-primary{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.btn-primary:hover{background:var(--orange-dark);}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-ghost:hover{color:#fff;}
+
+/* CHARTS */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
 .chart-card h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
 .chart-wrap{position:relative;height:200px;}
 
-/* inscritos */
+/* INSCRITOS */
 .inscritos-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
 .search-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-family:'Ubuntu',sans-serif;width:240px;transition:border .2s;}
 .search-input:focus{outline:none;border-color:var(--orange);}
 .inscritos-count{font-size:13px;color:var(--muted);}
 .table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;}
-.data-table .edit-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
+.data-table .edit-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .data-table .edit-btn:hover{border-color:var(--orange);color:var(--orange);}
 .status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 .status-confirmado{background:rgba(34,197,94,.15);color:#22c55e;}
 .status-pendente{background:rgba(255,200,0,.12);color:#ffd000;}
 .status-cancelado{background:rgba(136,136,136,.15);color:#888;}
+.btn-export{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-export:hover{background:rgba(34,197,94,.22);}
 
-/* edit drawer */
+/* DRAWER */
 .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);display:none;align-items:flex-end;}
 .drawer-overlay.open{display:flex;}
 .drawer{background:#1a1a1a;border-top:1px solid rgba(255,117,31,.2);border-radius:16px 16px 0 0;width:100%;max-height:90vh;overflow-y:auto;padding:28px 32px;}
@@ -135,22 +147,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-ghost-sm{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .btn-ghost-sm:hover{color:#fff;}
 
-@media(max-width:900px){
-  .two-col{grid-template-columns:1fr;}
-  .charts-grid{grid-template-columns:1fr;}
-  .admin-content{padding:16px;}
-  .drawer{padding:20px;}
-  .drawer-grid{grid-template-columns:1fr 1fr;}
-}
-@media(max-width:600px){
-  .stats-row{grid-template-columns:1fr 1fr;}
-  .drawer-grid{grid-template-columns:1fr;}
-}
+@media(max-width:900px){.two-col,.ev-form-grid{grid-template-columns:1fr;}.charts-grid{grid-template-columns:1fr;}.admin-content{padding:16px;}.drawer{padding:20px;}.drawer-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}.drawer-grid{grid-template-columns:1fr;}.form-row2,.form-row3{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- LOGIN -->
 <div id="login" class="screen active">
   <div class="login-box">
     <div class="login-logo">JBX<span>.</span></div>
@@ -161,7 +164,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<!-- ══ ADMIN SHELL ══ -->
+<!-- ADMIN -->
 <div id="admin" class="screen">
   <div class="admin-shell">
     <header class="admin-header">
@@ -174,22 +177,24 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 
     <main class="admin-content">
 
-      <!-- ── TELA 1: DASHBOARD ── -->
+      <!-- TELA 1: DASHBOARD -->
       <div class="inner-screen active" id="screen-dash">
         <div class="page-hd"><h1>Dashboard JBX Sports</h1></div>
-        <div class="stats-row" id="global-stats">
+        <div class="stats-row">
           <div class="stat-card"><div class="sc-label">Eventos</div><div class="sc-val" id="g-eventos">—</div></div>
           <div class="stat-card"><div class="sc-label">Faturamento Global</div><div class="sc-val orange" id="g-fat">—</div></div>
           <div class="stat-card"><div class="sc-label">Inscrições Total</div><div class="sc-val" id="g-total">—</div></div>
           <div class="stat-card"><div class="sc-label">Inscrições Hoje</div><div class="sc-val orange" id="g-hoje">—</div></div>
           <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val" id="g-ticket">—</div></div>
         </div>
-
-        <div class="eventos-grid-admin" id="ev-grid">
+        <div class="dash-actions">
+          <h2 style="font-size:16px;font-weight:700;color:var(--muted);">Eventos</h2>
+          <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
         </div>
-      </div><!-- /screen-dash -->
+        <div class="eventos-grid-admin" id="ev-grid"><div class="empty-state">Carregando…</div></div>
+      </div>
 
-      <!-- ── TELA 2: CUPONS ── -->
+      <!-- TELA 2: CUPONS -->
       <div class="inner-screen" id="screen-cupons">
         <div class="page-hd">
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
@@ -197,13 +202,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
         <div class="two-col">
           <div class="panel">
-            <h2 id="cupom-form-title">Novo Cupom</h2>
+            <h2>Novo Cupom</h2>
             <div class="form-g"><label>Nome do cupom</label><input id="c-nome" placeholder="Ex: Desconto lançamento"></div>
             <div class="form-g"><label>Código</label><input id="c-codigo" placeholder="Ex: JBXRUN10" style="text-transform:uppercase"></div>
-            <div class="form-g">
-              <label>Desconto (%)</label>
-              <input id="c-pct" type="number" min="1" max="100" placeholder="Ex: 10">
-            </div>
+            <div class="form-g"><label>Desconto (%)</label><input id="c-pct" type="number" min="1" max="100" placeholder="Ex: 10"></div>
             <div class="form-g">
               <label>Período de validade</label>
               <div class="form-row2">
@@ -220,9 +222,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             </div>
             <div class="form-g">
               <label>Eventos (marque os que se aplicam)</label>
-              <div class="eventos-check" id="eventos-check-list">
-                <div style="color:var(--muted);font-size:12px;padding:4px;">Carregando…</div>
-              </div>
+              <div class="eventos-check" id="eventos-check-list"><div style="color:var(--muted);font-size:12px;padding:4px;">Carregando…</div></div>
             </div>
             <button class="btn-save" onclick="salvarCupom()">Salvar Cupom</button>
             <div class="form-feedback" id="cupom-feedback"></div>
@@ -234,12 +234,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
       </div>
 
-      <!-- ── TELA 3: EVENTO DETALHE ── -->
+      <!-- TELA 3: EVENTO DETALHE -->
       <div class="inner-screen" id="screen-evento">
         <div class="page-hd">
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1 id="ev-detail-nome">Evento</h1>
           <span id="ev-detail-tag" class="tag"></span>
+          <button class="btn-sm btn-sm-ghost" style="margin-left:auto;" onclick="loadEventoForm(currentEvento&&currentEvento.id)">✏ Editar evento</button>
         </div>
         <div class="stats-row" id="ev-stats-row"></div>
         <div class="charts-grid">
@@ -248,19 +249,77 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="chart-card"><h3>Top Cidades</h3><div class="chart-wrap"><canvas id="chart-cidade"></canvas></div></div>
           <div class="chart-card"><h3>Inscrições – Últimos 15 dias</h3><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div>
         </div>
-        <div class="page-hd" style="margin-top:8px;margin-bottom:16px;"><h1 style="font-size:18px;">Inscritos</h1></div>
         <div class="inscritos-bar">
+          <h2 style="font-size:18px;font-weight:700;">Inscritos</h2>
           <input class="search-input" id="search-inscrito" placeholder="Buscar por nome, CPF ou e-mail…" oninput="filtrarInscritos()">
           <span class="inscritos-count" id="inscritos-count"></span>
+          <button class="btn-export" onclick="exportarExcel()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar Excel
+          </button>
         </div>
         <div class="table-wrap">
-          <table class="data-table" id="inscritos-table">
-            <thead><tr>
-              <th>Nome</th><th>CPF</th><th>Kit</th><th>Modalidade</th>
-              <th>Camiseta</th><th>Valor</th><th>Status</th><th>Inscrito em</th><th></th>
-            </tr></thead>
+          <table class="data-table">
+            <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Modalidade</th><th>Camiseta</th><th>Valor</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
             <tbody id="inscritos-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr></tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- TELA 4: CRIAR / EDITAR EVENTO -->
+      <div class="inner-screen" id="screen-evento-form">
+        <div class="page-hd">
+          <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
+          <h1 id="ev-form-titulo">Novo Evento</h1>
+        </div>
+        <input type="hidden" id="ef-id">
+        <div class="ev-form-section-title">Informações gerais</div>
+        <div class="form-row3" style="margin-bottom:14px;">
+          <div class="form-g" style="margin:0;"><label>Nome do evento *</label><input id="ef-nome" placeholder="Ex: Corrida pela Vida"></div>
+          <div class="form-g" style="margin:0;"><label>Data *</label><input id="ef-data" type="date"></div>
+          <div class="form-g" style="margin:0;"><label>Hora</label><input id="ef-hora" placeholder="Ex: 07h00"></div>
+        </div>
+        <div class="form-row3" style="margin-bottom:14px;">
+          <div class="form-g" style="margin:0;"><label>Local</label><input id="ef-local" placeholder="Cidade ou endereço"></div>
+          <div class="form-g" style="margin:0;"><label>Status</label>
+            <select id="ef-status">
+              <option value="soon">Em breve</option>
+              <option value="open">Inscrições abertas</option>
+              <option value="closed">Encerrado</option>
+            </select>
+          </div>
+          <div class="form-g" style="margin:0;"><label>Preço mínimo (R$)</label><input id="ef-preco" type="number" step="0.01" placeholder="Ex: 89.90"></div>
+        </div>
+        <div class="form-g"><label>Distâncias (separadas por vírgula)</label>
+          <input id="ef-distancias" placeholder="Ex: 4KM, 8KM, Caminhada 4KM">
+        </div>
+
+        <div class="ev-form-section-title">Conteúdo das abas</div>
+        <div class="form-g"><label>Descrição (aba Informações)</label>
+          <textarea id="ef-descricao" class="tall" placeholder="Texto descritivo do evento que aparece na aba Informações…"></textarea>
+        </div>
+        <div class="ev-form-grid">
+          <div class="form-g"><label>Percurso (texto)</label>
+            <textarea id="ef-percurso" placeholder="Descrição do percurso (complementa o mapa)…"></textarea>
+          </div>
+          <div>
+            <div class="form-g"><label>Percurso Mapa (JSON)</label>
+              <textarea id="ef-percurso-mapa" placeholder='[{"rotulo":"4KM","url":"https://google.com/maps/..."},{"rotulo":"8KM","url":"..."}]'></textarea>
+            </div>
+            <p class="hint">Cole o link do Google My Maps. Para múltiplos percursos, use o formato JSON acima — um objeto por distância.</p>
+          </div>
+        </div>
+        <div class="form-g"><label>Retirada de Kit</label>
+          <textarea id="ef-retirada" class="tall" placeholder="Local, datas e horários de retirada. Inclua instruções para retirada por terceiros se quiser."></textarea>
+        </div>
+        <div class="form-g"><label>Regulamento</label>
+          <textarea id="ef-regulamento" style="min-height:240px;" placeholder="Texto completo do regulamento do evento…"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" onclick="salvarEvento()">Salvar evento</button>
+          <button class="btn-ghost" onclick="showInner('dash')">Cancelar</button>
+          <span id="ev-form-feedback" style="font-size:13px;align-self:center;margin-left:auto;"></span>
         </div>
       </div>
 
@@ -268,7 +327,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
-<!-- ── DRAWER DE EDIÇÃO ── -->
+<!-- DRAWER EDIÇÃO INSCRITO -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="if(event.target===this)closeDrawer()">
   <div class="drawer">
     <div class="drawer-header">
@@ -286,18 +345,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="form-g"><label>Modalidade</label>
         <select id="d-modalidade"><option>Corrida 4KM</option><option>Corrida 8KM</option><option>Caminhada 4KM</option></select></div>
       <div class="form-g"><label>Camiseta</label>
-        <select id="d-camisa">
-          <option>Babylook tamanho único</option><option>Camiseta P</option>
-          <option>Camiseta M</option><option>Camiseta G</option><option>Camiseta GG</option>
-        </select></div>
+        <select id="d-camisa"><option>Babylook tamanho único</option><option>Camiseta P</option><option>Camiseta M</option><option>Camiseta G</option><option>Camiseta GG</option></select></div>
       <div class="form-g"><label>Cidade</label><input id="d-cidade"></div>
       <div class="form-g"><label>Estado</label><input id="d-estado" maxlength="2" style="text-transform:uppercase"></div>
       <div class="form-g"><label>Status</label>
-        <select id="d-status">
-          <option value="pendente">Pendente</option>
-          <option value="confirmado">Confirmado</option>
-          <option value="cancelado">Cancelado</option>
-        </select></div>
+        <select id="d-status"><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="cancelado">Cancelado</option></select></div>
     </div>
     <div class="drawer-foot">
       <button class="btn-primary-sm" onclick="salvarEdicao()">Salvar alterações</button>
@@ -310,13 +362,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 <script>
 const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_KEY = 'sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
-// Senha padrão: JBX@admin2026  (altere o hash para mudar a senha)
-const ADMIN_HASH = '9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd92';
+const ADMIN_HASH = '9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd92'; // JBX@admin2026
 
-let currentEvento = null; // evento aberto na tela 3
-let todosInscritos = [];  // cache dos inscritos
-let editingId = null;     // id sendo editado no drawer
-let charts = {};          // instâncias Chart.js ativas
+let currentEvento = null;
+let todosInscritos = [];
+let editingId = null;
+let charts = {};
+let _adminEventos = [];
 
 /* ── HELPERS ── */
 async function rpc(fn, params={}) {
@@ -326,7 +378,7 @@ async function rpc(fn, params={}) {
   });
   if (!r.ok) throw new Error(await r.text());
   const text = await r.text();
-  return text ? JSON.parse(text) : null;  // suporta funções void (body vazio)
+  return text ? JSON.parse(text) : null;
 }
 const brl = v => 'R$ ' + Number(v||0).toFixed(2).replace('.',',');
 const fmt = n => Number(n||0).toLocaleString('pt-BR');
@@ -337,19 +389,17 @@ function fmtData(dt) {
 }
 function fmtDataSimples(dt) {
   if (!dt) return '—';
-  const [y,m,d] = dt.split('-');
-  return `${d}/${m}/${y}`;
+  const [y,m,d] = String(dt).split('-'); return `${d}/${m}/${y}`;
 }
+function tagClass(s){return s==='open'?'tag-open':s==='closed'?'tag-closed':'tag-soon';}
+function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em breve';}
 
 /* ── AUTH ── */
 async function doLogin() {
   const pass = document.getElementById('pass-input').value;
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
   const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if (hash !== ADMIN_HASH) {
-    document.getElementById('login-err').textContent = 'Senha incorreta.';
-    return;
-  }
+  if (hash !== ADMIN_HASH) { document.getElementById('login-err').textContent='Senha incorreta.'; return; }
   sessionStorage.setItem('jbx_admin','1');
   showAdmin();
 }
@@ -357,7 +407,7 @@ function doLogout() {
   sessionStorage.removeItem('jbx_admin');
   document.getElementById('login').classList.add('active');
   document.getElementById('admin').classList.remove('active');
-  document.getElementById('pass-input').value = '';
+  document.getElementById('pass-input').value='';
 }
 function showAdmin() {
   document.getElementById('login').classList.remove('active');
@@ -369,13 +419,12 @@ function showAdmin() {
 function showInner(name) {
   document.querySelectorAll('.inner-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  const nb = document.getElementById('nav-'+name); if (nb) nb.classList.add('active');
-  if (name==='dash') loadDashboard();
+  const scr = document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
+  const nb = document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
+  if (name==='dash') { document.getElementById('nav-dash').classList.add('active'); loadDashboard(); }
   if (name==='cupons') {
-    // preenche data início com hoje ao abrir
-    const hoje = new Date().toISOString().split('T')[0];
-    const ci = document.getElementById('c-inicio'); if (ci && !ci.value) ci.value = hoje;
+    document.getElementById('nav-cupons').classList.add('active');
+    const ci=document.getElementById('c-inicio'); if(ci&&!ci.value) ci.value=new Date().toISOString().split('T')[0];
     loadCupons();
   }
 }
@@ -383,30 +432,22 @@ function showInner(name) {
 /* ── TELA 1: DASHBOARD ── */
 async function loadDashboard() {
   try {
-    const [stats, eventos] = await Promise.all([rpc('admin_stats'), rpc('admin_eventos_stats')]);
-    renderGlobalStats(stats);
-    renderEventCards(eventos);
+    const [stats, evs] = await Promise.all([rpc('admin_stats'), rpc('admin_eventos_stats')]);
+    document.getElementById('g-eventos').textContent = fmt(stats.eventos_count);
+    document.getElementById('g-fat').textContent     = brl(stats.faturamento_total);
+    document.getElementById('g-total').textContent   = fmt(stats.inscricoes_total);
+    document.getElementById('g-hoje').textContent    = fmt(stats.inscricoes_hoje);
+    document.getElementById('g-ticket').textContent  = brl(stats.ticket_medio);
+    renderEventCards(evs||[]);
   } catch(e) { console.error(e); }
 }
-function renderGlobalStats(s) {
-  document.getElementById('g-eventos').textContent = fmt(s.eventos_count);
-  document.getElementById('g-fat').textContent     = brl(s.faturamento_total);
-  document.getElementById('g-total').textContent   = fmt(s.inscricoes_total);
-  document.getElementById('g-hoje').textContent    = fmt(s.inscricoes_hoje);
-  document.getElementById('g-ticket').textContent  = brl(s.ticket_medio);
-}
-function tagClass(status){ return status==='open'?'tag-open':status==='closed'?'tag-closed':'tag-soon'; }
-function tagLabel(status){ return status==='open'?'Aberto':status==='closed'?'Encerrado':'Em breve'; }
 function renderEventCards(evs) {
   const g = document.getElementById('ev-grid');
-  if (!evs.length) { g.innerHTML='<div class="empty-state">Nenhum evento cadastrado.</div>'; return; }
+  if (!evs.length) { g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento" para começar.</div>'; return; }
   g.innerHTML = evs.map(e=>`
-    <div class="ev-card" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">
+    <div class="ev-card">
       <div class="ev-card-header">
-        <div>
-          <h3>${e.nome}</h3>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDataSimples(e.data):''}</div>
-        </div>
+        <div><h3>${e.nome}</h3><div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDataSimples(e.data):''}</div></div>
         <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
       </div>
       <div class="ev-card-stats">
@@ -417,9 +458,60 @@ function renderEventCards(evs) {
       </div>
       <div class="ev-card-footer">
         <span class="meta">${e.hora||''}</span>
-        <button class="ev-open-btn">Ver detalhes →</button>
+        <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
+        <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
       </div>
     </div>`).join('');
+}
+
+/* ── TELA 4: CRIAR / EDITAR EVENTO ── */
+async function loadEventoForm(id) {
+  document.getElementById('ev-form-titulo').textContent = id ? 'Editar Evento' : 'Novo Evento';
+  document.getElementById('ef-id').value = id||'';
+  document.getElementById('ev-form-feedback').textContent = '';
+  const campos = ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento'];
+  campos.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('ef-status').value = 'soon';
+
+  if (id) {
+    try {
+      const ev = await rpc('admin_get_evento', {p_id: id});
+      if (ev) {
+        const set = (elId, v) => { const el=document.getElementById(elId); if(el) el.value=v||''; };
+        set('ef-nome', ev.nome); set('ef-data', ev.data); set('ef-hora', ev.hora);
+        set('ef-local', ev.local); set('ef-preco', ev.preco_min);
+        set('ef-distancias', ev.distancias); set('ef-descricao', ev.descricao);
+        set('ef-percurso', ev.percurso); set('ef-percurso-mapa', ev.percurso_mapa);
+        set('ef-retirada', ev.retirada_kit); set('ef-regulamento', ev.regulamento);
+        document.getElementById('ef-status').value = ev.status||'soon';
+      }
+    } catch(e) { console.error(e); }
+  }
+  showInner('evento-form');
+}
+async function salvarEvento() {
+  const get = id => (document.getElementById(id)?.value||'').trim();
+  if (!get('ef-nome')) {
+    const fb=document.getElementById('ev-form-feedback'); fb.style.color='#ff6b6b'; fb.textContent='Nome do evento é obrigatório.'; return;
+  }
+  const dados = {
+    id: get('ef-id')||'', nome: get('ef-nome'), data: get('ef-data')||null,
+    hora: get('ef-hora'), local: get('ef-local'),
+    status: document.getElementById('ef-status').value,
+    preco_min: get('ef-preco')||null, distancias: get('ef-distancias'),
+    descricao: get('ef-descricao'), percurso: get('ef-percurso'),
+    percurso_mapa: get('ef-percurso-mapa'), retirada_kit: get('ef-retirada'),
+    regulamento: get('ef-regulamento')
+  };
+  const fb=document.getElementById('ev-form-feedback');
+  fb.style.color='var(--muted)'; fb.textContent='Salvando…';
+  try {
+    await rpc('admin_salvar_evento', {dados});
+    fb.style.color='#22c55e'; fb.textContent='✓ Evento salvo!';
+    setTimeout(()=>showInner('dash'), 1200);
+  } catch(e) {
+    fb.style.color='#ff6b6b'; fb.textContent='Erro: '+e.message;
+  }
 }
 
 /* ── TELA 3: EVENTO DETALHE ── */
@@ -427,224 +519,181 @@ async function abrirEvento(id, nome, status, data) {
   currentEvento = {id, nome, status, data};
   document.getElementById('ev-detail-nome').textContent = nome;
   const tag = document.getElementById('ev-detail-tag');
-  tag.className = 'tag '+tagClass(status); tag.textContent = tagLabel(status);
-
-  // stats row reutiliza os dados do dashboard (já carregados)
-  document.getElementById('ev-stats-row').innerHTML = '<div class="empty-state">Carregando…</div>';
-
-  // destroi charts antigos
+  tag.className='tag '+tagClass(status); tag.textContent=tagLabel(status);
+  document.getElementById('ev-stats-row').innerHTML='<div class="empty-state">Carregando…</div>';
   Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
-  charts = {};
-
+  charts={};
   showInner('evento');
   document.getElementById('nav-dash').classList.add('active');
-
   try {
-    const [charts_data, inscritos, ev_stats] = await Promise.all([
-      rpc('admin_evento_charts', {p_evento_id: id}),
-      rpc('admin_inscritos', {p_evento_id: id}),
+    const [cd, inscritos, evStats] = await Promise.all([
+      rpc('admin_evento_charts',{p_evento_id:id}),
+      rpc('admin_inscritos',{p_evento_id:id}),
       rpc('admin_eventos_stats')
     ]);
-    const evStat = (ev_stats||[]).find(e=>e.id===id)||{};
-    renderEvStats(evStat);
-    renderCharts(charts_data);
-    todosInscritos = inscritos||[];
+    const es=(evStats||[]).find(e=>e.id===id)||{};
+    document.getElementById('ev-stats-row').innerHTML=`
+      <div class="stat-card"><div class="sc-label">Faturamento</div><div class="sc-val orange">${brl(es.faturamento)}</div></div>
+      <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val">${fmt(es.inscricoes_total)}</div></div>
+      <div class="stat-card"><div class="sc-label">Hoje</div><div class="sc-val orange">${fmt(es.inscricoes_hoje)}</div></div>
+      <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val">${brl(es.ticket_medio)}</div></div>`;
+    renderCharts(cd||{});
+    todosInscritos=inscritos||[];
     renderInscritos(todosInscritos);
-  } catch(e) { console.error(e); }
+  } catch(e){ console.error(e); }
 }
-
-function renderEvStats(s){
-  document.getElementById('ev-stats-row').innerHTML = `
-    <div class="stat-card"><div class="sc-label">Faturamento</div><div class="sc-val orange">${brl(s.faturamento)}</div></div>
-    <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val">${fmt(s.inscricoes_total)}</div></div>
-    <div class="stat-card"><div class="sc-label">Hoje</div><div class="sc-val orange">${fmt(s.inscricoes_hoje)}</div></div>
-    <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val">${brl(s.ticket_medio)}</div></div>`;
-}
-
-const COLORS = ['#ff751f','#ff9a54','#ffb87a','#ffd4a0','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6'];
-function mkChart(id, type, labels, data, opts={}) {
-  const ctx = document.getElementById(id);
-  if (!ctx) return;
-  try { if(charts[id]) charts[id].destroy(); } catch(e){}
-  charts[id] = new Chart(ctx, {
-    type, data:{
-      labels,
-      datasets:[{
-        data,
-        backgroundColor: type==='doughnut' ? COLORS.slice(0,data.length) : COLORS[0],
-        borderColor: type==='doughnut' ? 'transparent' : COLORS[0],
-        borderRadius: type!=='doughnut' ? 4 : 0,
-        borderWidth: type==='doughnut' ? 0 : 0,
-        ...opts.ds
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
+const COLORS=['#ff751f','#ff9a54','#ffb87a','#ffd4a0','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6'];
+function mkChart(id,type,labels,data,opts={}) {
+  const ctx=document.getElementById(id); if(!ctx)return;
+  try{if(charts[id])charts[id].destroy();}catch(e){}
+  charts[id]=new Chart(ctx,{type,data:{labels,datasets:[{data,backgroundColor:type==='doughnut'?COLORS.slice(0,data.length):COLORS[0],borderColor:'transparent',borderRadius:type!=='doughnut'?4:0,...opts.ds}]},
+    options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:type==='doughnut',position:'right',labels:{color:'rgba(255,255,255,.6)',font:{size:11}}},
-               tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y||ctx.parsed}: inscritos`}}},
-      scales: type!=='doughnut'?{
-        x:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}},
-        y:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11},stepSize:1},grid:{color:'rgba(255,255,255,.05)'},beginAtZero:true}
-      }:{},
-      ...opts.opts
-    }
-  });
+               tooltip:{callbacks:{label:c=>` ${c.parsed.y||c.parsed}: inscritos`}}},
+      scales:type!=='doughnut'?{x:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11},stepSize:1},grid:{color:'rgba(255,255,255,.05)'},beginAtZero:true}}:{},
+      ...opts.opts}});
 }
-function renderCharts(d) {
-  const safe = (arr)=>arr||[];
-  // idade
-  const idade = safe(d.por_idade);
-  mkChart('chart-idade','bar',idade.map(x=>x.label),idade.map(x=>x.count));
-  // gênero
-  const gen = safe(d.por_genero);
-  mkChart('chart-genero','doughnut',gen.map(x=>x.label),gen.map(x=>x.count));
-  // cidade
-  const cid = safe(d.por_cidade);
-  mkChart('chart-cidade','bar',cid.map(x=>x.label),cid.map(x=>x.count),{opts:{indexAxis:'y'}});
-  // diário
-  const di = safe(d.diario_15dias);
-  mkChart('chart-diario','bar',di.map(x=>x.dia),di.map(x=>x.count));
+function renderCharts(d){
+  const s=a=>a||[];
+  mkChart('chart-idade','bar',s(d.por_idade).map(x=>x.label),s(d.por_idade).map(x=>x.count));
+  mkChart('chart-genero','doughnut',s(d.por_genero).map(x=>x.label),s(d.por_genero).map(x=>x.count));
+  mkChart('chart-cidade','bar',s(d.por_cidade).map(x=>x.label),s(d.por_cidade).map(x=>x.count),{opts:{indexAxis:'y'}});
+  mkChart('chart-diario','bar',s(d.diario_15dias).map(x=>x.dia),s(d.diario_15dias).map(x=>x.count));
 }
-
-/* ── INSCRITOS TABLE ── */
-function renderInscritos(arr) {
-  const count = document.getElementById('inscritos-count');
-  count.textContent = arr.length + ' inscritos';
-  const tbody = document.getElementById('inscritos-tbody');
-  if (!arr.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>'; return;}
-  tbody.innerHTML = arr.map(i=>`
-    <tr>
-      <td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
-      <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
-      <td>${i.kit||'—'}</td>
-      <td>${i.modalidade||'—'}</td>
-      <td>${i.tamanho_camisa||'—'}</td>
-      <td style="color:var(--orange);font-weight:700;">${brl(i.valor)}</td>
-      <td><span class="status-pill status-${i.status||'pendente'}">${i.status||'pendente'}</span></td>
-      <td style="font-size:12px;color:var(--muted);">${fmtData(i.criado_em)}</td>
-      <td><button class="edit-btn" onclick='editarInscrito(${JSON.stringify(i)})'>Editar</button></td>
-    </tr>`).join('');
+function renderInscritos(arr){
+  document.getElementById('inscritos-count').textContent=arr.length+' inscritos';
+  const tb=document.getElementById('inscritos-tbody');
+  if(!arr.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
+  tb.innerHTML=arr.map(i=>`<tr>
+    <td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
+    <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
+    <td>${i.kit||'—'}</td><td>${i.modalidade||'—'}</td><td>${i.tamanho_camisa||'—'}</td>
+    <td style="color:var(--orange);font-weight:700;">${brl(i.valor)}</td>
+    <td><span class="status-pill status-${i.status||'pendente'}">${i.status||'pendente'}</span></td>
+    <td style="font-size:12px;color:var(--muted);">${fmtData(i.criado_em)}</td>
+    <td><button class="edit-btn" onclick='editarInscrito(${JSON.stringify(i)})'>Editar</button></td>
+  </tr>`).join('');
 }
-function filtrarInscritos() {
-  const q = document.getElementById('search-inscrito').value.toLowerCase();
-  const filtrado = q
-    ? todosInscritos.filter(i=>(i.nome||'').toLowerCase().includes(q)||(i.cpf||'').includes(q)||(i.email||'').toLowerCase().includes(q))
-    : todosInscritos;
-  renderInscritos(filtrado);
+function filtrarInscritos(){
+  const q=document.getElementById('search-inscrito').value.toLowerCase();
+  renderInscritos(q?todosInscritos.filter(i=>(i.nome||'').toLowerCase().includes(q)||(i.cpf||'').includes(q)||(i.email||'').toLowerCase().includes(q)):todosInscritos);
 }
 
-/* ── DRAWER EDIÇÃO ── */
+/* ── EXPORTAR EXCEL ── */
+async function exportarExcel() {
+  if (!currentEvento) return;
+  try {
+    const dados = await rpc('admin_exportar_inscritos', {p_evento_id: currentEvento.id});
+    const arr = dados||[];
+    const ws_data = [
+      ['Nome','CPF','Nascimento','Gênero','E-mail','Telefone','Camiseta','Kit','Modalidade',
+       'Valor (R$)','Desconto%','Cupom','Pagamento','Status','CEP','Rua','Número',
+       'Complemento','Bairro','Cidade','Estado','Emergência Nome','Emergência Tel','Inscrito em','Pedido']
+    ];
+    arr.forEach(i => ws_data.push([
+      i.nome||'', i.cpf||'', i.nascimento?fmtDataSimples(i.nascimento):'', i.genero||'',
+      i.email||'', i.telefone||'', i.tamanho_camisa||'', i.kit||'', i.modalidade||'',
+      Number(i.valor||0), Number(i.desconto_pct||0), i.cupom||'', i.forma_pagamento||'',
+      i.status||'', i.cep||'', i.rua||'', i.numero||'', i.complemento||'',
+      i.bairro||'', i.cidade||'', i.estado||'', i.emergencia_nome||'', i.emergencia_telefone||'',
+      i.criado_em?fmtData(i.criado_em):'', i.pedido_id||''
+    ]));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols'] = ws_data[0].map((_,i)=>({wch: i===0?30:i===3||i===7||i===8?18:i===4?28:14}));
+    XLSX.utils.book_append_sheet(wb, ws, 'Inscritos');
+    const nome = (currentEvento.nome||'evento').replace(/[^a-z0-9]/gi,'_');
+    XLSX.writeFile(wb, `inscritos_${nome}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  } catch(e) { alert('Erro ao exportar: '+e.message); }
+}
+
+/* ── DRAWER EDIÇÃO INSCRITO ── */
 function editarInscrito(i) {
-  editingId = i.id;
-  const set = (id,v)=>{const el=document.getElementById(id); if(el)el.value=v||'';};
-  set('d-nome',i.nome); set('d-email',i.email); set('d-tel',i.telefone);
-  set('d-genero',i.genero); set('d-kit',i.kit); set('d-modalidade',i.modalidade);
-  set('d-camisa',i.tamanho_camisa); set('d-cidade',i.cidade); set('d-estado',i.estado);
+  editingId=i.id;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
+  set('d-nome',i.nome);set('d-email',i.email);set('d-tel',i.telefone);
+  set('d-genero',i.genero);set('d-kit',i.kit);set('d-modalidade',i.modalidade);
+  set('d-camisa',i.tamanho_camisa);set('d-cidade',i.cidade);set('d-estado',i.estado);
   set('d-status',i.status||'pendente');
-  document.getElementById('drawer-feedback').textContent = '';
+  document.getElementById('drawer-feedback').textContent='';
   document.getElementById('drawer-overlay').classList.add('open');
 }
-function closeDrawer() { document.getElementById('drawer-overlay').classList.remove('open'); }
-async function salvarEdicao() {
-  const get = id => document.getElementById(id)?.value||'';
-  const dados = {
-    nome:get('d-nome'), email:get('d-email'), telefone:get('d-tel'),
-    genero:get('d-genero'), kit:get('d-kit'), modalidade:get('d-modalidade'),
-    tamanho_camisa:get('d-camisa'), cidade:get('d-cidade'), estado:get('d-estado').toUpperCase(),
-    status:get('d-status')
-  };
-  const fb = document.getElementById('drawer-feedback');
-  fb.style.color='var(--muted)'; fb.textContent='Salvando…';
-  try {
-    await rpc('admin_update_inscricao',{p_id:editingId, dados});
-    // atualiza localmente
-    todosInscritos = todosInscritos.map(i=>i.id===editingId?{...i,...dados}:i);
+function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');}
+async function salvarEdicao(){
+  const get=id=>document.getElementById(id)?.value||'';
+  const dados={nome:get('d-nome'),email:get('d-email'),telefone:get('d-tel'),genero:get('d-genero'),
+    kit:get('d-kit'),modalidade:get('d-modalidade'),tamanho_camisa:get('d-camisa'),
+    cidade:get('d-cidade'),estado:get('d-estado').toUpperCase(),status:get('d-status')};
+  const fb=document.getElementById('drawer-feedback');
+  fb.style.color='var(--muted)';fb.textContent='Salvando…';
+  try{
+    await rpc('admin_update_inscricao',{p_id:editingId,dados});
+    todosInscritos=todosInscritos.map(i=>i.id===editingId?{...i,...dados}:i);
     renderInscritos(todosInscritos);
-    fb.style.color='#22c55e'; fb.textContent='✓ Salvo!';
-    setTimeout(closeDrawer, 1200);
-  } catch(e) {
-    fb.style.color='#ff6b6b'; fb.textContent='Erro ao salvar.';
-  }
+    fb.style.color='#22c55e';fb.textContent='✓ Salvo!';
+    setTimeout(closeDrawer,1200);
+  }catch(e){fb.style.color='#ff6b6b';fb.textContent='Erro ao salvar.';}
 }
 
-/* ── TELA 2: CUPONS ── */
-let _adminEventos = []; // cache dos eventos para resolver nomes nos cupons
-
-async function loadCupons() {
-  try {
-    const [cupons, eventos] = await Promise.all([rpc('admin_listar_cupons'), rpc('admin_lista_eventos')]);
-    _adminEventos = eventos||[];
+/* ── CUPONS ── */
+async function loadCupons(){
+  try{
+    const [cupons,eventos]=await Promise.all([rpc('admin_listar_cupons'),rpc('admin_lista_eventos')]);
+    _adminEventos=eventos||[];
     renderCuponsList(cupons||[]);
     renderEventosCheck(_adminEventos);
-  } catch(e) { console.error(e); }
+  }catch(e){console.error(e);}
 }
-function renderEventosCheck(evs) {
-  const el = document.getElementById('eventos-check-list');
-  if (!evs.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:4px;">Nenhum evento cadastrado.</div>';return;}
-  el.innerHTML = evs.map(e=>`
-    <label><input type="checkbox" class="ev-check" value="${e.id}"> ${e.nome}</label>`).join('');
+function renderEventosCheck(evs){
+  const el=document.getElementById('eventos-check-list');
+  if(!evs.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:4px;">Nenhum evento.</div>';return;}
+  el.innerHTML=evs.map(e=>`<label><input type="checkbox" class="ev-check" value="${e.id}"> ${e.nome}</label>`).join('');
 }
-function nomeEventosCupom(ids) {
-  try {
-    const arr = typeof ids==='string' ? JSON.parse(ids) : (ids||[]);
-    if (!arr.length) return '<span style="color:var(--muted)">Todos</span>';
-    return arr.map(id=>{ const ev=_adminEventos.find(e=>e.id===id); return ev?ev.nome:id.slice(0,6)+'…'; }).join(', ');
-  } catch(e){ return '—'; }
+function nomeEventosCupom(ids){
+  try{
+    const arr=typeof ids==='string'?JSON.parse(ids):(ids||[]);
+    if(!arr.length) return '<span style="color:var(--muted)">Todos</span>';
+    return arr.map(id=>{const ev=_adminEventos.find(e=>e.id===id);return ev?ev.nome:id.slice(0,6)+'…';}).join(', ');
+  }catch(e){return '—';}
 }
-function renderCuponsList(cupons) {
-  const el = document.getElementById('cupons-lista');
-  if (!cupons.length){el.innerHTML='<div class="empty-state">Nenhum cupom cadastrado ainda.</div>';return;}
-  el.innerHTML = `<table class="data-table">
+function renderCuponsList(cupons){
+  const el=document.getElementById('cupons-lista');
+  if(!cupons.length){el.innerHTML='<div class="empty-state">Nenhum cupom cadastrado ainda.</div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto;"><table class="data-table">
     <thead><tr><th>Código</th><th>Nome</th><th>%</th><th>Usos</th><th>Início</th><th>Validade</th><th>Eventos</th><th>Status</th></tr></thead>
-    <tbody>${cupons.map(c=>`
-      <tr>
-        <td style="font-weight:700;color:var(--orange);">${c.codigo}</td>
-        <td style="color:var(--muted);font-size:12px;">${c.nome||'—'}</td>
-        <td>${c.percentual}%</td>
-        <td>${c.usos_atuais}${c.max_usos?'/'+c.max_usos:''}</td>
-        <td style="font-size:12px;color:var(--muted);">${c.data_inicio?fmtDataSimples(c.data_inicio):'—'}</td>
-        <td style="font-size:12px;color:var(--muted);">${c.validade?fmtDataSimples(c.validade):'Sem prazo'}</td>
-        <td style="font-size:12px;max-width:180px;">${nomeEventosCupom(c.evento_ids)}</td>
-        <td><span class="${c.ativo?'badge-ativo':'badge-inativo'}">${c.ativo?'Ativo':'Inativo'}</span></td>
-      </tr>`).join('')}
-    </tbody></table>`;
+    <tbody>${cupons.map(c=>`<tr>
+      <td style="font-weight:700;color:var(--orange);">${c.codigo}</td>
+      <td style="color:var(--muted);font-size:12px;">${c.nome||'—'}</td>
+      <td>${c.percentual}%</td>
+      <td>${c.usos_atuais}${c.max_usos?'/'+c.max_usos:''}</td>
+      <td style="font-size:12px;color:var(--muted);">${c.data_inicio?fmtDataSimples(c.data_inicio):'—'}</td>
+      <td style="font-size:12px;color:var(--muted);">${c.validade?fmtDataSimples(c.validade):'Sem prazo'}</td>
+      <td style="font-size:12px;max-width:160px;">${nomeEventosCupom(c.evento_ids)}</td>
+      <td><span class="${c.ativo?'badge-ativo':'badge-inativo'}">${c.ativo?'Ativo':'Inativo'}</span></td>
+    </tr>`).join('')}</tbody></table></div>`;
 }
-async function salvarCupom() {
-  const get = id=>(document.getElementById(id)?.value||'').trim();
-  const codigo = get('c-codigo').toUpperCase();
-  const percentual = parseInt(get('c-pct'))||0;
-  if (!codigo||!percentual){
-    const fb=document.getElementById('cupom-feedback'); fb.className='form-feedback err'; fb.textContent='Preencha código e percentual.'; return;
-  }
-  const evento_ids = [...document.querySelectorAll('.ev-check:checked')].map(cb=>cb.value);
-  const dados = {
-    nome: get('c-nome'), codigo, percentual,
-    data_inicio: get('c-inicio')||null,
-    validade: get('c-validade')||null,
-    max_usos: get('c-max-usos')||null,
-    max_por_cpf: get('c-max-cpf')||'1',
-    evento_ids: JSON.stringify(evento_ids)
-  };
-  const fb=document.getElementById('cupom-feedback');
-  fb.className='form-feedback'; fb.textContent='Salvando…';
-  try {
+async function salvarCupom(){
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  const codigo=get('c-codigo').toUpperCase();
+  const percentual=parseInt(get('c-pct'))||0;
+  if(!codigo||!percentual){const fb=document.getElementById('cupom-feedback');fb.className='form-feedback err';fb.textContent='Preencha código e percentual.';return;}
+  const evento_ids=[...document.querySelectorAll('.ev-check:checked')].map(cb=>cb.value);
+  const dados={nome:get('c-nome'),codigo,percentual,data_inicio:get('c-inicio')||null,validade:get('c-validade')||null,max_usos:get('c-max-usos')||null,max_por_cpf:get('c-max-cpf')||'1',evento_ids:JSON.stringify(evento_ids)};
+  const fb=document.getElementById('cupom-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
     await rpc('admin_criar_cupom',{dados});
-    fb.className='form-feedback ok'; fb.textContent='✓ Cupom salvo!';
+    fb.className='form-feedback ok';fb.textContent='✓ Cupom salvo!';
     ['c-nome','c-codigo','c-pct','c-validade','c-max-usos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    // reinicia data início para hoje
-    const hoje = new Date().toISOString().split('T')[0];
-    document.getElementById('c-inicio').value = hoje;
+    document.getElementById('c-inicio').value=new Date().toISOString().split('T')[0];
     document.getElementById('c-max-cpf').value='1';
     document.querySelectorAll('.ev-check').forEach(cb=>cb.checked=false);
     loadCupons();
-  } catch(e) {
-    fb.className='form-feedback err'; fb.textContent='Erro: '+e.message;
-  }
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
 
 /* ── INIT ── */
-if (sessionStorage.getItem('jbx_admin')==='1') showAdmin();
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDrawer(); });
+if(sessionStorage.getItem('jbx_admin')==='1') showAdmin();
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 </script>
 </body>
 </html>
