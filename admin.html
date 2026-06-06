@@ -12,69 +12,65 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
-
 /* LOGIN */
 #login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--black);}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;}
 .login-logo{font-size:22px;font-weight:700;color:#fff;letter-spacing:-1px;margin-bottom:6px;}
 .login-logo span{color:var(--orange);}
 .login-sub{font-size:13px;color:var(--muted);margin-bottom:32px;}
-.login-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:12px 16px;color:#fff;font-size:15px;font-family:'Ubuntu',sans-serif;margin-bottom:12px;transition:border .2s;}
+.login-box input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:12px 16px;color:#fff;font-size:15px;font-family:'Ubuntu',sans-serif;margin-bottom:12px;}
 .login-box input:focus{outline:none;border-color:var(--orange);}
-.login-box button{width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.login-box button{width:100%;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .login-box button:hover{background:var(--orange-dark);}
 .login-err{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px;}
-
 /* LAYOUT */
 .admin-shell{display:grid;grid-template-rows:60px 1fr;min-height:100vh;}
 .admin-header{background:rgba(10,10,10,.95);border-bottom:1px solid rgba(255,117,31,.15);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50;}
 .admin-nav{display:flex;gap:24px;}
-.nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.5px;}
+.nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s;}
 .nav-btn:hover,.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);}
 .admin-logout{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
-.admin-logout:hover{color:#fff;border-color:rgba(255,255,255,.3);}
+.admin-logout:hover{color:#fff;}
 .admin-content{padding:32px;max-width:1400px;margin:0 auto;width:100%;}
 .inner-screen{display:none;}.inner-screen.active{display:block;}
-
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;}
-.back-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
+.back-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;white-space:nowrap;}
 .back-btn:hover{color:#fff;}
-.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
 .tag-open{background:rgba(255,117,31,.2);color:var(--orange);}
 .tag-soon{background:rgba(255,200,0,.15);color:#ffd000;}
 .tag-closed{background:rgba(136,136,136,.2);color:#888;}
-
 /* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;}
 .stat-card .sc-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
 .stat-card .sc-val{font-size:28px;font-weight:700;color:#fff;line-height:1;}
 .stat-card .sc-val.orange{color:var(--orange);}
-
 /* EVENT CARDS */
 .dash-actions{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.btn-new-ev{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.btn-new-ev{display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-new-ev:hover{background:var(--orange-dark);}
 .eventos-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
 .ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .25s;}
-.ev-card:hover{border-color:rgba(255,117,31,.4);box-shadow:0 16px 40px rgba(0,0,0,.4);}
+.ev-card:hover{border-color:rgba(255,117,31,.4);}
 .ev-card-header{background:linear-gradient(135deg,#1e1e1e,#2a2a2a);padding:20px;display:flex;justify-content:space-between;align-items:flex-start;}
 .ev-card-header h3{font-size:16px;font-weight:700;max-width:75%;}
 .ev-card-stats{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ev-stat .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .ev-stat .v{font-size:18px;font-weight:700;color:var(--orange);margin-top:2px;}
-.ev-card-footer{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.ev-card-footer{padding:12px 20px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .ev-card-footer .meta{font-size:12px;color:var(--muted);flex:1;}
-.btn-sm{border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-sm{border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
 .btn-sm-orange{background:var(--orange);color:#fff;}.btn-sm-orange:hover{background:var(--orange-dark);}
-.btn-sm-ghost{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid rgba(255,255,255,.1);}.btn-sm-ghost:hover{color:#fff;border-color:rgba(255,255,255,.3);}
-
-/* CUPONS */
+.btn-sm-ghost{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid rgba(255,255,255,.1);}.btn-sm-ghost:hover{color:#fff;}
+.btn-sm-green{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}.btn-sm-green:hover{background:rgba(34,197,94,.25);}
+/* FORMS */
 .two-col{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;}
 .panel h2{font-size:16px;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.panel h3{font-size:14px;font-weight:700;margin-bottom:14px;color:var(--muted);}
 .form-g{margin-bottom:14px;}
 .form-g label{display:block;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
 .form-g input,.form-g select,.form-g textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:'Ubuntu',sans-serif;transition:border .2s;}
@@ -92,6 +88,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-save:hover{background:var(--orange-dark);}
 .form-feedback{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
 .form-feedback.ok{color:#22c55e;}.form-feedback.err{color:#ff6b6b;}
+.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+/* TABLES */
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}
 .data-table th{text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);}
 .data-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
@@ -99,40 +97,55 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .badge-ativo{color:#22c55e;font-size:11px;font-weight:700;}
 .badge-inativo{color:#888;font-size:11px;font-weight:700;}
 .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:14px;}
-
-/* EVENTO FORM */
-.ev-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-.ev-form-section{margin-bottom:8px;}
+.table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;}
+/* EVENT FORM */
 .ev-form-section-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:16px;margin-top:24px;padding-bottom:8px;border-bottom:1px solid rgba(255,117,31,.15);}
 .ev-form-section-title:first-child{margin-top:0;}
-.hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.ev-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
 .form-actions{display:flex;gap:12px;margin-top:28px;}
-.btn-primary{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.btn-primary{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-primary:hover{background:var(--orange-dark);}
-.btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-ghost{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px 24px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-ghost:hover{color:#fff;}
-
 /* CHARTS */
 .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;}
 .chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
 .chart-card h3{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
 .chart-wrap{position:relative;height:200px;}
-
 /* INSCRITOS */
 .inscritos-bar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
-.search-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-family:'Ubuntu',sans-serif;width:240px;transition:border .2s;}
+.search-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;color:#fff;font-size:13px;font-family:'Ubuntu',sans-serif;width:220px;}
 .search-input:focus{outline:none;border-color:var(--orange);}
 .inscritos-count{font-size:13px;color:var(--muted);}
-.table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;}
-.data-table .edit-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.data-table .edit-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .data-table .edit-btn:hover{border-color:var(--orange);color:var(--orange);}
 .status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 .status-confirmado{background:rgba(34,197,94,.15);color:#22c55e;}
 .status-pendente{background:rgba(255,200,0,.12);color:#ffd000;}
 .status-cancelado{background:rgba(136,136,136,.15);color:#888;}
-.btn-export{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.btn-export{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-export:hover{background:rgba(34,197,94,.22);}
-
+/* KITS & LOTES */
+.kit-card-admin{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;}
+.kit-thumb{width:56px;height:56px;border-radius:8px;object-fit:cover;background:#222;flex-shrink:0;}
+.kit-thumb-placeholder{width:56px;height:56px;border-radius:8px;background:#222;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.kit-info{flex:1;min-width:0;}
+.kit-info .kit-nome{font-weight:700;font-size:14px;}
+.kit-info .kit-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+.kit-actions{display:flex;gap:6px;flex-shrink:0;}
+.lote-card-admin{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;}
+.lote-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.lote-nome-badge{font-weight:700;font-size:15px;color:var(--orange);}
+.lote-datas{font-size:12px;color:var(--muted);}
+.lote-precos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;}
+.lote-preco-item{background:rgba(255,255,255,.06);border-radius:8px;padding:10px 12px;}
+.lote-preco-item .kit-n{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.lote-preco-item .preco-v{font-size:18px;font-weight:700;color:#fff;margin-top:2px;}
+.lote-preco-item .qtd-v{font-size:11px;color:var(--muted);margin-top:1px;}
+.kit-preco-inputs{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;}
+.kit-preco-inputs .kit-label{font-size:12px;font-weight:700;color:var(--orange);margin-bottom:8px;}
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
 /* DRAWER */
 .drawer-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);display:none;align-items:flex-end;}
 .drawer-overlay.open{display:flex;}
@@ -142,13 +155,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .drawer-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
 .drawer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
 .drawer-foot{margin-top:24px;display:flex;gap:12px;}
-.btn-primary-sm{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
-.btn-primary-sm:hover{background:var(--orange-dark);}
-.btn-ghost-sm{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
-.btn-ghost-sm:hover{color:#fff;}
+.btn-primary-sm{background:var(--orange);color:#fff;border:none;border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
+.btn-ghost-sm{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 24px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 
-@media(max-width:900px){.two-col,.ev-form-grid{grid-template-columns:1fr;}.charts-grid{grid-template-columns:1fr;}.admin-content{padding:16px;}.drawer{padding:20px;}.drawer-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}.drawer-grid{grid-template-columns:1fr;}.form-row2,.form-row3{grid-template-columns:1fr;}}
+@media(max-width:900px){.two-col,.ev-form-grid{grid-template-columns:1fr;}.charts-grid{grid-template-columns:1fr;}.admin-content{padding:16px;}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr;}.form-row2,.form-row3{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -174,7 +185,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       </nav>
       <button class="admin-logout" onclick="doLogout()">Sair</button>
     </header>
-
     <main class="admin-content">
 
       <!-- TELA 1: DASHBOARD -->
@@ -240,7 +250,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1 id="ev-detail-nome">Evento</h1>
           <span id="ev-detail-tag" class="tag"></span>
-          <button class="btn-sm btn-sm-ghost" style="margin-left:auto;" onclick="loadEventoForm(currentEvento&&currentEvento.id)">✏ Editar evento</button>
+          <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm(currentEvento&&currentEvento.id)">✏ Editar</button>
+          <button class="btn-sm btn-sm-green" style="margin-left:4px;" onclick="abrirKitsLotes()">🎟 Kits & Lotes</button>
         </div>
         <div class="stats-row" id="ev-stats-row"></div>
         <div class="charts-grid">
@@ -251,7 +262,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
         <div class="inscritos-bar">
           <h2 style="font-size:18px;font-weight:700;">Inscritos</h2>
-          <input class="search-input" id="search-inscrito" placeholder="Buscar por nome, CPF ou e-mail…" oninput="filtrarInscritos()">
+          <input class="search-input" id="search-inscrito" placeholder="Buscar por nome, CPF…" oninput="filtrarInscritos()">
           <span class="inscritos-count" id="inscritos-count"></span>
           <button class="btn-export" onclick="exportarExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -260,8 +271,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Modalidade</th><th>Camiseta</th><th>Valor</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
-            <tbody id="inscritos-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr></tbody>
+            <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Lote</th><th>Modalidade</th><th>Camiseta</th><th>Valor</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
+            <tbody id="inscritos-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -273,53 +284,111 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <h1 id="ev-form-titulo">Novo Evento</h1>
         </div>
         <input type="hidden" id="ef-id">
+
         <div class="ev-form-section-title">Informações gerais</div>
         <div class="form-row3" style="margin-bottom:14px;">
           <div class="form-g" style="margin:0;"><label>Nome do evento *</label><input id="ef-nome" placeholder="Ex: Corrida pela Vida"></div>
-          <div class="form-g" style="margin:0;"><label>Data *</label><input id="ef-data" type="date"></div>
+          <div class="form-g" style="margin:0;"><label>Data</label><input id="ef-data" type="date"></div>
           <div class="form-g" style="margin:0;"><label>Hora</label><input id="ef-hora" placeholder="Ex: 07h00"></div>
         </div>
         <div class="form-row3" style="margin-bottom:14px;">
           <div class="form-g" style="margin:0;"><label>Local</label><input id="ef-local" placeholder="Cidade ou endereço"></div>
           <div class="form-g" style="margin:0;"><label>Status</label>
-            <select id="ef-status">
-              <option value="soon">Em breve</option>
-              <option value="open">Inscrições abertas</option>
-              <option value="closed">Encerrado</option>
-            </select>
+            <select id="ef-status"><option value="soon">Em breve</option><option value="open">Inscrições abertas</option><option value="closed">Encerrado</option></select>
           </div>
-          <div class="form-g" style="margin:0;"><label>Preço mínimo (R$)</label><input id="ef-preco" type="number" step="0.01" placeholder="Ex: 89.90"></div>
+          <div class="form-g" style="margin:0;"><label>Preço mínimo (R$)</label><input id="ef-preco" type="number" step="0.01" placeholder="89.90"></div>
         </div>
         <div class="form-g"><label>Distâncias (separadas por vírgula)</label>
           <input id="ef-distancias" placeholder="Ex: 4KM, 8KM, Caminhada 4KM">
         </div>
 
+        <div class="ev-form-section-title">Imagens</div>
+        <div class="form-row2">
+          <div class="form-g" style="margin:0;">
+            <label>Banner do card (URL)</label>
+            <input id="ef-banner" placeholder="https://... — link direto da imagem">
+            <p class="hint">Exibida no card do evento. Ideal: 600×400px.</p>
+          </div>
+          <div class="form-g" style="margin:0;">
+            <label>Banner horizontal (URL)</label>
+            <input id="ef-banner-h" placeholder="https://... — link direto da imagem">
+            <p class="hint">Exibida na página do evento. Ideal: 1200×400px.</p>
+          </div>
+        </div>
+
         <div class="ev-form-section-title">Conteúdo das abas</div>
         <div class="form-g"><label>Descrição (aba Informações)</label>
-          <textarea id="ef-descricao" class="tall" placeholder="Texto descritivo do evento que aparece na aba Informações…"></textarea>
+          <textarea id="ef-descricao" class="tall" placeholder="Texto descritivo do evento…"></textarea>
         </div>
         <div class="ev-form-grid">
           <div class="form-g"><label>Percurso (texto)</label>
-            <textarea id="ef-percurso" placeholder="Descrição do percurso (complementa o mapa)…"></textarea>
+            <textarea id="ef-percurso" placeholder="Descrição do percurso…"></textarea>
           </div>
           <div>
             <div class="form-g"><label>Percurso Mapa (JSON)</label>
-              <textarea id="ef-percurso-mapa" placeholder='[{"rotulo":"4KM","url":"https://google.com/maps/..."},{"rotulo":"8KM","url":"..."}]'></textarea>
+              <textarea id="ef-percurso-mapa" placeholder='[{"rotulo":"4KM","url":"https://google.com/maps/..."}]'></textarea>
             </div>
-            <p class="hint">Cole o link do Google My Maps. Para múltiplos percursos, use o formato JSON acima — um objeto por distância.</p>
+            <p class="hint">Para múltiplos mapas use o formato JSON acima.</p>
           </div>
         </div>
         <div class="form-g"><label>Retirada de Kit</label>
-          <textarea id="ef-retirada" class="tall" placeholder="Local, datas e horários de retirada. Inclua instruções para retirada por terceiros se quiser."></textarea>
+          <textarea id="ef-retirada" class="tall" placeholder="Local, datas e horários de retirada…"></textarea>
         </div>
         <div class="form-g"><label>Regulamento</label>
-          <textarea id="ef-regulamento" style="min-height:240px;" placeholder="Texto completo do regulamento do evento…"></textarea>
+          <textarea id="ef-regulamento" style="min-height:220px;" placeholder="Texto completo do regulamento…"></textarea>
         </div>
 
         <div class="form-actions">
           <button class="btn-primary" onclick="salvarEvento()">Salvar evento</button>
           <button class="btn-ghost" onclick="showInner('dash')">Cancelar</button>
           <span id="ev-form-feedback" style="font-size:13px;align-self:center;margin-left:auto;"></span>
+        </div>
+      </div>
+
+      <!-- TELA 5: KITS & LOTES -->
+      <div class="inner-screen" id="screen-kits-lotes">
+        <div class="page-hd">
+          <button class="back-btn" id="kl-back-btn" onclick="voltarParaEvento()">← Voltar</button>
+          <h1 id="kl-titulo">Kits & Lotes</h1>
+        </div>
+        <div class="two-col">
+
+          <!-- KITS -->
+          <div class="panel">
+            <h2>Kits do Evento</h2>
+            <div id="kits-admin-lista"><div class="empty-state">Carregando…</div></div>
+            <hr class="divider">
+            <h3>Adicionar Kit</h3>
+            <div class="form-g"><label>Nome do kit *</label><input id="nkit-nome" placeholder="Ex: Kit Starter"></div>
+            <div class="form-g"><label>Descrição</label><input id="nkit-desc" placeholder="O que inclui este kit…"></div>
+            <div class="form-g"><label>URL da foto</label>
+              <input id="nkit-foto" placeholder="https://...">
+              <p class="hint">Link direto da imagem (raw do GitHub, etc).</p>
+            </div>
+            <div class="form-g"><label>Ordem de exibição</label><input id="nkit-ordem" type="number" value="0" min="0"></div>
+            <button class="btn-save" onclick="salvarKit()">Adicionar Kit</button>
+            <div class="form-feedback" id="kit-feedback"></div>
+          </div>
+
+          <!-- LOTES -->
+          <div class="panel">
+            <h2>Lotes de Preços</h2>
+            <div id="lotes-admin-lista"><div class="empty-state">Carregando…</div></div>
+            <hr class="divider">
+            <h3>Adicionar / Editar Lote</h3>
+            <div class="form-g"><label>Nome do lote *</label>
+              <input id="nlote-nome" placeholder="Ex: Lote 1, Lote Promocional, Último Lote">
+            </div>
+            <div class="form-row2">
+              <div class="form-g" style="margin:0;"><label>Data início</label><input id="nlote-inicio" type="date"></div>
+              <div class="form-g" style="margin:0;"><label>Data fim</label><input id="nlote-fim" type="date"></div>
+            </div>
+            <div style="margin:14px 0 6px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);">Preço por kit</div>
+            <div id="nlote-kits-precos"><div style="color:var(--muted);font-size:13px;padding:10px 0;">Adicione kits primeiro para definir preços.</div></div>
+            <input type="hidden" id="nlote-id">
+            <button class="btn-save" onclick="salvarLote()">Salvar Lote</button>
+            <div class="form-feedback" id="lote-feedback"></div>
+          </div>
         </div>
       </div>
 
@@ -338,12 +407,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="form-g"><label>Nome</label><input id="d-nome"></div>
       <div class="form-g"><label>E-mail</label><input id="d-email" type="email"></div>
       <div class="form-g"><label>Telefone</label><input id="d-tel"></div>
-      <div class="form-g"><label>Gênero</label>
-        <select id="d-genero"><option>Masculino</option><option>Feminino</option></select></div>
-      <div class="form-g"><label>Kit</label>
-        <select id="d-kit"><option>Kit Starter</option><option>Kit Vip JBX Sports</option></select></div>
-      <div class="form-g"><label>Modalidade</label>
-        <select id="d-modalidade"><option>Corrida 4KM</option><option>Corrida 8KM</option><option>Caminhada 4KM</option></select></div>
+      <div class="form-g"><label>Gênero</label><select id="d-genero"><option>Masculino</option><option>Feminino</option></select></div>
+      <div class="form-g"><label>Kit</label><input id="d-kit"></div>
+      <div class="form-g"><label>Modalidade</label><select id="d-modalidade"><option>Corrida 4KM</option><option>Corrida 8KM</option><option>Caminhada 4KM</option></select></div>
       <div class="form-g"><label>Camiseta</label>
         <select id="d-camisa"><option>Babylook tamanho único</option><option>Camiseta P</option><option>Camiseta M</option><option>Camiseta G</option><option>Camiseta GG</option></select></div>
       <div class="form-g"><label>Cidade</label><input id="d-cidade"></div>
@@ -352,7 +418,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <select id="d-status"><option value="pendente">Pendente</option><option value="confirmado">Confirmado</option><option value="cancelado">Cancelado</option></select></div>
     </div>
     <div class="drawer-foot">
-      <button class="btn-primary-sm" onclick="salvarEdicao()">Salvar alterações</button>
+      <button class="btn-primary-sm" onclick="salvarEdicao()">Salvar</button>
       <button class="btn-ghost-sm" onclick="closeDrawer()">Cancelar</button>
       <span id="drawer-feedback" style="font-size:13px;margin-left:auto;align-self:center;"></span>
     </div>
@@ -360,94 +426,66 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <script>
-const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
-const SB_KEY = 'sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
-const ADMIN_HASH = '9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd92'; // JBX@admin2026
+const SB_URL='https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_KEY='sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
+const ADMIN_HASH='9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd92';
 
-let currentEvento = null;
-let todosInscritos = [];
-let editingId = null;
-let charts = {};
-let _adminEventos = [];
+let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={};
+let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
-async function rpc(fn, params={}) {
-  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
-    method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-    body: JSON.stringify(params)
-  });
-  if (!r.ok) throw new Error(await r.text());
-  const text = await r.text();
-  return text ? JSON.parse(text) : null;
+async function rpc(fn,params={}){
+  const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(params)});
+  if(!r.ok) throw new Error(await r.text());
+  const t=await r.text(); return t?JSON.parse(t):null;
 }
-const brl = v => 'R$ ' + Number(v||0).toFixed(2).replace('.',',');
-const fmt = n => Number(n||0).toLocaleString('pt-BR');
-function fmtData(dt) {
-  if (!dt) return '—';
-  const d = new Date(dt);
-  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-}
-function fmtDataSimples(dt) {
-  if (!dt) return '—';
-  const [y,m,d] = String(dt).split('-'); return `${d}/${m}/${y}`;
-}
+const brl=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',');
+const fmt=n=>Number(n||0).toLocaleString('pt-BR');
+const fmtDS=dt=>{if(!dt)return'—';const[y,m,d]=String(dt).split('-');return`${d}/${m}/${y}`;};
+function fmtData(dt){if(!dt)return'—';const d=new Date(dt);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
 function tagClass(s){return s==='open'?'tag-open':s==='closed'?'tag-closed':'tag-soon';}
 function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em breve';}
 
 /* ── AUTH ── */
-async function doLogin() {
-  const pass = document.getElementById('pass-input').value;
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pass));
-  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if (hash !== ADMIN_HASH) { document.getElementById('login-err').textContent='Senha incorreta.'; return; }
-  sessionStorage.setItem('jbx_admin','1');
-  showAdmin();
+async function doLogin(){
+  const pass=document.getElementById('pass-input').value;
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pass));
+  const hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  if(hash!==ADMIN_HASH){document.getElementById('login-err').textContent='Senha incorreta.';return;}
+  sessionStorage.setItem('jbx_admin','1'); showAdmin();
 }
-function doLogout() {
-  sessionStorage.removeItem('jbx_admin');
-  document.getElementById('login').classList.add('active');
-  document.getElementById('admin').classList.remove('active');
-  document.getElementById('pass-input').value='';
-}
-function showAdmin() {
-  document.getElementById('login').classList.remove('active');
-  document.getElementById('admin').classList.add('active');
-  loadDashboard();
-}
+function doLogout(){sessionStorage.removeItem('jbx_admin');document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
+function showAdmin(){document.getElementById('login').classList.remove('active');document.getElementById('admin').classList.add('active');loadDashboard();}
 
 /* ── NAVEGAÇÃO ── */
-function showInner(name) {
+function showInner(name){
   document.querySelectorAll('.inner-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const scr = document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
-  const nb = document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
-  if (name==='dash') { document.getElementById('nav-dash').classList.add('active'); loadDashboard(); }
-  if (name==='cupons') {
-    document.getElementById('nav-cupons').classList.add('active');
-    const ci=document.getElementById('c-inicio'); if(ci&&!ci.value) ci.value=new Date().toISOString().split('T')[0];
-    loadCupons();
-  }
+  const scr=document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
+  const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
+  if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
+  if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
 }
 
-/* ── TELA 1: DASHBOARD ── */
-async function loadDashboard() {
-  try {
-    const [stats, evs] = await Promise.all([rpc('admin_stats'), rpc('admin_eventos_stats')]);
-    document.getElementById('g-eventos').textContent = fmt(stats.eventos_count);
-    document.getElementById('g-fat').textContent     = brl(stats.faturamento_total);
-    document.getElementById('g-total').textContent   = fmt(stats.inscricoes_total);
-    document.getElementById('g-hoje').textContent    = fmt(stats.inscricoes_hoje);
-    document.getElementById('g-ticket').textContent  = brl(stats.ticket_medio);
+/* ── DASHBOARD ── */
+async function loadDashboard(){
+  try{
+    const[stats,evs]=await Promise.all([rpc('admin_stats'),rpc('admin_eventos_stats')]);
+    document.getElementById('g-eventos').textContent=fmt(stats.eventos_count);
+    document.getElementById('g-fat').textContent=brl(stats.faturamento_total);
+    document.getElementById('g-total').textContent=fmt(stats.inscricoes_total);
+    document.getElementById('g-hoje').textContent=fmt(stats.inscricoes_hoje);
+    document.getElementById('g-ticket').textContent=brl(stats.ticket_medio);
     renderEventCards(evs||[]);
-  } catch(e) { console.error(e); }
+  }catch(e){console.error(e);}
 }
-function renderEventCards(evs) {
-  const g = document.getElementById('ev-grid');
-  if (!evs.length) { g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento" para começar.</div>'; return; }
-  g.innerHTML = evs.map(e=>`
+function renderEventCards(evs){
+  const g=document.getElementById('ev-grid');
+  if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
+  g.innerHTML=evs.map(e=>`
     <div class="ev-card">
       <div class="ev-card-header">
-        <div><h3>${e.nome}</h3><div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDataSimples(e.data):''}</div></div>
+        <div><h3>${e.nome}</h3><div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
         <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
       </div>
       <div class="ev-card-stats">
@@ -459,102 +497,203 @@ function renderEventCards(evs) {
       <div class="ev-card-footer">
         <span class="meta">${e.hora||''}</span>
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
+        <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
         <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
       </div>
     </div>`).join('');
 }
 
-/* ── TELA 4: CRIAR / EDITAR EVENTO ── */
-async function loadEventoForm(id) {
-  document.getElementById('ev-form-titulo').textContent = id ? 'Editar Evento' : 'Novo Evento';
-  document.getElementById('ef-id').value = id||'';
-  document.getElementById('ev-form-feedback').textContent = '';
-  const campos = ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento'];
-  campos.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('ef-status').value = 'soon';
-
-  if (id) {
-    try {
-      const ev = await rpc('admin_get_evento', {p_id: id});
-      if (ev) {
-        const set = (elId, v) => { const el=document.getElementById(elId); if(el) el.value=v||''; };
-        set('ef-nome', ev.nome); set('ef-data', ev.data); set('ef-hora', ev.hora);
-        set('ef-local', ev.local); set('ef-preco', ev.preco_min);
-        set('ef-distancias', ev.distancias); set('ef-descricao', ev.descricao);
-        set('ef-percurso', ev.percurso); set('ef-percurso-mapa', ev.percurso_mapa);
-        set('ef-retirada', ev.retirada_kit); set('ef-regulamento', ev.regulamento);
-        document.getElementById('ef-status').value = ev.status||'soon';
+/* ── EVENTO FORM ── */
+async function loadEventoForm(id){
+  document.getElementById('ev-form-titulo').textContent=id?'Editar Evento':'Novo Evento';
+  document.getElementById('ef-id').value=id||'';
+  document.getElementById('ev-form-feedback').textContent='';
+  ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  document.getElementById('ef-status').value='soon';
+  if(id){
+    try{
+      const ev=await rpc('admin_get_evento',{p_id:id});
+      if(ev){
+        const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.value=v||'';};
+        set('ef-nome',ev.nome);set('ef-data',ev.data);set('ef-hora',ev.hora);set('ef-local',ev.local);
+        set('ef-preco',ev.preco_min);set('ef-distancias',ev.distancias);set('ef-descricao',ev.descricao);
+        set('ef-percurso',ev.percurso);set('ef-percurso-mapa',ev.percurso_mapa);
+        set('ef-retirada',ev.retirada_kit);set('ef-regulamento',ev.regulamento);
+        set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);
+        document.getElementById('ef-status').value=ev.status||'soon';
       }
-    } catch(e) { console.error(e); }
+    }catch(e){console.error(e);}
   }
   showInner('evento-form');
 }
-async function salvarEvento() {
-  const get = id => (document.getElementById(id)?.value||'').trim();
-  if (!get('ef-nome')) {
-    const fb=document.getElementById('ev-form-feedback'); fb.style.color='#ff6b6b'; fb.textContent='Nome do evento é obrigatório.'; return;
-  }
-  const dados = {
-    id: get('ef-id')||'', nome: get('ef-nome'), data: get('ef-data')||null,
-    hora: get('ef-hora'), local: get('ef-local'),
-    status: document.getElementById('ef-status').value,
-    preco_min: get('ef-preco')||null, distancias: get('ef-distancias'),
-    descricao: get('ef-descricao'), percurso: get('ef-percurso'),
-    percurso_mapa: get('ef-percurso-mapa'), retirada_kit: get('ef-retirada'),
-    regulamento: get('ef-regulamento')
-  };
-  const fb=document.getElementById('ev-form-feedback');
-  fb.style.color='var(--muted)'; fb.textContent='Salvando…';
-  try {
-    await rpc('admin_salvar_evento', {dados});
-    fb.style.color='#22c55e'; fb.textContent='✓ Evento salvo!';
-    setTimeout(()=>showInner('dash'), 1200);
-  } catch(e) {
-    fb.style.color='#ff6b6b'; fb.textContent='Erro: '+e.message;
-  }
+async function salvarEvento(){
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('ef-nome')){const fb=document.getElementById('ev-form-feedback');fb.style.color='#ff6b6b';fb.textContent='Nome obrigatório.';return;}
+  const dados={id:get('ef-id')||'',nome:get('ef-nome'),data:get('ef-data')||null,hora:get('ef-hora'),local:get('ef-local'),
+    status:document.getElementById('ef-status').value,preco_min:get('ef-preco')||null,distancias:get('ef-distancias'),
+    descricao:get('ef-descricao'),percurso:get('ef-percurso'),percurso_mapa:get('ef-percurso-mapa'),
+    retirada_kit:get('ef-retirada'),regulamento:get('ef-regulamento'),
+    banner_url:get('ef-banner'),banner_horizontal_url:get('ef-banner-h')};
+  const fb=document.getElementById('ev-form-feedback');fb.style.color='var(--muted)';fb.textContent='Salvando…';
+  try{
+    const evId=await rpc('admin_salvar_evento',{dados});
+    fb.style.color='#22c55e';fb.textContent='✓ Evento salvo!';
+    setTimeout(()=>showInner('dash'),1200);
+  }catch(e){fb.style.color='#ff6b6b';fb.textContent='Erro: '+e.message;}
 }
 
-/* ── TELA 3: EVENTO DETALHE ── */
-async function abrirEvento(id, nome, status, data) {
-  currentEvento = {id, nome, status, data};
-  document.getElementById('ev-detail-nome').textContent = nome;
-  const tag = document.getElementById('ev-detail-tag');
-  tag.className='tag '+tagClass(status); tag.textContent=tagLabel(status);
-  document.getElementById('ev-stats-row').innerHTML='<div class="empty-state">Carregando…</div>';
-  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
-  charts={};
-  showInner('evento');
+/* ── KITS & LOTES ── */
+function abrirKitsLotesById(id,nome){
+  currentEvento={id,nome};
+  document.getElementById('kl-titulo').textContent='Kits & Lotes — '+nome;
+  loadKitsLotes();
+  showInner('kits-lotes');
   document.getElementById('nav-dash').classList.add('active');
-  try {
-    const [cd, inscritos, evStats] = await Promise.all([
-      rpc('admin_evento_charts',{p_evento_id:id}),
-      rpc('admin_inscritos',{p_evento_id:id}),
-      rpc('admin_eventos_stats')
+}
+function abrirKitsLotes(){if(currentEvento)abrirKitsLotesById(currentEvento.id,currentEvento.nome);}
+function voltarParaEvento(){
+  if(currentEvento&&currentEvento.status!==undefined) showInner('evento');
+  else showInner('dash');
+}
+async function loadKitsLotes(){
+  try{
+    const[kits,lotes]=await Promise.all([
+      rpc('admin_listar_kits',{p_evento_id:currentEvento.id}),
+      rpc('admin_listar_lotes',{p_evento_id:currentEvento.id})
     ]);
+    klKits=kits||[];
+    renderKitsAdmin(klKits);
+    renderLotesAdmin(lotes||[]);
+    renderNloteKitsPrecos(klKits);
+  }catch(e){console.error(e);}
+}
+function renderKitsAdmin(kits){
+  const el=document.getElementById('kits-admin-lista');
+  if(!kits.length){el.innerHTML='<div class="empty-state" style="padding:20px;">Nenhum kit ainda.</div>';return;}
+  el.innerHTML=kits.map(k=>`
+    <div class="kit-card-admin">
+      ${k.foto_url?`<img class="kit-thumb" src="${k.foto_url}" onerror="this.style.display='none'">`:`<div class="kit-thumb-placeholder">👕</div>`}
+      <div class="kit-info"><div class="kit-nome">${k.nome}</div><div class="kit-desc">${k.descricao||'—'}</div></div>
+      <div class="kit-actions">
+        <button class="btn-sm btn-sm-ghost" onclick="deletarKit('${k.id}','${k.nome.replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function renderNloteKitsPrecos(kits){
+  const el=document.getElementById('nlote-kits-precos');
+  if(!kits.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:10px 0;">Adicione kits primeiro para definir preços.</div>';return;}
+  el.innerHTML=kits.map(k=>`
+    <div class="kit-preco-inputs">
+      <div class="kit-label">${k.nome}</div>
+      <div class="form-row2">
+        <div class="form-g" style="margin:0;"><label>Preço (R$) *</label><input type="number" step="0.01" id="np-preco-${k.id}" placeholder="99.90"></div>
+        <div class="form-g" style="margin:0;"><label>Vagas no lote</label><input type="number" id="np-qtd-${k.id}" placeholder="Ilimitado"></div>
+      </div>
+    </div>`).join('');
+}
+function renderLotesAdmin(lotes){
+  const el=document.getElementById('lotes-admin-lista');
+  if(!lotes.length){el.innerHTML='<div class="empty-state" style="padding:20px;">Nenhum lote ainda.</div>';return;}
+  el.innerHTML=lotes.map(l=>`
+    <div class="lote-card-admin">
+      <div class="lote-header">
+        <div>
+          <span class="lote-nome-badge">${l.nome}</span>
+          <div class="lote-datas">${l.data_inicio?fmtDS(l.data_inicio):'Sem início'} → ${l.data_fim?fmtDS(l.data_fim):'Sem fim'}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-sm btn-sm-ghost" onclick='editarLote(${JSON.stringify(l)})'>✏</button>
+          <button class="btn-sm btn-sm-ghost" onclick="deletarLote('${l.id}','${l.nome.replace(/'/g,"\\'")}')">🗑</button>
+        </div>
+      </div>
+      <div class="lote-precos-grid">
+        ${(l.kit_precos||[]).map(kp=>`
+          <div class="lote-preco-item">
+            <div class="kit-n">${kp.kit_nome}</div>
+            <div class="preco-v">${brl(kp.preco)}</div>
+            <div class="qtd-v">${kp.quantidade_vendida||0}${kp.quantidade_limite?' / '+kp.quantidade_limite+' vagas':''}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+function editarLote(l){
+  document.getElementById('nlote-id').value=l.id;
+  document.getElementById('nlote-nome').value=l.nome||'';
+  document.getElementById('nlote-inicio').value=l.data_inicio||'';
+  document.getElementById('nlote-fim').value=l.data_fim||'';
+  (l.kit_precos||[]).forEach(kp=>{
+    const pi=document.getElementById('np-preco-'+kp.kit_id);
+    const qi=document.getElementById('np-qtd-'+kp.kit_id);
+    if(pi)pi.value=kp.preco||'';
+    if(qi)qi.value=kp.quantidade_limite||'';
+  });
+  document.getElementById('nlote-nome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+async function salvarKit(){
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('nkit-nome')){const fb=document.getElementById('kit-feedback');fb.className='form-feedback err';fb.textContent='Nome obrigatório.';return;}
+  const dados={id:'',evento_id:currentEvento.id,nome:get('nkit-nome'),descricao:get('nkit-desc'),foto_url:get('nkit-foto'),ordem:get('nkit-ordem')||'0'};
+  const fb=document.getElementById('kit-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('admin_salvar_kit',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Kit adicionado!';
+    ['nkit-nome','nkit-desc','nkit-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('nkit-ordem').value='0';
+    loadKitsLotes();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+async function deletarKit(id,nome){
+  if(!confirm(`Remover kit "${nome}"? Os preços de lote vinculados serão removidos.`))return;
+  try{await rpc('admin_deletar_kit',{p_id:id});loadKitsLotes();}catch(e){alert('Erro: '+e.message);}
+}
+async function salvarLote(){
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  if(!get('nlote-nome')){const fb=document.getElementById('lote-feedback');fb.className='form-feedback err';fb.textContent='Nome do lote obrigatório.';return;}
+  const precos=klKits.map(k=>({kit_id:k.id,preco:document.getElementById('np-preco-'+k.id)?.value||'0',quantidade_limite:document.getElementById('np-qtd-'+k.id)?.value||''})).filter(p=>parseFloat(p.preco)>0);
+  const dados={id:get('nlote-id')||'',evento_id:currentEvento.id,nome:get('nlote-nome'),data_inicio:get('nlote-inicio')||null,data_fim:get('nlote-fim')||null,ordem:'0',precos};
+  const fb=document.getElementById('lote-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('admin_salvar_lote',{dados});
+    fb.className='form-feedback ok';fb.textContent='✓ Lote salvo!';
+    ['nlote-nome','nlote-inicio','nlote-fim','nlote-id'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    klKits.forEach(k=>{const pi=document.getElementById('np-preco-'+k.id);const qi=document.getElementById('np-qtd-'+k.id);if(pi)pi.value='';if(qi)qi.value='';});
+    loadKitsLotes();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+async function deletarLote(id,nome){
+  if(!confirm(`Remover lote "${nome}"?`))return;
+  try{await rpc('admin_deletar_lote',{p_id:id});loadKitsLotes();}catch(e){alert('Erro: '+e.message);}
+}
+
+/* ── EVENTO DETALHE ── */
+async function abrirEvento(id,nome,status,data){
+  currentEvento={id,nome,status,data};
+  document.getElementById('ev-detail-nome').textContent=nome;
+  const tag=document.getElementById('ev-detail-tag');tag.className='tag '+tagClass(status);tag.textContent=tagLabel(status);
+  document.getElementById('ev-stats-row').innerHTML='<div class="empty-state">Carregando…</div>';
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});charts={};
+  showInner('evento');document.getElementById('nav-dash').classList.add('active');
+  try{
+    const[cd,inscritos,evStats]=await Promise.all([rpc('admin_evento_charts',{p_evento_id:id}),rpc('admin_inscritos',{p_evento_id:id}),rpc('admin_eventos_stats')]);
     const es=(evStats||[]).find(e=>e.id===id)||{};
     document.getElementById('ev-stats-row').innerHTML=`
       <div class="stat-card"><div class="sc-label">Faturamento</div><div class="sc-val orange">${brl(es.faturamento)}</div></div>
       <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val">${fmt(es.inscricoes_total)}</div></div>
       <div class="stat-card"><div class="sc-label">Hoje</div><div class="sc-val orange">${fmt(es.inscricoes_hoje)}</div></div>
       <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val">${brl(es.ticket_medio)}</div></div>`;
-    renderCharts(cd||{});
-    todosInscritos=inscritos||[];
-    renderInscritos(todosInscritos);
-  } catch(e){ console.error(e); }
+    renderCharts(cd||{});todosInscritos=inscritos||[];renderInscritos(todosInscritos);
+  }catch(e){console.error(e);}
 }
-const COLORS=['#ff751f','#ff9a54','#ffb87a','#ffd4a0','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6'];
-function mkChart(id,type,labels,data,opts={}) {
-  const ctx=document.getElementById(id); if(!ctx)return;
+const COLORS=['#ff751f','#ff9a54','#ffb87a','#ffd4a0','#22c55e','#3b82f6','#a855f7'];
+function mkChart(id,type,labels,data,opts={}){
+  const ctx=document.getElementById(id);if(!ctx)return;
   try{if(charts[id])charts[id].destroy();}catch(e){}
   charts[id]=new Chart(ctx,{type,data:{labels,datasets:[{data,backgroundColor:type==='doughnut'?COLORS.slice(0,data.length):COLORS[0],borderColor:'transparent',borderRadius:type!=='doughnut'?4:0,...opts.ds}]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:type==='doughnut',position:'right',labels:{color:'rgba(255,255,255,.6)',font:{size:11}}},
-               tooltip:{callbacks:{label:c=>` ${c.parsed.y||c.parsed}: inscritos`}}},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut',position:'right',labels:{color:'rgba(255,255,255,.6)',font:{size:11}}}},
       scales:type!=='doughnut'?{x:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11},stepSize:1},grid:{color:'rgba(255,255,255,.05)'},beginAtZero:true}}:{},
       ...opts.opts}});
 }
-function renderCharts(d){
-  const s=a=>a||[];
+function renderCharts(d){const s=a=>a||[];
   mkChart('chart-idade','bar',s(d.por_idade).map(x=>x.label),s(d.por_idade).map(x=>x.count));
   mkChart('chart-genero','doughnut',s(d.por_genero).map(x=>x.label),s(d.por_genero).map(x=>x.count));
   mkChart('chart-cidade','bar',s(d.por_cidade).map(x=>x.label),s(d.por_cidade).map(x=>x.count),{opts:{indexAxis:'y'}});
@@ -563,85 +702,64 @@ function renderCharts(d){
 function renderInscritos(arr){
   document.getElementById('inscritos-count').textContent=arr.length+' inscritos';
   const tb=document.getElementById('inscritos-tbody');
-  if(!arr.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
+  if(!arr.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
-    <td style="font-weight:600;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
+    <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
     <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
-    <td>${i.kit||'—'}</td><td>${i.modalidade||'—'}</td><td>${i.tamanho_camisa||'—'}</td>
+    <td>${i.kit||'—'}</td>
+    <td style="font-size:12px;color:var(--orange);">${i.lote_nome||'—'}</td>
+    <td>${i.modalidade||'—'}</td><td>${i.tamanho_camisa||'—'}</td>
     <td style="color:var(--orange);font-weight:700;">${brl(i.valor)}</td>
     <td><span class="status-pill status-${i.status||'pendente'}">${i.status||'pendente'}</span></td>
     <td style="font-size:12px;color:var(--muted);">${fmtData(i.criado_em)}</td>
     <td><button class="edit-btn" onclick='editarInscrito(${JSON.stringify(i)})'>Editar</button></td>
   </tr>`).join('');
 }
-function filtrarInscritos(){
-  const q=document.getElementById('search-inscrito').value.toLowerCase();
-  renderInscritos(q?todosInscritos.filter(i=>(i.nome||'').toLowerCase().includes(q)||(i.cpf||'').includes(q)||(i.email||'').toLowerCase().includes(q)):todosInscritos);
+function filtrarInscritos(){const q=document.getElementById('search-inscrito').value.toLowerCase();renderInscritos(q?todosInscritos.filter(i=>(i.nome||'').toLowerCase().includes(q)||(i.cpf||'').includes(q)):todosInscritos);}
+
+/* ── EXCEL ── */
+async function exportarExcel(){
+  if(!currentEvento)return;
+  try{
+    const dados=await rpc('admin_exportar_inscritos',{p_evento_id:currentEvento.id});
+    const arr=dados||[];
+    const ws_data=[['Nome','CPF','Nascimento','Gênero','E-mail','Telefone','Camiseta','Kit','Lote','Modalidade','Valor (R$)','Desconto%','Cupom','Pagamento','Status','CEP','Rua','Número','Complemento','Bairro','Cidade','Estado','Emergência Nome','Emergência Tel','Inscrito em','Pedido']];
+    arr.forEach(i=>ws_data.push([i.nome||'',i.cpf||'',i.nascimento?fmtDS(i.nascimento):'',i.genero||'',i.email||'',i.telefone||'',i.tamanho_camisa||'',i.kit||'',i.lote_nome||'',i.modalidade||'',Number(i.valor||0),Number(i.desconto_pct||0),i.cupom||'',i.forma_pagamento||'',i.status||'',i.cep||'',i.rua||'',i.numero||'',i.complemento||'',i.bairro||'',i.cidade||'',i.estado||'',i.emergencia_nome||'',i.emergencia_telefone||'',i.criado_em?fmtData(i.criado_em):'',i.pedido_id||'']));
+    const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols']=ws_data[0].map((_,i)=>({wch:i===0?30:i===4?28:i===7||i===8||i===9?18:14}));
+    XLSX.utils.book_append_sheet(wb,ws,'Inscritos');
+    const nome=(currentEvento.nome||'evento').replace(/[^a-z0-9]/gi,'_');
+    XLSX.writeFile(wb,`inscritos_${nome}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }catch(e){alert('Erro ao exportar: '+e.message);}
 }
 
-/* ── EXPORTAR EXCEL ── */
-async function exportarExcel() {
-  if (!currentEvento) return;
-  try {
-    const dados = await rpc('admin_exportar_inscritos', {p_evento_id: currentEvento.id});
-    const arr = dados||[];
-    const ws_data = [
-      ['Nome','CPF','Nascimento','Gênero','E-mail','Telefone','Camiseta','Kit','Modalidade',
-       'Valor (R$)','Desconto%','Cupom','Pagamento','Status','CEP','Rua','Número',
-       'Complemento','Bairro','Cidade','Estado','Emergência Nome','Emergência Tel','Inscrito em','Pedido']
-    ];
-    arr.forEach(i => ws_data.push([
-      i.nome||'', i.cpf||'', i.nascimento?fmtDataSimples(i.nascimento):'', i.genero||'',
-      i.email||'', i.telefone||'', i.tamanho_camisa||'', i.kit||'', i.modalidade||'',
-      Number(i.valor||0), Number(i.desconto_pct||0), i.cupom||'', i.forma_pagamento||'',
-      i.status||'', i.cep||'', i.rua||'', i.numero||'', i.complemento||'',
-      i.bairro||'', i.cidade||'', i.estado||'', i.emergencia_nome||'', i.emergencia_telefone||'',
-      i.criado_em?fmtData(i.criado_em):'', i.pedido_id||''
-    ]));
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    ws['!cols'] = ws_data[0].map((_,i)=>({wch: i===0?30:i===3||i===7||i===8?18:i===4?28:14}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Inscritos');
-    const nome = (currentEvento.nome||'evento').replace(/[^a-z0-9]/gi,'_');
-    XLSX.writeFile(wb, `inscritos_${nome}_${new Date().toISOString().slice(0,10)}.xlsx`);
-  } catch(e) { alert('Erro ao exportar: '+e.message); }
-}
-
-/* ── DRAWER EDIÇÃO INSCRITO ── */
-function editarInscrito(i) {
+/* ── DRAWER INSCRITO ── */
+function editarInscrito(i){
   editingId=i.id;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
-  set('d-nome',i.nome);set('d-email',i.email);set('d-tel',i.telefone);
-  set('d-genero',i.genero);set('d-kit',i.kit);set('d-modalidade',i.modalidade);
-  set('d-camisa',i.tamanho_camisa);set('d-cidade',i.cidade);set('d-estado',i.estado);
-  set('d-status',i.status||'pendente');
+  set('d-nome',i.nome);set('d-email',i.email);set('d-tel',i.telefone);set('d-genero',i.genero);
+  set('d-kit',i.kit);set('d-modalidade',i.modalidade);set('d-camisa',i.tamanho_camisa);
+  set('d-cidade',i.cidade);set('d-estado',i.estado);set('d-status',i.status||'pendente');
   document.getElementById('drawer-feedback').textContent='';
   document.getElementById('drawer-overlay').classList.add('open');
 }
 function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');}
 async function salvarEdicao(){
   const get=id=>document.getElementById(id)?.value||'';
-  const dados={nome:get('d-nome'),email:get('d-email'),telefone:get('d-tel'),genero:get('d-genero'),
-    kit:get('d-kit'),modalidade:get('d-modalidade'),tamanho_camisa:get('d-camisa'),
-    cidade:get('d-cidade'),estado:get('d-estado').toUpperCase(),status:get('d-status')};
-  const fb=document.getElementById('drawer-feedback');
-  fb.style.color='var(--muted)';fb.textContent='Salvando…';
+  const dados={nome:get('d-nome'),email:get('d-email'),telefone:get('d-tel'),genero:get('d-genero'),kit:get('d-kit'),modalidade:get('d-modalidade'),tamanho_camisa:get('d-camisa'),cidade:get('d-cidade'),estado:get('d-estado').toUpperCase(),status:get('d-status')};
+  const fb=document.getElementById('drawer-feedback');fb.style.color='var(--muted)';fb.textContent='Salvando…';
   try{
     await rpc('admin_update_inscricao',{p_id:editingId,dados});
     todosInscritos=todosInscritos.map(i=>i.id===editingId?{...i,...dados}:i);
-    renderInscritos(todosInscritos);
-    fb.style.color='#22c55e';fb.textContent='✓ Salvo!';
-    setTimeout(closeDrawer,1200);
-  }catch(e){fb.style.color='#ff6b6b';fb.textContent='Erro ao salvar.';}
+    renderInscritos(todosInscritos);fb.style.color='#22c55e';fb.textContent='✓ Salvo!';setTimeout(closeDrawer,1200);
+  }catch(e){fb.style.color='#ff6b6b';fb.textContent='Erro.';}
 }
 
 /* ── CUPONS ── */
 async function loadCupons(){
   try{
-    const [cupons,eventos]=await Promise.all([rpc('admin_listar_cupons'),rpc('admin_lista_eventos')]);
-    _adminEventos=eventos||[];
-    renderCuponsList(cupons||[]);
-    renderEventosCheck(_adminEventos);
+    const[cupons,eventos]=await Promise.all([rpc('admin_listar_cupons'),rpc('admin_lista_eventos')]);
+    _adminEventos=eventos||[];renderCuponsList(cupons||[]);renderEventosCheck(_adminEventos);
   }catch(e){console.error(e);}
 }
 function renderEventosCheck(evs){
@@ -650,15 +768,11 @@ function renderEventosCheck(evs){
   el.innerHTML=evs.map(e=>`<label><input type="checkbox" class="ev-check" value="${e.id}"> ${e.nome}</label>`).join('');
 }
 function nomeEventosCupom(ids){
-  try{
-    const arr=typeof ids==='string'?JSON.parse(ids):(ids||[]);
-    if(!arr.length) return '<span style="color:var(--muted)">Todos</span>';
-    return arr.map(id=>{const ev=_adminEventos.find(e=>e.id===id);return ev?ev.nome:id.slice(0,6)+'…';}).join(', ');
-  }catch(e){return '—';}
+  try{const arr=typeof ids==='string'?JSON.parse(ids):(ids||[]);if(!arr.length)return '<span style="color:var(--muted)">Todos</span>';return arr.map(id=>{const ev=_adminEventos.find(e=>e.id===id);return ev?ev.nome:id.slice(0,6)+'…';}).join(', ');}catch(e){return'—';}
 }
 function renderCuponsList(cupons){
   const el=document.getElementById('cupons-lista');
-  if(!cupons.length){el.innerHTML='<div class="empty-state">Nenhum cupom cadastrado ainda.</div>';return;}
+  if(!cupons.length){el.innerHTML='<div class="empty-state">Nenhum cupom.</div>';return;}
   el.innerHTML=`<div style="overflow-x:auto;"><table class="data-table">
     <thead><tr><th>Código</th><th>Nome</th><th>%</th><th>Usos</th><th>Início</th><th>Validade</th><th>Eventos</th><th>Status</th></tr></thead>
     <tbody>${cupons.map(c=>`<tr>
@@ -666,33 +780,30 @@ function renderCuponsList(cupons){
       <td style="color:var(--muted);font-size:12px;">${c.nome||'—'}</td>
       <td>${c.percentual}%</td>
       <td>${c.usos_atuais}${c.max_usos?'/'+c.max_usos:''}</td>
-      <td style="font-size:12px;color:var(--muted);">${c.data_inicio?fmtDataSimples(c.data_inicio):'—'}</td>
-      <td style="font-size:12px;color:var(--muted);">${c.validade?fmtDataSimples(c.validade):'Sem prazo'}</td>
+      <td style="font-size:12px;color:var(--muted);">${c.data_inicio?fmtDS(c.data_inicio):'—'}</td>
+      <td style="font-size:12px;color:var(--muted);">${c.validade?fmtDS(c.validade):'Sem prazo'}</td>
       <td style="font-size:12px;max-width:160px;">${nomeEventosCupom(c.evento_ids)}</td>
       <td><span class="${c.ativo?'badge-ativo':'badge-inativo'}">${c.ativo?'Ativo':'Inativo'}</span></td>
     </tr>`).join('')}</tbody></table></div>`;
 }
 async function salvarCupom(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
-  const codigo=get('c-codigo').toUpperCase();
-  const percentual=parseInt(get('c-pct'))||0;
+  const codigo=get('c-codigo').toUpperCase();const percentual=parseInt(get('c-pct'))||0;
   if(!codigo||!percentual){const fb=document.getElementById('cupom-feedback');fb.className='form-feedback err';fb.textContent='Preencha código e percentual.';return;}
   const evento_ids=[...document.querySelectorAll('.ev-check:checked')].map(cb=>cb.value);
   const dados={nome:get('c-nome'),codigo,percentual,data_inicio:get('c-inicio')||null,validade:get('c-validade')||null,max_usos:get('c-max-usos')||null,max_por_cpf:get('c-max-cpf')||'1',evento_ids:JSON.stringify(evento_ids)};
   const fb=document.getElementById('cupom-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
   try{
-    await rpc('admin_criar_cupom',{dados});
-    fb.className='form-feedback ok';fb.textContent='✓ Cupom salvo!';
+    await rpc('admin_criar_cupom',{dados});fb.className='form-feedback ok';fb.textContent='✓ Cupom salvo!';
     ['c-nome','c-codigo','c-pct','c-validade','c-max-usos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('c-inicio').value=new Date().toISOString().split('T')[0];
     document.getElementById('c-max-cpf').value='1';
-    document.querySelectorAll('.ev-check').forEach(cb=>cb.checked=false);
-    loadCupons();
+    document.querySelectorAll('.ev-check').forEach(cb=>cb.checked=false);loadCupons();
   }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
 
 /* ── INIT ── */
-if(sessionStorage.getItem('jbx_admin')==='1') showAdmin();
+if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 </script>
 </body>
