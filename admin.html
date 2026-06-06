@@ -358,7 +358,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <h2>Kits do Evento</h2>
             <div id="kits-admin-lista"><div class="empty-state">Carregando…</div></div>
             <hr class="divider">
-            <h3>Adicionar Kit</h3>
+            <h3 id="kit-form-titulo">Adicionar Kit</h3>
+            <input type="hidden" id="nkit-id">
             <div class="form-g"><label>Nome do kit *</label><input id="nkit-nome" placeholder="Ex: Kit Starter"></div>
             <div class="form-g"><label>Descrição</label><input id="nkit-desc" placeholder="O que inclui este kit…"></div>
             <div class="form-g"><label>URL da foto</label>
@@ -366,7 +367,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <p class="hint">Link direto da imagem (raw do GitHub, etc).</p>
             </div>
             <div class="form-g"><label>Ordem de exibição</label><input id="nkit-ordem" type="number" value="0" min="0"></div>
-            <button class="btn-save" onclick="salvarKit()">Adicionar Kit</button>
+            <button class="btn-save" id="kit-save-btn" onclick="salvarKit()">Adicionar Kit</button>
+            <button class="btn-ghost" id="kit-cancel-btn" onclick="cancelarEdicaoKit()" style="display:none;width:100%;margin-top:8px;">Cancelar edição</button>
             <div class="form-feedback" id="kit-feedback"></div>
           </div>
 
@@ -575,6 +577,7 @@ function renderKitsAdmin(kits){
       ${k.foto_url?`<img class="kit-thumb" src="${k.foto_url}" onerror="this.style.display='none'">`:`<div class="kit-thumb-placeholder">👕</div>`}
       <div class="kit-info"><div class="kit-nome">${k.nome}</div><div class="kit-desc">${k.descricao||'—'}</div></div>
       <div class="kit-actions">
+        <button class="btn-sm btn-sm-ghost" onclick='editarKit(${JSON.stringify(k)})'>✏</button>
         <button class="btn-sm btn-sm-ghost" onclick="deletarKit('${k.id}','${k.nome.replace(/'/g,"\\'")}')">🗑</button>
       </div>
     </div>`).join('');
@@ -629,16 +632,37 @@ function editarLote(l){
   });
   document.getElementById('nlote-nome').scrollIntoView({behavior:'smooth',block:'center'});
 }
+function editarKit(k){
+  document.getElementById('nkit-id').value=k.id;
+  document.getElementById('nkit-nome').value=k.nome||'';
+  document.getElementById('nkit-desc').value=k.descricao||'';
+  document.getElementById('nkit-foto').value=k.foto_url||'';
+  document.getElementById('nkit-ordem').value=k.ordem||'0';
+  document.getElementById('kit-form-titulo').textContent='Editar Kit';
+  document.getElementById('kit-save-btn').textContent='Salvar alterações';
+  document.getElementById('kit-cancel-btn').style.display='';
+  document.getElementById('kit-feedback').textContent='';
+  document.getElementById('nkit-nome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelarEdicaoKit(){
+  document.getElementById('nkit-id').value='';
+  ['nkit-nome','nkit-desc','nkit-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('nkit-ordem').value='0';
+  document.getElementById('kit-form-titulo').textContent='Adicionar Kit';
+  document.getElementById('kit-save-btn').textContent='Adicionar Kit';
+  document.getElementById('kit-cancel-btn').style.display='none';
+  document.getElementById('kit-feedback').textContent='';
+}
 async function salvarKit(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   if(!get('nkit-nome')){const fb=document.getElementById('kit-feedback');fb.className='form-feedback err';fb.textContent='Nome obrigatório.';return;}
-  const dados={id:'',evento_id:currentEvento.id,nome:get('nkit-nome'),descricao:get('nkit-desc'),foto_url:get('nkit-foto'),ordem:get('nkit-ordem')||'0'};
+  const editando = !!get('nkit-id');
+  const dados={id:get('nkit-id')||'',evento_id:currentEvento.id,nome:get('nkit-nome'),descricao:get('nkit-desc'),foto_url:get('nkit-foto'),ordem:get('nkit-ordem')||'0'};
   const fb=document.getElementById('kit-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
   try{
     await rpc('admin_salvar_kit',{dados});
-    fb.className='form-feedback ok';fb.textContent='✓ Kit adicionado!';
-    ['nkit-nome','nkit-desc','nkit-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    document.getElementById('nkit-ordem').value='0';
+    fb.className='form-feedback ok';fb.textContent=editando?'✓ Kit atualizado!':'✓ Kit adicionado!';
+    cancelarEdicaoKit();
     loadKitsLotes();
   }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
