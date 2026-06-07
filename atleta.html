@@ -1,150 +1,478 @@
--- ═══════════════════════════════════════════════════════
--- ÁREA DO ATLETA — JBX Sports
--- Execute no SQL Editor do Supabase
--- ═══════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Área — JBX Sports</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+:root {
+  --orange: #ff751f;
+  --orange-dark: #e05a08;
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --bg-card: #1a1a1a;
+  --bg-dark: #111111;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Ubuntu', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
 
--- 1. Tabela de contas dos atletas
-CREATE TABLE IF NOT EXISTS public.atletas_contas (
-  cpf         text PRIMARY KEY,
-  email       text NOT NULL,
-  senha_hash  text NOT NULL,
-  nome        text,
-  criado_em   timestamptz DEFAULT now()
-);
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%; height: 70px;
+  background: rgba(10,10,10,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,117,31,0.15);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-user { display: flex; align-items: center; gap: 16px; }
+.nav-user-name { font-size: 14px; color: rgba(255,255,255,0.7); }
+.btn-logout {
+  background: transparent; color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+}
+.btn-logout:hover { border-color: #fff; color: #fff; }
 
-ALTER TABLE public.atletas_contas ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Bloqueio total" ON public.atletas_contas FOR ALL USING (false);
+/* TELAS */
+.screen { display: none; min-height: 100vh; padding-top: 70px; }
+.screen.active { display: flex; align-items: center; justify-content: center; padding: 90px 20px 40px; }
+#screen-area { align-items: flex-start; justify-content: flex-start; padding: 90px 5% 60px; }
 
--- 2. Cadastro do atleta (CPF + email + senha)
-CREATE OR REPLACE FUNCTION public.atleta_cadastrar(
-  p_cpf   text,
-  p_email text,
-  p_senha text  -- senha em texto puro; fazemos hash no servidor
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_cpf text := regexp_replace(p_cpf, '\D', '', 'g');
-  v_hash text := encode(digest(p_senha, 'sha256'), 'hex');
-  v_nome text;
-BEGIN
-  -- Verifica se CPF já está cadastrado
-  IF EXISTS (SELECT 1 FROM atletas_contas WHERE cpf = v_cpf) THEN
-    RETURN jsonb_build_object('ok', false, 'erro', 'CPF já cadastrado. Faça login.');
-  END IF;
+/* CARD AUTH */
+.auth-card {
+  background: #171717; border-radius: 16px; width: 100%; max-width: 420px;
+  padding: 40px 36px; border: 1px solid rgba(255,117,31,0.2);
+}
+.auth-logo { display: flex; justify-content: center; margin-bottom: 28px; }
+.auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+.auth-sub { font-size: 14px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 28px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 6px; font-weight: 500; }
+.form-group input {
+  width: 100%; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  padding: 12px 14px; color: white; font-size: 15px; font-family: 'Ubuntu', sans-serif;
+  transition: border-color 0.2s;
+}
+.form-group input:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.05); }
+.form-group input::placeholder { color: rgba(255,255,255,0.25); }
+.btn-auth {
+  width: 100%; background: var(--orange); color: white;
+  padding: 14px; border-radius: 8px; border: none;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; transition: all 0.2s; margin-top: 8px;
+}
+.btn-auth:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.auth-switch {
+  text-align: center; margin-top: 20px; font-size: 14px;
+  color: rgba(255,255,255,0.5);
+}
+.auth-switch a { color: var(--orange); cursor: pointer; text-decoration: none; font-weight: 600; }
+.auth-switch a:hover { text-decoration: underline; }
+.auth-erro {
+  background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+  border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #ff6b6b;
+  margin-bottom: 16px; display: none;
+}
+.auth-erro.show { display: block; }
 
-  -- Busca nome da última inscrição deste CPF (se existir)
-  SELECT nome INTO v_nome FROM inscricoes
-  WHERE cpf = v_cpf ORDER BY criado_em DESC LIMIT 1;
+/* ÁREA DO ATLETA */
+.area-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 36px; flex-wrap: wrap; gap: 16px;
+}
+.area-header h1 { font-size: 28px; font-weight: 700; }
+.area-header h1 span { color: var(--orange); }
+.area-subtitulo { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 4px; }
 
-  INSERT INTO atletas_contas (cpf, email, senha_hash, nome)
-  VALUES (v_cpf, lower(trim(p_email)), v_hash, v_nome);
+.inscricoes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
 
-  RETURN jsonb_build_object('ok', true);
-END;
-$$;
+.insc-card {
+  background: var(--bg-card); border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.07);
+  overflow: hidden; transition: border-color 0.2s;
+}
+.insc-card:hover { border-color: rgba(255,117,31,0.3); }
 
-REVOKE ALL ON FUNCTION public.atleta_cadastrar(text, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.atleta_cadastrar(text, text, text) TO anon;
+.insc-card-top {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.insc-evento { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+.insc-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.status-confirmado { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.status-pendente   { background: rgba(255,193,7,0.15);  color: #ffc107; border: 1px solid rgba(255,193,7,0.3); }
+.status-cancelado  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
 
--- 3. Login do atleta
-CREATE OR REPLACE FUNCTION public.atleta_login(
-  p_cpf   text,
-  p_senha text
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_cpf  text := regexp_replace(p_cpf, '\D', '', 'g');
-  v_hash text := encode(digest(p_senha, 'sha256'), 'hex');
-  v_conta atletas_contas%ROWTYPE;
-  v_token text;
-BEGIN
-  SELECT * INTO v_conta FROM atletas_contas
-  WHERE cpf = v_cpf AND senha_hash = v_hash;
+.insc-detalhes { padding: 16px 22px; }
+.insc-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 13px;
+}
+.insc-row:last-child { border-bottom: none; }
+.insc-label { color: rgba(255,255,255,0.45); }
+.insc-val { font-weight: 600; color: rgba(255,255,255,0.9); text-align: right; }
+.insc-val.orange { color: var(--orange); }
 
-  IF NOT FOUND THEN
-    RETURN jsonb_build_object('ok', false, 'erro', 'CPF ou senha incorretos.');
-  END IF;
+.insc-qr {
+  padding: 16px 22px 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.insc-qr-titulo {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  align-self: flex-start;
+}
+.qr-wrap {
+  background: white; border-radius: 10px; padding: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qr-id {
+  font-size: 11px; color: rgba(255,255,255,0.3);
+  font-family: monospace; letter-spacing: 1px;
+}
 
-  -- Token simples: hash de cpf + hash + timestamp
-  v_token := encode(digest(v_cpf || v_hash || extract(epoch from now())::text, 'sha256'), 'hex');
+.vazio {
+  grid-column: 1/-1; text-align: center; padding: 64px 20px;
+  color: rgba(255,255,255,0.3);
+}
+.vazio-icone { font-size: 48px; margin-bottom: 16px; }
+.vazio-texto { font-size: 16px; }
 
-  -- Salva o token na conta (validade de 30 dias)
-  UPDATE atletas_contas
-  SET senha_hash = senha_hash  -- apenas para acionar o update sem alterar dados
-  WHERE cpf = v_cpf;
+/* loading */
+.loading-wrap { text-align: center; padding: 60px; color: rgba(255,255,255,0.4); }
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
+  animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  RETURN jsonb_build_object(
-    'ok',    true,
-    'token', v_cpf || ':' || v_hash,  -- token = cpf:hash (simples e stateless)
-    'nome',  v_conta.nome,
-    'email', v_conta.email,
-    'cpf',   v_cpf
-  );
-END;
-$$;
+@media (max-width: 600px) {
+  .inscricoes-grid { grid-template-columns: 1fr; }
+  .auth-card { padding: 28px 20px; }
+  #screen-area { padding: 90px 16px 40px; }
+}
+</style>
+</head>
+<body>
 
-REVOKE ALL ON FUNCTION public.atleta_login(text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.atleta_login(text, text) TO anon;
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo">
+    <svg height="24" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#ffffff;display:block;">
+      <path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
+    </svg>
+  </a>
+  <div class="nav-user" id="nav-user" style="display:none;">
+    <span class="nav-user-name" id="nav-nome"></span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
 
--- 4. Busca inscrições do atleta autenticado
-CREATE OR REPLACE FUNCTION public.atleta_minhas_inscricoes(
-  p_cpf       text,
-  p_senha_hash text
-)
-RETURNS jsonb
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  v_cpf text := regexp_replace(p_cpf, '\D', '', 'g');
-BEGIN
-  -- Valida credenciais
-  IF NOT EXISTS (
-    SELECT 1 FROM atletas_contas
-    WHERE cpf = v_cpf AND senha_hash = p_senha_hash
-  ) THEN
-    RETURN jsonb_build_object('ok', false, 'erro', 'Sessão inválida.');
-  END IF;
+<!-- TELA LOGIN -->
+<div class="screen active" id="screen-login">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Área do Atleta</h2>
+    <p class="auth-sub">Acesse suas inscrições e comprovantes</p>
+    <div class="auth-erro" id="login-erro"></div>
+    <div class="form-group">
+      <label>CPF</label>
+      <input type="text" id="login-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="Sua senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="auth-switch">
+      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
+    </div>
+  </div>
+</div>
 
-  RETURN jsonb_build_object(
-    'ok', true,
-    'inscricoes', (
-      SELECT jsonb_agg(
-        jsonb_build_object(
-          'id',            id,
-          'pedido_id',     pedido_id,
-          'evento',        evento,
-          'kit',           kit,
-          'modalidade',    modalidade,
-          'lote_nome',     lote_nome,
-          'tamanho_camisa',tamanho_camisa,
-          'valor',         valor,
-          'desconto_pct',  desconto_pct,
-          'forma_pagamento',forma_pagamento,
-          'status',        status,
-          'criado_em',     criado_em
-        ) ORDER BY criado_em DESC
-      )
-      FROM inscricoes
-      WHERE cpf = v_cpf
-    )
-  );
-END;
-$$;
+<!-- TELA CADASTRO -->
+<div class="screen" id="screen-cadastro">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Criar conta</h2>
+    <p class="auth-sub">Cadastre-se para acessar suas inscrições</p>
+    <div class="auth-erro" id="cad-erro"></div>
+    <div class="form-group">
+      <label>CPF</label>
+      <input type="text" id="cad-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" id="cad-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="form-group">
+      <label>Confirmar senha</label>
+      <input type="password" id="cad-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')fazerCadastro()">
+    </div>
+    <button class="btn-auth" id="btn-cad" onclick="fazerCadastro()">Criar conta</button>
+    <div class="auth-switch">
+      Já tem conta? <a onclick="irParaLogin()">Fazer login</a>
+    </div>
+  </div>
+</div>
 
-REVOKE ALL ON FUNCTION public.atleta_minhas_inscricoes(text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.atleta_minhas_inscricoes(text, text) TO anon;
+<!-- TELA ÁREA DO ATLETA -->
+<div class="screen" id="screen-area">
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="area-header">
+      <div>
+        <h1>Olá, <span id="area-nome">Atleta</span>!</h1>
+        <p class="area-subtitulo">Aqui estão todas as suas inscrições</p>
+      </div>
+    </div>
+    <div id="inscricoes-wrap">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div>Carregando suas inscrições...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
--- Habilitar extensão pgcrypto para digest/encode
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+<script>
+const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_KEY = 'sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
 
-NOTIFY pgrst, 'reload schema';
+// ── SESSÃO ──────────────────────────────────────
+let sessao = null;
+
+function salvarSessao(dados) {
+  sessao = dados;
+  localStorage.setItem('jbx_atleta', JSON.stringify(dados));
+}
+function carregarSessao() {
+  try { return JSON.parse(localStorage.getItem('jbx_atleta')); } catch { return null; }
+}
+function logout() {
+  localStorage.removeItem('jbx_atleta');
+  sessao = null;
+  mostrarTela('login');
+  document.getElementById('nav-user').style.display = 'none';
+}
+
+// ── TELAS ────────────────────────────────────────
+function mostrarTela(nome) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + nome).classList.add('active');
+}
+function irParaCadastro() { mostrarTela('cadastro'); limparErros(); }
+function irParaLogin()    { mostrarTela('login');    limparErros(); }
+function limparErros() {
+  document.querySelectorAll('.auth-erro').forEach(e => { e.textContent = ''; e.classList.remove('show'); });
+}
+function mostrarErro(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+}
+
+// ── MÁSCARAS ─────────────────────────────────────
+function mascararCpf(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+  el.value = v;
+}
+
+// ── RPC ──────────────────────────────────────────
+async function rpc(fn, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+  const text = await r.text();
+  return text ? JSON.parse(text) : {};
+}
+
+// ── LOGIN ────────────────────────────────────────
+async function fazerLogin() {
+  limparErros();
+  const cpf   = document.getElementById('login-cpf').value;
+  const senha = document.getElementById('login-senha').value;
+
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('login-erro', 'CPF inválido.');
+  if (!senha) return mostrarErro('login-erro', 'Digite sua senha.');
+
+  const btn = document.getElementById('btn-login');
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+
+  try {
+    const res = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
+    if (!res.ok) {
+      mostrarErro('login-erro', res.erro || 'Erro ao fazer login.');
+    } else {
+      salvarSessao(res);
+      entrarNaArea(res);
+    }
+  } catch(e) {
+    mostrarErro('login-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Entrar'; btn.disabled = false;
+}
+
+// ── CADASTRO ─────────────────────────────────────
+async function fazerCadastro() {
+  limparErros();
+  const cpf    = document.getElementById('cad-cpf').value;
+  const email  = document.getElementById('cad-email').value.trim();
+  const senha  = document.getElementById('cad-senha').value;
+  const senha2 = document.getElementById('cad-senha2').value;
+
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('cad-erro', 'CPF inválido.');
+  if (!email || !email.includes('@')) return mostrarErro('cad-erro', 'E-mail inválido.');
+  if (senha.length < 6) return mostrarErro('cad-erro', 'Senha deve ter pelo menos 6 caracteres.');
+  if (senha !== senha2) return mostrarErro('cad-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-cad');
+  btn.textContent = 'Criando conta...'; btn.disabled = true;
+
+  try {
+    const res = await rpc('atleta_cadastrar', { p_cpf: cpf, p_email: email, p_senha: senha });
+    if (!res.ok) {
+      mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
+    } else {
+      // Faz login automático após cadastro
+      const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
+      if (login.ok) { salvarSessao(login); entrarNaArea(login); }
+      else irParaLogin();
+    }
+  } catch(e) {
+    mostrarErro('cad-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Criar conta'; btn.disabled = false;
+}
+
+// ── ÁREA ─────────────────────────────────────────
+function entrarNaArea(dados) {
+  const nome = dados.nome || dados.cpf;
+  document.getElementById('area-nome').textContent = nome.split(' ')[0];
+  document.getElementById('nav-nome').textContent  = nome.split(' ')[0];
+  document.getElementById('nav-user').style.display = 'flex';
+  mostrarTela('area');
+  carregarInscricoes(dados);
+}
+
+async function carregarInscricoes(dados) {
+  const wrap = document.getElementById('inscricoes-wrap');
+  wrap.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div>Carregando...</div></div>';
+
+  try {
+    const [cpf, hash] = (dados.token || '').split(':');
+    const res = await rpc('atleta_minhas_inscricoes', { p_cpf: cpf, p_senha_hash: hash });
+
+    if (!res.ok) { wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro ao carregar inscrições.</div></div>'; return; }
+
+    const lista = res.inscricoes || [];
+    if (!lista.length) {
+      wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">🏃</div><div class="vazio-texto">Você ainda não tem inscrições.<br>Participe de um evento!</div></div>';
+      return;
+    }
+
+    wrap.innerHTML = `<div class="inscricoes-grid">${lista.map(renderInscricao).join('')}</div>`;
+    // Gera QR codes após renderizar
+    lista.forEach(it => gerarQR(it.id));
+
+  } catch(e) {
+    wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro de conexão.</div></div>';
+  }
+}
+
+function statusBadge(s) {
+  const map = {
+    confirmado: ['status-confirmado', '✓ Confirmado'],
+    pendente:   ['status-pendente',   '⏳ Pendente'],
+    cancelado:  ['status-cancelado',  '✕ Cancelado'],
+  };
+  const [cls, txt] = map[s] || ['status-pendente', s];
+  return `<span class="insc-status ${cls}">${txt}</span>`;
+}
+
+function formatarData(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function formatarValor(v) {
+  return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+}
+
+function renderInscricao(it) {
+  const desconto = it.desconto_pct ? ` <span style="color:rgba(255,255,255,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
+  return `
+  <div class="insc-card">
+    <div class="insc-card-top">
+      <div class="insc-evento">${it.evento}</div>
+      <div style="margin-top:8px;">${statusBadge(it.status)}</div>
+    </div>
+    <div class="insc-detalhes">
+      <div class="insc-row"><span class="insc-label">Kit</span><span class="insc-val">${it.kit || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Modalidade</span><span class="insc-val">${it.modalidade || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Camiseta</span><span class="insc-val">${it.tamanho_camisa || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Lote</span><span class="insc-val">${it.lote_nome || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Pagamento</span><span class="insc-val">${it.forma_pagamento || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Valor</span><span class="insc-val orange">${formatarValor(it.valor)}${desconto}</span></div>
+      <div class="insc-row"><span class="insc-label">Data</span><span class="insc-val">${formatarData(it.criado_em)}</span></div>
+    </div>
+    ${it.status === 'confirmado' ? `
+    <div class="insc-qr">
+      <div class="insc-qr-titulo">🎫 QR Code — Retirada do kit</div>
+      <div class="qr-wrap">
+        <canvas id="qr-${it.id}" width="160" height="160"></canvas>
+      </div>
+      <div class="qr-id">${it.id}</div>
+    </div>` : ''}
+  </div>`;
+}
+
+function gerarQR(id) {
+  const canvas = document.getElementById('qr-' + id);
+  if (!canvas) return;
+  QRCode.toCanvas(canvas, id, {
+    width: 160, margin: 0,
+    color: { dark: '#000000', light: '#ffffff' }
+  });
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────
+(function init() {
+  const s = carregarSessao();
+  if (s && s.token) {
+    entrarNaArea(s);
+  }
+})();
+</script>
+</body>
+</html>
