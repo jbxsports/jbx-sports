@@ -220,12 +220,20 @@ nav {
     <p class="auth-sub">Cadastre-se para acessar suas inscrições</p>
     <div class="auth-erro" id="cad-erro"></div>
     <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" id="cad-nome" placeholder="Seu nome completo">
+    </div>
+    <div class="form-group">
       <label>CPF</label>
       <input type="text" id="cad-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
     </div>
     <div class="form-group">
       <label>E-mail</label>
       <input type="email" id="cad-email" placeholder="seu@email.com">
+    </div>
+    <div class="form-group">
+      <label>Telefone / WhatsApp</label>
+      <input type="tel" id="cad-tel" placeholder="(16) 99999-0000">
     </div>
     <div class="form-group">
       <label>Senha</label>
@@ -345,11 +353,13 @@ async function fazerLogin() {
 // ── CADASTRO ─────────────────────────────────────
 async function fazerCadastro() {
   limparErros();
+  const nome   = (document.getElementById('cad-nome').value || '').trim();
   const cpf    = document.getElementById('cad-cpf').value;
   const email  = document.getElementById('cad-email').value.trim();
   const senha  = document.getElementById('cad-senha').value;
   const senha2 = document.getElementById('cad-senha2').value;
 
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) return mostrarErro('cad-erro', 'Digite seu nome completo.');
   if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('cad-erro', 'CPF inválido.');
   if (!email || !email.includes('@')) return mostrarErro('cad-erro', 'E-mail inválido.');
   if (senha.length < 6) return mostrarErro('cad-erro', 'Senha deve ter pelo menos 6 caracteres.');
@@ -359,11 +369,10 @@ async function fazerCadastro() {
   btn.textContent = 'Criando conta...'; btn.disabled = true;
 
   try {
-    const res = await rpc('atleta_cadastrar', { p_cpf: cpf, p_email: email, p_senha: senha });
+    const res = await rpc('atleta_cadastrar', { p_cpf: cpf, p_email: email, p_senha: senha, p_nome: nome });
     if (!res.ok) {
       mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
     } else {
-      // Faz login automático após cadastro
       const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
       if (login.ok) { salvarSessao(login); entrarNaArea(login); }
       else irParaLogin();
@@ -396,7 +405,13 @@ async function carregarInscricoes(dados) {
 
     const lista = res.inscricoes || [];
     if (!lista.length) {
-      wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">🏃</div><div class="vazio-texto">Você ainda não tem inscrições.<br>Participe de um evento!</div></div>';
+      wrap.innerHTML = `
+        <div class="vazio">
+          <div class="vazio-icone">🏃</div>
+          <div class="vazio-texto" style="font-size:18px;font-weight:700;margin-bottom:8px;">Nenhuma inscrição ainda</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:24px;">Quando as inscrições abrirem, você poderá se inscrever rapidamente com seus dados já cadastrados.</div>
+          <a href="/" style="background:var(--orange);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Ver eventos</a>
+        </div>`;
       return;
     }
 
@@ -469,9 +484,10 @@ function gerarQR(id) {
 // ── INICIALIZAÇÃO ─────────────────────────────────
 (function init() {
   const s = carregarSessao();
-  if (s && s.token) {
-    entrarNaArea(s);
-  }
+  if (s && s.token) { entrarNaArea(s); return; }
+  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
 })();
 </script>
 </body>
