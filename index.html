@@ -841,15 +841,10 @@
       <!-- ETAPA 2: MODALIDADE -->
       <div class="step-panel" data-panel="2">
         <div class="form-section-title">Escolha a modalidade</div>
+        <!-- preenchido por renderModalidades() com base em ev.distancias do banco -->
         <div class="category-options" id="cat-options" style="grid-template-columns:repeat(3,1fr);">
-          <div class="cat-option selected" onclick="selectCat(this, 'Corrida 4KM')">
-            <div class="cat-dist" style="font-size:14px;">Corrida 4KM</div>
-          </div>
-          <div class="cat-option" onclick="selectCat(this, 'Corrida 8KM')">
-            <div class="cat-dist" style="font-size:14px;">Corrida 8KM</div>
-          </div>
-          <div class="cat-option" onclick="selectCat(this, 'Caminhada 4KM')">
-            <div class="cat-dist" style="font-size:14px;">Caminhada 4KM</div>
+          <div style="grid-column:1/-1;text-align:center;padding:24px;color:rgba(255,255,255,0.4);font-size:14px;">
+            Carregando modalidades...
           </div>
         </div>
       </div>
@@ -1081,7 +1076,10 @@ function openModal(eventoId, title, info) {
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
   resetWizard();
-  // carrega kits e lote do banco (se evento tiver id)
+  // renderiza modalidades imediatamente do cache (sem esperar o async)
+  const evCache = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+  if (evCache) renderModalidades(evCache.distancias);
+  // carrega kits e lote do banco (se evento tiver id); atualizará modalidades tb se necessário
   if (eventoId) loadKitsEvento(eventoId);
 }
 
@@ -1142,9 +1140,40 @@ async function loadKitsEvento(eventoId) {
       }
       atualizarResumo();
     }
+
+    // ── carrega modalidades do evento (campo distancias) ──
+    const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+    renderModalidades(ev ? ev.distancias : null);
+
   } catch (e) {
-    // em caso de erro, mantém os kits hardcoded (fallback silencioso)
+    // fallback silencioso: mantém kits hardcoded e carrega modalidades do evento em cache
+    const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+    renderModalidades(ev ? ev.distancias : null);
   }
+}
+
+// ── Renderiza as opções de modalidade a partir do campo "distancias" do evento ──
+// distancias é uma string separada por vírgula: "Corrida 4KM, Corrida 8KM, Caminhada 4KM"
+// Fallback hardcoded caso o evento não tenha o campo preenchido.
+function renderModalidades(distanciasStr) {
+  const FALLBACK = ['Corrida 4KM', 'Corrida 8KM', 'Caminhada 4KM'];
+  const lista = distanciasStr
+    ? distanciasStr.split(',').map(d => d.trim()).filter(Boolean)
+    : FALLBACK;
+
+  // grid adaptativo: 1 col se 1 item, 2 cols se 2, 3 cols se 3+
+  const cols = lista.length === 1 ? 1 : lista.length === 2 ? 2 : 3;
+  const container = document.getElementById('cat-options');
+  if (!container) return;
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  container.innerHTML = lista.map((d, i) => `
+    <div class="cat-option${i === 0 ? ' selected' : ''}" onclick="selectCat(this,'${d.replace(/'/g,"\\'")}')">
+      <div class="cat-dist" style="font-size:${d.length > 12 ? '12px' : '14px'};">${d}</div>
+    </div>`).join('');
+
+  // garante que currentModalidade reflete o primeiro item
+  currentModalidade = lista[0] || 'Corrida 4KM';
+  atualizarResumo();
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('active');
@@ -1176,20 +1205,14 @@ function resetRegistro() {
   currentKitId = '';
   currentLoteId = '';
   currentLoteNome = '';
-  // restaura badge e kits hardcoded (recarregado por loadKitsEvento se evento tiver id)
   const badge = document.getElementById('lote-badge');
   if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
-  const container = document.getElementById('kits-container');
-  if (container && document.getElementById('kit-fallback-starter') &&
-      !container.querySelector('#kit-fallback-starter')) {
-    // já foi substituído pelos dinâmicos; ao resetar, recarrega do banco
-    if (currentEventoId) loadKitsEvento(currentEventoId);
-  }
+  // recarrega kits e lote do banco (e modalidades) para o novo atleta
+  if (currentEventoId) loadKitsEvento(currentEventoId);
 
-  const cats = document.querySelectorAll('.cat-option');
-  cats.forEach(c => c.classList.remove('selected'));
-  if (cats[0]) cats[0].classList.add('selected');
-  currentModalidade = 'Corrida 4KM';
+  // re-renderiza modalidades do evento atual (mantém opções corretas entre atletas)
+  const evAtual = (window._eventos || []).find(e => String(e.id) === String(currentEventoId));
+  renderModalidades(evAtual ? evAtual.distancias : null);
 
   if (typeof limparAtleta === 'function') limparAtleta();
   ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-comp','f-bairro','f-cidade','f-emerg-nome','f-emerg-tel','f-busca-nome'].forEach(id => {
@@ -1403,7 +1426,7 @@ function selectKit(el, price, nome, kitId, loteId) {
 function selectCat(el, modalidade) {
   document.querySelectorAll('.cat-option').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  currentModalidade = modalidade || el.querySelector('.cat-dist').textContent;
+  currentModalidade = modalidade || (el.querySelector('.cat-dist') || {}).textContent || '';
   atualizarResumo();
 }
 
