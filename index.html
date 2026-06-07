@@ -1121,7 +1121,7 @@ let currentLoteId = "";     // uuid do lote ativo
 let currentLoteNome = "";   // nome do lote ativo (ex: "Lote 1")
 let currentPagamento = "Cartão";
 let currentStep = 1;
-let currentRef = "";
+let currentRef = "", currentCpf = "";
 let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
 let _achadoAtleta = null;
 let currentCupom = "";
@@ -1298,6 +1298,7 @@ function snapshotAtual() {
     modalidade: currentModalidade,
     camisa: val('f-camisa'),
     ref: currentRef,
+    cpf: currentCpf,
     idoso: (!currentRef) && (idadeDe(val('f-nasc')) !== null && idadeDe(val('f-nasc')) >= 60),
     rotulo: currentRef ? (currentRotulo || 'Cadastro protegido') : (val('f-nome') || 'Atleta')
   };
@@ -1333,7 +1334,7 @@ function cancelarAtleta() {
   const est = document.getElementById('f-estado'); if (est) est.value = 'SP';
   const br = document.getElementById('busca-resultado');
   if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
-  currentKit = ''; currentKitId = ''; currentRef = ''; currentRotulo = '';
+  currentKit = ''; currentKitId = ''; currentRef = ''; currentCpf = ''; currentRotulo = '';
   showStep(4); // volta ao pagamento com o carrinho intacto
 }
 
@@ -1597,7 +1598,7 @@ async function buscarAtletaPorCpf() {
     // se a RPC atual não retornar rotulo, mostra confirmação genérica
     const nomeCompleto = achou.rotulo || '';
     const nomeMascarado = nomeCompleto ? mascararNome(nomeCompleto) : '(cadastro encontrado)';
-    _achadoAtleta = { ref: achou.ref, rotulo: nomeCompleto, rotuloCurto: nomeMascarado };
+    _achadoAtleta = { ref: achou.ref, rotulo: nomeCompleto, rotuloCurto: nomeMascarado, cpf: (document.getElementById('f-busca-cpf') ? document.getElementById('f-busca-cpf').value : '') };
 
     res.classList.add('br-ok');
     res.innerHTML = '';
@@ -1636,6 +1637,7 @@ function usarAtleta() {
 // modo 'cpf': detecção automática pelo campo CPF do formulário (sem nome disponível)
 function aplicarCadastro(ref, rotulo, modo) {
   currentRef = ref;
+  currentCpf = _achadoAtleta ? (_achadoAtleta.cpf || '').replace(/\D/g,'') : '';
   document.getElementById('dados-wrap').style.display = 'none';
   const card = document.getElementById('dados-protegidos');
   card.style.display = 'block';
@@ -1730,6 +1732,7 @@ function montarDadosItem(it, pedido) {
     evento: currentEvento,
     pedido: pedido,
     ref: it.ref || '',
+    cpf: it.cpf || '',
     cupom: currentCupom,
     kit: it.kit,
     kit_id: it.kit_id || '',      // servidor usa para preço autoritativo pelo lote
