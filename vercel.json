@@ -1,0 +1,17 @@
+{
+  "functions": {
+    "api/stripe-webhook.js": {
+      "memory": 512
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/stripe-webhook",
+      "dest": "/api/stripe-webhook.js",
+      "methods": ["POST"],
+      "headers": {
+        "x-vercel-body-parser": "false"
+      }
+    }
+  ]
+}
