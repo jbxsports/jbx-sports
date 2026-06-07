@@ -393,6 +393,14 @@
   .btn-step-back:hover { border-color: #fff; color: #fff; }
   .btn-step-next { background: var(--orange); color: #fff; border: none; margin-left: auto; }
   .btn-step-next:hover { background: var(--orange-dark); transform: translateY(-1px); }
+  .btn-retornar-pag {
+    background: transparent; color: var(--orange);
+    border: 1px solid var(--orange); border-radius: 8px;
+    padding: 13px 20px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-retornar-pag:hover { background: rgba(255,117,31,0.1); }
 
   @media (max-width: 600px) { .kit-options { grid-template-columns: 1fr; } }
 
@@ -1026,6 +1034,9 @@
       <!-- NAVEGAÇÃO ENTRE ETAPAS -->
       <div class="step-nav">
         <button class="btn-step-back" onclick="prevStep()">Voltar</button>
+        <button class="btn-retornar-pag" onclick="cancelarAtleta()" style="display:none;">
+          ↩ Retornar ao pagamento
+        </button>
         <button class="btn-step-next" onclick="nextStep()">Próximo →</button>
       </div>
     </div>
@@ -1264,9 +1275,19 @@ function adicionarOutroAtleta() {
 
 // Cancela o atleta atual em edição e volta ao pagamento (carrinho preservado)
 function cancelarAtleta() {
-  if (!cart.length) return; // não tem nada no carrinho, não faz sentido cancelar
-  resetRegistro();
-  showStep(4);
+  if (!cart.length) return;
+  // limpa só o estado do atleta em edição — não toca no carrinho nem no cupom
+  if (typeof limparAtleta === 'function') limparAtleta();
+  ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa',
+   'f-cep','f-rua','f-num','f-comp','f-bairro','f-cidade',
+   'f-emerg-nome','f-emerg-tel','f-busca-cpf'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const est = document.getElementById('f-estado'); if (est) est.value = 'SP';
+  const br = document.getElementById('busca-resultado');
+  if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
+  currentKit = ''; currentKitId = ''; currentRef = ''; currentRotulo = '';
+  showStep(4); // volta ao pagamento com o carrinho intacto
 }
 
 function removerAtleta(idx) {
@@ -1321,13 +1342,20 @@ function showStep(n) {
     d.classList.toggle('active', s === n);
     d.classList.toggle('done', s < n);
   });
-  const back = document.querySelector('.btn-step-back');
-  const next = document.querySelector('.btn-step-next');
-  if (back) back.style.visibility = (n === 1) ? 'hidden' : 'visible';
-  if (next) next.style.display = (n === TOTAL_STEPS) ? 'none' : 'block';
+  const back    = document.querySelector('.btn-step-back');
+  const next    = document.querySelector('.btn-step-next');
+  const retornar = document.querySelector('.btn-retornar-pag');
+  const naEtapaFinal = (n === TOTAL_STEPS);
+  const adicionandoMaisUm = cart.length > 0 && !naEtapaFinal;
+
+  if (back)     back.style.visibility = (n === 1) ? 'hidden' : 'visible';
+  if (next)     next.style.display    = naEtapaFinal ? 'none' : 'block';
+  // botão Retornar: visível só quando está adicionando atleta extra (etapas 1-3)
+  if (retornar) retornar.style.display = adicionandoMaisUm ? 'block' : 'none';
+
   const body = document.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
-  if (n === TOTAL_STEPS) atualizarResumo(); // reflete 60+/cupom no resumo
+  if (naEtapaFinal) atualizarResumo();
 }
 function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
 function nextStep() {
@@ -1558,7 +1586,8 @@ function usarAtleta() {
 }
 
 // Aplica o modo protegido (dados vêm do servidor via referência)
-// modo: 'nome' (busca por nome, permite preencher manual) ou 'cpf' (bloqueio: só corrigir o CPF)
+// rotulo: já deve vir mascarado (ex: "St******* B*****") — nunca o nome completo
+// modo 'cpf': detecção automática pelo campo CPF do formulário (sem nome disponível)
 function aplicarCadastro(ref, rotulo, modo) {
   currentRef = ref;
   document.getElementById('dados-wrap').style.display = 'none';
@@ -1572,13 +1601,15 @@ function aplicarCadastro(ref, rotulo, modo) {
   const s = document.createElement('div'); s.className = 'protegido-sub';
   const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-trocar';
   if (modo === 'cpf') {
-    n.textContent = rotulo ? ('Cadastro encontrado: ' + rotulo) : 'Encontramos um cadastro com este CPF';
-    s.textContent = 'Os dados salvos serão usados automaticamente, com segurança. Não é necessário (nem possível) preencher de novo.';
+    // detecção automática: CPF já cadastrado digitado no formulário, sem nome visível
+    n.textContent = 'CPF já cadastrado — dados serão usados automaticamente';
+    s.textContent = 'Os dados salvos serão preenchidos com segurança no envio. Não é necessário preencher novamente.';
     btn.textContent = 'Corrigir CPF';
     btn.onclick = corrigirCpf;
   } else {
-    n.textContent = rotulo ? ('Usando o cadastro de ' + rotulo) : 'Usando o cadastro já existente deste CPF';
-    s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio. Você não tem acesso a eles.';
+    // busca manual por CPF: rotulo já vem mascarado (ex: "St******* B*****")
+    n.textContent = rotulo ? ('Usando o cadastro de ' + rotulo) : 'Cadastro encontrado';
+    s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio.';
     btn.textContent = 'Trocar / preencher eu mesmo';
     btn.onclick = limparAtleta;
   }
