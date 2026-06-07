@@ -1064,6 +1064,7 @@ let currentLoteNome = "";   // nome do lote ativo (ex: "Lote 1")
 let currentPagamento = "Cartão";
 let currentStep = 1;
 let currentRef = "";
+let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
 let _achadoAtleta = null;
 let currentCupom = "";
 let currentCupomPct = 0;
@@ -1240,7 +1241,7 @@ function snapshotAtual() {
     camisa: val('f-camisa'),
     ref: currentRef,
     idoso: (!currentRef) && (idadeDe(val('f-nasc')) !== null && idadeDe(val('f-nasc')) >= 60),
-    rotulo: currentRef ? 'Cadastro protegido' : (val('f-nome') || 'Atleta')
+    rotulo: currentRef ? (currentRotulo || 'Cadastro protegido') : (val('f-nome') || 'Atleta')
   };
   if (!currentRef) {
     it.dados = {
@@ -1522,7 +1523,7 @@ async function buscarAtletaPorCpf() {
     // se a RPC atual não retornar rotulo, mostra confirmação genérica
     const nomeCompleto = achou.rotulo || '';
     const nomeMascarado = nomeCompleto ? mascararNome(nomeCompleto) : '(cadastro encontrado)';
-    _achadoAtleta = { ref: achou.ref, rotulo: nomeCompleto };
+    _achadoAtleta = { ref: achou.ref, rotulo: nomeCompleto, rotuloCurto: nomeMascarado };
 
     res.classList.add('br-ok');
     res.innerHTML = '';
@@ -1549,7 +1550,10 @@ async function buscarAtletaPorCpf() {
 
 function usarAtleta() {
   if (!_achadoAtleta) return;
-  aplicarCadastro(_achadoAtleta.ref, _achadoAtleta.rotulo);
+  // passa o nome mascarado como rótulo visível — o nome completo nunca sai do servidor
+  const rotuloCurto = _achadoAtleta.rotuloCurto || mascararNome(_achadoAtleta.rotulo) || 'Cadastro protegido';
+  currentRotulo = rotuloCurto; // usado pelo snapshotAtual na lista de atletas
+  aplicarCadastro(_achadoAtleta.ref, rotuloCurto);
   const br = document.getElementById('busca-resultado'); if (br) { br.innerHTML = ''; br.className = 'busca-resultado'; }
 }
 
@@ -1585,6 +1589,7 @@ function aplicarCadastro(ref, rotulo, modo) {
 
 function limparAtleta() {
   currentRef = '';
+  currentRotulo = '';
   const wrap = document.getElementById('dados-wrap'); if (wrap) wrap.style.display = '';
   const card = document.getElementById('dados-protegidos'); if (card) { card.style.display = 'none'; card.innerHTML = ''; }
   const av = document.getElementById('cpf-aviso'); if (av) { av.innerHTML = ''; av.className = 'cpf-aviso'; }
