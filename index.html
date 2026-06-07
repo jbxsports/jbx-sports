@@ -1043,8 +1043,47 @@
   </div>
 </div>
 
+<!-- MODAL RETORNO STRIPE -->
+<div id="modal-retorno" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#171717;border-radius:16px;width:100%;max-width:440px;padding:40px 36px;text-align:center;border:1px solid rgba(255,117,31,0.2);">
+    <div id="retorno-icone" style="font-size:56px;margin-bottom:16px;">✅</div>
+    <h3 id="retorno-titulo" style="font-size:22px;font-weight:700;margin-bottom:12px;">Inscrição confirmada!</h3>
+    <p id="retorno-texto" style="font-size:15px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:28px;"></p>
+    <button onclick="document.getElementById('modal-retorno').style.display='none'" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:14px 32px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;width:100%;">
+      Fechar
+    </button>
+  </div>
+</div>
+
 <script>
-// Countdown
+// Detecta retorno do Stripe (?status=sucesso ou ?status=cancelado)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+  const pedido = params.get('pedido');
+  if (!status) return;
+
+  // limpa os params da URL sem recarregar a página
+  window.history.replaceState({}, '', window.location.pathname);
+
+  const modal = document.getElementById('modal-retorno');
+  const icone = document.getElementById('retorno-icone');
+  const titulo = document.getElementById('retorno-titulo');
+  const texto  = document.getElementById('retorno-texto');
+
+  if (status === 'sucesso') {
+    icone.textContent = '✅';
+    titulo.textContent = 'Inscrição confirmada!';
+    texto.textContent = 'Seu pagamento foi processado com sucesso. Em breve você receberá as informações do evento. Boa corrida! 🏃';
+    modal.style.display = 'flex';
+  } else if (status === 'cancelado') {
+    icone.textContent = '❌';
+    titulo.textContent = 'Pagamento não concluído';
+    texto.textContent = 'Sua inscrição não foi confirmada pois o pagamento foi cancelado. Você pode tentar novamente a qualquer momento.';
+    modal.style.display = 'flex';
+  }
+})();
+</script>
 function updateCountdown() {
   const targetStr = window._proximoEvento || '2026-06-27T17:30:00';
   const target = new Date(targetStr);
