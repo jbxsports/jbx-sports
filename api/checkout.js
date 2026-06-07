@@ -50,7 +50,8 @@ module.exports = async function handler(req, res) {
     const SITE = 'https://jbx-sports.vercel.app';
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: forma_pagamento === 'PIX' ? ['pix'] : ['card'],
+      // Sem payment_method_types: Stripe mostra automaticamente
+      // cartão, Apple Pay, Google Pay e PIX (quando conta ativa)
       line_items: lineItems,
       mode: 'payment',
       success_url: `${SITE}/?pedido=${pedido}&status=sucesso`,
