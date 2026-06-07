@@ -829,6 +829,7 @@
       <div class="step-panel active" data-panel="1">
         <div id="lote-badge" class="lote-badge"></div>
         <div class="form-section-title">Escolha seu kit</div>
+        <script>function imgKitFallback(img){var l=(img.dataset.fallbacks||'').split('|').filter(Boolean);if(l.length){img.dataset.fallbacks=l.slice(1).join('|');img.src=l[0];}else{img.style.display='none';}}</script>
         <div class="kit-options" id="kits-container">
           <!-- preenchido dinamicamente por loadKitsEvento(); fallback abaixo se evento não tiver kits no BD -->
           <div class="kit-option selected" id="kit-fallback-starter" onclick="selectKit(this, 99.90, 'Kit Starter')">
@@ -1870,23 +1871,26 @@ function renderCard(ev, idx, bannerUrl) {
 
 async function carregarEventos() {
   try {
-    const [evRes, banRes] = await Promise.all([
-      fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: '{}'
-      }),
-      fetch(`${SB_URL}/rest/v1/rpc/banners_publicos`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: '{}'
-      })
-    ]);
+    const evRes = await fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
     const evJson = await evRes.json();
-    const banJson = await banRes.json();
-    const eventos = Array.isArray(evJson) ? evJson : (evJson || []);
-    const banners = Array.isArray(banJson) ? banJson : (banJson || []);
-    window._eventos = eventos;   // usado pela página do evento
+    const eventos = Array.isArray(evJson) ? evJson : [];
+    window._eventos = eventos;
+
+    // banners opcional — não quebra se falhar
+    let banners = [];
+    try {
+      const banRes = await fetch(`${SB_URL}/rest/v1/rpc/banners_publicos`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      const banJson = await banRes.json();
+      banners = Array.isArray(banJson) ? banJson : [];
+    } catch(e) {}
     window._banners = banners;
 
     const grid = document.getElementById('eventos-grid');
