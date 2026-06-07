@@ -454,19 +454,35 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="stat-card"><div class="sc-label">Receitas Inscrições</div><div class="sc-val orange" id="fin-rec-insc">—</div></div>
           <div class="stat-card"><div class="sc-label">Extras Confirmados</div><div class="sc-val" style="color:#22c55e" id="fin-rec-ext">—</div></div>
           <div class="stat-card"><div class="sc-label">Despesas Confirmadas</div><div class="sc-val" style="color:#ff6b6b" id="fin-desp-tot">—</div></div>
-          <div class="stat-card"><div class="sc-label">Resultado Geral</div><div class="sc-val" id="fin-resultado">—</div></div>
+          <div class="stat-card"><div class="sc-label">Saldo Atual</div><div class="sc-val" id="fin-resultado">—</div></div>
           <div class="stat-card"><div class="sc-label">A confirmar (30 dias)</div><div class="sc-val orange" id="fin-pend-30">—</div></div>
         </div>
         <div class="contas-row">
-          <div class="conta-card"><div class="cc-label">Resultado confirmado</div><div class="cc-nome">🏦 JBX Sports</div><div class="cc-val" id="fin-saldo-jbx">—</div></div>
-          <div class="conta-card"><div class="cc-label">Resultado confirmado</div><div class="cc-nome">🏦 Mind</div><div class="cc-val" id="fin-saldo-mind">—</div></div>
+          <div class="conta-card"><div class="cc-label">Saldo confirmado</div><div class="cc-nome">🏦 JBX Sports</div><div class="cc-val" id="fin-saldo-jbx">—</div></div>
+          <div class="conta-card"><div class="cc-label">Saldo confirmado</div><div class="cc-nome">🏦 Mind</div><div class="cc-val" id="fin-saldo-mind">—</div></div>
         </div>
+
+        <!-- Contas a pagar -->
         <div class="fin-section-title">⚠ Contas a pagar — próximos 7 dias</div>
         <div id="fin-7dias"></div>
         <div style="text-align:right;margin-top:10px;">
           <button class="btn-sm btn-sm-ghost" id="btn-ver-todas" onclick="toggleTodasPendencias()">Ver todas as pendências →</button>
         </div>
         <div id="fin-todas-pendencias" style="display:none;margin-top:12px;"></div>
+
+        <!-- Contas a receber -->
+        <div class="fin-section-title">💰 Contas a receber — próximos 7 dias</div>
+        <div id="fin-7dias-rec"></div>
+        <div style="text-align:right;margin-top:10px;">
+          <button class="btn-sm btn-sm-ghost" id="btn-ver-todas-rec" onclick="toggleTodasReceitas()">Ver todas a receber →</button>
+        </div>
+        <div id="fin-todas-receitas" style="display:none;margin-top:12px;"></div>
+
+        <!-- Eventos -->
+        <div class="fin-section-title">Por evento</div>
+        <div class="fin-ev-grid" id="fin-ev-grid"></div>
+
+        <!-- Lançamentos (abaixo dos eventos) -->
         <div class="fin-section-title">Lançamentos</div>
         <div class="two-col">
           <div class="panel">
@@ -491,15 +507,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <div class="form-g"><label>Descrição *</label><input id="gr-descricao" placeholder="Ex: Patrocínio Empresa X"></div>
             <div class="form-row2">
               <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="gr-valor" type="number" step="0.01"></div>
-              <div class="form-g" style="margin:0"><label>Data *</label><input id="gr-data" type="date"></div>
+              <div class="form-g" style="margin:0"><label>Data prevista *</label><input id="gr-data" type="date"></div>
             </div>
             <div class="form-g"><label>Evento vinculado</label><select id="gr-evento"><option value="">Geral</option></select></div>
             <button class="btn-save" onclick="salvarReceitaGlobal()">Lançar Receita</button>
             <div class="form-feedback" id="gr-feedback"></div>
           </div>
         </div>
-        <div class="fin-section-title">Por evento</div>
-        <div class="fin-ev-grid" id="fin-ev-grid"></div>
       </div>
 
       <!-- TELA: DETALHE FINANCEIRO -->
@@ -1036,11 +1050,11 @@ async function loadFinanceiro(){
   const hoje=new Date().toISOString().split('T')[0];
   ['gd-data','gr-data'].forEach(id=>{const el=document.getElementById(id);if(el&&!el.value)el.value=hoje;});
   try{
-    const[resumo,dias7,eventos,evLista]=await Promise.all([
-      rpc('fin_resumo_geral'),rpc('fin_contas_pagar_7dias'),
+    const[resumo,dias7,dias7rec,eventos,evLista]=await Promise.all([
+      rpc('fin_resumo_geral'),rpc('fin_contas_pagar_7dias'),rpc('fin_receitas_a_receber_7dias'),
       rpc('fin_lista_eventos_fin'),rpc('admin_lista_eventos')
     ]);
-    renderFinGlobal(resumo||{});render7Dias(dias7||[]);
+    renderFinGlobal(resumo||{});render7Dias(dias7||[]);render7DiasRec(dias7rec||[]);
     renderFinEventos(eventos||[]);preencherSeletoresEventos(evLista||[]);
   }catch(e){console.error(e);}
 }
@@ -1197,6 +1211,48 @@ async function toggleTodasPendencias(){
 }
 async function finAbrirConfirmarTodas(id){
   finAbrirConfirmar(id,'despesa',async()=>{await loadFinanceiro();if(_todasAberta){_todasAberta=false;await toggleTodasPendencias();}});
+}
+
+function render7DiasRec(arr){
+  const el=document.getElementById('fin-7dias-rec');
+  if(!el)return;
+  if(!arr.length){el.innerHTML='<div class="empty-state" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;">✅ Nenhum recebimento previsto nos próximos 7 dias.</div>';return;}
+  el.innerHTML=`<div class="table-wrap"><table class="data-table"><thead><tr><th>Data prevista</th><th>Evento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+    <tbody>${arr.map(r=>{
+      const diff=Math.round((new Date(r.data+'T12:00:00')-new Date())/(864e5));
+      const cor=diff<=0?'#22c55e':diff<=2?'#ffd000':'var(--text)';
+      return`<tr><td style="font-weight:700;color:${cor};">${fmtDS(r.data)}</td>
+        <td style="font-size:12px;color:var(--muted);">${r.evento_nome}</td>
+        <td><span class="tag-areceber">${r.tipo}</span></td>
+        <td>${r.descricao}</td>
+        <td style="color:#22c55e;font-weight:700;">${brl(r.valor)}</td>
+        <td><button class="btn-confirmar" onclick="finAbrirConfirmar('${r.id}','receita',()=>loadFinanceiro())">✓ Confirmar recebido</button></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+}
+
+let _todasRecAberta=false;
+async function toggleTodasReceitas(){
+  const el=document.getElementById('fin-todas-receitas');
+  const btn=document.getElementById('btn-ver-todas-rec');
+  _todasRecAberta=!_todasRecAberta;
+  if(!_todasRecAberta){el.style.display='none';btn.textContent='Ver todas a receber →';return;}
+  btn.textContent='← Mostrar só 7 dias';
+  el.style.display='block';
+  el.innerHTML='<div class="empty-state">Carregando…</div>';
+  try{
+    const arr=await rpc('fin_receitas_a_receber_todas');
+    if(!arr||!arr.length){el.innerHTML='<div class="empty-state" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;">✅ Nenhuma receita pendente de confirmação.</div>';return;}
+    el.innerHTML=`<div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Todas a receber (${arr.length})</div>
+      <div class="table-wrap"><table class="data-table"><thead><tr><th>Data prevista</th><th>Evento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
+      <tbody>${arr.map(r=>`<tr>
+        <td style="font-size:12px;">${fmtDS(r.data)}</td>
+        <td style="font-size:12px;color:var(--muted);">${r.evento_nome}</td>
+        <td><span class="tag-areceber">${r.tipo}</span></td>
+        <td>${r.descricao}</td>
+        <td style="color:#22c55e;font-weight:700;">${brl(r.valor)}</td>
+        <td><button class="btn-confirmar" onclick="finAbrirConfirmar('${r.id}','receita',()=>{loadFinanceiro();_todasRecAberta=false;toggleTodasReceitas();})">✓ Confirmar</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  }catch(e){el.innerHTML='<div style="color:#ff6b6b;padding:12px;">Erro ao carregar.</div>';}
 }
 // Salvar lançamentos
 async function salvarReceita(){
