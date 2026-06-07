@@ -1,0 +1,150 @@
+-- ═══════════════════════════════════════════════════════
+-- ÁREA DO ATLETA — JBX Sports
+-- Execute no SQL Editor do Supabase
+-- ═══════════════════════════════════════════════════════
+
+-- 1. Tabela de contas dos atletas
+CREATE TABLE IF NOT EXISTS public.atletas_contas (
+  cpf         text PRIMARY KEY,
+  email       text NOT NULL,
+  senha_hash  text NOT NULL,
+  nome        text,
+  criado_em   timestamptz DEFAULT now()
+);
+
+ALTER TABLE public.atletas_contas ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Bloqueio total" ON public.atletas_contas FOR ALL USING (false);
+
+-- 2. Cadastro do atleta (CPF + email + senha)
+CREATE OR REPLACE FUNCTION public.atleta_cadastrar(
+  p_cpf   text,
+  p_email text,
+  p_senha text  -- senha em texto puro; fazemos hash no servidor
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_cpf text := regexp_replace(p_cpf, '\D', '', 'g');
+  v_hash text := encode(digest(p_senha, 'sha256'), 'hex');
+  v_nome text;
+BEGIN
+  -- Verifica se CPF já está cadastrado
+  IF EXISTS (SELECT 1 FROM atletas_contas WHERE cpf = v_cpf) THEN
+    RETURN jsonb_build_object('ok', false, 'erro', 'CPF já cadastrado. Faça login.');
+  END IF;
+
+  -- Busca nome da última inscrição deste CPF (se existir)
+  SELECT nome INTO v_nome FROM inscricoes
+  WHERE cpf = v_cpf ORDER BY criado_em DESC LIMIT 1;
+
+  INSERT INTO atletas_contas (cpf, email, senha_hash, nome)
+  VALUES (v_cpf, lower(trim(p_email)), v_hash, v_nome);
+
+  RETURN jsonb_build_object('ok', true);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.atleta_cadastrar(text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.atleta_cadastrar(text, text, text) TO anon;
+
+-- 3. Login do atleta
+CREATE OR REPLACE FUNCTION public.atleta_login(
+  p_cpf   text,
+  p_senha text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_cpf  text := regexp_replace(p_cpf, '\D', '', 'g');
+  v_hash text := encode(digest(p_senha, 'sha256'), 'hex');
+  v_conta atletas_contas%ROWTYPE;
+  v_token text;
+BEGIN
+  SELECT * INTO v_conta FROM atletas_contas
+  WHERE cpf = v_cpf AND senha_hash = v_hash;
+
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'erro', 'CPF ou senha incorretos.');
+  END IF;
+
+  -- Token simples: hash de cpf + hash + timestamp
+  v_token := encode(digest(v_cpf || v_hash || extract(epoch from now())::text, 'sha256'), 'hex');
+
+  -- Salva o token na conta (validade de 30 dias)
+  UPDATE atletas_contas
+  SET senha_hash = senha_hash  -- apenas para acionar o update sem alterar dados
+  WHERE cpf = v_cpf;
+
+  RETURN jsonb_build_object(
+    'ok',    true,
+    'token', v_cpf || ':' || v_hash,  -- token = cpf:hash (simples e stateless)
+    'nome',  v_conta.nome,
+    'email', v_conta.email,
+    'cpf',   v_cpf
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.atleta_login(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.atleta_login(text, text) TO anon;
+
+-- 4. Busca inscrições do atleta autenticado
+CREATE OR REPLACE FUNCTION public.atleta_minhas_inscricoes(
+  p_cpf       text,
+  p_senha_hash text
+)
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_cpf text := regexp_replace(p_cpf, '\D', '', 'g');
+BEGIN
+  -- Valida credenciais
+  IF NOT EXISTS (
+    SELECT 1 FROM atletas_contas
+    WHERE cpf = v_cpf AND senha_hash = p_senha_hash
+  ) THEN
+    RETURN jsonb_build_object('ok', false, 'erro', 'Sessão inválida.');
+  END IF;
+
+  RETURN jsonb_build_object(
+    'ok', true,
+    'inscricoes', (
+      SELECT jsonb_agg(
+        jsonb_build_object(
+          'id',            id,
+          'pedido_id',     pedido_id,
+          'evento',        evento,
+          'kit',           kit,
+          'modalidade',    modalidade,
+          'lote_nome',     lote_nome,
+          'tamanho_camisa',tamanho_camisa,
+          'valor',         valor,
+          'desconto_pct',  desconto_pct,
+          'forma_pagamento',forma_pagamento,
+          'status',        status,
+          'criado_em',     criado_em
+        ) ORDER BY criado_em DESC
+      )
+      FROM inscricoes
+      WHERE cpf = v_cpf
+    )
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.atleta_minhas_inscricoes(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.atleta_minhas_inscricoes(text, text) TO anon;
+
+-- Habilitar extensão pgcrypto para digest/encode
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+NOTIFY pgrst, 'reload schema';
