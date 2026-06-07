@@ -1383,10 +1383,14 @@ function itemPct(it, pctCup) {
 function atualizarResumo() {
   const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
   const pctCup = currentCupomPct || 0;
-  // Na etapa 4 (pagamento) só exibe atletas já confirmados no carrinho.
-  // Nas etapas 1-3 inclui o atleta atual "em edição" para feedback visual.
+  // Na etapa 4:
+  // - se cart vazio (primeira inscrição): mostra o atleta atual como snapshot
+  // - se cart tem itens e veio via cancelarAtleta: mostra só o cart (descartou o em edição)
+  // Nas etapas 1-3: sempre inclui o snapshot atual para feedback visual
   const naEtapa4 = (currentStep === TOTAL_STEPS);
-  const itens = naEtapa4 ? [...cart] : cart.concat([snapshotAtual()]);
+  const itens = naEtapa4 && cart.length > 0
+    ? [...cart]
+    : cart.concat([snapshotAtual()]);
 
   // lista de atletas
   const lista = document.getElementById('lista-atletas');
@@ -1404,10 +1408,10 @@ function atualizarResumo() {
       const right = document.createElement('div'); right.className = 'atleta-right';
       const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(tot);
       right.appendChild(preco);
-      if (ehAtual) {
+      if (ehAtual && !naEtapa4) {
         const tag = document.createElement('span'); tag.className = 'atleta-tag'; tag.textContent = 'em edição';
         right.appendChild(tag);
-      } else {
+      } else if (!ehAtual) {
         const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'atleta-remover';
         rm.textContent = 'remover'; rm.onclick = () => removerAtleta(idx);
         right.appendChild(rm);
