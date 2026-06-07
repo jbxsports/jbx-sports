@@ -1696,8 +1696,17 @@ function montarDadosItem(it, pedido) {
 
 // Finaliza: grava TODOS os atletas (carrinho + atual) em um único pedido
 async function handlePagamento() {
-  if (!validarDados()) return; // valida o atleta atual antes de fechar
-  const itens = cart.concat([snapshotAtual()]);
+  // cancelarAtleta() limpa currentKit — se kit vazio e cart tem itens,
+  // o usuário voltou ao pagamento sem novo atleta: envia só o cart.
+  // Caso contrário, valida e inclui o atleta atual junto com o cart.
+  const cancelou = (cart.length > 0 && !currentKit);
+  let itens;
+  if (cancelou) {
+    itens = [...cart];
+  } else {
+    if (!validarDados()) return;
+    itens = cart.concat([snapshotAtual()]);
+  }
   if (!itens.length) return;
 
   const btn = document.querySelector('.btn-pagar');
@@ -1929,8 +1938,8 @@ function renderEventoBase(ev, bannerUrl) {
   document.getElementById('ed-price').textContent = ev.preco_min ? ('a partir de ' + preco) : '';
 
   const btn = document.getElementById('ed-inscrever');
-  if (ev.status === 'closed') {
-    btn.textContent = 'Inscrições encerradas';
+  if (ev.status === 'closed' || ev.status === 'soon') {
+    btn.textContent = ev.status === 'soon' ? 'Em breve' : 'Inscrições encerradas';
     btn.classList.add('disabled');
     btn.onclick = null;
   } else {
