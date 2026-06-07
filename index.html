@@ -1876,7 +1876,11 @@ async function carregarEventos() {
       headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
       body: '{}'
     });
-    const evJson = await evRes.json();
+    const evText = await evRes.text();
+    console.log('[JBX] eventos_publicos status:', evRes.status);
+    console.log('[JBX] eventos_publicos resposta:', evText);
+    let evJson;
+    try { evJson = JSON.parse(evText); } catch(e) { evJson = []; }
     const eventos = Array.isArray(evJson) ? evJson : [];
     window._eventos = eventos;
 
@@ -1916,6 +1920,7 @@ async function carregarEventos() {
 
     tratarRotaEvento(); // se a URL já vier com #evento/<id> (link compartilhado)
   } catch(e) {
+    console.error('[JBX] Erro ao carregar eventos:', e);
     document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Erro ao carregar eventos.</div>';
   }
 }
