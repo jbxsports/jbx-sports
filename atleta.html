@@ -406,6 +406,22 @@ function mascararCep(el) {
   let v = el.value.replace(/\D/g,'').slice(0,8);
   if (v.length > 5) v = v.slice(0,5)+'-'+v.slice(5);
   el.value = v;
+  if (v.replace(/\D/g,'').length === 8) buscarCep(v.replace(/\D/g,''));
+}
+
+async function buscarCep(cep) {
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (d.erro) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('cad-rua',    d.logradouro);
+    set('cad-bairro', d.bairro);
+    set('cad-cidade', d.localidade);
+    set('cad-estado', d.uf);
+    const numEl = document.getElementById('cad-num');
+    if (numEl) numEl.focus();
+  } catch(e) {}
 }
 
 // ── RPC ──────────────────────────────────────────
