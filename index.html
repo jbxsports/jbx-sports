@@ -1694,11 +1694,9 @@ function montarDadosItem(it, pedido) {
   return d;
 }
 
-// Finaliza: grava TODOS os atletas (carrinho + atual) em um único pedido
+// Finaliza: envia para /api/checkout que cria a sessão no Stripe
+// e redireciona o atleta para a página de pagamento
 async function handlePagamento() {
-  // cancelarAtleta() limpa currentKit — se kit vazio e cart tem itens,
-  // o usuário voltou ao pagamento sem novo atleta: envia só o cart.
-  // Caso contrário, valida e inclui o atleta atual junto com o cart.
   const cancelou = (cart.length > 0 && !currentKit);
   let itens;
   if (cancelou) {
@@ -1711,40 +1709,49 @@ async function handlePagamento() {
 
   const btn = document.querySelector('.btn-pagar');
   const textoOriginal = btn.textContent;
-  btn.textContent = '⏳ Processando...';
+  btn.textContent = '⏳ Aguarde...';
   btn.disabled = true;
 
   const pedido = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('' + Date.now() + Math.random());
 
+  // monta payload com valor já descontado para o Stripe
+  const pctCup = currentCupomPct || 0;
+  const itensPayload = itens.map(it => {
+    const pct = itemPct(it, pctCup);
+    const valorFinal = Number((it.valorBase * (1 - pct / 100)).toFixed(2));
+    return {
+      ...montarDadosItem(it, pedido),
+      valor: valorFinal // valor final pós-desconto
+    };
+  });
+
   try {
-    for (const it of itens) {
-      const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dados: montarDadosItem(it, pedido) })
-      });
-      if (!res.ok) {
-        const detalhe = await res.text();
-        throw new Error(detalhe || ('HTTP ' + res.status));
-      }
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        itens: itensPayload,
+        pedido,
+        cupom: currentCupom,
+        forma_pagamento: currentPagamento,
+        evento_nome: currentEvento
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erro ao iniciar pagamento');
     }
 
-    const qtd = itens.length;
-    btn.textContent = qtd > 1 ? `✅ ${qtd} inscrições confirmadas!` : '✅ Inscrição confirmada!';
-    btn.style.background = '#22c55e';
-    setTimeout(() => {
-      closeModal();
-      btn.textContent = textoOriginal;
-      btn.style.background = '';
-      btn.disabled = false;
-      cart = [];
-      resetWizard();
-    }, 2500);
+    const { url } = await res.json();
+    // Redireciona para a página de pagamento do Stripe
+    window.location.href = url;
+
   } catch (e) {
     btn.textContent = textoOriginal;
     btn.style.background = '';
     btn.disabled = false;
-    alert('Não foi possível concluir a inscrição. Tente novamente.\n\nDetalhe: ' + e.message);
+    alert('Não foi possível iniciar o pagamento. Tente novamente.\n\nDetalhe: ' + e.message);
   }
 }
 
