@@ -1582,8 +1582,9 @@ async function buscarAtletaPorCpf() {
       headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_cpf: cpf })
     });
-    const arr = await r.json();
-    const achou = Array.isArray(arr) && arr.length ? arr[0] : null;
+    const dado = await r.json();
+    // RPC retorna objeto direto ou array — normaliza
+    const achou = Array.isArray(dado) ? (dado.length ? dado[0] : null) : (dado && dado.ref ? dado : null);
     res.className = 'busca-resultado';
 
     if (!achou || !achou.ref) {
@@ -1610,7 +1611,7 @@ async function buscarAtletaPorCpf() {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-usar';
-    btn.textContent = 'Sou eu, usar este cadastro';
+    btn.textContent = 'Usar este cadastro!';
     btn.onclick = usarAtleta;
 
     res.appendChild(span);
@@ -1693,8 +1694,9 @@ async function checarCpf() {
       headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_cpf: cpf })
     });
-    const arr = await r.json();
-    const achou = Array.isArray(arr) && arr.length ? arr[0] : null;
+    const dado = await r.json();
+    // RPC retorna objeto direto ou array — normaliza
+    const achou = Array.isArray(dado) ? (dado.length ? dado[0] : null) : (dado && dado.ref ? dado : null);
     if (!achou) return;
     _cpfRef = achou.ref;
     aplicarCadastro(_cpfRef, '', 'cpf'); // trava automaticamente
