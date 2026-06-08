@@ -663,9 +663,20 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
                 <option value="bronze">🥉 Bronze</option>
               </select>
             </div>
-            <div class="form-g"><label>URL da logo *</label><input id="pat-logo" placeholder="https://... (link direto da imagem)" oninput="previewPatLogo(this.value)"></div>
-            <div id="pat-logo-preview" style="margin:-8px 0 12px;display:none;">
-              <img id="pat-logo-img" src="" alt="Preview" style="max-height:60px;max-width:100%;border-radius:6px;background:white;padding:6px;">
+            <div class="form-g"><label>Logo do patrocinador *</label>
+              <div class="kit-upload-area" id="pat-upload-area" onclick="document.getElementById('pat-foto-file').click()" style="cursor:pointer;min-height:80px;" title="Clique para escolher a logo">
+                <img id="pat-logo-img" src="" style="display:none;max-height:70px;max-width:100%;object-fit:contain;">
+                <div class="kit-upload-ph" id="pat-upload-ph">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  Clique para escolher a logo
+                </div>
+              </div>
+              <input type="file" id="pat-foto-file" accept="image/*" style="display:none;" onchange="uploadPatLogo(this)">
+              <div class="upload-row">
+                <button type="button" class="btn-upload" onclick="document.getElementById('pat-foto-file').click()">📁 Escolher arquivo</button>
+                <span id="pat-upload-status" style="font-size:12px;color:var(--muted);"></span>
+              </div>
+              <input id="pat-logo" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewPatLogo(this.value)">
             </div>
             <div class="form-g"><label>Site do patrocinador</label><input id="pat-site" placeholder="https://empresaxyz.com.br"></div>
             <div class="form-feedback" id="pat-feedback"></div>
@@ -1611,11 +1622,43 @@ async function loadPatrocinadores() {
   } catch(e) { el.innerHTML = '<div style="color:#ff6b6b;padding:12px;">Erro ao carregar.</div>'; }
 }
 
+async function uploadPatLogo(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const status = document.getElementById('pat-upload-status');
+  status.textContent = 'Enviando…'; status.style.color = 'var(--muted)';
+  const ext  = file.name.split('.').pop().toLowerCase() || 'png';
+  const nome = `pat_${Date.now()}.${ext}`;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/png', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) { const e = await r.text(); throw new Error(e); }
+    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('pat-logo').value = url;
+    previewPatLogo(url);
+    status.textContent = '✓ Logo enviada!'; status.style.color = '#22c55e';
+  } catch(e) {
+    status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
+    console.error(e);
+  }
+}
+
 function previewPatLogo(url) {
-  const wrap = document.getElementById('pat-logo-preview');
-  const img  = document.getElementById('pat-logo-img');
-  if (url && url.startsWith('http')) { wrap.style.display='block'; img.src=url; }
-  else { wrap.style.display='none'; }
+  const img = document.getElementById('pat-logo-img');
+  const ph  = document.getElementById('pat-upload-ph');
+  if (!img) return;
+  if (url && url.trim()) {
+    img.src = url.trim(); img.style.display = 'block';
+    if (ph) ph.style.display = 'none';
+    img.onerror = () => { img.style.display='none'; if(ph) ph.style.display='flex'; };
+  } else {
+    img.style.display = 'none'; img.src = '';
+    if (ph) ph.style.display = 'flex';
+  }
 }
 
 function editarPatrocinador(p) {
@@ -1638,7 +1681,7 @@ function cancelarEditPat() {
   document.getElementById('pat-categoria').value = 'master';
   document.getElementById('pat-form-titulo').textContent = '+ Novo Patrocinador';
   document.getElementById('pat-cancelar-btn').style.display = 'none';
-  document.getElementById('pat-logo-preview').style.display = 'none';
+  previewPatLogo('');
   document.getElementById('pat-feedback').textContent = '';
 }
 
