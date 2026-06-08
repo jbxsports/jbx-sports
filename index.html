@@ -429,7 +429,24 @@
   }
   .ed-banner-ph { color: rgba(255,255,255,0.22); font-size: 22px; font-weight: 700; letter-spacing: 3px; }
   .ed-banner.has-img .ed-banner-ph { display: none; }
-  .ed-wrap { max-width: 960px; margin: 0 auto; padding: 0 5% 80px; }
+  .ed-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5% 80px; }
+  .ed-body { display: grid; grid-template-columns: 1fr 300px; gap: 40px; align-items: start; }
+  .ed-main { min-width: 0; }
+  .ed-sponsors { position: sticky; top: 80px; }
+  .sponsors-box { background: #111; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; }
+  .sponsors-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 16px; text-align: center; }
+  .sponsors-cat { margin-bottom: 18px; }
+  .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 10px; text-align: center; }
+  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+  .sponsor-logo { display: block; transition: opacity 0.2s; border-radius: 6px; overflow: hidden; background: white; }
+  .sponsor-logo:hover { opacity: 0.85; }
+  .sponsor-logo img { display: block; object-fit: contain; }
+  .sponsor-master   .sponsor-logo img { width: 200px; height: 80px; }
+  .sponsor-parceiro .sponsor-logo img { width: 160px; height: 64px; }
+  .sponsor-ouro     .sponsor-logo img { width: 120px; height: 50px; }
+  .sponsor-prata    .sponsor-logo img { width: 96px;  height: 40px; }
+  .sponsor-bronze   .sponsor-logo img { width: 76px;  height: 32px; }
+  @media (max-width: 768px) { .ed-body { grid-template-columns: 1fr; } .ed-sponsors { position: static; } }
   .ed-header {
     display: flex; justify-content: space-between; align-items: flex-start;
     gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap;
@@ -790,17 +807,27 @@
       </div>
       <button class="ed-inscrever" id="ed-inscrever">Inscreva-se →</button>
     </div>
-    <div class="ed-tabs">
-      <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
-      <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
-      <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
-      <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
-    </div>
-    <div class="ed-content">
-      <div class="ed-pane active" data-pane="info" id="ed-info"></div>
-      <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
-      <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
-      <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
+    <div class="ed-body">
+      <div class="ed-main">
+        <div class="ed-tabs">
+          <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
+          <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
+          <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
+          <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
+        </div>
+        <div class="ed-content">
+          <div class="ed-pane active" data-pane="info" id="ed-info"></div>
+          <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
+          <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
+          <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
+        </div>
+      </div>
+      <div class="ed-sponsors">
+        <div class="sponsors-box" id="ed-sponsors-box" style="display:none;">
+          <div class="sponsors-title">Patrocinadores</div>
+          <div id="ed-sponsors-content"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1126,7 +1153,6 @@ let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
 let _achadoAtleta = null;
 let currentCupom = "";
 let currentCupomPct = 0;
-let currentEventoData = ""; // data do evento para validação de idade (yyyy-mm-dd)
 let cart = [];
 const TOTAL_STEPS = 4;
 
@@ -1138,12 +1164,9 @@ function openModal(eventoId, title, info) {
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
   resetWizard();
-  // captura data do evento para validação de idade
+  // renderiza modalidades imediatamente do cache (sem esperar o async)
   const evCache = (window._eventos || []).find(e => String(e.id) === String(eventoId));
-  if (evCache) {
-    currentEventoData = evCache.data || '';
-    renderModalidades(evCache.distancias);
-  }
+  if (evCache) renderModalidades(evCache.distancias);
   // carrega kits e lote do banco (se evento tiver id); atualizará modalidades tb se necessário
   if (eventoId) loadKitsEvento(eventoId);
 }
@@ -1424,57 +1447,6 @@ function idadeDe(nascStr) {
   const m = hoje.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && hoje.getDate() < d.getDate())) i--;
   return i;
-}
-
-// idade até 31/dez do ano da prova (regra federação)
-// anoProva: ano do evento (ex: 2026)
-function idadeNaProva(nascStr, anoProva) {
-  if (!nascStr || !anoProva) return null;
-  const nasc = new Date(nascStr + 'T00:00:00');
-  if (isNaN(nasc.getTime())) return null;
-  return anoProva - nasc.getFullYear();
-}
-
-// Regras de idade por modalidade
-// Retorna { ok: true } ou { ok: false, msg: '...' }
-function validarIdadeModalidade(nascStr, modalidade, anoProva) {
-  if (!nascStr || !modalidade) return { ok: true };
-  const idade = idadeNaProva(nascStr, anoProva);
-  if (idade === null) return { ok: true };
-
-  const mod = modalidade.toUpperCase();
-
-  // Detecta corrida kids por distância em metros
-  const kidsMatch = mod.match(/(\d+)\s*M$/);
-  if (kidsMatch) {
-    const metros = parseInt(kidsMatch[1]);
-    // Kids: máximo 13 anos completados até 31/dez do ano da prova
-    if (idade > 13) {
-      return { ok: false, msg: `A modalidade ${modalidade} é exclusiva para atletas de até 13 anos. Atletas com ${idade} anos devem se inscrever em percursos adultos (4km ou mais).` };
-    }
-    // Valida faixa correta para cada distância kids
-    if (metros === 50  && (idade < 1  || idade > 5))  return { ok: false, msg: `O percurso 50m é para atletas de 1 a 5 anos. Seu atleta tem ${idade} anos.` };
-    if (metros === 100 && (idade < 6  || idade > 8))  return { ok: false, msg: `O percurso 100m é para atletas de 6 a 8 anos. Seu atleta tem ${idade} anos.` };
-    if (metros === 200 && (idade < 9  || idade > 10)) return { ok: false, msg: `O percurso 200m é para atletas de 9 a 10 anos. Seu atleta tem ${idade} anos.` };
-    if (metros === 400 && (idade < 11 || idade > 13)) return { ok: false, msg: `O percurso 400m é para atletas de 11 a 13 anos. Seu atleta tem ${idade} anos.` };
-    return { ok: true };
-  }
-
-  // Percursos adultos — extrai km da modalidade
-  const kmMatch = mod.match(/(\d+)\s*K/);
-  if (!kmMatch) return { ok: true };
-  const km = parseInt(kmMatch[1]);
-
-  // Bloqueia menores de 14 em percursos adultos
-  if (idade < 14) {
-    return { ok: false, msg: `Atletas com ${idade} anos não podem participar de percursos adultos. Verifique as modalidades Kids disponíveis.` };
-  }
-
-  if (km >= 4  && km < 8  && idade < 14) return { ok: false, msg: `O percurso ${km}km exige mínimo de 14 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
-  if (km >= 8  && km < 12 && idade < 16) return { ok: false, msg: `O percurso ${km}km exige mínimo de 16 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
-  if (km >= 12             && idade < 18) return { ok: false, msg: `O percurso ${km}km exige mínimo de 18 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
-
-  return { ok: true };
 }
 
 // percentual de desconto de um item (não acumulativo: maior entre 60+ e cupom)
@@ -1762,37 +1734,21 @@ async function checarCpf() {
 
 // Validação dos campos obrigatórios da etapa 3
 function validarDados() {
-  const marcarErro = (el, msg) => {
+  const marcarErro = (el) => {
     el && el.focus();
     el && (el.style.borderColor = '#ff4444');
-    setTimeout(() => el && (el.style.borderColor = ''), 3000);
-    alert(msg || 'Por favor, preencha todos os campos obrigatórios (*)');
+    setTimeout(() => el && (el.style.borderColor = ''), 2000);
+    alert('Por favor, preencha todos os campos obrigatórios (*)');
   };
   // A camiseta é sempre obrigatória (escolhida a cada inscrição)
   const cam = document.getElementById('f-camisa');
   if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
-  // Com cadastro protegido, dados vêm do servidor — só valida idade
-  if (currentRef) {
-    // Para atletas com ref, valida com a data de nascimento do cadastro (se disponível)
-    // A validação completa de idade é feita no servidor pela RPC criar_inscricao
-    return true;
-  }
+  // Com cadastro protegido, o resto vem do servidor
+  if (currentRef) return true;
   const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
   for (const id of obrigatorios) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) { marcarErro(el); return false; }
-  }
-  // ── Valida idade para a modalidade selecionada ──
-  const nascEl = document.getElementById('f-nasc');
-  if (nascEl && nascEl.value && currentModalidade && currentEventoData) {
-    const anoProva = new Date(currentEventoData + 'T12:00:00').getFullYear();
-    const check = validarIdadeModalidade(nascEl.value, currentModalidade, anoProva);
-    if (!check.ok) {
-      nascEl.style.borderColor = '#ff4444';
-      setTimeout(() => { nascEl.style.borderColor = ''; }, 4000);
-      alert('⚠️ ' + check.msg);
-      return false;
-    }
   }
   return true;
 }
@@ -1876,6 +1832,49 @@ async function handlePagamento() {
     btn.disabled = false;
     alert('Não foi possível iniciar o pagamento. Tente novamente.\n\nDetalhe: ' + e.message);
   }
+}
+
+
+// ── PATROCINADORES ───────────────────────────────────
+async function carregarPatrocinadores(eventoId) {
+  const box     = document.getElementById('ed-sponsors-box');
+  const content = document.getElementById('ed-sponsors-content');
+  if (!box || !content) return;
+  try {
+    const res  = await fetch(`${SB_URL}/rest/v1/rpc/patrocinadores_evento`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_evento_id: eventoId })
+    });
+    const lista = await res.json();
+    if (!Array.isArray(lista) || !lista.length) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    content.innerHTML = renderPatrocinadores(lista);
+  } catch(e) { box.style.display = 'none'; }
+}
+
+function renderPatrocinadores(lista) {
+  const cats = [
+    { key: 'master',   label: 'Master' },
+    { key: 'parceiro', label: 'Parceiro Oficial' },
+    { key: 'ouro',     label: 'Ouro' },
+    { key: 'prata',    label: 'Prata' },
+    { key: 'bronze',   label: 'Bronze' },
+  ];
+  return cats.map(cat => {
+    const items = lista.filter(s => s.categoria === cat.key);
+    if (!items.length) return '';
+    const logos = items.map(s => {
+      const img = `<img src="${s.logo_url}" alt="${s.nome}" title="${s.nome}">`;
+      return s.site_url
+        ? `<a href="${s.site_url}" target="_blank" rel="noopener" class="sponsor-logo">${img}</a>`
+        : `<span class="sponsor-logo">${img}</span>`;
+    }).join('');
+    return `<div class="sponsors-cat sponsor-${cat.key}">
+      <div class="sponsors-cat-label">${cat.label}</div>
+      <div class="sponsors-logos">${logos}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── CARREGAR EVENTOS DO SUPABASE ──
@@ -2051,6 +2050,8 @@ async function abrirEventoPorId(id) {
   } catch (e) {
     preencherConteudo({}, false);
   }
+  // Carrega patrocinadores
+  carregarPatrocinadores(String(ev.id));
 }
 
 function renderEventoBase(ev, bannerUrl) {
