@@ -1,6 +1,4 @@
 // api/checkout.js
-// Cria sessão de pagamento no Stripe e redireciona para o checkout
-
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -8,37 +6,43 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-// ── Valida e cria inscrições no Supabase (preço autoritativo no servidor) ──
-async function criarInscricoes(itens, pedido) {
+// ── Cria inscrições no Supabase — função recebe { dados: jsonb } ──
+async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome) {
   const resultados = [];
   for (const item of itens) {
     try {
-      const payload = {
-        p_pedido:             pedido,
-        p_ref:                item.ref             || '',
-        p_cpf:                item.cpf             || '',
-        p_kit_id:             item.kit_id          || '',
-        p_lote_id:            item.lote_id         || '',
-        p_modalidade:         item.modalidade      || '',
-        p_tamanho_camisa:     item.tamanho_camisa  || '',
-        p_cupom:              item.cupom           || '',
-        p_nome:               item.nome            || '',
-        p_nascimento:         item.nascimento      || '',
-        p_genero:             item.genero          || '',
-        p_email:              item.email           || '',
-        p_telefone:           item.telefone        || '',
-        p_cep:                item.cep             || '',
-        p_rua:                item.rua             || '',
-        p_numero:             item.numero          || '',
-        p_complemento:        item.complemento     || '',
-        p_bairro:             item.bairro          || '',
-        p_cidade:             item.cidade          || '',
-        p_estado:             item.estado          || '',
-        p_emergencia_nome:    item.emergencia_nome     || '',
-        p_emergencia_telefone:item.emergencia_telefone || ''
+      // Monta o objeto "dados" exatamente como a função criar_inscricao espera
+      const dados = {
+        pedido:               pedido,
+        evento:               eventoNome      || '',
+        ref:                  item.ref        || '',
+        cpf:                  item.cpf        || '',
+        kit_id:               item.kit_id     || '',
+        lote_id:              item.lote_id    || '',
+        kit:                  item.kit        || '',
+        modalidade:           item.modalidade || '',
+        tamanho_camisa:       item.tamanho_camisa || '',
+        cupom:                cupom           || '',
+        forma_pagamento:      formaPagamento  || 'cartao',
+        nome:                 item.nome       || '',
+        cpf_dados:            item.cpf        || '',
+        nascimento:           item.nascimento || '',
+        genero:               item.genero     || '',
+        email:                item.email      || '',
+        telefone:             item.telefone   || '',
+        cep:                  item.cep        || '',
+        rua:                  item.rua        || '',
+        numero:               item.numero     || '',
+        complemento:          item.complemento|| '',
+        bairro:               item.bairro     || '',
+        cidade:               item.cidade     || '',
+        estado:               item.estado     || '',
+        emergencia_nome:      item.emergencia_nome      || '',
+        emergencia_telefone:  item.emergencia_telefone  || '',
+        valor:                item.valor      || 0,
       };
 
-      console.log('[checkout] chamando criar_inscricao:', JSON.stringify(payload));
+      console.log('[checkout] criar_inscricao dados:', JSON.stringify(dados));
 
       const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
         method: 'POST',
@@ -47,22 +51,26 @@ async function criarInscricoes(itens, pedido) {
           'Authorization': `Bearer ${SB_SERVICE_KEY || ''}`,
           'Content-Type':  'application/json'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ dados })  // ← passa como { dados: jsonb }
       });
 
       const text = await res.text();
-      console.log('[checkout] criar_inscricao status:', res.status, 'body:', text);
-
-      let data = {};
-      try { data = JSON.parse(text); } catch(e) { data = { ok: false, erro: text }; }
+      console.log('[checkout] criar_inscricao status:', res.status, 'resp:', text);
 
       if (!res.ok) {
-        resultados.push({ ok: false, erro: data.message || data.error || text });
-      } else {
-        resultados.push({ ok: data.ok, valor_cents: data.valor_cents, erro: data.erro });
+        let msg = text;
+        try { msg = JSON.parse(text).message || JSON.parse(text).error || text; } catch(e){}
+        resultados.push({ ok: false, erro: msg });
+        continue;
       }
+
+      // Função retorna o UUID da inscrição criada
+      // Precisamos calcular valor_cents para o Stripe
+      const inscricaoId = text.replace(/"/g,'').trim();
+      resultados.push({ ok: true, inscricao_id: inscricaoId, valor_cents: Math.round(item.valor * 100) });
+
     } catch (e) {
-      console.error('[checkout] erro fetch criar_inscricao:', e.message);
+      console.error('[checkout] erro fetch:', e.message);
       resultados.push({ ok: false, erro: e.message });
     }
   }
@@ -76,14 +84,14 @@ export default async function handler(req, res) {
 
   const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
 
-  console.log('[checkout] recebido pedido:', pedido, '| itens:', itens?.length, '| SB_KEY presente:', !!SB_SERVICE_KEY);
+  console.log('[checkout] pedido:', pedido, '| itens:', itens?.length, '| SB_KEY ok:', !!SB_SERVICE_KEY);
 
   if (!itens || !itens.length) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
-  // ── 1. Cria inscrições no Supabase (preço calculado no servidor) ──
-  const resultados = await criarInscricoes(itens, pedido);
+  // ── 1. Cria inscrições no Supabase ──
+  const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   console.log('[checkout] resultados:', JSON.stringify(resultados));
 
   const erros = resultados.filter(r => !r.ok);
@@ -91,13 +99,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
   }
 
-  // ── 2. Soma total autoritativo (vem do servidor, não do cliente) ──
+  // ── 2. Total em centavos ──
   const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
   if (totalCents <= 0) {
-    return res.status(400).json({ error: 'Valor inválido calculado pelo servidor.' });
+    return res.status(400).json({ error: 'Valor inválido.' });
   }
 
-  // ── 3. Monta line_items para o Stripe ──
+  // ── 3. Line items para o Stripe ──
   const line_items = itens.map((item, i) => ({
     price_data: {
       currency: 'brl',
@@ -110,7 +118,7 @@ export default async function handler(req, res) {
     quantity: 1,
   }));
 
-  // ── 4. Metadados para o webhook ──
+  // ── 4. Metadados para o webhook (WhatsApp pós-pagamento) ──
   const metadataItens = itens.map(it => ({
     ref:            it.ref           || '',
     cpf:            it.cpf           || '',
