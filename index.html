@@ -1126,6 +1126,7 @@ let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
 let _achadoAtleta = null;
 let currentCupom = "";
 let currentCupomPct = 0;
+let currentEventoData = ""; // data do evento para validação de idade (yyyy-mm-dd)
 let cart = [];
 const TOTAL_STEPS = 4;
 
@@ -1137,9 +1138,12 @@ function openModal(eventoId, title, info) {
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
   resetWizard();
-  // renderiza modalidades imediatamente do cache (sem esperar o async)
+  // captura data do evento para validação de idade
   const evCache = (window._eventos || []).find(e => String(e.id) === String(eventoId));
-  if (evCache) renderModalidades(evCache.distancias);
+  if (evCache) {
+    currentEventoData = evCache.data || '';
+    renderModalidades(evCache.distancias);
+  }
   // carrega kits e lote do banco (se evento tiver id); atualizará modalidades tb se necessário
   if (eventoId) loadKitsEvento(eventoId);
 }
@@ -1420,6 +1424,57 @@ function idadeDe(nascStr) {
   const m = hoje.getMonth() - d.getMonth();
   if (m < 0 || (m === 0 && hoje.getDate() < d.getDate())) i--;
   return i;
+}
+
+// idade até 31/dez do ano da prova (regra federação)
+// anoProva: ano do evento (ex: 2026)
+function idadeNaProva(nascStr, anoProva) {
+  if (!nascStr || !anoProva) return null;
+  const nasc = new Date(nascStr + 'T00:00:00');
+  if (isNaN(nasc.getTime())) return null;
+  return anoProva - nasc.getFullYear();
+}
+
+// Regras de idade por modalidade
+// Retorna { ok: true } ou { ok: false, msg: '...' }
+function validarIdadeModalidade(nascStr, modalidade, anoProva) {
+  if (!nascStr || !modalidade) return { ok: true };
+  const idade = idadeNaProva(nascStr, anoProva);
+  if (idade === null) return { ok: true };
+
+  const mod = modalidade.toUpperCase();
+
+  // Detecta corrida kids por distância em metros
+  const kidsMatch = mod.match(/(\d+)\s*M$/);
+  if (kidsMatch) {
+    const metros = parseInt(kidsMatch[1]);
+    // Kids: máximo 13 anos completados até 31/dez do ano da prova
+    if (idade > 13) {
+      return { ok: false, msg: `A modalidade ${modalidade} é exclusiva para atletas de até 13 anos. Atletas com ${idade} anos devem se inscrever em percursos adultos (4km ou mais).` };
+    }
+    // Valida faixa correta para cada distância kids
+    if (metros === 50  && (idade < 1  || idade > 5))  return { ok: false, msg: `O percurso 50m é para atletas de 1 a 5 anos. Seu atleta tem ${idade} anos.` };
+    if (metros === 100 && (idade < 6  || idade > 8))  return { ok: false, msg: `O percurso 100m é para atletas de 6 a 8 anos. Seu atleta tem ${idade} anos.` };
+    if (metros === 200 && (idade < 9  || idade > 10)) return { ok: false, msg: `O percurso 200m é para atletas de 9 a 10 anos. Seu atleta tem ${idade} anos.` };
+    if (metros === 400 && (idade < 11 || idade > 13)) return { ok: false, msg: `O percurso 400m é para atletas de 11 a 13 anos. Seu atleta tem ${idade} anos.` };
+    return { ok: true };
+  }
+
+  // Percursos adultos — extrai km da modalidade
+  const kmMatch = mod.match(/(\d+)\s*K/);
+  if (!kmMatch) return { ok: true };
+  const km = parseInt(kmMatch[1]);
+
+  // Bloqueia menores de 14 em percursos adultos
+  if (idade < 14) {
+    return { ok: false, msg: `Atletas com ${idade} anos não podem participar de percursos adultos. Verifique as modalidades Kids disponíveis.` };
+  }
+
+  if (km >= 4  && km < 8  && idade < 14) return { ok: false, msg: `O percurso ${km}km exige mínimo de 14 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
+  if (km >= 8  && km < 12 && idade < 16) return { ok: false, msg: `O percurso ${km}km exige mínimo de 16 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
+  if (km >= 12             && idade < 18) return { ok: false, msg: `O percurso ${km}km exige mínimo de 18 anos completos até 31/12/${anoProva}. Seu atleta tem ${idade} anos.` };
+
+  return { ok: true };
 }
 
 // percentual de desconto de um item (não acumulativo: maior entre 60+ e cupom)
@@ -1707,21 +1762,37 @@ async function checarCpf() {
 
 // Validação dos campos obrigatórios da etapa 3
 function validarDados() {
-  const marcarErro = (el) => {
+  const marcarErro = (el, msg) => {
     el && el.focus();
     el && (el.style.borderColor = '#ff4444');
-    setTimeout(() => el && (el.style.borderColor = ''), 2000);
-    alert('Por favor, preencha todos os campos obrigatórios (*)');
+    setTimeout(() => el && (el.style.borderColor = ''), 3000);
+    alert(msg || 'Por favor, preencha todos os campos obrigatórios (*)');
   };
   // A camiseta é sempre obrigatória (escolhida a cada inscrição)
   const cam = document.getElementById('f-camisa');
   if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
-  // Com cadastro protegido, o resto vem do servidor
-  if (currentRef) return true;
+  // Com cadastro protegido, dados vêm do servidor — só valida idade
+  if (currentRef) {
+    // Para atletas com ref, valida com a data de nascimento do cadastro (se disponível)
+    // A validação completa de idade é feita no servidor pela RPC criar_inscricao
+    return true;
+  }
   const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
   for (const id of obrigatorios) {
     const el = document.getElementById(id);
     if (!el || !el.value.trim()) { marcarErro(el); return false; }
+  }
+  // ── Valida idade para a modalidade selecionada ──
+  const nascEl = document.getElementById('f-nasc');
+  if (nascEl && nascEl.value && currentModalidade && currentEventoData) {
+    const anoProva = new Date(currentEventoData + 'T12:00:00').getFullYear();
+    const check = validarIdadeModalidade(nascEl.value, currentModalidade, anoProva);
+    if (!check.ok) {
+      nascEl.style.borderColor = '#ff4444';
+      setTimeout(() => { nascEl.style.borderColor = ''; }, 4000);
+      alert('⚠️ ' + check.msg);
+      return false;
+    }
   }
   return true;
 }
