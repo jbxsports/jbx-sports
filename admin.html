@@ -671,8 +671,8 @@ function renderEventCards(evs){
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
         <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
         ${Number(e.inscricoes_total||0) === 0
-          ? `<button class="btn-sm btn-sm-red" onclick="excluirEvento('${e.id}','${e.nome.replace(/'/g,\"\\'\")}')">🗑 Excluir</button>`
-          : `<button class="btn-sm btn-sm-ghost" onclick="encerrarEvento('${e.id}','${e.nome.replace(/'/g,\"\\'\")}','${e.status}')" ${e.status==='closed'?'disabled style=\"opacity:0.4;cursor:not-allowed;\"':''}>⛔ ${e.status==='closed'?'Encerrado':'Encerrar'}</button>`
+          ? '<button class="btn-sm btn-sm-red" onclick="excluirEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\')">🗑 Excluir</button>'
+          : '<button class="btn-sm btn-sm-ghost" ' + (e.status==="closed"?'disabled style="opacity:0.4;cursor:not-allowed;"':'') + ' onclick="encerrarEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\',\'' + e.status + '\')">\u26d4 ' + (e.status==="closed"?'Encerrado':'Encerrar') + '</button>'
         }
         <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
       </div>
