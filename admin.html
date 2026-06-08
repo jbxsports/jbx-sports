@@ -190,7 +190,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .fin-ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;}
 .fin-ev-card:hover{border-color:rgba(255,117,31,.4);}
 .fin-ev-card-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
-.fin-ev-card-body{padding:14px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.fin-ev-card-body{padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 .fin-stat .fl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .fin-stat .fv{font-size:16px;font-weight:700;margin-top:2px;}
 .btn-confirmar{background:rgba(255,117,31,.1);color:var(--orange);border:1px solid rgba(255,117,31,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;white-space:nowrap;}
@@ -1196,7 +1196,6 @@ function renderFinEventos(evs){
       </div>
       <div class="fin-ev-card-body">
         <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(insc)}</div></div>
-        <div class="fin-stat"><div class="fl">Verba alocada</div><div class="fv" style="color:#60a5fa;">${brl(ap)}</div></div>
         <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(ext)}</div></div>
         <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(despEv)}</div></div>
       </div></div>`;
@@ -1231,7 +1230,6 @@ async function loadFinEvento(){
     const res     = insc + ap + ext - despVal;
     document.getElementById('fin-ev-stats').innerHTML=`
       <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val orange">${brl(insc)}</div></div>
-      <div class="stat-card"><div class="sc-label">Verba Alocada</div><div class="sc-val" style="color:#60a5fa">${brl(ap)}</div></div>
       <div class="stat-card"><div class="sc-label">Extras</div><div class="sc-val" style="color:#22c55e">${brl(ext)}</div></div>
       <div class="stat-card"><div class="sc-label">Despesas</div><div class="sc-val" style="color:#ff6b6b">${brl(despVal)}</div></div>
       <div class="stat-card"><div class="sc-label">A confirmar</div><div class="sc-val orange">${brl(resumo.despesas_pendentes)}</div></div>
