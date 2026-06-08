@@ -679,7 +679,7 @@ async function rpc(fn,params={}){
   if(!r.ok) throw new Error(await r.text());
   const t=await r.text(); return t?JSON.parse(t):null;
 }
-const brl=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',');
+const brl=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fmt=n=>Number(n||0).toLocaleString('pt-BR');
 const fmtDS=dt=>{if(!dt)return'—';const[y,m,d]=String(dt).split('-');return`${d}/${m}/${y}`;};
 function fmtData(dt){if(!dt)return'—';const d=new Date(dt);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
@@ -1164,18 +1164,21 @@ function renderFinEventos(evs){
   const el=document.getElementById('fin-ev-grid');
   if(!evs.length){el.innerHTML='<div class="empty-state">Nenhum evento.</div>';return;}
   el.innerHTML=evs.map(e=>{
-    const rec=Number(e.inscricoes_valor||0)+Number(e.receitas_extras||0);
-    const res=rec-Number(e.despesas||0);
+    const insc=Number(e.inscricoes_valor||0);
+    const ap=Number(e.aportes||0);
+    const ext=Number(e.receitas_extras||0);
+    const despEv=Number(e.despesas||0);
+    const res=insc+ap+ext-despEv;
     return`<div class="fin-ev-card" onclick="abrirFinEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}')">
       <div class="fin-ev-card-header">
         <div><div style="font-weight:700;font-size:15px;">${e.nome}</div><div style="font-size:12px;color:var(--muted);">${e.data?fmtDS(e.data):''}</div></div>
-        <div style="text-align:right;"><div style="font-size:11px;color:var(--muted);">Resultado</div><div style="font-size:22px;font-weight:700;color:${res>=0?'#22c55e':'#ff6b6b'};">${brl(res)}</div></div>
+        <div style="text-align:right;"><div style="font-size:11px;color:var(--muted);">Saldo</div><div style="font-size:22px;font-weight:700;color:${res>=0?'#22c55e':'#ff6b6b'};">${brl(res)}</div></div>
       </div>
       <div class="fin-ev-card-body">
-        <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(e.inscricoes_valor)}</div></div>
-        <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(e.receitas_extras)}</div></div>
-        <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(e.despesas)}</div></div>
-        <div class="fin-stat"><div class="fl">Ver</div><div class="fv" style="color:var(--muted);">→</div></div>
+        <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(insc)}</div></div>
+        <div class="fin-stat"><div class="fl">Verba alocada</div><div class="fv" style="color:#60a5fa;">${brl(ap)}</div></div>
+        <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(ext)}</div></div>
+        <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(despEv)}</div></div>
       </div></div>`;
   }).join('');
 }
