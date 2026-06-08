@@ -1,71 +1,132 @@
 // api/checkout.js
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// Cria sessão de pagamento no Stripe e redireciona para o checkout
 
-const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_KEY;
+import Stripe from 'stripe';
 
-async function rpc(fn, params = {}) {
-  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${SB_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(params)
-  });
-  const text = await r.text();
-  if (!r.ok) throw new Error(text);
-  return text ? JSON.parse(text) : null;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+
+// ── Valida e cria inscrições no Supabase (preço autoritativo no servidor) ──
+async function criarInscricoes(itens, pedido) {
+  const resultados = [];
+  for (const item of itens) {
+    try {
+      const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
+        method: 'POST',
+        headers: {
+          'apikey': SB_SERVICE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          p_pedido:        pedido,
+          p_ref:           item.ref        || '',
+          p_cpf:           item.cpf        || '',
+          p_kit_id:        item.kit_id     || '',
+          p_lote_id:       item.lote_id    || '',
+          p_modalidade:    item.modalidade || '',
+          p_tamanho_camisa:item.tamanho_camisa || '',
+          p_cupom:         item.cupom      || '',
+          p_nome:          item.nome       || '',
+          p_nascimento:    item.nascimento || '',
+          p_genero:        item.genero     || '',
+          p_email:         item.email      || '',
+          p_telefone:      item.telefone   || '',
+          p_cep:           item.cep        || '',
+          p_rua:           item.rua        || '',
+          p_numero:        item.numero     || '',
+          p_complemento:   item.complemento|| '',
+          p_bairro:        item.bairro     || '',
+          p_cidade:        item.cidade     || '',
+          p_estado:        item.estado     || '',
+          p_emergencia_nome:    item.emergencia_nome     || '',
+          p_emergencia_telefone:item.emergencia_telefone || ''
+        })
+      });
+      const data = await res.json();
+      resultados.push({ ok: data.ok, valor_cents: data.valor_cents, erro: data.erro });
+    } catch (e) {
+      resultados.push({ ok: false, erro: e.message });
+    }
+  }
+  return resultados;
 }
 
-module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
+  const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
+
+  if (!itens || !itens.length) {
+    return res.status(400).json({ error: 'Nenhum item no pedido.' });
+  }
+
+  // ── 1. Cria inscrições no Supabase (preço calculado no servidor) ──
+  const resultados = await criarInscricoes(itens, pedido);
+  const erros = resultados.filter(r => !r.ok);
+  if (erros.length) {
+    return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
+  }
+
+  // ── 2. Soma total autoritativo (vem do servidor, não do cliente) ──
+  const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
+  if (totalCents <= 0) {
+    return res.status(400).json({ error: 'Valor inválido.' });
+  }
+
+  // ── 3. Monta line_items para o Stripe ──
+  const line_items = itens.map((item, i) => ({
+    price_data: {
+      currency: 'brl',
+      product_data: {
+        name: `${item.kit || 'Kit'} — ${item.modalidade || ''} (${item.nome || item.rotulo || 'Atleta'})`,
+        description: evento_nome || '',
+      },
+      unit_amount: resultados[i].valor_cents,
+    },
+    quantity: 1,
+  }));
+
+  // ── 4. Metadados completos para o webhook ──
+  // Stripe limita metadata a 500 chars por valor — guardamos os itens como JSON
+  const metadataItens = itens.map(it => ({
+    ref:          it.ref          || '',
+    cpf:          it.cpf          || '',
+    nome:         it.nome         || it.rotulo || '',
+    telefone:     it.telefone     || '',
+    email:        it.email        || '',
+    evento:       evento_nome     || '',
+    kit:          it.kit          || '',
+    modalidade:   it.modalidade   || '',
+    tamanho_camisa: it.tamanho_camisa || '',
+  }));
+
+  // ── 5. Define método de pagamento ──
+  const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
+
+  // ── 6. Cria sessão no Stripe ──
   try {
-    const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
-
-    if (!itens || !itens.length || !pedido) {
-      return res.status(400).json({ error: 'Dados inválidos' });
-    }
-
-    // Grava inscrições como pendente no Supabase
-    for (const it of itens) {
-      await rpc('criar_inscricao', { dados: { ...it, pedido, cupom: cupom || '' } });
-    }
-
-    // Monta line items para o Stripe
-    const lineItems = itens.map(it => ({
-      price_data: {
-        currency: 'brl',
-        product_data: {
-          name: `${it.kit} — ${it.modalidade}`,
-          description: `${evento_nome || it.evento}`,
-        },
-        unit_amount: Math.round(Number(it.valor) * 100),
-      },
-      quantity: 1,
-    }));
-
-    const SITE = 'https://jbx-sports.vercel.app';
-
     const session = await stripe.checkout.sessions.create({
-      // Sem payment_method_types: Stripe mostra automaticamente
-      // cartão, Apple Pay, Google Pay e PIX (quando conta ativa)
-      line_items: lineItems,
+      payment_method_types,
+      line_items,
       mode: 'payment',
-      success_url: `${SITE}/?pedido=${pedido}&status=sucesso`,
-      cancel_url:  `${SITE}/?pedido=${pedido}&status=cancelado`,
+      success_url: `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=sucesso&pedido=${pedido}`,
+      cancel_url:  `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=cancelado`,
       metadata: {
-        pedido_id: pedido,
-        qtd_atletas: String(itens.length),
+        pedido:      pedido,
+        evento_nome: evento_nome || '',
+        cupom:       cupom       || '',
+        // itens como JSON — webhook usa para enviar WhatsApp
+        itens: JSON.stringify(metadataItens).slice(0, 500), // Stripe limita 500 chars
       },
-      locale: 'pt-BR',
     });
 
     return res.status(200).json({ url: session.url });
-  } catch (err) {
-    console.error('[checkout]', err.message);
-    return res.status(500).json({ error: err.message });
+  } catch (e) {
+    console.error('Stripe error:', e);
+    return res.status(500).json({ error: e.message });
   }
-};
+}
