@@ -513,6 +513,8 @@ async function fazerCadastro() {
     if (!res.ok) {
       mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
     } else {
+      // ── WHATSAPP: boas-vindas ao novo atleta ──
+      enviarBoasVindasWhatsApp(nome, tel);
       const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
       if (login.ok) { salvarSessao(login); entrarNaArea(login); }
       else irParaLogin();
@@ -524,6 +526,39 @@ async function fazerCadastro() {
 }
  
 // ── ÁREA ─────────────────────────────────────────
+
+// ── WHATSAPP BOAS-VINDAS ──────────────────────────
+async function enviarBoasVindasWhatsApp(nome, telefone) {
+  try {
+    // Formata número: remove tudo que não é dígito, garante código do país 55
+    const digits = telefone.replace(/\D/g, '');
+    const numero = digits.startsWith('55') ? digits : '55' + digits;
+
+    const primeiroNome = nome.split(' ')[0];
+
+    const mensagem =
+      `🏃 *Olá, ${primeiroNome}! Bem-vindo(a) à JBX Sports!*\n\n` +
+      `Seu cadastro foi realizado com sucesso. ✅\n\n` +
+      `Agora você já pode se inscrever nos nossos eventos esportivos diretamente pelo site.\n\n` +
+      `👉 *jbx-sports.vercel.app*\n\n` +
+      `📸 Nos siga no Instagram:\n` +
+      `*@jbx.sports*\n\n` +
+      `Qualquer dúvida, estamos aqui! Boa corrida! 🧡`;
+
+    await fetch(
+      'https://api.z-api.io/instances/3F457758AC68513DE147E6B1C9468980/token/CD007B54BA8BD1111B802279/send-text',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: numero, message: mensagem })
+      }
+    );
+  } catch(e) {
+    // Falha silenciosa — não bloqueia o cadastro
+    console.warn('WhatsApp boas-vindas não enviado:', e);
+  }
+}
+
 function entrarNaArea(dados) {
   const nome = dados.nome || dados.cpf;
   document.getElementById('area-nome').textContent = nome.split(' ')[0];
