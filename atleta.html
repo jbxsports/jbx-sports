@@ -188,36 +188,6 @@ nav {
   </div>
 </nav>
 
-<!-- TELA PRIMEIRO ACESSO -->
-<div class="screen" id="screen-primeiro-acesso">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-    </div>
-    <h2 class="auth-title">🎉 Inscrição confirmada!</h2>
-    <p class="auth-sub" id="pa-sub">Crie uma senha para acessar sua área do atleta e acompanhar suas inscrições.</p>
-    <div class="auth-erro" id="pa-erro"></div>
-    <div class="form-group">
-      <label>CPF</label>
-      <input type="text" id="pa-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
-    </div>
-    <div class="form-group" id="pa-senha-wrap">
-      <label>Crie sua senha</label>
-      <input type="password" id="pa-senha" placeholder="Mínimo 6 caracteres">
-    </div>
-    <div class="form-group" id="pa-senha2-wrap">
-      <label>Confirme a senha</label>
-      <input type="password" id="pa-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')primeiroAcesso()">
-    </div>
-    <button class="btn-auth" id="btn-pa" onclick="primeiroAcesso()">Criar senha e entrar</button>
-    <div class="auth-switch">
-      Já tem conta? <a onclick="irParaLogin()">Fazer login</a>
-    </div>
-  </div>
-</div>
-
 <!-- TELA LOGIN -->
 <div class="screen active" id="screen-login">
   <div class="auth-card">
@@ -239,7 +209,7 @@ nav {
     </div>
     <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
     <div class="auth-switch">
-      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a> &nbsp;·&nbsp; <a onclick="mostrarTela('primeiro-acesso')">Primeiro acesso</a>
+      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
     </div>
   </div>
 </div>
@@ -554,64 +524,6 @@ async function fazerCadastro() {
 }
  
 // ── ÁREA ─────────────────────────────────────────
-
-// ── PRIMEIRO ACESSO ──────────────────────────────
-async function primeiroAcesso() {
-  limparErros();
-  const cpf   = document.getElementById('pa-cpf').value;
-  const senha  = document.getElementById('pa-senha').value;
-  const senha2 = document.getElementById('pa-senha2').value;
-
-  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('pa-erro', 'CPF inválido.');
-  if (senha.length < 6) return mostrarErro('pa-erro', 'Senha deve ter pelo menos 6 caracteres.');
-  if (senha !== senha2) return mostrarErro('pa-erro', 'As senhas não coincidem.');
-
-  const btn = document.getElementById('btn-pa');
-  btn.textContent = 'Verificando...'; btn.disabled = true;
-
-  try {
-    // Verifica se CPF tem inscrição mas não tem conta
-    const verif = await rpc('verificar_primeiro_acesso', { p_cpf: cpf });
-
-    if (!verif.tem_inscricao) {
-      mostrarErro('pa-erro', 'Nenhuma inscrição encontrada para este CPF.');
-      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
-      return;
-    }
-
-    if (verif.tem_conta) {
-      // Já tem conta — redireciona para login
-      mostrarErro('pa-erro', 'Você já tem uma conta. Faça login normalmente.');
-      document.getElementById('login-cpf').value = cpf;
-      setTimeout(() => irParaLogin(), 2000);
-      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
-      return;
-    }
-
-    // Cria a conta com os dados da inscrição
-    btn.textContent = 'Criando conta...';
-    const res = await rpc('criar_conta_primeiro_acesso', { p_cpf: cpf, p_senha: senha });
-
-    if (!res.ok) {
-      mostrarErro('pa-erro', res.erro || 'Erro ao criar conta.');
-      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
-      return;
-    }
-
-    // Faz login automaticamente
-    const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
-    if (login.ok) {
-      salvarSessao(login);
-      entrarNaArea(login);
-    } else {
-      irParaLogin();
-    }
-  } catch(e) {
-    mostrarErro('pa-erro', 'Erro de conexão. Tente novamente.');
-  }
-  btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
-}
-
 function entrarNaArea(dados) {
   const nome = dados.nome || dados.cpf;
   document.getElementById('area-nome').textContent = nome.split(' ')[0];
@@ -643,7 +555,7 @@ async function carregarInscricoes(dados) {
       return;
     }
 
-    wrap.innerHTML = `<div class="inscricoes-grid">${lista.map(renderInscricao).join('')}</div>`;
+    wrap.innerHTML = `<div class="inscricoes-grid">${lista.map(it => renderInscricao(it, cpf)).join('')}</div>`;
     // Gera QR codes após renderizar
     lista.forEach(it => gerarQR(it.id));
 
@@ -672,7 +584,17 @@ function formatarValor(v) {
   return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
 }
 
-function renderInscricao(it) {
+
+// ── MASCARA NOME DE TERCEIROS ──────────────────────
+function mascararNomeAtleta(nome) {
+  if (!nome) return '—';
+  return nome.split(' ').map(p => {
+    if (p.length <= 1) return p;
+    return p[0] + '*'.repeat(p.length - 1);
+  }).join(' ');
+}
+
+function renderInscricao(it, cpfTitular) {
   const desconto = it.desconto_pct ? ` <span style="color:rgba(255,255,255,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
   return `
   <div class="insc-card">
@@ -681,6 +603,7 @@ function renderInscricao(it) {
       <div style="margin-top:8px;">${statusBadge(it.status)}</div>
     </div>
     <div class="insc-detalhes">
+      <div class="insc-row"><span class="insc-label">Atleta</span><span class="insc-val" style="font-weight:700;">${it.cpf === cpfTitular ? (it.nome || '—') : mascararNomeAtleta(it.nome)}</span></div>
       <div class="insc-row"><span class="insc-label">Kit</span><span class="insc-val">${it.kit || '—'}</span></div>
       <div class="insc-row"><span class="insc-label">Modalidade</span><span class="insc-val">${it.modalidade || '—'}</span></div>
       <div class="insc-row"><span class="insc-label">Camiseta</span><span class="insc-val">${it.tamanho_camisa || '—'}</span></div>
@@ -712,22 +635,10 @@ function gerarQR(id) {
 // ── INICIALIZAÇÃO ─────────────────────────────────
 (function init() {
   const s = carregarSessao();
-  const params = new URLSearchParams(window.location.search);
-
-  // Se já está logado — entra direto na área
   if (s && s.token) { entrarNaArea(s); return; }
-
-  // Se veio do Stripe após pagamento (?pedido=xxx) — tela de primeiro acesso
-  if (params.get('pedido')) {
-    mostrarTela('primeiro-acesso');
-    return;
-  }
-
-  // Se veio com ?tela=cadastro
-  if (params.get('tela') === 'cadastro') { mostrarTela('cadastro'); return; }
-
-  // Se veio com ?tela=primeiro-acesso
-  if (params.get('tela') === 'primeiro-acesso') { mostrarTela('primeiro-acesso'); return; }
+  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
 })();
 </script>
 </body>
