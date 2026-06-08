@@ -65,6 +65,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .btn-sm{border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;white-space:nowrap;}
 .btn-sm-orange{background:var(--orange);color:#fff;}.btn-sm-orange:hover{background:var(--orange-dark);}
 .btn-sm-ghost{background:rgba(255,255,255,.07);color:var(--muted);border:1px solid rgba(255,255,255,.1);}.btn-sm-ghost:hover{color:#fff;}
+.btn-sm-red{background:rgba(255,107,107,.12);color:#ff6b6b;border:1px solid rgba(255,107,107,.25);}.btn-sm-red:hover{background:rgba(255,107,107,.22);}
 .btn-sm-green{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}.btn-sm-green:hover{background:rgba(34,197,94,.25);}
 /* FORMS */
 .two-col{display:grid;grid-template-columns:380px 1fr;gap:28px;align-items:start;}
@@ -172,16 +173,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .contas-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
 .conta-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;}
 .conta-card .cc-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
-.conta-card .cc-nome{font-size:15px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
-.conta-card .cc-val{font-size:28px;font-weight:700;line-height:1;margin-bottom:14px;}
-.conta-card .cc-rows{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;margin-top:4px;}
-.conta-card .cc-row{display:flex;flex-direction:column;gap:2px;}
-.conta-card .cc-row-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-.conta-card .cc-row-val{font-size:14px;font-weight:700;}
-.btn-entrada{background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);color:#22c55e;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-.btn-entrada:hover{background:rgba(34,197,94,0.25);}
-.btn-aporte{background:rgba(255,117,31,0.12);border:1px solid rgba(255,117,31,0.3);color:var(--orange);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-.btn-aporte:hover{background:rgba(255,117,31,0.22);}
+.conta-card .cc-nome{font-size:15px;font-weight:700;margin-bottom:8px;}
+.conta-card .cc-val{font-size:30px;font-weight:700;line-height:1;}
 .tag-areceber{background:rgba(255,200,0,.12);color:#ffd000;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 .tag-recebido{background:rgba(34,197,94,.12);color:#22c55e;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 .tag-pendente2{background:rgba(255,117,31,.12);color:var(--orange);padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
@@ -190,7 +183,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .fin-ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;}
 .fin-ev-card:hover{border-color:rgba(255,117,31,.4);}
 .fin-ev-card-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);}
-.fin-ev-card-body{padding:14px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fin-ev-card-body{padding:14px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
 .fin-stat .fl{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .fin-stat .fv{font-size:16px;font-weight:700;margin-top:2px;}
 .btn-confirmar{background:rgba(255,117,31,.1);color:var(--orange);border:1px solid rgba(255,117,31,.3);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;white-space:nowrap;}
@@ -465,40 +458,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="stat-card"><div class="sc-label">Saldo Atual</div><div class="sc-val" id="fin-resultado">—</div></div>
           <div class="stat-card"><div class="sc-label">A confirmar (30 dias)</div><div class="sc-val orange" id="fin-pend-30">—</div></div>
         </div>
-        <!-- CARDS DE CONTAS BANCÁRIAS -->
-        <div class="contas-row" id="fin-contas-wrap">
-          <div class="conta-card">
-            <div class="cc-label">Conta bancária</div>
-            <div class="cc-nome">🏦 JBX Sports
-              <div style="display:flex;gap:6px;">
-                <button class="btn-entrada" onclick="abrirEntradaConta('JBX Sports')">+ Entrada</button>
-                <button class="btn-aporte" onclick="abrirAporteConta('JBX Sports')">↗ Alocar</button>
-              </div>
-            </div>
-            <div class="cc-val" id="fin-saldo-jbx">—</div>
-            <div class="cc-rows">
-              <div class="cc-row"><div class="cc-row-label">Alocado eventos</div><div class="cc-row-val" style="color:var(--orange);" id="jbx-alocado">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Gasto eventos</div><div class="cc-row-val" style="color:#ff6b6b;" id="jbx-gasto-ev">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Escritório livre</div><div class="cc-row-val" style="color:#22c55e;" id="jbx-escritorio">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Gasto escritório</div><div class="cc-row-val" style="color:#ff6b6b;" id="jbx-gasto-esc">—</div></div>
-            </div>
-          </div>
-          <div class="conta-card">
-            <div class="cc-label">Conta bancária</div>
-            <div class="cc-nome">🏦 Mind
-              <div style="display:flex;gap:6px;">
-                <button class="btn-entrada" onclick="abrirEntradaConta('Mind')">+ Entrada</button>
-                <button class="btn-aporte" onclick="abrirAporteConta('Mind')">↗ Alocar</button>
-              </div>
-            </div>
-            <div class="cc-val" id="fin-saldo-mind">—</div>
-            <div class="cc-rows">
-              <div class="cc-row"><div class="cc-row-label">Alocado eventos</div><div class="cc-row-val" style="color:var(--orange);" id="mind-alocado">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Gasto eventos</div><div class="cc-row-val" style="color:#ff6b6b;" id="mind-gasto-ev">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Escritório livre</div><div class="cc-row-val" style="color:#22c55e;" id="mind-escritorio">—</div></div>
-              <div class="cc-row"><div class="cc-row-label">Gasto escritório</div><div class="cc-row-val" style="color:#ff6b6b;" id="mind-gasto-esc">—</div></div>
-            </div>
-          </div>
+        <div class="contas-row">
+          <div class="conta-card"><div class="cc-label">Saldo confirmado</div><div class="cc-nome">🏦 JBX Sports</div><div class="cc-val" id="fin-saldo-jbx">—</div></div>
+          <div class="conta-card"><div class="cc-label">Saldo confirmado</div><div class="cc-nome">🏦 Mind</div><div class="cc-val" id="fin-saldo-mind">—</div></div>
         </div>
 
         <!-- Contas a pagar -->
@@ -532,13 +494,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <div class="form-g" style="margin:0"><label>Vencimento *</label><input id="gd-data" type="date"></div>
             </div>
             <div class="form-g"><label>Evento / Origem</label><select id="gd-evento"><option value="">Escritório</option></select></div>
-            <div class="form-g"><label>Conta bancária *</label>
-              <select id="gd-conta"><option value="JBX Sports">JBX Sports</option><option value="Mind">Mind</option></select>
-            </div>
-            <div class="form-g"><label>Origem da despesa</label>
-              <select id="gd-origem"><option value="evento">Evento</option><option value="escritorio">Escritório</option></select>
-            </div>
-            <div class="form-g"><label>Tipo pagamento</label>
+            <div class="form-g"><label>Tipo</label>
               <select id="gd-tipo"><option>pix</option><option>boleto</option><option>cartao</option></select>
             </div>
             <button class="btn-save" onclick="salvarDespesaGlobal()">Lançar Despesa</button>
@@ -555,30 +511,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <div class="form-g" style="margin:0"><label>Data prevista *</label><input id="gr-data" type="date"></div>
             </div>
             <div class="form-g"><label>Evento vinculado</label><select id="gr-evento"><option value="">Geral</option></select></div>
-            <div class="form-g"><label>Conta bancária *</label>
-              <select id="gr-conta"><option value="JBX Sports">JBX Sports</option><option value="Mind">Mind</option></select>
-            </div>
             <button class="btn-save" onclick="salvarReceitaGlobal()">Lançar Receita</button>
             <div class="form-feedback" id="gr-feedback"></div>
           </div>
         </div>
-
-        <!-- HISTÓRICO GERAL -->
-        <div class="fin-section-title" style="margin-top:32px;">📋 Histórico geral de lançamentos</div>
-        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-          <select id="hist-filtro-tipo" onchange="loadHistorico()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;">
-            <option value="">Todos os tipos</option>
-            <option value="receita">Só receitas</option>
-            <option value="despesa">Só despesas</option>
-          </select>
-          <select id="hist-filtro-status" onchange="loadHistorico()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;">
-            <option value="">Todos os status</option>
-            <option value="confirmado">Confirmados</option>
-            <option value="pendente">Pendentes</option>
-          </select>
-        </div>
-        <div id="fin-historico-wrap"><div class="empty-state">Carregando…</div></div>
-      </div>
       </div>
 
       <!-- TELA: DETALHE FINANCEIRO -->
@@ -623,34 +559,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <div class="form-feedback" id="fd-feedback"></div>
             </div>
           </div>
-        </div>
-
-        <!-- APORTES DO EVENTO -->
-        <div class="fin-section-title" style="margin-top:24px;">↗ Verbas alocadas para este evento</div>
-        <div id="fin-ev-aportes"><div class="empty-state">Carregando…</div></div>
-        <div class="panel" style="margin-top:12px;">
-          <h3 style="margin-bottom:14px;">+ Alocar / Desalocar verba</h3>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-g" style="margin:0"><label>Tipo</label>
-              <select id="fa-tipo" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
-                <option value="alocar">↗ Alocar (entra no evento)</option>
-                <option value="desalocar">↙ Desalocar (volta ao escritório)</option>
-              </select>
-            </div>
-            <div class="form-g" style="margin:0"><label>Conta bancária *</label>
-              <select id="fa-conta" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
-                <option value="JBX Sports">JBX Sports</option>
-                <option value="Mind">Mind</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-g"><label>Descrição</label><input id="fa-descricao" placeholder="Ex: Verba para medalhas, devolução..."></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="fa-valor" type="number" step="0.01" min="0"></div>
-            <div class="form-g" style="margin:0"><label>Data *</label><input id="fa-data" type="date"></div>
-          </div>
-          <button class="btn-save" onclick="salvarAporteEvento()">Confirmar</button>
-          <div class="form-feedback" id="fa-feedback"></div>
         </div>
       </div>
 
@@ -701,7 +609,7 @@ async function rpc(fn,params={}){
   if(!r.ok) throw new Error(await r.text());
   const t=await r.text(); return t?JSON.parse(t):null;
 }
-const brl=v=>'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const brl=v=>'R$ '+Number(v||0).toFixed(2).replace('.',',');
 const fmt=n=>Number(n||0).toLocaleString('pt-BR');
 const fmtDS=dt=>{if(!dt)return'—';const[y,m,d]=String(dt).split('-');return`${d}/${m}/${y}`;};
 function fmtData(dt){if(!dt)return'—';const d=new Date(dt);return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
@@ -1147,7 +1055,7 @@ async function loadFinanceiro(){
       rpc('fin_resumo_geral'),rpc('fin_contas_pagar_7dias'),rpc('fin_receitas_a_receber_7dias'),
       rpc('fin_lista_eventos_fin'),rpc('admin_lista_eventos')
     ]);
-    renderFinGlobal(resumo||{});render7Dias(dias7||[]);render7DiasRec(dias7rec||[]);loadHistorico();loadContas();
+    renderFinGlobal(resumo||{});render7Dias(dias7||[]);render7DiasRec(dias7rec||[]);
     renderFinEventos(eventos||[]);preencherSeletoresEventos(evLista||[]);
   }catch(e){console.error(e);}
 }
@@ -1182,22 +1090,18 @@ function renderFinEventos(evs){
   const el=document.getElementById('fin-ev-grid');
   if(!evs.length){el.innerHTML='<div class="empty-state">Nenhum evento.</div>';return;}
   el.innerHTML=evs.map(e=>{
-    const insc=Number(e.inscricoes_valor||0);
-    const ap=Number(e.aportes||0);
-    const ext=Number(e.receitas_extras||0);
-    const despEv=Number(e.despesas||0);
-    const res=insc+ap+ext-despEv;
-
-
+    const rec=Number(e.inscricoes_valor||0)+Number(e.receitas_extras||0);
+    const res=rec-Number(e.despesas||0);
     return`<div class="fin-ev-card" onclick="abrirFinEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}')">
       <div class="fin-ev-card-header">
         <div><div style="font-weight:700;font-size:15px;">${e.nome}</div><div style="font-size:12px;color:var(--muted);">${e.data?fmtDS(e.data):''}</div></div>
-        <div style="text-align:right;"><div style="font-size:11px;color:var(--muted);">Saldo</div><div style="font-size:22px;font-weight:700;color:${res>=0?'#22c55e':'#ff6b6b'};">${brl(res)}</div></div>
+        <div style="text-align:right;"><div style="font-size:11px;color:var(--muted);">Resultado</div><div style="font-size:22px;font-weight:700;color:${res>=0?'#22c55e':'#ff6b6b'};">${brl(res)}</div></div>
       </div>
       <div class="fin-ev-card-body">
-        <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(insc)}</div></div>
-        <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(ext)}</div></div>
-        <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(despEv)}</div></div>
+        <div class="fin-stat"><div class="fl">Inscrições</div><div class="fv" style="color:var(--orange);">${brl(e.inscricoes_valor)}</div></div>
+        <div class="fin-stat"><div class="fl">Extras</div><div class="fv" style="color:#22c55e;">${brl(e.receitas_extras)}</div></div>
+        <div class="fin-stat"><div class="fl">Despesas</div><div class="fv" style="color:#ff6b6b;">${brl(e.despesas)}</div></div>
+        <div class="fin-stat"><div class="fl">Ver</div><div class="fv" style="color:var(--muted);">→</div></div>
       </div></div>`;
   }).join('');
 }
@@ -1212,29 +1116,26 @@ async function abrirFinEvento(id,nome){
   finCurrentEvento={id,nome};document.getElementById('fin-ev-nome').textContent=nome;
   showInner('fin-evento');document.getElementById('nav-financeiro').classList.add('active');
   const h=new Date().toISOString().split('T')[0];
-  ['fr-data','fd-data','fa-data'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=h;});
+  ['fr-data','fd-data'].forEach(i=>{const el=document.getElementById(i);if(el)el.value=h;});
   await loadFinEvento();
 }
 async function loadFinEvento(){
   if(!finCurrentEvento)return;
   try{
-    const[resumo,recLista,despLista]=await Promise.all([
+    const[resumo,rec,desp]=await Promise.all([
       rpc('fin_resumo_evento',{p_evento_id:finCurrentEvento.id}),
       rpc('fin_listar_receitas',{p_evento_id:finCurrentEvento.id}),
       rpc('fin_listar_despesas',{p_evento_id:finCurrentEvento.id})
     ]);
-    const insc    = Number(resumo.receitas_inscricoes||0);
-    const ap      = Number(resumo.aportes||0);
-    const ext     = Number(resumo.receitas_extras||0);
-    const despVal = Number(resumo.despesas||0);
-    const res     = insc + ap + ext - despVal;
+    const recT=Number(resumo.receitas_inscricoes||0)+Number(resumo.receitas_extras||0);
+    const res=recT-Number(resumo.despesas||0);
     document.getElementById('fin-ev-stats').innerHTML=`
-      <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val orange">${brl(insc)}</div></div>
-      <div class="stat-card"><div class="sc-label">Extras</div><div class="sc-val" style="color:#22c55e">${brl(ext)}</div></div>
-      <div class="stat-card"><div class="sc-label">Despesas</div><div class="sc-val" style="color:#ff6b6b">${brl(despVal)}</div></div>
+      <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val orange">${brl(resumo.receitas_inscricoes)}</div></div>
+      <div class="stat-card"><div class="sc-label">Extras Confirmados</div><div class="sc-val" style="color:#22c55e">${brl(resumo.receitas_extras)}</div></div>
+      <div class="stat-card"><div class="sc-label">Despesas Confirmadas</div><div class="sc-val" style="color:#ff6b6b">${brl(resumo.despesas)}</div></div>
       <div class="stat-card"><div class="sc-label">A confirmar</div><div class="sc-val orange">${brl(resumo.despesas_pendentes)}</div></div>
-      <div class="stat-card"><div class="sc-label">Saldo</div><div class="sc-val" style="color:${res>=0?'#22c55e':'#ff6b6b'}">${brl(res)}</div></div>`;
-    renderFinReceitas(recLista||[]);renderFinDespesas(despLista||[]);loadAportesEvento();
+      <div class="stat-card"><div class="sc-label">Resultado</div><div class="sc-val" style="color:${res>=0?'#22c55e':'#ff6b6b'}">${brl(res)}</div></div>`;
+    renderFinReceitas(rec||[]);renderFinDespesas(desp||[]);
   }catch(e){console.error(e);}
 }
 function renderFinReceitas(arr){
@@ -1249,7 +1150,6 @@ function renderFinReceitas(arr){
       <td style="font-size:12px;">${r.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!r.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${r.id}','receita',loadFinEvento)">✓ Confirmar</button>`:''}
-        <button class="edit-btn" title="Editar" onclick="abrirEditPorId('${r.id}','receita')" >✏️</button>
         <button class="edit-btn" onclick="finDeletarReceita('${r.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1265,7 +1165,6 @@ function renderFinDespesas(arr){
       <td style="font-size:12px;">${d.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!d.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${d.id}','despesa',loadFinEvento)">✓ Confirmar</button>`:''}
-        <button class="edit-btn" title="Editar" onclick="abrirEditPorId('${d.id}','despesa')" >✏️</button>
         <button class="edit-btn" onclick="finDeletarDespesa('${d.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1378,7 +1277,7 @@ async function salvarDespesa(){
 async function salvarDespesaGlobal(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   if(!get('gd-descricao')||!get('gd-valor')||!get('gd-data')){alert('Preencha os campos obrigatórios.');return;}
-  const dados={id:'',evento_id:get('gd-evento')||'',descricao:get('gd-descricao'),valor:get('gd-valor'),data_pagamento:get('gd-data'),tipo_pagamento:get('gd-tipo'),conta_bancaria:get('gd-conta'),origem:get('gd-origem')||'evento'};
+  const dados={id:'',evento_id:get('gd-evento')||'',descricao:get('gd-descricao'),valor:get('gd-valor'),data_pagamento:get('gd-data'),tipo_pagamento:get('gd-tipo')};
   const fb=document.getElementById('gd-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
   try{await rpc('fin_salvar_despesa',{dados});fb.className='form-feedback ok';fb.textContent='✓ Lançado!';
     ['gd-descricao','gd-valor'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});await loadFinanceiro();
@@ -1387,7 +1286,7 @@ async function salvarDespesaGlobal(){
 async function salvarReceitaGlobal(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   if(!get('gr-descricao')||!get('gr-valor')||!get('gr-data')){alert('Preencha os campos obrigatórios.');return;}
-  const dados={id:'',evento_id:get('gr-evento')||'',tipo:get('gr-tipo'),descricao:get('gr-descricao'),valor:get('gr-valor'),data:get('gr-data'),conta_bancaria:get('gr-conta')};
+  const dados={id:'',evento_id:get('gr-evento')||'',tipo:get('gr-tipo'),descricao:get('gr-descricao'),valor:get('gr-valor'),data:get('gr-data')};
   const fb=document.getElementById('gr-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
   try{await rpc('fin_salvar_receita',{dados});fb.className='form-feedback ok';fb.textContent='✓ Lançado!';
     ['gr-descricao','gr-valor'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});await loadFinanceiro();
@@ -1397,297 +1296,28 @@ async function finDeletarReceita(id){if(!confirm('Remover?'))return;try{await rp
 async function finDeletarDespesa(id){if(!confirm('Remover?'))return;try{await rpc('fin_deletar_despesa',{p_id:id});await loadFinEvento();}catch(e){alert('Erro.');}}
 
 
-
-// ── CONTAS BANCÁRIAS ─────────────────────────────────
-async function loadContas() {
+// ── EXCLUIR / ENCERRAR EVENTO ────────────────────────
+async function excluirEvento(id, nome) {
+  // Confirmação dupla — ação irreversível
+  if (!confirm(`Excluir o evento "${nome}"?\n\nEssa ação é irreversível. O evento e todos os seus kits/lotes serão removidos.`)) return;
+  if (!confirm(`Confirma a exclusão definitiva de "${nome}"?`)) return;
   try {
-    const dados = await rpc('fin_resumo_contas');
-    if (!Array.isArray(dados)) return;
-    dados.forEach(c => {
-      const pfx = c.conta === 'JBX Sports' ? 'jbx' : 'mind';
-      const set = (id, v, cor) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.textContent = brl(v);
-        if (cor) el.style.color = Number(v) >= 0 ? '#22c55e' : '#ff6b6b';
-      };
-      set('fin-saldo-' + (pfx === 'jbx' ? 'jbx' : 'mind'), c.saldo_total, true);
-      set(pfx + '-alocado',    c.alocado_eventos);
-      set(pfx + '-gasto-ev',   c.despesas_eventos);
-      set(pfx + '-escritorio', c.saldo_escritorio, true);
-      set(pfx + '-gasto-esc',  c.despesas_escritorio);
-    });
-  } catch(e) { console.error('loadContas:', e); }
-}
-
-// ── MODAL ENTRADA DE SALDO ───────────────────────────
-function abrirEntradaConta(conta) {
-  document.getElementById('entrada-conta-nome').value = conta;
-  document.getElementById('entrada-conta-titulo').textContent = `Registrar entrada — ${conta}`;
-  document.getElementById('entrada-descricao').value = '';
-  document.getElementById('entrada-valor').value = '';
-  document.getElementById('entrada-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('entrada-feedback').textContent = '';
-  document.getElementById('entrada-conta-overlay').classList.add('open');
-}
-function fecharEntradaConta() {
-  document.getElementById('entrada-conta-overlay').classList.remove('open');
-}
-async function salvarEntradaConta() {
-  const conta = document.getElementById('entrada-conta-nome').value;
-  const desc  = document.getElementById('entrada-descricao').value.trim();
-  const valor = document.getElementById('entrada-valor').value;
-  const data  = document.getElementById('entrada-data').value;
-  const fb    = document.getElementById('entrada-feedback');
-  if (!desc || !valor || !data) { fb.className='form-feedback err'; fb.textContent='Preencha todos os campos.'; return; }
-  fb.className='form-feedback'; fb.textContent='Salvando…';
-  try {
-    await rpc('fin_salvar_entrada_conta', { dados: { conta, descricao: desc, valor, data } });
-    fecharEntradaConta();
-    await loadContas();
-    fb.className='form-feedback ok'; fb.textContent='✓ Entrada registrada!';
-  } catch(e) { fb.className='form-feedback err'; fb.textContent='Erro: ' + e.message; }
-}
-
-// ── MODAL ALOCAR VERBA PARA EVENTO ───────────────────
-function abrirAporteConta(conta) {
-  document.getElementById('aporte-conta-nome').value = conta;
-  document.getElementById('aporte-conta-titulo').textContent = `Alocar verba — ${conta}`;
-  document.getElementById('aporte-descricao').value = '';
-  document.getElementById('aporte-valor').value = '';
-  document.getElementById('aporte-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('aporte-feedback').textContent = '';
-  // Preenche select de eventos
-  const sel = document.getElementById('aporte-evento-sel');
-  sel.innerHTML = '<option value="">Selecione o evento</option>';
-  // Usa a lista já carregada de eventos
-  const evSel = document.getElementById('gd-evento');
-  if (evSel) {
-    Array.from(evSel.options).forEach(o => {
-      if (o.value) { const opt = document.createElement('option'); opt.value = o.value; opt.textContent = o.textContent; sel.appendChild(opt); }
-    });
-  }
-  document.getElementById('aporte-evento-overlay').classList.add('open');
-}
-function fecharAporteConta() {
-  document.getElementById('aporte-evento-overlay').classList.remove('open');
-}
-async function salvarAporte() {
-  const conta      = document.getElementById('aporte-conta-nome').value;
-  const evento_id  = document.getElementById('aporte-evento-sel').value;
-  const desc       = document.getElementById('aporte-descricao').value.trim();
-  const valor      = document.getElementById('aporte-valor').value;
-  const data       = document.getElementById('aporte-data').value;
-  const fb         = document.getElementById('aporte-feedback');
-  if (!evento_id) { fb.className='form-feedback err'; fb.textContent='Selecione o evento.'; return; }
-  if (!valor || !data) { fb.className='form-feedback err'; fb.textContent='Preencha valor e data.'; return; }
-  fb.className='form-feedback'; fb.textContent='Salvando…';
-  try {
-    await rpc('fin_salvar_aporte', { dados: { id: '', evento_id, conta, descricao: desc, valor, data } });
-    fecharAporteConta();
-    await loadContas();
-    await loadFinanceiro();
-  } catch(e) { fb.className='form-feedback err'; fb.textContent='Erro: ' + e.message; }
-}
-
-// ── HISTÓRICO GERAL DE LANÇAMENTOS ──────────────────
-async function loadHistorico() {
-  const wrap = document.getElementById('fin-historico-wrap');
-  if (!wrap) return;
-  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
-  try {
-    const filtroTipo   = document.getElementById('hist-filtro-tipo')?.value   || '';
-    const filtroStatus = document.getElementById('hist-filtro-status')?.value || '';
-    const [receitas, despesas] = await Promise.all([
-      rpc('fin_listar_todas_receitas'),
-      rpc('fin_listar_todas_despesas')
-    ]);
-    const recArr = (receitas || []).map(r => ({
-      ...r, _tipo: 'receita',
-      _data: r.data,
-      _subtipo: r.tipo,
-      _status: r.confirmado ? 'confirmado' : 'pendente'
-    }));
-    const despArr = (despesas || []).map(d => ({
-      ...d, _tipo: 'despesa',
-      _data: d.data_pagamento,
-      _subtipo: d.tipo_pagamento,
-      _status: d.confirmado ? 'confirmado' : 'pendente'
-    }));
-
-    let todos = [...recArr, ...despArr];
-    if (filtroTipo)   todos = todos.filter(l => l._tipo   === filtroTipo);
-    if (filtroStatus) todos = todos.filter(l => l._status === filtroStatus);
-    todos.sort((a,b) => new Date(b._data||0) - new Date(a._data||0));
-
-    if (!todos.length) {
-      wrap.innerHTML = '<div class="empty-state" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;">Nenhum lançamento encontrado.</div>';
-      return;
-    }
-
-    wrap.innerHTML = `<div class="table-wrap"><table class="data-table">
-      <thead><tr><th>Data</th><th>Tipo</th><th>Evento</th><th>Descrição</th><th>Subtipo</th><th>Valor</th><th>Status</th><th>Conta</th><th></th></tr></thead>
-      <tbody>${todos.map(l => {
-        const isRec = l._tipo === 'receita';
-        const cor   = isRec ? '#22c55e' : '#ff6b6b';
-        const sinal = isRec ? '+' : '-';
-        const badge = isRec
-          ? (l.confirmado ? '<span class="tag-recebido">Recebido</span>' : '<span class="tag-areceber">A confirmar</span>')
-          : (l.confirmado ? '<span class="tag-pago2">Pago</span>'       : '<span class="tag-pendente2">Pendente</span>');
-        return `<tr class="${l.confirmado ? '' : 'nao-confirmado'}">
-          <td style="font-size:12px;white-space:nowrap;">${fmtDS(l._data)}</td>
-          <td><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${isRec?'rgba(34,197,94,0.15)':'rgba(255,107,107,0.15)'};color:${cor};">${isRec?'RECEITA':'DESPESA'}</span></td>
-          <td style="font-size:12px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.evento_nome||'Geral'}</td>
-          <td style="max-width:200px;">${l.descricao||'—'}</td>
-          <td style="font-size:12px;">${l._subtipo||'—'}</td>
-          <td style="font-weight:700;color:${cor};">${sinal} ${brl(l.valor)}</td>
-          <td>${badge}</td>
-          <td style="font-size:12px;">${l.conta_bancaria||'—'}</td>
-          <td style="display:flex;gap:4px;white-space:nowrap;">
-            <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${l.id}','${l._tipo}',${JSON.stringify(l).replace(/'/g,"\'")})">✏️</button>
-            <button class="edit-btn" title="Deletar" onclick="histDeletar('${l.id}','${l._tipo}')">🗑</button>
-          </td>
-        </tr>`;
-      }).join('')}</tbody></table></div>`;
+    await rpc('admin_excluir_evento', { p_id: id });
+    await loadDash();
   } catch(e) {
-    wrap.innerHTML = '<div style="color:#ff6b6b;padding:12px;">Erro ao carregar histórico.</div>';
-    console.error(e);
+    alert('Erro ao excluir: ' + e.message);
   }
 }
 
-async function histDeletar(id, tipo) {
-  if (!confirm('Remover este lançamento?')) return;
+async function encerrarEvento(id, nome, statusAtual) {
+  if (statusAtual === 'closed') { alert('Este evento já está encerrado.'); return; }
+  if (!confirm(`Encerrar inscrições do evento "${nome}"?\n\nO histórico será preservado. Esta ação pode ser revertida editando o evento.`)) return;
   try {
-    if (tipo === 'receita') await rpc('fin_deletar_receita', {p_id: id});
-    else await rpc('fin_deletar_despesa', {p_id: id});
-    await loadHistorico();
-    await loadFinanceiro();
-  } catch(e) { alert('Erro ao deletar.'); }
-}
-
-// ── EDITAR LANÇAMENTO ────────────────────────────────
-function abrirEditLancamento(id, tipo, dados) {
-  document.getElementById('edit-lanc-id').value    = id;
-  document.getElementById('edit-lanc-tipo').value  = tipo;
-  document.getElementById('edit-lancamento-titulo').textContent = tipo === 'receita' ? 'Editar receita' : 'Editar despesa';
-  document.getElementById('edit-lanc-descricao').value = dados.descricao || '';
-  document.getElementById('edit-lanc-valor').value     = dados.valor     || '';
-  document.getElementById('edit-lanc-data').value      = (tipo === 'receita' ? dados.data : dados.data_pagamento) || '';
-  document.getElementById('edit-lanc-subtipo').value   = (tipo === 'receita' ? dados.tipo : dados.tipo_pagamento) || '';
-  document.getElementById('edit-lanc-feedback').textContent = '';
-  document.getElementById('edit-lancamento-overlay').classList.add('open');
-}
-
-
-// Abre edição buscando dados pelo ID (evita problemas de escape)
-async function abrirEditPorId(id, tipo) {
-  try {
-    let dados;
-    if (tipo === 'receita') {
-      const arr = await rpc('fin_listar_todas_receitas');
-      dados = (arr || []).find(r => r.id === id);
-    } else {
-      const arr = await rpc('fin_listar_todas_despesas');
-      dados = (arr || []).find(d => d.id === id);
-    }
-    if (!dados) { alert('Lançamento não encontrado.'); return; }
-    abrirEditLancamento(id, tipo, dados);
-  } catch(e) { alert('Erro ao carregar dados: ' + e.message); }
-}
-
-function fecharEditLancamento() {
-  document.getElementById('edit-lancamento-overlay').classList.remove('open');
-}
-
-async function salvarEdicaoLancamento() {
-  const id    = document.getElementById('edit-lanc-id').value;
-  const tipo  = document.getElementById('edit-lanc-tipo').value;
-  const desc  = document.getElementById('edit-lanc-descricao').value.trim();
-  const valor = document.getElementById('edit-lanc-valor').value;
-  const data  = document.getElementById('edit-lanc-data').value;
-  const sub   = document.getElementById('edit-lanc-subtipo').value;
-  const fb    = document.getElementById('edit-lanc-feedback');
-
-  if (!desc || !valor || !data) { fb.className='form-feedback err'; fb.textContent='Preencha todos os campos.'; return; }
-
-  fb.className='form-feedback'; fb.textContent='Salvando…';
-  try {
-    if (tipo === 'receita') {
-      const dados = { id, descricao: desc, valor, data, tipo: sub };
-      await rpc('fin_salvar_receita', { dados });
-    } else {
-      const dados = { id, descricao: desc, valor, data_pagamento: data, tipo_pagamento: sub };
-      await rpc('fin_salvar_despesa', { dados });
-    }
-    fecharEditLancamento();
-    await loadHistorico();
-    await loadFinanceiro();
+    await rpc('admin_salvar_evento', { dados: { id, status: 'closed' } });
+    await loadDash();
   } catch(e) {
-    fb.className='form-feedback err'; fb.textContent='Erro: ' + e.message;
+    alert('Erro ao encerrar: ' + e.message);
   }
-}
-
-
-// ── APORTES DO EVENTO ────────────────────────────────
-async function loadAportesEvento() {
-  const wrap = document.getElementById('fin-ev-aportes');
-  if (!wrap || !finCurrentEvento) return;
-  try {
-    const arr = await rpc('fin_listar_aportes_evento', { p_evento_id: finCurrentEvento.id });
-    if (!arr || !arr.length) {
-      wrap.innerHTML = '<div class="empty-state" style="padding:12px;">Nenhuma verba alocada ainda.</div>';
-      return;
-    }
-    wrap.innerHTML = `<div class="table-wrap"><table class="data-table">
-      <thead><tr><th>Data</th><th>Conta</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th></th></tr></thead>
-      <tbody>${arr.map(a => `<tr>
-        <td style="font-size:12px;">${fmtDS(a.data)}</td>
-        <td style="font-size:12px;font-weight:700;">${a.conta}</td>
-        <td><span style="font-size:11px;padding:2px 8px;border-radius:4px;background:${a.valor>0?'rgba(34,197,94,0.15)':'rgba(255,107,107,0.15)'};color:${a.valor>0?'#22c55e':'#ff6b6b'};">${a.valor>0?'↗ Alocado':'↙ Desalocado'}</span></td>
-        <td style="font-size:13px;">${a.descricao||'—'}</td>
-        <td style="font-weight:700;color:${a.valor>0?'#22c55e':'#ff6b6b'};">${a.valor>0?'+':''}${brl(Math.abs(a.valor))}</td>
-        <td><button class="edit-btn" onclick="deletarAporte('${a.id}')">🗑</button></td>
-      </tr>`).join('')}</tbody></table></div>`;
-  } catch(e) { wrap.innerHTML = '<div style="color:#ff6b6b;padding:12px;">Erro ao carregar.</div>'; }
-}
-
-async function salvarAporteEvento() {
-  const tipo  = document.getElementById('fa-tipo').value;
-  const conta = document.getElementById('fa-conta').value;
-  const desc  = document.getElementById('fa-descricao').value.trim();
-  const valor = parseFloat(document.getElementById('fa-valor').value);
-  const data  = document.getElementById('fa-data').value;
-  const fb    = document.getElementById('fa-feedback');
-
-  if (!valor || !data) { fb.className='form-feedback err'; fb.textContent='Preencha valor e data.'; return; }
-
-  // Desalocar = valor negativo
-  const valorFinal = tipo === 'desalocar' ? -Math.abs(valor) : Math.abs(valor);
-
-  fb.className='form-feedback'; fb.textContent='Salvando…';
-  try {
-    await rpc('fin_salvar_aporte', { dados: {
-      id: '', evento_id: finCurrentEvento.id,
-      conta, descricao: desc || (tipo === 'desalocar' ? 'Desalocação' : 'Alocação'),
-      valor: valorFinal, data
-    }});
-    fb.className='form-feedback ok'; fb.textContent='✓ Registrado!';
-    document.getElementById('fa-valor').value = '';
-    document.getElementById('fa-descricao').value = '';
-    await loadAportesEvento();
-    await loadContas();
-    await loadFinEvento();
-  } catch(e) { fb.className='form-feedback err'; fb.textContent='Erro: ' + e.message; }
-}
-
-async function deletarAporte(id) {
-  if (!confirm('Remover este aporte?')) return;
-  try {
-    await rpc('fin_deletar_aporte', { p_id: id });
-    await loadAportesEvento();
-    await loadContas();
-    await loadFinEvento();
-  } catch(e) { alert('Erro ao deletar.'); }
 }
 
 /* ══ USO DO CUPOM ══ */
@@ -1741,93 +1371,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
       <button onclick="fecharUsoCupom()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
     </div>
     <div id="cupom-uso-lista"></div>
-  </div>
-</div>
-
-
-<!-- MODAL EDITAR LANÇAMENTO -->
-<div class="modal-overlay2" id="edit-lancamento-overlay" onclick="if(event.target===this)fecharEditLancamento()" style="z-index:310;">
-  <div class="modal-box" style="max-width:480px;">
-    <div class="modal-box-header">
-      <span id="edit-lancamento-titulo">Editar lançamento</span>
-      <button class="modal-close-btn" onclick="fecharEditLancamento()">✕</button>
-    </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
-      <input type="hidden" id="edit-lanc-id">
-      <input type="hidden" id="edit-lanc-tipo">
-      <div class="form-g" style="margin:0"><label>Descrição *</label><input id="edit-lanc-descricao" placeholder="Descrição"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="edit-lanc-valor" type="number" step="0.01"></div>
-        <div class="form-g" style="margin:0"><label>Data *</label><input id="edit-lanc-data" type="date"></div>
-      </div>
-      <div id="edit-lanc-tipo-wrap" class="form-g" style="margin:0"><label>Tipo</label>
-        <select id="edit-lanc-subtipo" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
-          <option value="pix">PIX</option>
-          <option value="boleto">Boleto</option>
-          <option value="cartao">Cartão</option>
-          <option value="patrocinio">Patrocínio</option>
-          <option value="produto">Produto</option>
-          <option value="outro">Outro</option>
-        </select>
-      </div>
-      <div class="form-feedback" id="edit-lanc-feedback"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
-        <button class="back-btn" onclick="fecharEditLancamento()">Cancelar</button>
-        <button class="btn-save" style="margin:0;padding:10px 24px;" onclick="salvarEdicaoLancamento()">Salvar alterações</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- MODAL: ENTRADA DE SALDO NA CONTA -->
-<div class="modal-overlay2" id="entrada-conta-overlay" onclick="if(event.target===this)fecharEntradaConta()">
-  <div class="modal-box" style="max-width:440px;">
-    <div class="modal-box-header">
-      <span id="entrada-conta-titulo">Registrar entrada — JBX Sports</span>
-      <button class="modal-close-btn" onclick="fecharEntradaConta()">✕</button>
-    </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
-      <input type="hidden" id="entrada-conta-nome">
-      <div class="form-g" style="margin:0"><label>Descrição *</label><input id="entrada-descricao" placeholder="Ex: Depósito inicial, transferência..."></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="entrada-valor" type="number" step="0.01" min="0"></div>
-        <div class="form-g" style="margin:0"><label>Data *</label><input id="entrada-data" type="date"></div>
-      </div>
-      <div class="form-feedback" id="entrada-feedback"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="back-btn" onclick="fecharEntradaConta()">Cancelar</button>
-        <button class="btn-save" style="margin:0;padding:10px 24px;" onclick="salvarEntradaConta()">Registrar entrada</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: ALOCAR VERBA PARA EVENTO -->
-<div class="modal-overlay2" id="aporte-evento-overlay" onclick="if(event.target===this)fecharAporteConta()">
-  <div class="modal-box" style="max-width:440px;">
-    <div class="modal-box-header">
-      <span id="aporte-conta-titulo">Alocar verba para evento</span>
-      <button class="modal-close-btn" onclick="fecharAporteConta()">✕</button>
-    </div>
-    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
-      <input type="hidden" id="aporte-conta-nome">
-      <div class="form-g" style="margin:0"><label>Evento *</label>
-        <select id="aporte-evento-sel" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
-          <option value="">Selecione o evento</option>
-        </select>
-      </div>
-      <div class="form-g" style="margin:0"><label>Descrição</label><input id="aporte-descricao" placeholder="Ex: Verba inicial para medalhas"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="aporte-valor" type="number" step="0.01" min="0"></div>
-        <div class="form-g" style="margin:0"><label>Data *</label><input id="aporte-data" type="date"></div>
-      </div>
-      <div class="form-feedback" id="aporte-feedback"></div>
-      <div style="display:flex;gap:10px;justify-content:flex-end;">
-        <button class="back-btn" onclick="fecharAporteConta()">Cancelar</button>
-        <button class="btn-save" style="margin:0;padding:10px 24px;" onclick="salvarAporte()">Alocar verba</button>
-      </div>
-    </div>
   </div>
 </div>
 
