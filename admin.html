@@ -1166,7 +1166,7 @@ function renderFinReceitas(arr){
       <td style="font-size:12px;">${r.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!r.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${r.id}','receita',loadFinEvento)">✓ Confirmar</button>`:''}
-        <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${r.id}','receita',${JSON.stringify(r).replace(/\/g,'\\').replace(/'/g,\"\\'\")})" >✏️</button>
+        <button class="edit-btn" title="Editar" onclick="abrirEditPorId('${r.id}','receita')" >✏️</button>
         <button class="edit-btn" onclick="finDeletarReceita('${r.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1182,7 +1182,7 @@ function renderFinDespesas(arr){
       <td style="font-size:12px;">${d.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!d.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${d.id}','despesa',loadFinEvento)">✓ Confirmar</button>`:''}
-        <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${d.id}','despesa',${JSON.stringify(d).replace(/\/g,'\\').replace(/'/g,\"\\'\")})" >✏️</button>
+        <button class="edit-btn" title="Editar" onclick="abrirEditPorId('${d.id}','despesa')" >✏️</button>
         <button class="edit-btn" onclick="finDeletarDespesa('${d.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1400,6 +1400,23 @@ function abrirEditLancamento(id, tipo, dados) {
   document.getElementById('edit-lanc-subtipo').value   = (tipo === 'receita' ? dados.tipo : dados.tipo_pagamento) || '';
   document.getElementById('edit-lanc-feedback').textContent = '';
   document.getElementById('edit-lancamento-overlay').classList.add('open');
+}
+
+
+// Abre edição buscando dados pelo ID (evita problemas de escape)
+async function abrirEditPorId(id, tipo) {
+  try {
+    let dados;
+    if (tipo === 'receita') {
+      const arr = await rpc('fin_listar_todas_receitas');
+      dados = (arr || []).find(r => r.id === id);
+    } else {
+      const arr = await rpc('fin_listar_todas_despesas');
+      dados = (arr || []).find(d => d.id === id);
+    }
+    if (!dados) { alert('Lançamento não encontrado.'); return; }
+    abrirEditLancamento(id, tipo, dados);
+  } catch(e) { alert('Erro ao carregar dados: ' + e.message); }
 }
 
 function fecharEditLancamento() {
