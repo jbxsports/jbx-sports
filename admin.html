@@ -755,6 +755,10 @@ function showInner(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const scr=document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
   const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
+  // Scroll para o topo sempre que trocar de tela
+  window.scrollTo({top:0,behavior:'instant'});
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
@@ -1593,6 +1597,10 @@ async function abrirPatrocinadores(id, nome) {
   currentPatEvento = { id, nome };
   document.getElementById('pat-ev-nome').textContent = 'Patrocinadores — ' + nome;
   showInner('patrocinadores');
+  // Scroll para o topo
+  const content = document.querySelector('.admin-content');
+  if (content) content.scrollTop = 0;
+  window.scrollTo(0, 0);
   cancelarEditPat();
   await loadPatrocinadores();
 }
