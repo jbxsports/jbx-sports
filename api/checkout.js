@@ -174,7 +174,7 @@ export default async function handler(req, res) {
       payment_method_types,
       line_items,
       mode: 'payment',
-      success_url: `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=sucesso&pedido=${pedido}`,
+      success_url: `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/atleta.html?pedido=${pedido}`,
       cancel_url:  `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=cancelado`,
       metadata: {
         pedido,
