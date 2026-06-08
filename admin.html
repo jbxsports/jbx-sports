@@ -638,6 +638,45 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   </div>
 </div>
 
+
+      <!-- TELA: PATROCINADORES -->
+      <div class="inner-screen" id="screen-patrocinadores">
+        <div class="page-hd">
+          <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
+          <h1 id="pat-ev-nome">Patrocinadores</h1>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="fin-section-title">Patrocinadores cadastrados</div>
+            <div id="pat-lista"><div class="empty-state">Carregando…</div></div>
+          </div>
+          <div class="panel">
+            <h3 style="margin-bottom:16px;" id="pat-form-titulo">+ Novo Patrocinador</h3>
+            <input type="hidden" id="pat-id">
+            <div class="form-g"><label>Nome do patrocinador *</label><input id="pat-nome" placeholder="Ex: Empresa XYZ"></div>
+            <div class="form-g"><label>Categoria *</label>
+              <select id="pat-categoria" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
+                <option value="master">⭐ Master</option>
+                <option value="parceiro">🤝 Parceiro Oficial</option>
+                <option value="ouro">🥇 Ouro</option>
+                <option value="prata">🥈 Prata</option>
+                <option value="bronze">🥉 Bronze</option>
+              </select>
+            </div>
+            <div class="form-g"><label>URL da logo *</label><input id="pat-logo" placeholder="https://... (link direto da imagem)" oninput="previewPatLogo(this.value)"></div>
+            <div id="pat-logo-preview" style="margin:-8px 0 12px;display:none;">
+              <img id="pat-logo-img" src="" alt="Preview" style="max-height:60px;max-width:100%;border-radius:6px;background:white;padding:6px;">
+            </div>
+            <div class="form-g"><label>Site do patrocinador</label><input id="pat-site" placeholder="https://empresaxyz.com.br"></div>
+            <div class="form-feedback" id="pat-feedback"></div>
+            <div style="display:flex;gap:10px;margin-top:8px;">
+              <button class="btn-save" style="flex:1;" onclick="salvarPatrocinador()">Salvar</button>
+              <button class="back-btn" id="pat-cancelar-btn" onclick="cancelarEditPat()" style="display:none;">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
 <!-- DRAWER EDIÇÃO INSCRITO -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="if(event.target===this)closeDrawer()">
   <div class="drawer">
@@ -742,6 +781,7 @@ function renderEventCards(evs){
         <span class="meta">${e.hora||''}</span>
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
         <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
+        <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#ffd000;border:1px solid rgba(255,215,0,.25);" onclick="abrirPatrocinadores('${e.id}','${e.nome.replace(/'/g,"\\'")}')">⭐ Patrocinadores</button>
         ${Number(e.inscricoes_total||0) === 0
           ? '<button class="btn-sm btn-sm-red" onclick="excluirEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\')">🗑 Excluir</button>'
           : '<button class="btn-sm btn-sm-ghost" ' + (e.status==="closed"?'disabled style="opacity:0.4;cursor:not-allowed;"':'') + ' onclick="encerrarEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\',\'' + e.status + '\')">\u26d4 ' + (e.status==="closed"?'Encerrado':'Encerrar') + '</button>'
@@ -1533,6 +1573,103 @@ async function deletarAporte(id) {
   catch(e){alert('Erro ao deletar.');}
 }
 
+
+
+// ── PATROCINADORES ADMIN ─────────────────────────────
+let currentPatEvento = null;
+
+async function abrirPatrocinadores(id, nome) {
+  currentPatEvento = { id, nome };
+  document.getElementById('pat-ev-nome').textContent = 'Patrocinadores — ' + nome;
+  showInner('patrocinadores');
+  cancelarEditPat();
+  await loadPatrocinadores();
+}
+
+async function loadPatrocinadores() {
+  const el = document.getElementById('pat-lista');
+  el.innerHTML = '<div class="empty-state">Carregando…</div>';
+  try {
+    const lista = await rpc('patrocinadores_evento', { p_evento_id: currentPatEvento.id });
+    if (!lista || !lista.length) {
+      el.innerHTML = '<div class="empty-state">Nenhum patrocinador cadastrado.</div>';
+      return;
+    }
+    const cats = { master:'⭐ Master', parceiro:'🤝 Parceiro Oficial', ouro:'🥇 Ouro', prata:'🥈 Prata', bronze:'🥉 Bronze' };
+    el.innerHTML = `<div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Logo</th><th>Nome</th><th>Categoria</th><th>Site</th><th></th></tr></thead>
+      <tbody>${lista.map(p => `<tr>
+        <td><img src="${p.logo_url}" alt="${p.nome}" style="height:36px;max-width:80px;object-fit:contain;background:white;border-radius:4px;padding:3px;"></td>
+        <td style="font-weight:600;">${p.nome}</td>
+        <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:rgba(255,215,0,.12);color:#ffd000;">${cats[p.categoria]||p.categoria}</span></td>
+        <td style="font-size:12px;">${p.site_url ? `<a href="${p.site_url}" target="_blank" style="color:var(--orange);">ver site</a>` : '—'}</td>
+        <td style="display:flex;gap:6px;">
+          <button class="edit-btn" onclick='editarPatrocinador(${JSON.stringify(p)})'>✏️</button>
+          <button class="edit-btn" onclick="deletarPatrocinador('${p.id}')">🗑</button>
+        </td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) { el.innerHTML = '<div style="color:#ff6b6b;padding:12px;">Erro ao carregar.</div>'; }
+}
+
+function previewPatLogo(url) {
+  const wrap = document.getElementById('pat-logo-preview');
+  const img  = document.getElementById('pat-logo-img');
+  if (url && url.startsWith('http')) { wrap.style.display='block'; img.src=url; }
+  else { wrap.style.display='none'; }
+}
+
+function editarPatrocinador(p) {
+  document.getElementById('pat-id').value        = p.id;
+  document.getElementById('pat-nome').value      = p.nome;
+  document.getElementById('pat-categoria').value = p.categoria;
+  document.getElementById('pat-logo').value      = p.logo_url;
+  document.getElementById('pat-site').value      = p.site_url || '';
+  document.getElementById('pat-form-titulo').textContent = '✏️ Editar patrocinador';
+  document.getElementById('pat-cancelar-btn').style.display = 'inline-block';
+  previewPatLogo(p.logo_url);
+  document.getElementById('pat-nome').focus();
+}
+
+function cancelarEditPat() {
+  document.getElementById('pat-id').value   = '';
+  document.getElementById('pat-nome').value = '';
+  document.getElementById('pat-logo').value = '';
+  document.getElementById('pat-site').value = '';
+  document.getElementById('pat-categoria').value = 'master';
+  document.getElementById('pat-form-titulo').textContent = '+ Novo Patrocinador';
+  document.getElementById('pat-cancelar-btn').style.display = 'none';
+  document.getElementById('pat-logo-preview').style.display = 'none';
+  document.getElementById('pat-feedback').textContent = '';
+}
+
+async function salvarPatrocinador() {
+  const id       = document.getElementById('pat-id').value;
+  const nome     = document.getElementById('pat-nome').value.trim();
+  const logo_url = document.getElementById('pat-logo').value.trim();
+  const site_url = document.getElementById('pat-site').value.trim();
+  const categoria= document.getElementById('pat-categoria').value;
+  const fb       = document.getElementById('pat-feedback');
+
+  if (!nome || !logo_url) { fb.className='form-feedback err'; fb.textContent='Preencha nome e logo.'; return; }
+  fb.className='form-feedback'; fb.textContent='Salvando…';
+  try {
+    await rpc('admin_salvar_patrocinador', { dados: {
+      id, evento_id: currentPatEvento.id,
+      nome, logo_url, site_url, categoria
+    }});
+    fb.className='form-feedback ok'; fb.textContent='✓ Salvo!';
+    cancelarEditPat();
+    await loadPatrocinadores();
+  } catch(e) { fb.className='form-feedback err'; fb.textContent='Erro: '+e.message; }
+}
+
+async function deletarPatrocinador(id) {
+  if (!confirm('Remover este patrocinador?')) return;
+  try {
+    await rpc('admin_deletar_patrocinador', { p_id: id });
+    await loadPatrocinadores();
+  } catch(e) { alert('Erro ao deletar.'); }
+}
 
 /* ── INIT ── */
 if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();
