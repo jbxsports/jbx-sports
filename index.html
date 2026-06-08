@@ -422,32 +422,67 @@
     transition: color 0.2s;
   }
   .ed-back:hover { color: var(--orange); }
-  .ed-banner {
-    height: 320px; background: linear-gradient(135deg,#1e1e1e,#2a2a2a);
-    background-size: cover; background-position: center;
-    display: flex; align-items: center; justify-content: center;
+
+  /* Layout 3 colunas */
+  .ed-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-height: calc(100vh - 64px);
   }
-  .ed-banner-ph { color: rgba(255,255,255,0.22); font-size: 22px; font-weight: 700; letter-spacing: 3px; }
+
+  /* Coluna 1: Banner */
+  .ed-col-banner {
+    position: sticky; top: 64px;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+  .ed-banner {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg,#1e1e1e,#2a2a2a);
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    padding: 32px 24px;
+  }
+  .ed-banner-ph { color: rgba(255,255,255,0.22); font-size: 18px; font-weight: 700; letter-spacing: 3px; }
   .ed-banner.has-img .ed-banner-ph { display: none; }
-  .ed-wrap { max-width: 1200px; margin: 0 auto; padding: 0 5% 80px; }
-  .ed-body { display: grid; grid-template-columns: 1fr 300px; gap: 40px; align-items: start; }
-  .ed-main { min-width: 0; }
-  .ed-sponsors { position: sticky; top: 80px; }
-  .sponsors-box { background: #111; border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 20px; }
-  .sponsors-title { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 16px; text-align: center; }
-  .sponsors-cat { margin-bottom: 18px; }
-  .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 10px; text-align: center; }
-  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-  .sponsor-logo { display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; border-radius: 8px; overflow: hidden; background: transparent; padding: 6px; }
-  .sponsor-logo:hover { opacity: 0.8; }
-  .sponsor-logo img { display: block; object-fit: contain; }
+  .ed-banner-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Coluna 2: Infos */
+  .ed-col-info {
+    border-left: 1px solid rgba(255,255,255,0.06);
+    border-right: 1px solid rgba(255,255,255,0.06);
+    padding: 32px 28px 80px;
+    overflow-y: auto;
+  }
+
+  /* Coluna 3: Patrocinadores */
+  .ed-col-sponsors {
+    padding: 32px 24px 80px;
+    overflow-y: auto;
+  }
+
+  .ed-wrap { display: none; } /* desativado — substituído pelo novo layout */
+  .sponsors-cat { margin-bottom: 24px; }
+  .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 12px; text-align: center; }
   .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; align-items: center; }
-  .sponsor-master   .sponsor-logo img { width: 180px; height: 72px; }
-  .sponsor-parceiro .sponsor-logo img { width: 140px; height: 56px; }
-  .sponsor-ouro     .sponsor-logo img { width: 110px; height: 44px; }
-  .sponsor-prata    .sponsor-logo img { width: 88px;  height: 36px; }
-  .sponsor-bronze   .sponsor-logo img { width: 70px;  height: 28px; }
-  @media (max-width: 768px) { .ed-body { grid-template-columns: 1fr; } .ed-sponsors { position: static; } }
+  .sponsor-logo { display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; border-radius: 8px; background: transparent; padding: 4px; }
+  .sponsor-logo:hover { opacity: 0.75; }
+  .sponsor-logo img { display: block; object-fit: contain; }
+  .sponsor-master   .sponsor-logo img { width: 160px; height: 64px; }
+  .sponsor-parceiro .sponsor-logo img { width: 130px; height: 52px; }
+  .sponsor-ouro     .sponsor-logo img { width: 100px; height: 40px; }
+  .sponsor-prata    .sponsor-logo img { width: 80px;  height: 32px; }
+  .sponsor-bronze   .sponsor-logo img { width: 64px;  height: 26px; }
+  @media (max-width: 900px) {
+    .ed-layout { grid-template-columns: 1fr; }
+    .ed-col-banner { position: static; height: 260px; }
+    .ed-col-sponsors { border-top: 1px solid rgba(255,255,255,0.06); }
+  }
   .ed-header {
     display: flex; justify-content: space-between; align-items: flex-start;
     gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap;
@@ -797,39 +832,46 @@
   <div class="ed-topbar">
     <button class="ed-back" onclick="voltarDoEvento()">← Voltar aos eventos</button>
   </div>
-  <div class="ed-banner" id="ed-banner"><span class="ed-banner-ph">JBX SPORTS</span></div>
-  <div class="ed-wrap">
-    <div class="ed-header">
-      <div>
-        <span class="event-badge badge-soon" id="ed-status">Em breve</span>
-        <h1 class="ed-title" id="ed-nome">Evento</h1>
-        <div class="ed-meta" id="ed-meta"></div>
-        <div class="ed-price" id="ed-price"></div>
-      </div>
-      <button class="ed-inscrever" id="ed-inscrever">Inscreva-se →</button>
-    </div>
-    <div class="ed-body">
-      <div class="ed-main">
-        <div class="ed-tabs">
-          <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
-          <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
-          <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
-          <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
-        </div>
-        <div class="ed-content">
-          <div class="ed-pane active" data-pane="info" id="ed-info"></div>
-          <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
-          <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
-          <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
-        </div>
-      </div>
-      <div class="ed-sponsors">
-        <div class="sponsors-box" id="ed-sponsors-box" style="display:none;">
-          <div class="sponsors-title">Patrocinadores</div>
-          <div id="ed-sponsors-content"></div>
-        </div>
+  <div class="ed-layout">
+
+    <!-- COLUNA 1: BANNER -->
+    <div class="ed-col-banner">
+      <div class="ed-banner" id="ed-banner">
+        <div class="ed-banner-overlay"></div>
+        <span class="ed-banner-ph">JBX SPORTS</span>
       </div>
     </div>
+
+    <!-- COLUNA 2: INFORMAÇÕES -->
+    <div class="ed-col-info">
+      <span class="event-badge badge-soon" id="ed-status">Em breve</span>
+      <h1 class="ed-title" id="ed-nome" style="margin-top:12px;">Evento</h1>
+      <div class="ed-meta" id="ed-meta"></div>
+      <div class="ed-price" id="ed-price"></div>
+      <button class="ed-inscrever" id="ed-inscrever" style="margin-top:20px;width:100%;">Inscreva-se →</button>
+      <div class="ed-tabs" style="margin-top:28px;">
+        <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
+        <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
+        <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
+        <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
+      </div>
+      <div class="ed-content">
+        <div class="ed-pane active" data-pane="info" id="ed-info"></div>
+        <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
+        <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
+        <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
+      </div>
+    </div>
+
+    <!-- COLUNA 3: PATROCINADORES -->
+    <div class="ed-col-sponsors">
+      <div id="ed-sponsors-box" style="display:none;">
+        <div class="sponsors-title" style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.35);margin-bottom:20px;">Patrocinadores</div>
+        <div id="ed-sponsors-content"></div>
+      </div>
+      <div id="ed-sponsors-empty" style="color:rgba(255,255,255,0.15);font-size:13px;text-align:center;padding-top:40px;"></div>
+    </div>
+
   </div>
 </div>
 
