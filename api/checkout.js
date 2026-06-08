@@ -6,56 +6,80 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-// ── Cria inscrições no Supabase — função recebe { dados: jsonb } ──
+// ── Busca dados do atleta pelo CPF no banco (para atletas com ref) ──
+async function buscarDadosAtleta(cpf) {
+  try {
+    const cpfLimpo = cpf.replace(/\D/g, '');
+    // Busca em inscricoes (mais recente)
+    const res = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&order=id.desc&limit=1&select=nome,telefone,email`, {
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`
+      }
+    });
+    const data = await res.json();
+    if (data && data.length > 0) return data[0];
+
+    // Tenta em atletas_contas
+    const res2 = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`
+      }
+    });
+    const data2 = await res2.json();
+    if (data2 && data2.length > 0) return data2[0];
+  } catch(e) {
+    console.error('[checkout] buscarDadosAtleta erro:', e.message);
+  }
+  return null;
+}
+
+// ── Cria inscrições no Supabase ──
 async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome) {
   const resultados = [];
   for (const item of itens) {
     try {
-      // Monta o objeto "dados" exatamente como a função criar_inscricao espera
       const dados = {
-        pedido:               pedido,
-        evento:               eventoNome      || '',
-        ref:                  item.ref        || '',
-        cpf:                  item.cpf        || '',
-        kit_id:               item.kit_id     || '',
-        lote_id:              item.lote_id    || '',
-        kit:                  item.kit        || '',
-        modalidade:           item.modalidade || '',
-        tamanho_camisa:       item.tamanho_camisa || '',
-        cupom:                cupom           || '',
-        forma_pagamento:      formaPagamento  || 'cartao',
-        nome:                 item.nome       || '',
-        cpf_dados:            item.cpf        || '',
-        nascimento:           item.nascimento || '',
-        genero:               item.genero     || '',
-        email:                item.email      || '',
-        telefone:             item.telefone   || '',
-        cep:                  item.cep        || '',
-        rua:                  item.rua        || '',
-        numero:               item.numero     || '',
-        complemento:          item.complemento|| '',
-        bairro:               item.bairro     || '',
-        cidade:               item.cidade     || '',
-        estado:               item.estado     || '',
-        emergencia_nome:      item.emergencia_nome      || '',
-        emergencia_telefone:  item.emergencia_telefone  || '',
-        valor:                item.valor      || 0,
+        pedido, evento: eventoNome || '',
+        ref:           item.ref        || '',
+        cpf:           item.cpf        || '',
+        kit_id:        item.kit_id     || '',
+        lote_id:       item.lote_id    || '',
+        kit:           item.kit        || '',
+        modalidade:    item.modalidade || '',
+        tamanho_camisa:item.tamanho_camisa || '',
+        cupom:         cupom           || '',
+        forma_pagamento: formaPagamento || 'cartao',
+        nome:          item.nome       || '',
+        nascimento:    item.nascimento || '',
+        genero:        item.genero     || '',
+        email:         item.email      || '',
+        telefone:      item.telefone   || '',
+        cep:           item.cep        || '',
+        rua:           item.rua        || '',
+        numero:        item.numero     || '',
+        complemento:   item.complemento|| '',
+        bairro:        item.bairro     || '',
+        cidade:        item.cidade     || '',
+        estado:        item.estado     || '',
+        emergencia_nome:     item.emergencia_nome      || '',
+        emergencia_telefone: item.emergencia_telefone  || '',
+        valor:         item.valor      || 0,
       };
-
-      console.log('[checkout] criar_inscricao dados:', JSON.stringify(dados));
 
       const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
         method: 'POST',
         headers: {
-          'apikey':        SB_SERVICE_KEY || '',
-          'Authorization': `Bearer ${SB_SERVICE_KEY || ''}`,
+          'apikey':        SB_SERVICE_KEY,
+          'Authorization': `Bearer ${SB_SERVICE_KEY}`,
           'Content-Type':  'application/json'
         },
-        body: JSON.stringify({ dados })  // ← passa como { dados: jsonb }
+        body: JSON.stringify({ dados })
       });
 
       const text = await res.text();
-      console.log('[checkout] criar_inscricao status:', res.status, 'resp:', text);
+      console.log('[checkout] criar_inscricao status:', res.status, text);
 
       if (!res.ok) {
         let msg = text;
@@ -64,13 +88,8 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
         continue;
       }
 
-      // Função retorna o UUID da inscrição criada
-      // Precisamos calcular valor_cents para o Stripe
-      const inscricaoId = text.replace(/"/g,'').trim();
-      resultados.push({ ok: true, inscricao_id: inscricaoId, valor_cents: Math.round(item.valor * 100) });
-
-    } catch (e) {
-      console.error('[checkout] erro fetch:', e.message);
+      resultados.push({ ok: true, valor_cents: Math.round(item.valor * 100) });
+    } catch(e) {
       resultados.push({ ok: false, erro: e.message });
     }
   }
@@ -84,16 +103,12 @@ export default async function handler(req, res) {
 
   const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
 
-  console.log('[checkout] pedido:', pedido, '| itens:', itens?.length, '| SB_KEY ok:', !!SB_SERVICE_KEY);
-
   if (!itens || !itens.length) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
   // ── 1. Cria inscrições no Supabase ──
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
-  console.log('[checkout] resultados:', JSON.stringify(resultados));
-
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
     return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
@@ -118,18 +133,37 @@ export default async function handler(req, res) {
     quantity: 1,
   }));
 
-  // ── 4. Metadados para o webhook (WhatsApp pós-pagamento) ──
-  const metadataItens = itens.map(it => ({
-    ref:            it.ref           || '',
-    cpf:            it.cpf           || '',
-    nome:           it.nome          || it.rotulo || '',
-    telefone:       it.telefone      || '',
-    email:          it.email         || '',
-    evento:         evento_nome      || '',
-    kit:            it.kit           || '',
-    modalidade:     it.modalidade    || '',
-    tamanho_camisa: it.tamanho_camisa|| '',
+  // ── 4. Metadados para o webhook ──
+  // Para atletas com ref (cadastro existente), busca telefone/email/nome do banco
+  const metadataItens = await Promise.all(itens.map(async (it) => {
+    let nome     = it.nome     || '';
+    let telefone = it.telefone || '';
+    let email    = it.email    || '';
+
+    // Se veio por ref (atleta já cadastrado), busca dados reais no banco
+    if (it.ref && it.cpf && (!telefone || !nome)) {
+      const dadosBanco = await buscarDadosAtleta(it.cpf);
+      if (dadosBanco) {
+        nome     = nome     || dadosBanco.nome     || '';
+        telefone = telefone || dadosBanco.telefone || '';
+        email    = email    || dadosBanco.email    || '';
+      }
+    }
+
+    return {
+      ref:            it.ref           || '',
+      cpf:            it.cpf           || '',
+      nome,
+      telefone,
+      email,
+      evento:         evento_nome      || '',
+      kit:            it.kit           || '',
+      modalidade:     it.modalidade    || '',
+      tamanho_camisa: it.tamanho_camisa|| '',
+    };
   }));
+
+  console.log('[checkout] metadataItens:', JSON.stringify(metadataItens));
 
   // ── 5. Método de pagamento ──
   const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
@@ -143,16 +177,15 @@ export default async function handler(req, res) {
       success_url: `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=sucesso&pedido=${pedido}`,
       cancel_url:  `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=cancelado`,
       metadata: {
-        pedido:      pedido,
+        pedido,
         evento_nome: evento_nome || '',
         cupom:       cupom       || '',
         itens:       JSON.stringify(metadataItens).slice(0, 500),
       },
     });
 
-    console.log('[checkout] sessão Stripe criada:', session.id);
     return res.status(200).json({ url: session.url });
-  } catch (e) {
+  } catch(e) {
     console.error('[checkout] Stripe error:', e.message);
     return res.status(500).json({ error: e.message });
   }
