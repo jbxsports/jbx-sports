@@ -1214,24 +1214,24 @@ async function abrirFinEvento(id,nome){
 async function loadFinEvento(){
   if(!finCurrentEvento)return;
   try{
-    const[resumo,rec,desp]=await Promise.all([
+    const[resumo,recLista,despLista]=await Promise.all([
       rpc('fin_resumo_evento',{p_evento_id:finCurrentEvento.id}),
       rpc('fin_listar_receitas',{p_evento_id:finCurrentEvento.id}),
       rpc('fin_listar_despesas',{p_evento_id:finCurrentEvento.id})
     ]);
-    const insc  = Number(resumo.receitas_inscricoes||0);
-    const ap    = Number(resumo.aportes||0);
-    const ext   = Number(resumo.receitas_extras||0);
-    const desp  = Number(resumo.despesas||0);
-    const res   = insc + ap + ext - desp;
+    const insc    = Number(resumo.receitas_inscricoes||0);
+    const ap      = Number(resumo.aportes||0);
+    const ext     = Number(resumo.receitas_extras||0);
+    const despVal = Number(resumo.despesas||0);
+    const res     = insc + ap + ext - despVal;
     document.getElementById('fin-ev-stats').innerHTML=`
       <div class="stat-card"><div class="sc-label">Inscrições</div><div class="sc-val orange">${brl(insc)}</div></div>
       <div class="stat-card"><div class="sc-label">Verba Alocada</div><div class="sc-val" style="color:#60a5fa">${brl(ap)}</div></div>
       <div class="stat-card"><div class="sc-label">Extras</div><div class="sc-val" style="color:#22c55e">${brl(ext)}</div></div>
-      <div class="stat-card"><div class="sc-label">Despesas</div><div class="sc-val" style="color:#ff6b6b">${brl(desp)}</div></div>
+      <div class="stat-card"><div class="sc-label">Despesas</div><div class="sc-val" style="color:#ff6b6b">${brl(despVal)}</div></div>
       <div class="stat-card"><div class="sc-label">A confirmar</div><div class="sc-val orange">${brl(resumo.despesas_pendentes)}</div></div>
       <div class="stat-card"><div class="sc-label">Saldo</div><div class="sc-val" style="color:${res>=0?'#22c55e':'#ff6b6b'}">${brl(res)}</div></div>`;
-    renderFinReceitas(rec||[]);renderFinDespesas(desp||[]);loadAportesEvento();
+    renderFinReceitas(recLista||[]);renderFinDespesas(despLista||[]);loadAportesEvento();
   }catch(e){console.error(e);}
 }
 function renderFinReceitas(arr){
