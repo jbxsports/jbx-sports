@@ -514,6 +514,23 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <div class="form-feedback" id="gr-feedback"></div>
           </div>
         </div>
+
+        <!-- HISTÓRICO GERAL -->
+        <div class="fin-section-title" style="margin-top:32px;">📋 Histórico geral de lançamentos</div>
+        <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+          <select id="hist-filtro-tipo" onchange="loadHistorico()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;">
+            <option value="">Todos os tipos</option>
+            <option value="receita">Só receitas</option>
+            <option value="despesa">Só despesas</option>
+          </select>
+          <select id="hist-filtro-status" onchange="loadHistorico()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;">
+            <option value="">Todos os status</option>
+            <option value="confirmado">Confirmados</option>
+            <option value="pendente">Pendentes</option>
+          </select>
+        </div>
+        <div id="fin-historico-wrap"><div class="empty-state">Carregando…</div></div>
+      </div>
       </div>
 
       <!-- TELA: DETALHE FINANCEIRO -->
@@ -1054,7 +1071,7 @@ async function loadFinanceiro(){
       rpc('fin_resumo_geral'),rpc('fin_contas_pagar_7dias'),rpc('fin_receitas_a_receber_7dias'),
       rpc('fin_lista_eventos_fin'),rpc('admin_lista_eventos')
     ]);
-    renderFinGlobal(resumo||{});render7Dias(dias7||[]);render7DiasRec(dias7rec||[]);
+    renderFinGlobal(resumo||{});render7Dias(dias7||[]);render7DiasRec(dias7rec||[]);loadHistorico();
     renderFinEventos(eventos||[]);preencherSeletoresEventos(evLista||[]);
   }catch(e){console.error(e);}
 }
@@ -1149,6 +1166,7 @@ function renderFinReceitas(arr){
       <td style="font-size:12px;">${r.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!r.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${r.id}','receita',loadFinEvento)">✓ Confirmar</button>`:''}
+        <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${r.id}','receita',${JSON.stringify(r).replace(/\/g,'\\').replace(/'/g,\"\\'\")})" >✏️</button>
         <button class="edit-btn" onclick="finDeletarReceita('${r.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1164,6 +1182,7 @@ function renderFinDespesas(arr){
       <td style="font-size:12px;">${d.conta_bancaria||'—'}</td>
       <td style="display:flex;gap:4px;">
         ${!d.confirmado?`<button class="btn-confirmar" onclick="finAbrirConfirmar('${d.id}','despesa',loadFinEvento)">✓ Confirmar</button>`:''}
+        <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${d.id}','despesa',${JSON.stringify(d).replace(/\/g,'\\').replace(/'/g,\"\\'\")})" >✏️</button>
         <button class="edit-btn" onclick="finDeletarDespesa('${d.id}')">🗑</button>
       </td></tr>`).join('')}</tbody></table>`;
 }
@@ -1294,6 +1313,127 @@ async function salvarReceitaGlobal(){
 async function finDeletarReceita(id){if(!confirm('Remover?'))return;try{await rpc('fin_deletar_receita',{p_id:id});await loadFinEvento();}catch(e){alert('Erro.');}}
 async function finDeletarDespesa(id){if(!confirm('Remover?'))return;try{await rpc('fin_deletar_despesa',{p_id:id});await loadFinEvento();}catch(e){alert('Erro.');}}
 
+
+// ── HISTÓRICO GERAL DE LANÇAMENTOS ──────────────────
+async function loadHistorico() {
+  const wrap = document.getElementById('fin-historico-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '<div class="empty-state">Carregando…</div>';
+  try {
+    const filtroTipo   = document.getElementById('hist-filtro-tipo')?.value   || '';
+    const filtroStatus = document.getElementById('hist-filtro-status')?.value || '';
+    const [receitas, despesas] = await Promise.all([
+      rpc('fin_listar_todas_receitas'),
+      rpc('fin_listar_todas_despesas')
+    ]);
+    const recArr = (receitas || []).map(r => ({
+      ...r, _tipo: 'receita',
+      _data: r.data,
+      _subtipo: r.tipo,
+      _status: r.confirmado ? 'confirmado' : 'pendente'
+    }));
+    const despArr = (despesas || []).map(d => ({
+      ...d, _tipo: 'despesa',
+      _data: d.data_pagamento,
+      _subtipo: d.tipo_pagamento,
+      _status: d.confirmado ? 'confirmado' : 'pendente'
+    }));
+
+    let todos = [...recArr, ...despArr];
+    if (filtroTipo)   todos = todos.filter(l => l._tipo   === filtroTipo);
+    if (filtroStatus) todos = todos.filter(l => l._status === filtroStatus);
+    todos.sort((a,b) => new Date(b._data||0) - new Date(a._data||0));
+
+    if (!todos.length) {
+      wrap.innerHTML = '<div class="empty-state" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;">Nenhum lançamento encontrado.</div>';
+      return;
+    }
+
+    wrap.innerHTML = `<div class="table-wrap"><table class="data-table">
+      <thead><tr><th>Data</th><th>Tipo</th><th>Evento</th><th>Descrição</th><th>Subtipo</th><th>Valor</th><th>Status</th><th>Conta</th><th></th></tr></thead>
+      <tbody>${todos.map(l => {
+        const isRec = l._tipo === 'receita';
+        const cor   = isRec ? '#22c55e' : '#ff6b6b';
+        const sinal = isRec ? '+' : '-';
+        const badge = isRec
+          ? (l.confirmado ? '<span class="tag-recebido">Recebido</span>' : '<span class="tag-areceber">A confirmar</span>')
+          : (l.confirmado ? '<span class="tag-pago2">Pago</span>'       : '<span class="tag-pendente2">Pendente</span>');
+        return `<tr class="${l.confirmado ? '' : 'nao-confirmado'}">
+          <td style="font-size:12px;white-space:nowrap;">${fmtDS(l._data)}</td>
+          <td><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${isRec?'rgba(34,197,94,0.15)':'rgba(255,107,107,0.15)'};color:${cor};">${isRec?'RECEITA':'DESPESA'}</span></td>
+          <td style="font-size:12px;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.evento_nome||'Geral'}</td>
+          <td style="max-width:200px;">${l.descricao||'—'}</td>
+          <td style="font-size:12px;">${l._subtipo||'—'}</td>
+          <td style="font-weight:700;color:${cor};">${sinal} ${brl(l.valor)}</td>
+          <td>${badge}</td>
+          <td style="font-size:12px;">${l.conta_bancaria||'—'}</td>
+          <td style="display:flex;gap:4px;white-space:nowrap;">
+            <button class="edit-btn" title="Editar" onclick="abrirEditLancamento('${l.id}','${l._tipo}',${JSON.stringify(l).replace(/'/g,"\'")})">✏️</button>
+            <button class="edit-btn" title="Deletar" onclick="histDeletar('${l.id}','${l._tipo}')">🗑</button>
+          </td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    wrap.innerHTML = '<div style="color:#ff6b6b;padding:12px;">Erro ao carregar histórico.</div>';
+    console.error(e);
+  }
+}
+
+async function histDeletar(id, tipo) {
+  if (!confirm('Remover este lançamento?')) return;
+  try {
+    if (tipo === 'receita') await rpc('fin_deletar_receita', {p_id: id});
+    else await rpc('fin_deletar_despesa', {p_id: id});
+    await loadHistorico();
+    await loadFinanceiro();
+  } catch(e) { alert('Erro ao deletar.'); }
+}
+
+// ── EDITAR LANÇAMENTO ────────────────────────────────
+function abrirEditLancamento(id, tipo, dados) {
+  document.getElementById('edit-lanc-id').value    = id;
+  document.getElementById('edit-lanc-tipo').value  = tipo;
+  document.getElementById('edit-lancamento-titulo').textContent = tipo === 'receita' ? 'Editar receita' : 'Editar despesa';
+  document.getElementById('edit-lanc-descricao').value = dados.descricao || '';
+  document.getElementById('edit-lanc-valor').value     = dados.valor     || '';
+  document.getElementById('edit-lanc-data').value      = (tipo === 'receita' ? dados.data : dados.data_pagamento) || '';
+  document.getElementById('edit-lanc-subtipo').value   = (tipo === 'receita' ? dados.tipo : dados.tipo_pagamento) || '';
+  document.getElementById('edit-lanc-feedback').textContent = '';
+  document.getElementById('edit-lancamento-overlay').classList.add('open');
+}
+
+function fecharEditLancamento() {
+  document.getElementById('edit-lancamento-overlay').classList.remove('open');
+}
+
+async function salvarEdicaoLancamento() {
+  const id    = document.getElementById('edit-lanc-id').value;
+  const tipo  = document.getElementById('edit-lanc-tipo').value;
+  const desc  = document.getElementById('edit-lanc-descricao').value.trim();
+  const valor = document.getElementById('edit-lanc-valor').value;
+  const data  = document.getElementById('edit-lanc-data').value;
+  const sub   = document.getElementById('edit-lanc-subtipo').value;
+  const fb    = document.getElementById('edit-lanc-feedback');
+
+  if (!desc || !valor || !data) { fb.className='form-feedback err'; fb.textContent='Preencha todos os campos.'; return; }
+
+  fb.className='form-feedback'; fb.textContent='Salvando…';
+  try {
+    if (tipo === 'receita') {
+      const dados = { id, descricao: desc, valor, data, tipo: sub };
+      await rpc('fin_salvar_receita', { dados });
+    } else {
+      const dados = { id, descricao: desc, valor, data_pagamento: data, tipo_pagamento: sub };
+      await rpc('fin_salvar_despesa', { dados });
+    }
+    fecharEditLancamento();
+    await loadHistorico();
+    await loadFinanceiro();
+  } catch(e) {
+    fb.className='form-feedback err'; fb.textContent='Erro: ' + e.message;
+  }
+}
+
 /* ══ USO DO CUPOM ══ */
 async function abrirUsoCupom(codigo,nome){
   document.getElementById('cupom-uso-titulo').textContent=`Uso do cupom ${codigo}`;
@@ -1345,6 +1485,41 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
       <button onclick="fecharUsoCupom()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;">✕</button>
     </div>
     <div id="cupom-uso-lista"></div>
+  </div>
+</div>
+
+
+<!-- MODAL EDITAR LANÇAMENTO -->
+<div class="modal-overlay2" id="edit-lancamento-overlay" onclick="if(event.target===this)fecharEditLancamento()" style="z-index:310;">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-box-header">
+      <span id="edit-lancamento-titulo">Editar lançamento</span>
+      <button class="modal-close-btn" onclick="fecharEditLancamento()">✕</button>
+    </div>
+    <div style="padding:20px 24px;display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="edit-lanc-id">
+      <input type="hidden" id="edit-lanc-tipo">
+      <div class="form-g" style="margin:0"><label>Descrição *</label><input id="edit-lanc-descricao" placeholder="Descrição"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-g" style="margin:0"><label>Valor (R$) *</label><input id="edit-lanc-valor" type="number" step="0.01"></div>
+        <div class="form-g" style="margin:0"><label>Data *</label><input id="edit-lanc-data" type="date"></div>
+      </div>
+      <div id="edit-lanc-tipo-wrap" class="form-g" style="margin:0"><label>Tipo</label>
+        <select id="edit-lanc-subtipo" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px 14px;color:white;font-size:14px;font-family:inherit;">
+          <option value="pix">PIX</option>
+          <option value="boleto">Boleto</option>
+          <option value="cartao">Cartão</option>
+          <option value="patrocinio">Patrocínio</option>
+          <option value="produto">Produto</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-feedback" id="edit-lanc-feedback"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px;">
+        <button class="back-btn" onclick="fecharEditLancamento()">Cancelar</button>
+        <button class="btn-save" style="margin:0;padding:10px 24px;" onclick="salvarEdicaoLancamento()">Salvar alterações</button>
+      </div>
+    </div>
   </div>
 </div>
 
