@@ -24,14 +24,14 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .login-box button:hover{background:var(--orange-dark);}
 .login-err{color:#ff6b6b;font-size:13px;margin-top:10px;min-height:18px;}
 /* LAYOUT */
-.admin-shell{display:grid;grid-template-rows:60px 1fr;min-height:100vh;}
+.admin-shell{display:grid;grid-template-rows:60px 1fr;height:100vh;overflow:hidden;}
 .admin-header{background:rgba(10,10,10,.95);border-bottom:1px solid rgba(255,117,31,.15);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:50;}
 .admin-nav{display:flex;gap:24px;}
 .nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s;}
 .nav-btn:hover,.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);}
 .admin-logout{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{color:#fff;}
-.admin-content{padding:32px;max-width:1400px;margin:0 auto;width:100%;}
+.admin-content{padding:32px;max-width:1400px;margin:0 auto;width:100%;height:100%;overflow-y:auto;}
 .inner-screen{display:none;}.inner-screen.active{display:block;}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
@@ -645,7 +645,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1 id="pat-ev-nome">Patrocinadores</h1>
         </div>
-        <div class="two-col">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;">
           <div>
             <div class="fin-section-title">Patrocinadores cadastrados</div>
             <div id="pat-lista"><div class="empty-state">Carregando…</div></div>
@@ -664,7 +664,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               </select>
             </div>
             <div class="form-g"><label>Logo do patrocinador *</label>
-              <div class="kit-upload-area" id="pat-upload-area" onclick="document.getElementById('pat-foto-file').click()" style="cursor:pointer;min-height:80px;" title="Clique para escolher a logo">
+              <div class="kit-upload-area" id="pat-upload-area" onclick="document.getElementById('pat-foto-file').click()" style="cursor:pointer;min-height:100px;height:100px;" title="Clique para escolher a logo">
                 <img id="pat-logo-img" src="" style="display:none;max-height:70px;max-width:100%;object-fit:contain;">
                 <div class="kit-upload-ph" id="pat-upload-ph">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -756,9 +756,8 @@ function showInner(name){
   const scr=document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
   const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
   // Scroll para o topo sempre que trocar de tela
-  window.scrollTo({top:0,behavior:'instant'});
-  document.documentElement.scrollTop = 0;
-  document.body.scrollTop = 0;
+  const _ac = document.querySelector('.admin-content');
+  if (_ac) _ac.scrollTop = 0;
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
