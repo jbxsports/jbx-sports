@@ -438,14 +438,15 @@
   .sponsors-cat { margin-bottom: 18px; }
   .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-bottom: 10px; text-align: center; }
   .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-  .sponsor-logo { display: block; transition: opacity 0.2s; border-radius: 6px; overflow: hidden; background: white; }
-  .sponsor-logo:hover { opacity: 0.85; }
+  .sponsor-logo { display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; border-radius: 8px; overflow: hidden; background: transparent; padding: 6px; }
+  .sponsor-logo:hover { opacity: 0.8; }
   .sponsor-logo img { display: block; object-fit: contain; }
-  .sponsor-master   .sponsor-logo img { width: 200px; height: 80px; }
-  .sponsor-parceiro .sponsor-logo img { width: 160px; height: 64px; }
-  .sponsor-ouro     .sponsor-logo img { width: 120px; height: 50px; }
-  .sponsor-prata    .sponsor-logo img { width: 96px;  height: 40px; }
-  .sponsor-bronze   .sponsor-logo img { width: 76px;  height: 32px; }
+  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; align-items: center; }
+  .sponsor-master   .sponsor-logo img { width: 180px; height: 72px; }
+  .sponsor-parceiro .sponsor-logo img { width: 140px; height: 56px; }
+  .sponsor-ouro     .sponsor-logo img { width: 110px; height: 44px; }
+  .sponsor-prata    .sponsor-logo img { width: 88px;  height: 36px; }
+  .sponsor-bronze   .sponsor-logo img { width: 70px;  height: 28px; }
   @media (max-width: 768px) { .ed-body { grid-template-columns: 1fr; } .ed-sponsors { position: static; } }
   .ed-header {
     display: flex; justify-content: space-between; align-items: flex-start;
