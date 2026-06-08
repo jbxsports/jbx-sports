@@ -188,6 +188,36 @@ nav {
   </div>
 </nav>
 
+<!-- TELA PRIMEIRO ACESSO -->
+<div class="screen" id="screen-primeiro-acesso">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">🎉 Inscrição confirmada!</h2>
+    <p class="auth-sub" id="pa-sub">Crie uma senha para acessar sua área do atleta e acompanhar suas inscrições.</p>
+    <div class="auth-erro" id="pa-erro"></div>
+    <div class="form-group">
+      <label>CPF</label>
+      <input type="text" id="pa-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
+    </div>
+    <div class="form-group" id="pa-senha-wrap">
+      <label>Crie sua senha</label>
+      <input type="password" id="pa-senha" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="form-group" id="pa-senha2-wrap">
+      <label>Confirme a senha</label>
+      <input type="password" id="pa-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')primeiroAcesso()">
+    </div>
+    <button class="btn-auth" id="btn-pa" onclick="primeiroAcesso()">Criar senha e entrar</button>
+    <div class="auth-switch">
+      Já tem conta? <a onclick="irParaLogin()">Fazer login</a>
+    </div>
+  </div>
+</div>
+
 <!-- TELA LOGIN -->
 <div class="screen active" id="screen-login">
   <div class="auth-card">
@@ -209,7 +239,7 @@ nav {
     </div>
     <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
     <div class="auth-switch">
-      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
+      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a> &nbsp;·&nbsp; <a onclick="mostrarTela('primeiro-acesso')">Primeiro acesso</a>
     </div>
   </div>
 </div>
@@ -513,8 +543,6 @@ async function fazerCadastro() {
     if (!res.ok) {
       mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
     } else {
-      // ── WHATSAPP: boas-vindas ao novo atleta ──
-      enviarBoasVindasWhatsApp(nome, tel);
       const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
       if (login.ok) { salvarSessao(login); entrarNaArea(login); }
       else irParaLogin();
@@ -527,36 +555,61 @@ async function fazerCadastro() {
  
 // ── ÁREA ─────────────────────────────────────────
 
-// ── WHATSAPP BOAS-VINDAS ──────────────────────────
-async function enviarBoasVindasWhatsApp(nome, telefone) {
+// ── PRIMEIRO ACESSO ──────────────────────────────
+async function primeiroAcesso() {
+  limparErros();
+  const cpf   = document.getElementById('pa-cpf').value;
+  const senha  = document.getElementById('pa-senha').value;
+  const senha2 = document.getElementById('pa-senha2').value;
+
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('pa-erro', 'CPF inválido.');
+  if (senha.length < 6) return mostrarErro('pa-erro', 'Senha deve ter pelo menos 6 caracteres.');
+  if (senha !== senha2) return mostrarErro('pa-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-pa');
+  btn.textContent = 'Verificando...'; btn.disabled = true;
+
   try {
-    // Formata número: remove tudo que não é dígito, garante código do país 55
-    const digits = telefone.replace(/\D/g, '');
-    const numero = digits.startsWith('55') ? digits : '55' + digits;
+    // Verifica se CPF tem inscrição mas não tem conta
+    const verif = await rpc('verificar_primeiro_acesso', { p_cpf: cpf });
 
-    const primeiroNome = nome.split(' ')[0];
+    if (!verif.tem_inscricao) {
+      mostrarErro('pa-erro', 'Nenhuma inscrição encontrada para este CPF.');
+      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
+      return;
+    }
 
-    const mensagem =
-      `🏃 *Olá, ${primeiroNome}! Bem-vindo(a) à JBX Sports!*\n\n` +
-      `Seu cadastro foi realizado com sucesso. ✅\n\n` +
-      `Agora você já pode se inscrever nos nossos eventos esportivos diretamente pelo site.\n\n` +
-      `👉 *jbx-sports.vercel.app*\n\n` +
-      `📸 Nos siga no Instagram:\n` +
-      `*@jbx.sports*\n\n` +
-      `Qualquer dúvida, estamos aqui! Boa corrida! 🧡`;
+    if (verif.tem_conta) {
+      // Já tem conta — redireciona para login
+      mostrarErro('pa-erro', 'Você já tem uma conta. Faça login normalmente.');
+      document.getElementById('login-cpf').value = cpf;
+      setTimeout(() => irParaLogin(), 2000);
+      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
+      return;
+    }
 
-    await fetch(
-      'https://api.z-api.io/instances/3F457758AC68513DE147E6B1C9468980/token/CD007B54BA8BD1111B802279/send-text',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: numero, message: mensagem })
-      }
-    );
+    // Cria a conta com os dados da inscrição
+    btn.textContent = 'Criando conta...';
+    const res = await rpc('criar_conta_primeiro_acesso', { p_cpf: cpf, p_senha: senha });
+
+    if (!res.ok) {
+      mostrarErro('pa-erro', res.erro || 'Erro ao criar conta.');
+      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
+      return;
+    }
+
+    // Faz login automaticamente
+    const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
+    if (login.ok) {
+      salvarSessao(login);
+      entrarNaArea(login);
+    } else {
+      irParaLogin();
+    }
   } catch(e) {
-    // Falha silenciosa — não bloqueia o cadastro
-    console.warn('WhatsApp boas-vindas não enviado:', e);
+    mostrarErro('pa-erro', 'Erro de conexão. Tente novamente.');
   }
+  btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
 }
 
 function entrarNaArea(dados) {
@@ -659,10 +712,22 @@ function gerarQR(id) {
 // ── INICIALIZAÇÃO ─────────────────────────────────
 (function init() {
   const s = carregarSessao();
-  if (s && s.token) { entrarNaArea(s); return; }
-  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
   const params = new URLSearchParams(window.location.search);
-  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
+
+  // Se já está logado — entra direto na área
+  if (s && s.token) { entrarNaArea(s); return; }
+
+  // Se veio do Stripe após pagamento (?pedido=xxx) — tela de primeiro acesso
+  if (params.get('pedido')) {
+    mostrarTela('primeiro-acesso');
+    return;
+  }
+
+  // Se veio com ?tela=cadastro
+  if (params.get('tela') === 'cadastro') { mostrarTela('cadastro'); return; }
+
+  // Se veio com ?tela=primeiro-acesso
+  if (params.get('tela') === 'primeiro-acesso') { mostrarTela('primeiro-acesso'); return; }
 })();
 </script>
 </body>
