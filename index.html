@@ -1127,23 +1127,7 @@
 })();
 </script>
 <script>
-function updateCountdown() {
-  const targetStr = window._proximoEvento || '2026-06-27T17:30:00';
-  const target = new Date(targetStr);
-  const now = new Date();
-  const diff = target - now;
-  if (diff <= 0) return;
-  const d = Math.floor(diff/86400000);
-  const h = Math.floor((diff%86400000)/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  const s = Math.floor((diff%60000)/1000);
-  document.getElementById('t-dias').textContent = String(d).padStart(2,'0');
-  document.getElementById('t-hrs').textContent  = String(h).padStart(2,'0');
-  document.getElementById('t-min').textContent  = String(m).padStart(2,'0');
-  document.getElementById('t-sec').textContent  = String(s).padStart(2,'0');
-}
-updateCountdown();
-setInterval(updateCountdown, 1000);
+
 
 // Modal
 let currentPrice = 99.90;
