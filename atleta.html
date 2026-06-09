@@ -10,29 +10,29 @@
 :root {
   --orange: #ff751f;
   --orange-dark: #e05a08;
-  --black: #0a0a0a;
+  --black: #faf9f7;
   --white: #ffffff;
-  --bg-card: #1a1a1a;
-  --bg-dark: #111111;
+  --bg-card: #ffffff;
+  --bg-dark: #f3f1ee;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Ubuntu', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; }
+body { font-family: 'Ubuntu', sans-serif; background: var(--black); color: #2a2520; min-height: 100vh; }
 
 /* NAV */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 5%; height: 70px;
-  background: rgba(10,10,10,0.95);
+  background: rgba(250,249,247,0.97);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(255,117,31,0.15);
 }
 .nav-logo { text-decoration: none; display: flex; align-items: center; }
 .nav-user { display: flex; align-items: center; gap: 16px; }
-.nav-user-name { font-size: 14px; color: rgba(255,255,255,0.7); }
+.nav-user-name { font-size: 14px; color: rgba(42,37,32,0.65); }
 .btn-logout {
-  background: transparent; color: rgba(255,255,255,0.6);
-  border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+  background: transparent; color: rgba(42,37,32,0.6);
+  border: 1px solid rgba(42,37,32,0.2); border-radius: 6px;
   padding: 8px 16px; font-size: 13px; font-weight: 600;
   cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
 }
@@ -45,30 +45,30 @@ nav {
 
 /* CARD AUTH */
 .auth-card {
-  background: #171717; border-radius: 16px; width: 100%; max-width: 560px;
-  padding: 40px 36px; border: 1px solid rgba(255,117,31,0.2);
+  background: #ffffff; border-radius: 16px; width: 100%; max-width: 560px;
+  padding: 40px 36px; border: 1px solid rgba(255,117,31,0.3);
 }
 .auth-logo { display: flex; justify-content: center; margin-bottom: 28px; }
 .auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; text-align: center; }
-.auth-sub { font-size: 14px; color: rgba(255,255,255,0.5); text-align: center; margin-bottom: 28px; }
+.auth-sub { font-size: 14px; color: rgba(42,37,32,0.5); text-align: center; margin-bottom: 28px; }
 .form-group { margin-bottom: 16px; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px; }
 .form-section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,117,31,0.2); }
-.form-group select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 11px 14px; color: white; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; }
-.form-group select:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.05); }
-.form-group select option { background: #222; }
-.form-group label { display: block; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 6px; font-weight: 500; }
+.form-group select { width: 100%; background: rgba(42,37,32,0.05); border: 1px solid rgba(42,37,32,0.08); border-radius: 8px; padding: 11px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; }
+.form-group select:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.06); }
+.form-group select option { background: #f5f3f0; }
+.form-group label { display: block; font-size: 13px; color: rgba(42,37,32,0.6); margin-bottom: 6px; font-weight: 500; }
 .form-group input {
-  width: 100%; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-  padding: 12px 14px; color: white; font-size: 15px; font-family: 'Ubuntu', sans-serif;
+  width: 100%; background: rgba(42,37,32,0.05);
+  border: 1px solid rgba(42,37,32,0.08); border-radius: 8px;
+  padding: 12px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif;
   transition: border-color 0.2s;
 }
-.form-group input:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.05); }
-.form-group input::placeholder { color: rgba(255,255,255,0.25); }
+.form-group input:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.06); }
+.form-group input::placeholder { color: rgba(42,37,32,0.25); }
 .btn-auth {
-  width: 100%; background: var(--orange); color: white;
+  width: 100%; background: var(--orange); color: #ffffff;
   padding: 14px; border-radius: 8px; border: none;
   font-size: 16px; font-weight: 700; cursor: pointer;
   font-family: 'Ubuntu', sans-serif; transition: all 0.2s; margin-top: 8px;
@@ -77,7 +77,7 @@ nav {
 .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .auth-switch {
   text-align: center; margin-top: 20px; font-size: 14px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(42,37,32,0.5);
 }
 .auth-switch a { color: var(--orange); cursor: pointer; text-decoration: none; font-weight: 600; }
 .auth-switch a:hover { text-decoration: underline; }
@@ -95,7 +95,7 @@ nav {
 }
 .area-header h1 { font-size: 28px; font-weight: 700; }
 .area-header h1 span { color: var(--orange); }
-.area-subtitulo { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+.area-subtitulo { font-size: 14px; color: rgba(42,37,32,0.5); margin-top: 4px; }
 
 .inscricoes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
 
@@ -108,7 +108,7 @@ nav {
 
 .insc-card-top {
   padding: 20px 22px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(42,37,32,0.06);
 }
 .insc-evento { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
 .insc-status {
@@ -127,18 +127,18 @@ nav {
   font-size: 13px;
 }
 .insc-row:last-child { border-bottom: none; }
-.insc-label { color: rgba(255,255,255,0.45); }
+.insc-label { color: rgba(42,37,32,0.45); }
 .insc-val { font-weight: 600; color: rgba(255,255,255,0.9); text-align: right; }
 .insc-val.orange { color: var(--orange); }
 
 .insc-qr {
   padding: 16px 22px 20px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(42,37,32,0.06);
   display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
 .insc-qr-titulo {
   font-size: 11px; font-weight: 700; letter-spacing: 2px;
-  text-transform: uppercase; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; color: rgba(42,37,32,0.4);
   align-self: flex-start;
 }
 .qr-wrap {
@@ -146,19 +146,19 @@ nav {
   display: flex; align-items: center; justify-content: center;
 }
 .qr-id {
-  font-size: 11px; color: rgba(255,255,255,0.3);
+  font-size: 11px; color: rgba(42,37,32,0.3);
   font-family: monospace; letter-spacing: 1px;
 }
 
 .vazio {
   grid-column: 1/-1; text-align: center; padding: 64px 20px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(42,37,32,0.3);
 }
 .vazio-icone { font-size: 48px; margin-bottom: 16px; }
 .vazio-texto { font-size: 16px; }
 
 /* loading */
-.loading-wrap { text-align: center; padding: 60px; color: rgba(255,255,255,0.4); }
+.loading-wrap { text-align: center; padding: 60px; color: rgba(42,37,32,0.4); }
 .spinner {
   width: 36px; height: 36px; border-radius: 50%;
   border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
@@ -178,9 +178,9 @@ nav {
 .codigo-inputs input {
   width: 48px; height: 58px; text-align: center;
   font-size: 26px; font-weight: 700;
-  background: rgba(255,255,255,0.05);
-  border: 2px solid rgba(255,255,255,0.1); border-radius: 10px;
-  color: white; font-family: 'Ubuntu', sans-serif;
+  background: rgba(42,37,32,0.05);
+  border: 2px solid rgba(42,37,32,0.08); border-radius: 10px;
+  color: #2a2520; font-family: 'Ubuntu', sans-serif;
   transition: border-color 0.2s;
 }
 .codigo-inputs input:focus {
@@ -190,9 +190,9 @@ nav {
 .codigo-inputs input.filled { border-color: rgba(255,117,31,0.5); }
 
 .rec-email-destino {
-  background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.2);
+  background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.3);
   border-radius: 8px; padding: 12px 16px; font-size: 14px;
-  color: rgba(255,255,255,0.7); margin-bottom: 8px; text-align: center;
+  color: rgba(42,37,32,0.65); margin-bottom: 8px; text-align: center;
 }
 .rec-email-destino strong { color: var(--orange); }
 
@@ -209,7 +209,7 @@ nav {
 }
 .rec-sucesso-icone { font-size: 52px; margin-bottom: 16px; }
 .rec-sucesso-titulo { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-.rec-sucesso-sub { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+.rec-sucesso-sub { font-size: 14px; color: rgba(42,37,32,0.5); line-height: 1.6; }
 
 @media (max-width: 600px) {
   .inscricoes-grid { grid-template-columns: 1fr; }
@@ -255,7 +255,7 @@ nav {
     </div>
     <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
     <div class="auth-switch">
-      <a onclick="irParaRecuperacao()" style="font-size:13px;color:rgba(255,255,255,0.4);">Esqueci minha senha</a>
+      <a onclick="irParaRecuperacao()" style="font-size:13px;color:rgba(42,37,32,0.4);">Esqueci minha senha</a>
     </div>
     <div class="auth-switch">
       Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
@@ -426,7 +426,7 @@ nav {
         <input type="text" inputmode="numeric" maxlength="1" id="cod4" oninput="avancarCodigo(this,4)">
         <input type="text" inputmode="numeric" maxlength="1" id="cod5" oninput="avancarCodigo(this,5)" onkeyup="if(codigoCompleto())validarCodigo()">
       </div>
-      <p style="font-size:12px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:16px;">⏱ Válido por 15 minutos</p>
+      <p style="font-size:12px;color:rgba(42,37,32,0.35);text-align:center;margin-bottom:16px;">⏱ Válido por 15 minutos</p>
       <button class="btn-auth" id="btn-rec2" onclick="validarCodigo()">Verificar código</button>
       <div class="auth-switch" style="margin-top:16px;">
         Não recebeu? <button class="btn-link" onclick="reenviarCodigo()">Reenviar e-mail</button>
@@ -863,7 +863,7 @@ async function carregarInscricoes(dados) {
         <div class="vazio">
           <div class="vazio-icone">🏃</div>
           <div class="vazio-texto" style="font-size:18px;font-weight:700;margin-bottom:8px;">Nenhuma inscrição ainda</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:24px;">Quando as inscrições abrirem, você poderá se inscrever rapidamente com seus dados já cadastrados.</div>
+          <div style="font-size:14px;color:rgba(42,37,32,0.4);margin-bottom:24px;">Quando as inscrições abrirem, você poderá se inscrever rapidamente com seus dados já cadastrados.</div>
           <a href="/" style="background:var(--orange);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Ver eventos</a>
         </div>`;
       return;
@@ -909,7 +909,7 @@ function mascararNomeAtleta(nome) {
 }
 
 function renderInscricao(it, cpfTitular) {
-  const desconto = it.desconto_pct ? ` <span style="color:rgba(255,255,255,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
+  const desconto = it.desconto_pct ? ` <span style="color:rgba(42,37,32,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
   return `
   <div class="insc-card">
     <div class="insc-card-top">
