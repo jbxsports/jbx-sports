@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido' });
 
-  const { acao, cpf, codigo, senha_hash } = req.body;
+  const { acao, cpf, codigo, senha_nova } = req.body;
 
   // ── AÇÃO 1: Solicitar código ──
   if (acao === 'solicitar') {
@@ -36,7 +36,6 @@ module.exports = async (req, res) => {
         return res.status(200).json({ ok: false, erro: dados.erro });
       }
 
-      // Envia e-mail com o código
       await resend.emails.send({
         from: 'JBX Sports <suporte@jbxsports.com.br>',
         to: dados.email,
@@ -49,16 +48,12 @@ module.exports = async (req, res) => {
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
               <tr><td align="center">
                 <table width="520" cellpadding="0" cellspacing="0" style="background:#171717;border-radius:12px;border:1px solid rgba(255,117,31,0.2);overflow:hidden;">
-                  
-                  <!-- Header laranja -->
                   <tr>
                     <td style="background:#ff751f;padding:28px 40px;text-align:center;">
                       <div style="color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">JBX SPORTS</div>
                       <div style="color:rgba(255,255,255,0.85);font-size:13px;margin-top:4px;">Recuperação de senha</div>
                     </td>
                   </tr>
-
-                  <!-- Corpo -->
                   <tr>
                     <td style="padding:40px;">
                       <p style="color:#ffffff;font-size:16px;margin:0 0 8px;">Olá, <strong>${dados.nome}</strong>!</p>
@@ -66,22 +61,17 @@ module.exports = async (req, res) => {
                         Recebemos uma solicitação para redefinir a senha da sua conta JBX Sports.<br>
                         Use o código abaixo para continuar:
                       </p>
-
-                      <!-- Código em destaque -->
                       <div style="background:#0a0a0a;border:2px solid #ff751f;border-radius:10px;padding:24px;text-align:center;margin-bottom:32px;">
                         <div style="color:rgba(255,255,255,0.5);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Seu código</div>
                         <div style="color:#ff751f;font-size:42px;font-weight:700;letter-spacing:10px;">${dados.codigo}</div>
                         <div style="color:rgba(255,255,255,0.4);font-size:12px;margin-top:12px;">⏱ Válido por 15 minutos</div>
                       </div>
-
                       <p style="color:rgba(255,255,255,0.4);font-size:13px;line-height:1.6;margin:0;">
                         Se você não solicitou a recuperação de senha, ignore este e-mail.<br>
                         Sua senha permanece a mesma.
                       </p>
                     </td>
                   </tr>
-
-                  <!-- Footer -->
                   <tr>
                     <td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
                       <p style="color:rgba(255,255,255,0.25);font-size:12px;margin:0;">
@@ -89,7 +79,6 @@ module.exports = async (req, res) => {
                       </p>
                     </td>
                   </tr>
-
                 </table>
               </td></tr>
             </table>
@@ -115,7 +104,7 @@ module.exports = async (req, res) => {
       const dados = await rpc('redefinir_senha', {
         p_cpf: cpf,
         p_codigo: codigo,
-        p_senha_hash: senha_hash
+        p_senha_nova: senha_nova
       });
 
       return res.status(200).json(dados);
