@@ -6,36 +6,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-// ── Busca dados do atleta pelo CPF no banco (para atletas com ref) ──
 async function buscarDadosAtleta(cpf) {
   try {
     const cpfLimpo = cpf.replace(/\D/g, '');
-    // Busca em inscricoes (mais recente)
-    const res = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&order=id.desc&limit=1&select=nome,telefone,email`, {
-      headers: {
-        'apikey':        SB_SERVICE_KEY,
-        'Authorization': `Bearer ${SB_SERVICE_KEY}`
-      }
+
+    // Busca direto em atletas_contas (fonte mais confiável)
+    const res = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
+      headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
     const data = await res.json();
-    if (data && data.length > 0) return data[0];
+    if (data && data.length > 0 && data[0].telefone) return data[0];
 
-    // Tenta em atletas_contas
-    const res2 = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
-      headers: {
-        'apikey':        SB_SERVICE_KEY,
-        'Authorization': `Bearer ${SB_SERVICE_KEY}`
-      }
+    // Fallback: inscricoes com telefone não nulo
+    const res2 = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&telefone=not.is.null&order=id.desc&limit=1&select=nome,telefone,email`, {
+      headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
     const data2 = await res2.json();
     if (data2 && data2.length > 0) return data2[0];
+
   } catch(e) {
     console.error('[checkout] buscarDadosAtleta erro:', e.message);
   }
   return null;
 }
 
-// ── Cria inscrições no Supabase ──
 async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome) {
   const resultados = [];
   for (const item of itens) {
@@ -107,20 +101,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
-  // ── 1. Cria inscrições no Supabase ──
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
     return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
   }
 
-  // ── 2. Total em centavos ──
   const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
   if (totalCents <= 0) {
     return res.status(400).json({ error: 'Valor inválido.' });
   }
 
-  // ── 3. Line items para o Stripe ──
   const line_items = itens.map((item, i) => ({
     price_data: {
       currency: 'brl',
@@ -133,15 +124,13 @@ export default async function handler(req, res) {
     quantity: 1,
   }));
 
-  // ── 4. Metadados para o webhook ──
-  // Para atletas com ref (cadastro existente), busca telefone/email/nome do banco
   const metadataItens = await Promise.all(itens.map(async (it) => {
     let nome     = it.nome     || '';
     let telefone = it.telefone || '';
     let email    = it.email    || '';
 
-    // Se veio por ref (atleta já cadastrado), busca dados reais no banco
-    if (it.ref && it.cpf && (!telefone || !nome)) {
+    // Busca dados no banco se telefone ou email estiver vazio
+    if (it.cpf && (!telefone || !email)) {
       const dadosBanco = await buscarDadosAtleta(it.cpf);
       if (dadosBanco) {
         nome     = nome     || dadosBanco.nome     || '';
@@ -150,25 +139,25 @@ export default async function handler(req, res) {
       }
     }
 
+    console.log('[checkout] item final — nome:', nome, '| tel:', telefone, '| email:', email);
+
     return {
-      ref:            it.ref           || '',
-      cpf:            it.cpf           || '',
-      nome,
-      telefone,
-      email,
-      evento:         evento_nome      || '',
-      kit:            it.kit           || '',
-      modalidade:     it.modalidade    || '',
-      tamanho_camisa: it.tamanho_camisa|| '',
+      nome:       nome.slice(0, 40),
+      tel:        (telefone || '').replace(/\D/g, '').slice(0, 15),
+      email:      email.slice(0, 60),
+      evento:     (evento_nome || '').slice(0, 40),
+      kit:        (it.kit || '').slice(0, 20),
+      modalidade: (it.modalidade || '').slice(0, 20),
+      camisa:     (it.tamanho_camisa || '').slice(0, 10),
+      valor:      it.valor || 0,
     };
   }));
 
-  console.log('[checkout] metadataItens:', JSON.stringify(metadataItens));
+  const itensJson = JSON.stringify(metadataItens);
+  console.log('[checkout] metadataItens final:', itensJson);
 
-  // ── 5. Método de pagamento ──
   const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
 
-  // ── 6. Cria sessão no Stripe ──
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types,
@@ -180,7 +169,7 @@ export default async function handler(req, res) {
         pedido,
         evento_nome: evento_nome || '',
         cupom:       cupom       || '',
-        itens:       JSON.stringify(metadataItens).slice(0, 500),
+        itens:       itensJson,
       },
     });
 

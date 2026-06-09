@@ -104,7 +104,7 @@ function montarMensagemWhatsApp(item, evento) {
     `• Data: *${dataEvento}*\n` +
     `• Modalidade: *${item.modalidade || '—'}*\n` +
     `• Kit: *${item.kit || '—'}*\n` +
-    `• Camiseta: *${item.tamanho_camisa || '—'}*\n\n` +
+    `• Camiseta: *${item.camisa || '—'}*\n\n` +
     `📍 Fique de olho nas nossas redes para informações sobre retirada de kit e concentração.\n\n` +
     `📸 *@jbx.sports*\n\n` +
     `Boa corrida! Vamos juntos! 🧡🏁`
@@ -157,7 +157,7 @@ export default async function handler(req, res) {
   // Para cada atleta: envia WhatsApp + e-mail
   for (const item of itens) {
     // WhatsApp
-    const telefone = item.telefone || '';
+    const telefone = item.tel || '';
     if (telefone) {
       await enviarWhatsApp(telefone, montarMensagemWhatsApp(item, evento));
     }
