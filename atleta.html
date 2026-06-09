@@ -166,10 +166,56 @@ nav {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* RECUPERAÇÃO DE SENHA */
+.rec-step {
+  display: none;
+}
+.rec-step.active { display: block; }
+
+.codigo-inputs {
+  display: flex; gap: 10px; justify-content: center; margin: 20px 0;
+}
+.codigo-inputs input {
+  width: 48px; height: 58px; text-align: center;
+  font-size: 26px; font-weight: 700;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.1); border-radius: 10px;
+  color: white; font-family: 'Ubuntu', sans-serif;
+  transition: border-color 0.2s;
+}
+.codigo-inputs input:focus {
+  outline: none; border-color: var(--orange);
+  background: rgba(255,117,31,0.08);
+}
+.codigo-inputs input.filled { border-color: rgba(255,117,31,0.5); }
+
+.rec-email-destino {
+  background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.2);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px;
+  color: rgba(255,255,255,0.7); margin-bottom: 8px; text-align: center;
+}
+.rec-email-destino strong { color: var(--orange); }
+
+.btn-link {
+  background: none; border: none; color: var(--orange);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; text-decoration: none;
+  padding: 0;
+}
+.btn-link:hover { text-decoration: underline; }
+
+.rec-sucesso {
+  text-align: center; padding: 20px 0;
+}
+.rec-sucesso-icone { font-size: 52px; margin-bottom: 16px; }
+.rec-sucesso-titulo { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.rec-sucesso-sub { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+
 @media (max-width: 600px) {
   .inscricoes-grid { grid-template-columns: 1fr; }
   .auth-card { padding: 28px 20px; }
   #screen-area { padding: 90px 16px 40px; }
+  .codigo-inputs input { width: 40px; height: 50px; font-size: 22px; }
 }
 </style>
 </head>
@@ -208,6 +254,9 @@ nav {
       <input type="password" id="login-senha" placeholder="Sua senha" onkeydown="if(event.key==='Enter')fazerLogin()">
     </div>
     <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="auth-switch">
+      <a onclick="irParaRecuperacao()" style="font-size:13px;color:rgba(255,255,255,0.4);">Esqueci minha senha</a>
+    </div>
     <div class="auth-switch">
       Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
     </div>
@@ -339,7 +388,78 @@ nav {
   </div>
 </div>
 
-<!-- TELA ÁREA DO ATLETA -->
+<!-- TELA RECUPERAÇÃO DE SENHA -->
+<div class="screen" id="screen-recuperacao">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Recuperar senha</h2>
+    <div class="auth-erro" id="rec-erro"></div>
+
+    <!-- PASSO 1: digitar CPF -->
+    <div class="rec-step active" id="rec-passo1">
+      <p class="auth-sub">Informe seu CPF para receber o código de recuperação por e-mail.</p>
+      <div class="form-group" style="margin-top:8px;">
+        <label>CPF cadastrado</label>
+        <input type="text" id="rec-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)" onkeydown="if(event.key==='Enter')solicitarCodigo()">
+      </div>
+      <button class="btn-auth" id="btn-rec1" onclick="solicitarCodigo()">Enviar código</button>
+      <div class="auth-switch">
+        <a onclick="irParaLogin()">← Voltar ao login</a>
+      </div>
+    </div>
+
+    <!-- PASSO 2: digitar código -->
+    <div class="rec-step" id="rec-passo2">
+      <p class="auth-sub">Digite o código de 6 dígitos enviado para:</p>
+      <div class="rec-email-destino" id="rec-email-destino">
+        <strong id="rec-email-texto">***@***.com</strong>
+      </div>
+      <div class="codigo-inputs" id="codigo-inputs">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod0" oninput="avancarCodigo(this,0)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod1" oninput="avancarCodigo(this,1)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod2" oninput="avancarCodigo(this,2)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod3" oninput="avancarCodigo(this,3)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod4" oninput="avancarCodigo(this,4)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod5" oninput="avancarCodigo(this,5)" onkeyup="if(codigoCompleto())validarCodigo()">
+      </div>
+      <p style="font-size:12px;color:rgba(255,255,255,0.35);text-align:center;margin-bottom:16px;">⏱ Válido por 15 minutos</p>
+      <button class="btn-auth" id="btn-rec2" onclick="validarCodigo()">Verificar código</button>
+      <div class="auth-switch" style="margin-top:16px;">
+        Não recebeu? <button class="btn-link" onclick="reenviarCodigo()">Reenviar e-mail</button>
+        &nbsp;·&nbsp; <a onclick="irParaLogin()">← Voltar</a>
+      </div>
+    </div>
+
+    <!-- PASSO 3: nova senha -->
+    <div class="rec-step" id="rec-passo3">
+      <p class="auth-sub">Escolha uma nova senha para sua conta.</p>
+      <div class="form-group" style="margin-top:8px;">
+        <label>Nova senha *</label>
+        <input type="password" id="rec-senha1" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar nova senha *</label>
+        <input type="password" id="rec-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')redefinirSenha()">
+      </div>
+      <button class="btn-auth" id="btn-rec3" onclick="redefinirSenha()">Salvar nova senha</button>
+    </div>
+
+    <!-- PASSO 4: sucesso -->
+    <div class="rec-step" id="rec-passo4">
+      <div class="rec-sucesso">
+        <div class="rec-sucesso-icone">✅</div>
+        <div class="rec-sucesso-titulo">Senha redefinida!</div>
+        <div class="rec-sucesso-sub">Sua senha foi atualizada com sucesso.<br>Use a nova senha para entrar na sua conta.</div>
+        <button class="btn-auth" style="margin-top:28px;" onclick="irParaLogin()">Ir para o login</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 <div class="screen" id="screen-area">
   <div style="width:100%;max-width:1200px;margin:0 auto;">
     <div class="area-header">
@@ -523,7 +643,198 @@ async function fazerCadastro() {
   btn.textContent = 'Criar conta'; btn.disabled = false;
 }
  
-// ── ÁREA ─────────────────────────────────────────
+function irParaRecuperacao() {
+  limparErros();
+  // Reseta todos os passos
+  document.querySelectorAll('.rec-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('rec-passo1').classList.add('active');
+  document.getElementById('rec-cpf').value = '';
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('cod' + i);
+    if (el) { el.value = ''; el.classList.remove('filled'); }
+  }
+  document.getElementById('rec-senha1').value = '';
+  document.getElementById('rec-senha2').value = '';
+  mostrarTela('recuperacao');
+}
+
+function irParaPassoRec(n) {
+  document.querySelectorAll('.rec-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('rec-passo' + n).classList.add('active');
+}
+
+// Navega entre os inputs do código automaticamente
+function avancarCodigo(el, idx) {
+  el.value = el.value.replace(/\D/g, '');
+  el.classList.toggle('filled', el.value !== '');
+  if (el.value && idx < 5) {
+    document.getElementById('cod' + (idx + 1)).focus();
+  }
+}
+
+function codigoCompleto() {
+  for (let i = 0; i < 6; i++) {
+    if (!document.getElementById('cod' + i).value) return false;
+  }
+  return true;
+}
+
+function getCodigo() {
+  return Array.from({length: 6}, (_, i) => document.getElementById('cod' + i).value).join('');
+}
+
+// PASSO 1 → solicitar código
+async function solicitarCodigo() {
+  limparErros();
+  const cpf = document.getElementById('rec-cpf').value;
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('rec-erro', 'CPF inválido.');
+
+  const btn = document.getElementById('btn-rec1');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'solicitar', cpf })
+    });
+    const dados = await res.json();
+
+    if (!dados.ok) {
+      mostrarErro('rec-erro', dados.erro || 'CPF não encontrado.');
+    } else {
+      document.getElementById('rec-email-texto').textContent = dados.email_mascarado;
+      irParaPassoRec(2);
+      setTimeout(() => document.getElementById('cod0').focus(), 100);
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Enviar código'; btn.disabled = false;
+}
+
+async function reenviarCodigo() {
+  const cpf = document.getElementById('rec-cpf').value;
+  if (!cpf) { irParaPassoRec(1); return; }
+  // Limpa campos do código
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('cod' + i);
+    if (el) { el.value = ''; el.classList.remove('filled'); }
+  }
+  limparErros();
+  try {
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'solicitar', cpf })
+    });
+    const dados = await res.json();
+    if (dados.ok) {
+      mostrarErro('rec-erro', '✅ Novo código enviado para ' + dados.email_mascarado);
+      document.getElementById('rec-erro').style.background = 'rgba(34,197,94,0.1)';
+      document.getElementById('rec-erro').style.borderColor = 'rgba(34,197,94,0.3)';
+      document.getElementById('rec-erro').style.color = '#22c55e';
+    } else {
+      mostrarErro('rec-erro', dados.erro || 'Erro ao reenviar.');
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão.');
+  }
+}
+
+// PASSO 2 → validar código (apenas avança para passo 3, validação real acontece no redefinir)
+function validarCodigo() {
+  limparErros();
+  if (!codigoCompleto()) return mostrarErro('rec-erro', 'Digite todos os 6 dígitos do código.');
+  irParaPassoRec(3);
+  setTimeout(() => document.getElementById('rec-senha1').focus(), 100);
+}
+
+// PASSO 3 → redefinir senha
+async function redefinirSenha() {
+  limparErros();
+  const senha1 = document.getElementById('rec-senha1').value;
+  const senha2 = document.getElementById('rec-senha2').value;
+  const cpf    = document.getElementById('rec-cpf').value;
+  const codigo = getCodigo();
+
+  if (senha1.length < 6) return mostrarErro('rec-erro', 'A senha deve ter pelo menos 6 caracteres.');
+  if (senha1 !== senha2) return mostrarErro('rec-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-rec3');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try {
+    // Gera hash igual ao padrão do sistema: md5(cpf + senha + 'jbx_salt_2026')
+    const cpfLimpo = cpf.replace(/\D/g,'');
+    const senhaHash = await gerarMd5(cpfLimpo + senha1 + 'jbx_salt_2026');
+
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'redefinir', cpf, codigo, senha_hash: senhaHash })
+    });
+    const dados = await res.json();
+
+    if (!dados.ok) {
+      mostrarErro('rec-erro', dados.erro || 'Código inválido ou expirado. Solicite um novo.');
+      // Se o código expirou, volta pro passo 1
+      if (dados.erro && dados.erro.includes('expirado')) {
+        setTimeout(() => irParaPassoRec(1), 2000);
+      }
+    } else {
+      irParaPassoRec(4);
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Salvar nova senha'; btn.disabled = false;
+}
+
+// MD5 via Web Crypto (mesmo padrão do sistema)
+async function gerarMd5(str) {
+  // Usa a mesma lógica que o backend: md5 puro
+  // Como Web Crypto não tem MD5, usamos uma implementação simples
+  function md5(string) {
+    function safeAdd(x, y) { const lsw = (x & 0xffff) + (y & 0xffff); return (((x >> 16) + (y >> 16) + (lsw >> 16)) << 16) | (lsw & 0xffff); }
+    function bitRotateLeft(num, cnt) { return (num << cnt) | (num >>> (32 - cnt)); }
+    function md5cmn(q,a,b,x,s,t) { return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b); }
+    function md5ff(a,b,c,d,x,s,t) { return md5cmn((b&c)|((~b)&d),a,b,x,s,t); }
+    function md5gg(a,b,c,d,x,s,t) { return md5cmn((b&d)|(c&(~d)),a,b,x,s,t); }
+    function md5hh(a,b,c,d,x,s,t) { return md5cmn(b^c^d,a,b,x,s,t); }
+    function md5ii(a,b,c,d,x,s,t) { return md5cmn(c^(b|(~d)),a,b,x,s,t); }
+    const str8 = unescape(encodeURIComponent(string));
+    const x = [];
+    for (let i = 0; i < str8.length; i++) { x[i >> 2] |= str8.charCodeAt(i) << ((i % 4) * 8); }
+    x[str8.length >> 2] |= 0x80 << ((str8.length % 4) * 8);
+    x[(((str8.length + 8) >> 6) << 4) + 14] = str8.length * 8;
+    let a=1732584193, b=-271733879, c=-1732584194, d=271733878;
+    for (let i = 0; i < x.length; i += 16) {
+      const [oa,ob,oc,od]=[a,b,c,d];
+      a=md5ff(a,b,c,d,x[i],7,-680876936);d=md5ff(d,a,b,c,x[i+1],12,-389564586);c=md5ff(c,d,a,b,x[i+2],17,606105819);b=md5ff(b,c,d,a,x[i+3],22,-1044525330);
+      a=md5ff(a,b,c,d,x[i+4],7,-176418897);d=md5ff(d,a,b,c,x[i+5],12,1200080426);c=md5ff(c,d,a,b,x[i+6],17,-1473231341);b=md5ff(b,c,d,a,x[i+7],22,-45705983);
+      a=md5ff(a,b,c,d,x[i+8],7,1770035416);d=md5ff(d,a,b,c,x[i+9],12,-1958414417);c=md5ff(c,d,a,b,x[i+10],17,-42063);b=md5ff(b,c,d,a,x[i+11],22,-1990404162);
+      a=md5ff(a,b,c,d,x[i+12],7,1804603682);d=md5ff(d,a,b,c,x[i+13],12,-40341101);c=md5ff(c,d,a,b,x[i+14],17,-1502002290);b=md5ff(b,c,d,a,x[i+15],22,1236535329);
+      a=md5gg(a,b,c,d,x[i+1],5,-165796510);d=md5gg(d,a,b,c,x[i+6],9,-1069501632);c=md5gg(c,d,a,b,x[i+11],14,643717713);b=md5gg(b,c,d,a,x[i],20,-373897302);
+      a=md5gg(a,b,c,d,x[i+5],5,-701558691);d=md5gg(d,a,b,c,x[i+10],9,38016083);c=md5gg(c,d,a,b,x[i+15],14,-660478335);b=md5gg(b,c,d,a,x[i+4],20,-405537848);
+      a=md5gg(a,b,c,d,x[i+9],5,568446438);d=md5gg(d,a,b,c,x[i+14],9,-1019803690);c=md5gg(c,d,a,b,x[i+3],14,-187363961);b=md5gg(b,c,d,a,x[i+8],20,1163531501);
+      a=md5gg(a,b,c,d,x[i+13],5,-1444681467);d=md5gg(d,a,b,c,x[i+2],9,-51403784);c=md5gg(c,d,a,b,x[i+7],14,1735328473);b=md5gg(b,c,d,a,x[i+12],20,-1926607734);
+      a=md5hh(a,b,c,d,x[i+5],4,-378558);d=md5hh(d,a,b,c,x[i+8],11,-2022574463);c=md5hh(c,d,a,b,x[i+11],16,1839030562);b=md5hh(b,c,d,a,x[i+14],23,-35309556);
+      a=md5hh(a,b,c,d,x[i+1],4,-1530992060);d=md5hh(d,a,b,c,x[i+4],11,1272893353);c=md5hh(c,d,a,b,x[i+7],16,-155497632);b=md5hh(b,c,d,a,x[i+10],23,-1094730640);
+      a=md5hh(a,b,c,d,x[i+13],4,681279174);d=md5hh(d,a,b,c,x[i],11,-358537222);c=md5hh(c,d,a,b,x[i+3],16,-722521979);b=md5hh(b,c,d,a,x[i+6],23,76029189);
+      a=md5hh(a,b,c,d,x[i+9],4,-640364487);d=md5hh(d,a,b,c,x[i+12],11,-421815835);c=md5hh(c,d,a,b,x[i+15],16,530742520);b=md5hh(b,c,d,a,x[i+2],23,-995338651);
+      a=md5ii(a,b,c,d,x[i],6,-198630844);d=md5ii(d,a,b,c,x[i+7],10,1126891415);c=md5ii(c,d,a,b,x[i+14],15,-1416354905);b=md5ii(b,c,d,a,x[i+5],21,-57434055);
+      a=md5ii(a,b,c,d,x[i+12],6,1700485571);d=md5ii(d,a,b,c,x[i+3],10,-1894986606);c=md5ii(c,d,a,b,x[i+10],15,-1051523);b=md5ii(b,c,d,a,x[i+1],21,-2054922799);
+      a=md5ii(a,b,c,d,x[i+8],6,1873313359);d=md5ii(d,a,b,c,x[i+15],10,-30611744);c=md5ii(c,d,a,b,x[i+6],15,-1560198380);b=md5ii(b,c,d,a,x[i+13],21,1309151649);
+      a=md5ii(a,b,c,d,x[i+4],6,-145523070);d=md5ii(d,a,b,c,x[i+11],10,-1120210379);c=md5ii(c,d,a,b,x[i+2],15,718787259);b=md5ii(b,c,d,a,x[i+9],21,-343485551);
+      a=safeAdd(a,oa);b=safeAdd(b,ob);c=safeAdd(c,oc);d=safeAdd(d,od);
+    }
+    return [a,b,c,d].map(n => ('0'.repeat(8) + (n < 0 ? n + 4294967296 : n).toString(16)).slice(-8).match(/../g).map(h => h[1]+h[0]).join('')).join('');
+  }
+  return md5(str);
+}
+
+
 function entrarNaArea(dados) {
   const nome = dados.nome || dados.cpf;
   document.getElementById('area-nome').textContent = nome.split(' ')[0];
