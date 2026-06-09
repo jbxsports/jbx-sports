@@ -9,17 +9,21 @@ const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 async function buscarDadosAtleta(cpf) {
   try {
     const cpfLimpo = cpf.replace(/\D/g, '');
-    const res = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&order=id.desc&limit=1&select=nome,telefone,email`, {
+
+    // Busca direto em atletas_contas (fonte mais confiável)
+    const res = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
       headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
     const data = await res.json();
-    if (data && data.length > 0) return data[0];
+    if (data && data.length > 0 && data[0].telefone) return data[0];
 
-    const res2 = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
+    // Fallback: inscricoes com telefone não nulo
+    const res2 = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&telefone=not.is.null&order=id.desc&limit=1&select=nome,telefone,email`, {
       headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
     const data2 = await res2.json();
     if (data2 && data2.length > 0) return data2[0];
+
   } catch(e) {
     console.error('[checkout] buscarDadosAtleta erro:', e.message);
   }
@@ -97,9 +101,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
-  // LOG para diagnóstico — ver o que chega do frontend
-  console.log('[checkout] itens recebidos:', JSON.stringify(itens));
-
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
@@ -128,12 +129,9 @@ export default async function handler(req, res) {
     let telefone = it.telefone || '';
     let email    = it.email    || '';
 
-    console.log('[checkout] item antes da busca — ref:', it.ref, '| cpf:', it.cpf, '| tel:', telefone, '| email:', email);
-
-    // Busca sempre pelo CPF se telefone ou email estiver vazio
+    // Busca dados no banco se telefone ou email estiver vazio
     if (it.cpf && (!telefone || !email)) {
       const dadosBanco = await buscarDadosAtleta(it.cpf);
-      console.log('[checkout] dadosBanco:', JSON.stringify(dadosBanco));
       if (dadosBanco) {
         nome     = nome     || dadosBanco.nome     || '';
         telefone = telefone || dadosBanco.telefone || '';
@@ -145,7 +143,7 @@ export default async function handler(req, res) {
 
     return {
       nome:       nome.slice(0, 40),
-      tel:        telefone.replace(/\D/g, '').slice(0, 15),
+      tel:        (telefone || '').replace(/\D/g, '').slice(0, 15),
       email:      email.slice(0, 60),
       evento:     (evento_nome || '').slice(0, 40),
       kit:        (it.kit || '').slice(0, 20),
@@ -157,7 +155,6 @@ export default async function handler(req, res) {
 
   const itensJson = JSON.stringify(metadataItens);
   console.log('[checkout] metadataItens final:', itensJson);
-  console.log('[checkout] metadataItens length:', itensJson.length);
 
   const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
 
