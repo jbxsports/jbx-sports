@@ -765,14 +765,10 @@ async function redefinirSenha() {
   btn.textContent = 'Salvando...'; btn.disabled = true;
 
   try {
-    // Gera hash igual ao padrão do sistema: md5(cpf + senha + 'jbx_salt_2026')
-    const cpfLimpo = cpf.replace(/\D/g,'');
-    const senhaHash = await gerarMd5(cpfLimpo + senha1 + 'jbx_salt_2026');
-
     const res = await fetch('/api/recuperar-senha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'redefinir', cpf, codigo, senha_hash: senhaHash })
+      body: JSON.stringify({ acao: 'redefinir', cpf, codigo, senha_nova: senha1 })
     });
     const dados = await res.json();
 
