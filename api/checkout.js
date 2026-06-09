@@ -97,6 +97,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
+  // LOG para diagnóstico — ver o que chega do frontend
+  console.log('[checkout] itens recebidos:', JSON.stringify(itens));
+
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
@@ -120,14 +123,17 @@ export default async function handler(req, res) {
     quantity: 1,
   }));
 
-  // ── Monta metadata com campos mínimos para caber no limite do Stripe (500 chars por valor) ──
   const metadataItens = await Promise.all(itens.map(async (it) => {
     let nome     = it.nome     || '';
     let telefone = it.telefone || '';
     let email    = it.email    || '';
 
-    if (it.ref && it.cpf && (!telefone || !nome || !email)) {
+    console.log('[checkout] item antes da busca — ref:', it.ref, '| cpf:', it.cpf, '| tel:', telefone, '| email:', email);
+
+    // Busca sempre pelo CPF se telefone ou email estiver vazio
+    if (it.cpf && (!telefone || !email)) {
       const dadosBanco = await buscarDadosAtleta(it.cpf);
+      console.log('[checkout] dadosBanco:', JSON.stringify(dadosBanco));
       if (dadosBanco) {
         nome     = nome     || dadosBanco.nome     || '';
         telefone = telefone || dadosBanco.telefone || '';
@@ -135,21 +141,22 @@ export default async function handler(req, res) {
       }
     }
 
-    // Campos mínimos — suficientes para o webhook enviar WhatsApp + e-mail
+    console.log('[checkout] item final — nome:', nome, '| tel:', telefone, '| email:', email);
+
     return {
-      nome:           nome.slice(0, 40),
-      tel:            telefone.replace(/\D/g, '').slice(0, 15),
-      email:          email.slice(0, 60),
-      evento:         (evento_nome || '').slice(0, 40),
-      kit:            (it.kit || '').slice(0, 20),
-      modalidade:     (it.modalidade || '').slice(0, 20),
-      camisa:         (it.tamanho_camisa || '').slice(0, 10),
-      valor:          it.valor || 0,
+      nome:       nome.slice(0, 40),
+      tel:        telefone.replace(/\D/g, '').slice(0, 15),
+      email:      email.slice(0, 60),
+      evento:     (evento_nome || '').slice(0, 40),
+      kit:        (it.kit || '').slice(0, 20),
+      modalidade: (it.modalidade || '').slice(0, 20),
+      camisa:     (it.tamanho_camisa || '').slice(0, 10),
+      valor:      it.valor || 0,
     };
   }));
 
   const itensJson = JSON.stringify(metadataItens);
-  console.log('[checkout] metadataItens:', itensJson);
+  console.log('[checkout] metadataItens final:', itensJson);
   console.log('[checkout] metadataItens length:', itensJson.length);
 
   const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
