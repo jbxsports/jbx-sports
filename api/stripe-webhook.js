@@ -9,8 +9,8 @@ const ZAPI_URL      = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${Z
 
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const SITE_URL       = process.env.SITE_URL || 'https://jbx-sports.vercel.app';
 
-// ── Lê o body raw como Buffer ──
 async function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -20,7 +20,6 @@ async function getRawBody(req) {
   });
 }
 
-// ── Envia WhatsApp via Z-API ──
 async function enviarWhatsApp(telefone, mensagem) {
   try {
     const digits = telefone.replace(/\D/g, '');
@@ -36,7 +35,26 @@ async function enviarWhatsApp(telefone, mensagem) {
   }
 }
 
-// ── Marca pedido como pago no Supabase ──
+async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
+  if (!email) return;
+  try {
+    await fetch(`${SITE_URL}/api/enviar-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'confirmacao_inscricao',
+        email,
+        nome,
+        item,
+        data_evento: dataEvento
+      })
+    });
+    console.log('[webhook] E-mail confirmação enviado para', email.slice(0,4) + '***');
+  } catch(e) {
+    console.error('[webhook] Erro e-mail confirmação:', e.message);
+  }
+}
+
 async function marcarComoPago(pedido) {
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/confirmar_pagamento`, {
@@ -55,7 +73,6 @@ async function marcarComoPago(pedido) {
   }
 }
 
-// ── Busca dados do evento ──
 async function buscarEvento(eventoNome) {
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
@@ -69,7 +86,6 @@ async function buscarEvento(eventoNome) {
   } catch(e) { return null; }
 }
 
-// ── Formata data ──
 function formatarData(dataStr, hora) {
   if (!dataStr) return '—';
   const d = new Date(dataStr + 'T12:00:00');
@@ -77,8 +93,7 @@ function formatarData(dataStr, hora) {
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}${hora ? ' · ' + hora : ''}`;
 }
 
-// ── Monta mensagem de confirmação ──
-function montarMensagem(item, evento) {
+function montarMensagemWhatsApp(item, evento) {
   const primeiroNome = (item.nome || item.rotulo || 'Atleta').split(' ')[0];
   const dataEvento = evento ? formatarData(evento.data, evento.hora) : '—';
   return (
@@ -96,13 +111,11 @@ function montarMensagem(item, evento) {
   );
 }
 
-// ── Handler principal ──
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Lê o body raw ANTES de qualquer parse
   const rawBody = await getRawBody(req);
   const sig = req.headers['stripe-signature'];
 
@@ -130,29 +143,35 @@ export default async function handler(req, res) {
 
   console.log('[webhook] pedido:', pedido);
 
-  // Parse dos itens
   let itens = [];
   try { itens = JSON.parse(metadata.itens || '[]'); } catch(e) {}
 
   // Marca como pago no Supabase
   await marcarComoPago(pedido);
 
-  // Busca dados do evento para a mensagem
+  // Busca dados do evento
   const eventoNome = metadata.evento_nome || (itens[0]?.evento || '');
   const evento = await buscarEvento(eventoNome);
+  const dataEvento = evento ? formatarData(evento.data, evento.hora) : '—';
 
-  // Envia WhatsApp para cada atleta
+  // Para cada atleta: envia WhatsApp + e-mail
   for (const item of itens) {
+    // WhatsApp
     const telefone = item.telefone || '';
-    if (!telefone) { console.log('[webhook] sem telefone para', item.nome); continue; }
-    const mensagem = montarMensagem(item, evento);
-    await enviarWhatsApp(telefone, mensagem);
+    if (telefone) {
+      await enviarWhatsApp(telefone, montarMensagemWhatsApp(item, evento));
+    }
+
+    // E-mail
+    const emailAtleta = item.email || '';
+    if (emailAtleta) {
+      await enviarEmailConfirmacao(emailAtleta, item.nome, item, dataEvento);
+    }
   }
 
   return res.status(200).json({ received: true, itens: itens.length });
 }
 
-// ── CRÍTICO: desativa o bodyParser da Vercel para preservar o raw body ──
 export const config = {
   api: { bodyParser: false }
 };
