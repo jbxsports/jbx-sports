@@ -633,6 +633,13 @@ async function fazerCadastro() {
     if (!res.ok) {
       mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
     } else {
+      // Envia e-mail de boas-vindas (sem bloquear o fluxo)
+      fetch('/api/enviar-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'boas_vindas', email, nome })
+      }).catch(() => {});
+
       const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
       if (login.ok) { salvarSessao(login); entrarNaArea(login); }
       else irParaLogin();
