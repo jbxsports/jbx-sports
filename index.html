@@ -1975,15 +1975,11 @@ async function carregarEventos() {
       return renderCard(ev, i, banner ? banner.url : null);
     }).join('');
 
-    // Atualizar countdown com o próximo evento aberto
+    // Guardar referência ao próximo evento aberto
     const proximo = eventos.find(e => e.status === 'open' && e.data);
     if (proximo) {
-      document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
-      window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
       window._proximoEventoId = proximo.id || '';
       window._proximoEventoNome = proximo.nome || '';
-      const cta = document.querySelector('.countdown-cta');
-      if (cta) cta.onclick = (e) => { e.preventDefault(); irParaEvento(proximo.id); };
     }
 
     tratarRotaEvento(); // se a URL já vier com #evento/<id> (link compartilhado)
