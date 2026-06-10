@@ -347,12 +347,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="form-g" style="margin:0;"><label>Data</label><input id="ef-data" type="date"></div>
           <div class="form-g" style="margin:0;"><label>Hora</label><input id="ef-hora" placeholder="Ex: 07h00"></div>
         </div>
-        <div class="form-row3" style="margin-bottom:14px;">
+        <div class="form-row3" style="margin-bottom:14px;grid-template-columns:1fr 1fr 1fr 1fr;">
           <div class="form-g" style="margin:0;"><label>Local</label><input id="ef-local" placeholder="Cidade ou endereço"></div>
           <div class="form-g" style="margin:0;"><label>Status</label>
             <select id="ef-status"><option value="soon">Em breve</option><option value="open">Inscrições abertas</option><option value="closed">Encerrado</option></select>
           </div>
           <div class="form-g" style="margin:0;"><label>Preço mínimo (R$)</label><input id="ef-preco" type="number" step="0.01" placeholder="89.90"></div>
+          <div class="form-g" style="margin:0;"><label>Taxa de serviço (%)</label><input id="ef-taxa" type="number" step="0.1" min="0" max="100" placeholder="Ex: 10"></div>
         </div>
         <div class="form-g"><label>Distâncias (separadas por vírgula)</label>
           <input id="ef-distancias" placeholder="Ex: 4KM, 8KM, Caminhada 4KM">
@@ -810,7 +811,7 @@ async function loadEventoForm(id){
   document.getElementById('ev-form-titulo').textContent=id?'Editar Evento':'Novo Evento';
   document.getElementById('ef-id').value=id||'';
   document.getElementById('ev-form-feedback').textContent='';
-  ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-taxa','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
   document.getElementById('ef-status').value='soon';
   if(id){
     try{
@@ -818,7 +819,7 @@ async function loadEventoForm(id){
       if(ev){
         const set=(eid,v)=>{const el=document.getElementById(eid);if(el)el.value=v||'';};
         set('ef-nome',ev.nome);set('ef-data',ev.data);set('ef-hora',ev.hora);set('ef-local',ev.local);
-        set('ef-preco',ev.preco_min);set('ef-distancias',ev.distancias);set('ef-descricao',ev.descricao);
+        set('ef-preco',ev.preco_min);set('ef-taxa',ev.taxa_servico||0);set('ef-distancias',ev.distancias);set('ef-descricao',ev.descricao);
         set('ef-percurso',ev.percurso);set('ef-percurso-mapa',ev.percurso_mapa);
         set('ef-retirada',ev.retirada_kit);set('ef-regulamento',ev.regulamento);
         set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);
@@ -833,6 +834,7 @@ async function salvarEvento(){
   if(!get('ef-nome')){const fb=document.getElementById('ev-form-feedback');fb.style.color='#ff6b6b';fb.textContent='Nome obrigatório.';return;}
   const dados={id:get('ef-id')||'',nome:get('ef-nome'),data:get('ef-data')||null,hora:get('ef-hora'),local:get('ef-local'),
     status:document.getElementById('ef-status').value,preco_min:get('ef-preco')||null,distancias:get('ef-distancias'),
+    taxa_servico:parseFloat(get('ef-taxa'))||0,
     descricao:get('ef-descricao'),percurso:get('ef-percurso'),percurso_mapa:get('ef-percurso-mapa'),
     retirada_kit:get('ef-retirada'),regulamento:get('ef-regulamento'),
     banner_url:get('ef-banner'),banner_horizontal_url:get('ef-banner-h')};
