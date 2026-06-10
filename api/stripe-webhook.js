@@ -23,6 +23,7 @@ async function getRawBody(req) {
 async function enviarWhatsApp(telefone, mensagem) {
   try {
     let digits = telefone.replace(/\D/g, '');
+    console.log('[webhook] tel recebido raw:', telefone, '| digits:', digits, '| length:', digits.length);
     // Remove o 55 se já tiver, para normalizar
     if (digits.startsWith('55') && digits.length > 11) {
       digits = digits.slice(2);
@@ -32,12 +33,14 @@ async function enviarWhatsApp(telefone, mensagem) {
       digits = digits.slice(0, 2) + '9' + digits.slice(2);
     }
     const numero = '55' + digits;
+    console.log('[webhook] numero final Z-API:', numero, '| length:', numero.length);
     const res = await fetch(ZAPI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone: numero, message: mensagem })
     });
-    console.log('[webhook] WhatsApp enviado para', numero.slice(0,6) + '****', '| status:', res.status);
+    const respText = await res.text();
+    console.log('[webhook] WhatsApp enviado para', numero.slice(0,6) + '****', '| status:', res.status, '| resp:', respText.slice(0,100));
   } catch(e) {
     console.error('[webhook] Erro Z-API:', e.message);
   }
@@ -154,6 +157,8 @@ export default async function handler(req, res) {
   let itens = [];
   try { itens = JSON.parse(metadata.itens || '[]'); } catch(e) {}
 
+  console.log('[webhook] itens metadata:', JSON.stringify(itens));
+
   // Marca como pago no Supabase
   await marcarComoPago(pedido);
 
@@ -166,8 +171,11 @@ export default async function handler(req, res) {
   for (const item of itens) {
     // WhatsApp
     const telefone = item.tel || '';
+    console.log('[webhook] item.tel:', telefone);
     if (telefone) {
       await enviarWhatsApp(telefone, montarMensagemWhatsApp(item, evento));
+    } else {
+      console.log('[webhook] telefone vazio, pulando WhatsApp');
     }
 
     // E-mail
