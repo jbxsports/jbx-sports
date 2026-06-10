@@ -1061,6 +1061,7 @@
       <div class="order-summary">
         <div class="order-row"><span>Subtotal</span><span id="price-subtotal">R$ 0,00</span></div>
         <div class="order-row" id="row-desconto" style="display:none;"><span id="label-desconto">Descontos</span><span id="price-desconto">- R$ 0,00</span></div>
+        <div class="order-row" id="row-taxa" style="display:none;"><span id="label-taxa">Taxa de serviço</span><span id="price-taxa">R$ 0,00</span></div>
         <div class="order-row"><span>Total</span><span id="price-total">R$ 0,00</span></div>
       </div>
 
@@ -1145,6 +1146,7 @@ let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
 let _achadoAtleta = null;
 let currentCupom = "";
 let currentCupomPct = 0;
+let currentTaxa = 0;
 let cart = [];
 const TOTAL_STEPS = 4;
 
@@ -1156,8 +1158,9 @@ function openModal(eventoId, title, info) {
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
   resetWizard();
-  // renderiza modalidades imediatamente do cache (sem esperar o async)
+  // carrega taxa do evento do cache
   const evCache = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+  currentTaxa = evCache ? (parseFloat(evCache.taxa_servico) || 0) : 0;
   if (evCache) renderModalidades(evCache.distancias);
   // carrega kits e lote do banco (se evento tiver id); atualizará modalidades tb se necessário
   if (eventoId) loadKitsEvento(eventoId);
@@ -1489,18 +1492,26 @@ function atualizarResumo() {
   }
 
   // totais
-  let subtotal = 0, total = 0;
+  let subtotal = 0, totalComDesconto = 0;
   itens.forEach(it => {
     subtotal += it.valorBase;
-    total += it.valorBase * (1 - itemPct(it, pctCup) / 100);
+    totalComDesconto += it.valorBase * (1 - itemPct(it, pctCup) / 100);
   });
+
+  // taxa de serviço (incide sobre valor após desconto)
+  const taxaValor = currentTaxa > 0 ? totalComDesconto * (currentTaxa / 100) : 0;
+  const total = totalComDesconto + taxaValor;
+
   const elSub = document.getElementById('price-subtotal');
   const rowDesc = document.getElementById('row-desconto');
   const lblDesc = document.getElementById('label-desconto');
   const elDesc = document.getElementById('price-desconto');
+  const rowTaxa = document.getElementById('row-taxa');
+  const lblTaxa = document.getElementById('label-taxa');
+  const elTaxa = document.getElementById('price-taxa');
   const elTotal = document.getElementById('price-total');
   if (elSub) elSub.textContent = fmt(subtotal);
-  const desc = subtotal - total;
+  const desc = subtotal - totalComDesconto;
   if (rowDesc) {
     if (desc > 0.005) {
       rowDesc.style.display = '';
@@ -1510,6 +1521,16 @@ function atualizarResumo() {
       rowDesc.style.display = 'none';
     }
   }
+  if (rowTaxa) {
+    if (taxaValor > 0.005) {
+      rowTaxa.style.display = '';
+      if (lblTaxa) lblTaxa.textContent = `Taxa de serviço (${currentTaxa}%)`;
+      if (elTaxa) elTaxa.textContent = fmt(taxaValor);
+    } else {
+      rowTaxa.style.display = 'none';
+    }
+  }
+  if (elTotal) elTotal.textContent = fmt(total);
   // botão "+ Inscrever outro atleta" na etapa 4
   const btnArea = document.querySelector('.btn-area-atletas');
   if (btnArea) {
@@ -1785,14 +1806,16 @@ async function handlePagamento() {
 
   const pedido = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('' + Date.now() + Math.random());
 
-  // monta payload com valor já descontado para o Stripe
+  // monta payload com valor já descontado + taxa para o Stripe
   const pctCup = currentCupomPct || 0;
   const itensPayload = itens.map(it => {
     const pct = itemPct(it, pctCup);
-    const valorFinal = Number((it.valorBase * (1 - pct / 100)).toFixed(2));
+    const valorComDesconto = it.valorBase * (1 - pct / 100);
+    const taxaItem = currentTaxa > 0 ? valorComDesconto * (currentTaxa / 100) : 0;
+    const valorFinal = Number((valorComDesconto + taxaItem).toFixed(2));
     return {
       ...montarDadosItem(it, pedido),
-      valor: valorFinal // valor final pós-desconto
+      valor: valorFinal // valor final pós-desconto e pós-taxa
     };
   });
 
