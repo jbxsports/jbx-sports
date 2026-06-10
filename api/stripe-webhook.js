@@ -22,8 +22,16 @@ async function getRawBody(req) {
 
 async function enviarWhatsApp(telefone, mensagem) {
   try {
-    const digits = telefone.replace(/\D/g, '');
-    const numero = digits.startsWith('55') ? digits : '55' + digits;
+    let digits = telefone.replace(/\D/g, '');
+    // Remove o 55 se já tiver, para normalizar
+    if (digits.startsWith('55') && digits.length > 11) {
+      digits = digits.slice(2);
+    }
+    // Garante o 9 para celulares brasileiros (DDD + 8 dígitos → adiciona 9)
+    if (digits.length === 10) {
+      digits = digits.slice(0, 2) + '9' + digits.slice(2);
+    }
+    const numero = '55' + digits;
     const res = await fetch(ZAPI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
