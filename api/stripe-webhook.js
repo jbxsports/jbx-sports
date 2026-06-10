@@ -3,9 +3,10 @@ import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-const ZAPI_INSTANCE = '3F457758AC68513DE147E6B1C9468980';
-const ZAPI_TOKEN    = 'CD007B54BA8BD1111B802279';
-const ZAPI_URL      = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
+const ZAPI_INSTANCE    = '3F457758AC68513DE147E6B1C9468980';
+const ZAPI_TOKEN       = 'CD007B54BA8BD1111B802279';
+const ZAPI_CLIENT_TOKEN = 'Fbe7af069c70a4f1281ad63eee20c5cbeS';
+const ZAPI_URL         = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
 
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -23,7 +24,6 @@ async function getRawBody(req) {
 async function enviarWhatsApp(telefone, mensagem) {
   try {
     let digits = telefone.replace(/\D/g, '');
-    console.log('[webhook] tel recebido raw:', telefone, '| digits:', digits, '| length:', digits.length);
     // Remove o 55 se já tiver, para normalizar
     if (digits.startsWith('55') && digits.length > 11) {
       digits = digits.slice(2);
@@ -33,10 +33,12 @@ async function enviarWhatsApp(telefone, mensagem) {
       digits = digits.slice(0, 2) + '9' + digits.slice(2);
     }
     const numero = '55' + digits;
-    console.log('[webhook] numero final Z-API:', numero, '| length:', numero.length);
     const res = await fetch(ZAPI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Token': ZAPI_CLIENT_TOKEN
+      },
       body: JSON.stringify({ phone: numero, message: mensagem })
     });
     const respText = await res.text();
@@ -157,8 +159,6 @@ export default async function handler(req, res) {
   let itens = [];
   try { itens = JSON.parse(metadata.itens || '[]'); } catch(e) {}
 
-  console.log('[webhook] itens metadata:', JSON.stringify(itens));
-
   // Marca como pago no Supabase
   await marcarComoPago(pedido);
 
@@ -171,11 +171,8 @@ export default async function handler(req, res) {
   for (const item of itens) {
     // WhatsApp
     const telefone = item.tel || '';
-    console.log('[webhook] item.tel:', telefone);
     if (telefone) {
       await enviarWhatsApp(telefone, montarMensagemWhatsApp(item, evento));
-    } else {
-      console.log('[webhook] telefone vazio, pulando WhatsApp');
     }
 
     // E-mail
