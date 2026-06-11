@@ -13,8 +13,7 @@
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* LOGIN */
-#login{align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
-.screen.active#login{display:flex;}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(42,37,32,0.10);}
 .login-logo{margin-bottom:6px;}
 .login-logo span{color:var(--orange);}
@@ -40,9 +39,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .back-btn{background:#f0ede8;border:1px solid rgba(42,37,32,.12);color:var(--muted);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;white-space:nowrap;}
 .back-btn:hover{color:var(--text);background:#e8e4de;}
 .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
-.tag-open{background:rgba(255,255,255,0.95);color:#e05a08;}
-.tag-soon{background:rgba(255,255,255,0.95);color:#a07800;}
-.tag-closed{background:rgba(0,0,0,0.35);color:rgba(255,255,255,0.9);}
+.tag-open{background:rgba(255,117,31,.12);color:var(--orange);}
+.tag-soon{background:rgba(180,140,0,.12);color:#a07800;}
+.tag-closed{background:rgba(100,100,100,.1);color:#777;}
 /* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
@@ -240,13 +239,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
       </nav>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;">
-          <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span>
-          <span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span>
-        </div>
-        <button class="admin-logout" onclick="doLogout()">Sair</button>
-      </div>
+      <button class="admin-logout" onclick="doLogout()">Sair</button>
     </header>
     <main class="admin-content">
 
@@ -367,17 +360,54 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
 
         <div class="ev-form-section-title">Imagens</div>
-        <div class="form-row2">
+        <div class="ev-form-grid">
+
+          <!-- BANNER DO CARD -->
           <div class="form-g" style="margin:0;">
-            <label>Banner do card (URL)</label>
-            <input id="ef-banner" placeholder="https://... — link direto da imagem">
-            <p class="hint">Exibida no card do evento. Ideal: 600×400px.</p>
+            <label>Banner do card</label>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:0.3px;">600 × 400 px &nbsp;·&nbsp; proporção 3:2 &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span>
+            </div>
+            <div class="kit-upload-area" id="banner-card-area" onclick="document.getElementById('ef-banner-file').click()" style="cursor:pointer;height:160px;" title="Clique para escolher o banner do card">
+              <img id="banner-card-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <div class="kit-upload-ph" id="banner-card-ph">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <span>Banner do card</span>
+                <span style="font-size:11px;opacity:0.6;">600 × 400 px</span>
+              </div>
+            </div>
+            <input type="file" id="ef-banner-file" accept="image/*" style="display:none;" onchange="uploadBannerCard(this)">
+            <div class="upload-row">
+              <button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-file').click()">📁 Escolher arquivo</button>
+              <span id="banner-card-status" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input id="ef-banner" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerCard(this.value)">
           </div>
+
+          <!-- BANNER DA PÁGINA DO EVENTO -->
           <div class="form-g" style="margin:0;">
-            <label>Banner horizontal (URL)</label>
-            <input id="ef-banner-h" placeholder="https://... — link direto da imagem">
-            <p class="hint">Exibida na página do evento. Ideal: 1200×400px.</p>
+            <label>Banner da página do evento</label>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span style="font-size:11px;font-weight:700;color:var(--orange);letter-spacing:0.3px;">1200 × 400 px &nbsp;·&nbsp; proporção 3:1 &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span>
+            </div>
+            <div class="kit-upload-area" id="banner-h-area" onclick="document.getElementById('ef-banner-h-file').click()" style="cursor:pointer;height:110px;" title="Clique para escolher o banner horizontal">
+              <img id="banner-h-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <div class="kit-upload-ph" id="banner-h-ph">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="1.5"/><path d="M22 14l-5-4-4 3-3-2L2 14"/></svg>
+                <span>Banner da página</span>
+                <span style="font-size:11px;opacity:0.6;">1200 × 400 px — panorâmica</span>
+              </div>
+            </div>
+            <input type="file" id="ef-banner-h-file" accept="image/*" style="display:none;" onchange="uploadBannerHorizontal(this)">
+            <div class="upload-row">
+              <button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-h-file').click()">📁 Escolher arquivo</button>
+              <span id="banner-h-status" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input id="ef-banner-h" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerH(this.value)">
           </div>
+
         </div>
 
         <div class="ev-form-section-title">Conteúdo das abas</div>
@@ -751,9 +781,9 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 async function doLogin(){
   const pass=document.getElementById('pass-input').value;
   if(pass!=='JBX@admin2026'){document.getElementById('login-err').textContent='Senha incorreta.';return;}
-  try{sessionStorage.setItem('jbx_admin','1');}catch(e){}  showAdmin();
+  sessionStorage.setItem('jbx_admin','1'); showAdmin();
 }
-function doLogout(){try{sessionStorage.removeItem('jbx_admin');}catch(e){}document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
+function doLogout(){sessionStorage.removeItem('jbx_admin');document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
 function showAdmin(){document.getElementById('login').classList.remove('active');document.getElementById('admin').classList.add('active');loadDashboard();}
 
 /* ── NAVEGAÇÃO ── */
@@ -788,7 +818,7 @@ function renderEventCards(evs){
   g.innerHTML=evs.map(e=>`
     <div class="ev-card">
       <div class="ev-card-header">
-        <div><h3>${e.nome}</h3><div style="font-size:12px;color:rgba(255,255,255,0.8);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
+        <div><h3>${e.nome}</h3><div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
         <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
       </div>
       <div class="ev-card-stats">
@@ -817,6 +847,7 @@ async function loadEventoForm(id){
   document.getElementById('ef-id').value=id||'';
   document.getElementById('ev-form-feedback').textContent='';
   ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-taxa','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  previewBannerCard(''); previewBannerH('');
   document.getElementById('ef-status').value='soon';
   if(id){
     try{
@@ -828,6 +859,7 @@ async function loadEventoForm(id){
         set('ef-percurso',ev.percurso);set('ef-percurso-mapa',ev.percurso_mapa);
         set('ef-retirada',ev.retirada_kit);set('ef-regulamento',ev.regulamento);
         set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);
+        previewBannerCard(ev.banner_url||'');previewBannerH(ev.banner_horizontal_url||'');
         document.getElementById('ef-status').value=ev.status||'soon';
       }
     }catch(e){console.error(e);}
@@ -976,6 +1008,76 @@ async function uploadKitFoto(input) {
     document.getElementById('nkit-foto').value = url;
     previewKitFoto(url);
     status.textContent = '✓ Foto enviada!'; status.style.color = '#22c55e';
+  } catch(e) {
+    status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
+    console.error(e);
+  }
+}
+
+/* ── BANNERS DO EVENTO ── */
+function previewBannerCard(url) {
+  const img = document.getElementById('banner-card-preview');
+  const ph  = document.getElementById('banner-card-ph');
+  if (!img || !ph) return;
+  if (url && url.startsWith('http')) {
+    img.src = url; img.style.display = 'block'; ph.style.display = 'none';
+  } else {
+    img.src = ''; img.style.display = 'none'; ph.style.display = 'flex';
+  }
+}
+function previewBannerH(url) {
+  const img = document.getElementById('banner-h-preview');
+  const ph  = document.getElementById('banner-h-ph');
+  if (!img || !ph) return;
+  if (url && url.startsWith('http')) {
+    img.src = url; img.style.display = 'block'; ph.style.display = 'none';
+  } else {
+    img.src = ''; img.style.display = 'none'; ph.style.display = 'flex';
+  }
+}
+async function uploadBannerCard(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const status = document.getElementById('banner-card-status');
+  status.textContent = 'Enviando…'; status.style.color = 'var(--muted)';
+  const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+  const nome = `banner_card_${Date.now()}.${ext}`;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) { const e = await r.text(); throw new Error(e); }
+    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('ef-banner').value = url;
+    previewBannerCard(url);
+    status.textContent = '✓ Banner enviado!'; status.style.color = '#22c55e';
+  } catch(e) {
+    status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
+    console.error(e);
+  }
+}
+async function uploadBannerHorizontal(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const status = document.getElementById('banner-h-status');
+  status.textContent = 'Enviando…'; status.style.color = 'var(--muted)';
+  const ext = file.name.split('.').pop().toLowerCase() || 'jpg';
+  const nome = `banner_h_${Date.now()}.${ext}`;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) { const e = await r.text(); throw new Error(e); }
+    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('ef-banner-h').value = url;
+    previewBannerH(url);
+    status.textContent = '✓ Banner enviado!'; status.style.color = '#22c55e';
   } catch(e) {
     status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
     console.error(e);
@@ -1729,7 +1831,7 @@ async function deletarPatrocinador(id) {
 }
 
 /* ── INIT ── */
-try{if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();}catch(e){}
+if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
