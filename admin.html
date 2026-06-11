@@ -747,9 +747,9 @@ async function doLogin(){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pass));
   const hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   if(hash!==ADMIN_HASH){document.getElementById('login-err').textContent='Senha incorreta.';return;}
-  sessionStorage.setItem('jbx_admin','1'); showAdmin();
+  localStorage.setItem('jbx_admin','1'); showAdmin();
 }
-function doLogout(){sessionStorage.removeItem('jbx_admin');document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
+function doLogout(){localStorage.removeItem('jbx_admin');document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
 function showAdmin(){document.getElementById('login').classList.remove('active');document.getElementById('admin').classList.add('active');loadDashboard();}
 
 /* ── NAVEGAÇÃO ── */
@@ -1725,7 +1725,7 @@ async function deletarPatrocinador(id) {
 }
 
 /* ── INIT ── */
-if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();
+if(localStorage.getItem('jbx_admin')==='1')showAdmin();
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
