@@ -13,7 +13,8 @@
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 .screen{display:none;}.screen.active{display:block;}
 /* LOGIN */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
+#login{align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
+.screen.active#login{display:flex;}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(42,37,32,0.10);}
 .login-logo{margin-bottom:6px;}
 .login-logo span{color:var(--orange);}
@@ -239,7 +240,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
       </nav>
-      <button class="admin-logout" onclick="doLogout()">Sair</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;">
+          <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span>
+          <span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span>
+        </div>
+        <button class="admin-logout" onclick="doLogout()">Sair</button>
+      </div>
     </header>
     <main class="admin-content">
 
