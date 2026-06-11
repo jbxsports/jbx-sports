@@ -11,9 +11,9 @@
 :root{--orange:#ff751f;--orange-dark:#e05a08;--black:#0a0a0a;--bg:#faf9f7;--card:#ffffff;--border:rgba(42,37,32,0.10);--text:#2a2520;--muted:#7a7068;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.screen{display:none;}.screen.active{display:block;}
+.screen{display:none;}.screen.active{display:block;}#login.screen.active{display:flex;}
 /* LOGIN */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
+#login{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f0ede8;}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(42,37,32,0.10);}
 .login-logo{margin-bottom:6px;}
 .login-logo span{color:var(--orange);}
@@ -41,8 +41,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
 .tag-open{background:rgba(255,117,31,.12);color:var(--orange);}
 .tag-soon{background:rgba(180,140,0,.12);color:#a07800;}
-.tag-closed{background:rgba(100,100,100,.1);color:#777;}
-.ev-card-header .tag{background:rgba(0,0,0,0.22);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.tag-closed{background:rgba(100,100,100,.1);color:#777;}.ev-card-header .tag{background:rgba(0,0,0,0.22);color:#fff;border:1px solid rgba(255,255,255,0.3);}
 /* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
@@ -758,8 +757,6 @@ function showInner(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const scr=document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
   const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
-  // Scroll para o topo sempre que trocar de tela
-  window.scrollTo(0,0);
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
