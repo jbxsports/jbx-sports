@@ -11,9 +11,9 @@
 :root{--orange:#ff751f;--orange-dark:#e05a08;--black:#0a0a0a;--bg:#faf9f7;--card:#ffffff;--border:rgba(42,37,32,0.10);--text:#2a2520;--muted:#7a7068;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.screen{display:none;}.screen.active{display:block;}#login.active{display:flex;}
+.screen{display:none;}.screen.active{display:block;}
 /* LOGIN */
-#login{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f0ede8;}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f0ede8;}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(42,37,32,0.10);}
 .login-logo{margin-bottom:6px;}
 .login-logo span{color:var(--orange);}
@@ -41,7 +41,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;}
 .tag-open{background:rgba(255,117,31,.12);color:var(--orange);}
 .tag-soon{background:rgba(180,140,0,.12);color:#a07800;}
-.tag-closed{background:rgba(100,100,100,.1);color:#777;}.ev-card-header .tag{background:rgba(0,0,0,0.22);color:#fff;border:1px solid rgba(255,255,255,0.3);}
+.tag-closed{background:rgba(100,100,100,.1);color:#777;}
 /* STAT CARDS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
@@ -56,7 +56,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ev-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:all .25s;box-shadow:0 1px 4px rgba(42,37,32,.06);}
 .ev-card:hover{border-color:rgba(255,117,31,.4);box-shadow:0 4px 16px rgba(42,37,32,.10);}
 .ev-card-header{background:linear-gradient(135deg,#ff751f,#e05a08);padding:20px;display:flex;justify-content:space-between;align-items:flex-start;}
-.ev-card-header h3{font-size:16px;font-weight:700;color:#fff;max-width:75%;text-shadow:0 1px 3px rgba(0,0,0,0.25);}
+.ev-card-header h3{font-size:16px;font-weight:700;color:#fff;max-width:75%;}
 .ev-card-stats{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ev-stat .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
 .ev-stat .v{font-size:18px;font-weight:700;color:var(--orange);margin-top:2px;}
@@ -743,12 +743,10 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 /* ── AUTH ── */
 async function doLogin(){
   const pass=document.getElementById('pass-input').value;
-  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pass));
-  const hash=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hash!==ADMIN_HASH){document.getElementById('login-err').textContent='Senha incorreta.';return;}
-  localStorage.setItem('jbx_admin','1'); showAdmin();
+  if(pass!=='JBX@admin2026'){document.getElementById('login-err').textContent='Senha incorreta.';return;}
+  try{sessionStorage.setItem('jbx_admin','1');}catch(e){}  showAdmin();
 }
-function doLogout(){localStorage.removeItem('jbx_admin');document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
+function doLogout(){try{sessionStorage.removeItem('jbx_admin');}catch(e){}document.getElementById('login').classList.add('active');document.getElementById('admin').classList.remove('active');document.getElementById('pass-input').value='';}
 function showAdmin(){document.getElementById('login').classList.remove('active');document.getElementById('admin').classList.add('active');loadDashboard();}
 
 /* ── NAVEGAÇÃO ── */
@@ -757,6 +755,8 @@ function showInner(name){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const scr=document.getElementById('screen-'+name); if(scr) scr.classList.add('active');
   const nb=document.getElementById('nav-'+name); if(nb) nb.classList.add('active');
+  // Scroll para o topo sempre que trocar de tela
+  window.scrollTo(0,0);
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
@@ -781,7 +781,7 @@ function renderEventCards(evs){
   g.innerHTML=evs.map(e=>`
     <div class="ev-card">
       <div class="ev-card-header">
-        <div><h3>${e.nome}</h3><div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
+        <div><h3>${e.nome}</h3><div style="font-size:12px;color:var(--muted);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
         <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
       </div>
       <div class="ev-card-stats">
@@ -1596,8 +1596,10 @@ async function abrirPatrocinadores(id, nome) {
   currentPatEvento = { id, nome };
   document.getElementById('pat-ev-nome').textContent = 'Patrocinadores — ' + nome;
   showInner('patrocinadores');
+  // Scroll para o topo
   const content = document.querySelector('.admin-content');
   if (content) content.scrollTop = 0;
+  window.scrollTo(0, 0);
   cancelarEditPat();
   await loadPatrocinadores();
 }
@@ -1720,7 +1722,7 @@ async function deletarPatrocinador(id) {
 }
 
 /* ── INIT ── */
-if(localStorage.getItem('jbx_admin')==='1')showAdmin();
+try{if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();}catch(e){}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
