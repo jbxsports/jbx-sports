@@ -1016,10 +1016,10 @@
       <div class="form-section-title">Tamanho da camiseta</div>
       <div class="form-row">
         <div class="form-group">
-          <label style="display:flex;align-items:center;justify-content:space-between;">
-            <span>Tamanho da camiseta *</span>
-            <button type="button" onclick="abrirTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--orange);text-decoration:underline;padding:0;font-family:inherit;">📏 Tabela de medidas</button>
-          </label>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <label style="margin-bottom:0;font-size:13px;color:rgba(42,37,32,0.6);font-weight:500;">Tamanho da camiseta *</label>
+            <button type="button" onclick="abrirTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#ff751f;text-decoration:underline;padding:0;font-family:inherit;flex-shrink:0;">📏 Tabela de medidas</button>
+          </div>
           <select id="f-camisa">
             <option value="">Selecione</option>
             <option>Babylook tamanho único</option>
@@ -2377,57 +2377,36 @@ window.addEventListener('scroll', () => {
       <button onclick="fecharTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#888;line-height:1;padding:4px;">✕</button>
     </div>
     <div style="padding:20px 24px 28px;">
-
-      <!-- Ilustração da camiseta -->
       <div style="margin-bottom:20px;">
         <svg width="100%" viewBox="0 0 520 280" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </marker>
-          </defs>
-          <!-- Sombra -->
-          <path d="M 218,62 Q 240,78 262,62 L 318,62 L 375,50 L 363,112 L 318,96 L 318,248 L 162,248 L 162,96 L 117,112 L 105,50 L 162,62 Z" fill="rgba(0,0,0,0.07)" transform="translate(3,5)"/>
-          <!-- Camiseta -->
+          <defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <path d="M 218,62 Q 240,78 262,62 L 318,62 L 375,50 L 363,112 L 318,96 L 318,248 L 162,248 L 162,96 L 117,112 L 105,50 L 162,62 Z" fill="rgba(0,0,0,0.06)" transform="translate(3,5)"/>
           <path d="M 218,62 Q 240,78 262,62 L 318,62 L 375,50 L 363,112 L 318,96 L 318,248 L 162,248 L 162,96 L 117,112 L 105,50 L 162,62 Z" fill="#ff751f" stroke="#e05a08" stroke-width="1.5"/>
-          <!-- Manga esquerda sombra -->
-          <path d="M 105,50 L 162,62 L 162,96 L 117,112 Z" fill="#e05a08" opacity="0.25"/>
-          <!-- Manga direita sombra -->
-          <path d="M 375,50 L 318,62 L 318,96 L 363,112 Z" fill="#e05a08" opacity="0.25"/>
-          <!-- Gola -->
+          <path d="M 105,50 L 162,62 L 162,96 L 117,112 Z" fill="#e05a08" opacity="0.22"/>
+          <path d="M 375,50 L 318,62 L 318,96 L 363,112 Z" fill="#e05a08" opacity="0.22"/>
           <path d="M 218,62 Q 240,78 262,62" fill="none" stroke="#e05a08" stroke-width="2.5"/>
-          <!-- Logo -->
-          <rect x="208" y="120" width="64" height="58" rx="6" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
-          <text x="240" y="141" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="white" letter-spacing="1">JBX</text>
-          <text x="240" y="153" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.8)" letter-spacing="1.5">SPORTS</text>
-          <line x1="214" y1="158" x2="266" y2="158" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
-          <text x="240" y="169" text-anchor="middle" font-family="Arial,sans-serif" font-size="5" fill="rgba(255,255,255,0.55)" letter-spacing="0.8">EVENTOS ESPORTIVOS</text>
-          <!-- Pontos brancos de referência -->
+          <rect x="208" y="122" width="64" height="56" rx="6" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.38)" stroke-width="1"/>
+          <text x="240" y="143" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700" fill="white" letter-spacing="1">JBX</text>
+          <text x="240" y="155" text-anchor="middle" font-family="Arial,sans-serif" font-size="5.5" fill="rgba(255,255,255,0.8)" letter-spacing="1.5">SPORTS</text>
+          <line x1="214" y1="160" x2="266" y2="160" stroke="rgba(255,255,255,0.25)" stroke-width="0.5"/>
+          <text x="240" y="170" text-anchor="middle" font-family="Arial,sans-serif" font-size="4.8" fill="rgba(255,255,255,0.55)" letter-spacing="0.8">EVENTOS ESPORTIVOS</text>
           <circle cx="162" cy="96" r="3.5" fill="white" stroke="#e05a08" stroke-width="1.5"/>
           <circle cx="318" cy="96" r="3.5" fill="white" stroke="#e05a08" stroke-width="1.5"/>
           <circle cx="240" cy="62" r="3.5" fill="white" stroke="#e05a08" stroke-width="1.5"/>
           <circle cx="240" cy="248" r="3.5" fill="white" stroke="#e05a08" stroke-width="1.5"/>
-          <!-- LARGURA: seta horizontal abaixo da barra -->
           <line x1="162" y1="264" x2="318" y2="264" stroke="#555" stroke-width="1.5" marker-start="url(#arr2)" marker-end="url(#arr2)"/>
           <line x1="162" y1="250" x2="162" y2="268" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/>
           <line x1="318" y1="250" x2="318" y2="268" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/>
           <text x="240" y="278" text-anchor="middle" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#555">LARGURA</text>
-          <!-- COMPRIMENTO: seta vertical à direita -->
           <line x1="408" y1="62" x2="408" y2="248" stroke="#555" stroke-width="1.5" marker-start="url(#arr2)" marker-end="url(#arr2)"/>
           <line x1="321" y1="62" x2="412" y2="62" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/>
           <line x1="321" y1="248" x2="412" y2="248" stroke="#aaa" stroke-width="1" stroke-dasharray="2,2"/>
           <text x="418" y="151" text-anchor="start" font-family="Arial,sans-serif" font-size="10" font-weight="700" fill="#555">COMP.</text>
         </svg>
       </div>
-
-      <!-- Tabela Masculina -->
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ff751f;margin-bottom:8px;">Camiseta Masculina / Unissex</div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
-        <thead><tr style="background:#f5f5f5;">
-          <th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th>
-          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th>
-          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th>
-        </tr></thead>
+        <thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th></tr></thead>
         <tbody>
           <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 12px;font-weight:600;color:#333;">P</td><td style="padding:8px 12px;text-align:center;color:#555;">49</td><td style="padding:8px 12px;text-align:center;color:#555;">70</td></tr>
           <tr style="border-bottom:1px solid #f0f0f0;background:#fafafa;"><td style="padding:8px 12px;font-weight:600;color:#333;">M</td><td style="padding:8px 12px;text-align:center;color:#555;">51</td><td style="padding:8px 12px;text-align:center;color:#555;">73</td></tr>
@@ -2435,44 +2414,21 @@ window.addEventListener('scroll', () => {
           <tr style="background:#fafafa;"><td style="padding:8px 12px;font-weight:600;color:#333;">GG</td><td style="padding:8px 12px;text-align:center;color:#555;">60</td><td style="padding:8px 12px;text-align:center;color:#555;">80</td></tr>
         </tbody>
       </table>
-
-      <!-- Tabela Babylook -->
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ff751f;margin-bottom:8px;">Babylook Feminina</div>
       <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;">
-        <thead><tr style="background:#f5f5f5;">
-          <th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th>
-          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th>
-          <th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th>
-        </tr></thead>
-        <tbody>
-          <tr><td style="padding:8px 12px;font-weight:600;color:#333;">Tamanho único</td><td style="padding:8px 12px;text-align:center;color:#555;">47</td><td style="padding:8px 12px;text-align:center;color:#555;">63</td></tr>
-        </tbody>
+        <thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th></tr></thead>
+        <tbody><tr><td style="padding:8px 12px;font-weight:600;color:#333;">Tamanho único</td><td style="padding:8px 12px;text-align:center;color:#555;">47</td><td style="padding:8px 12px;text-align:center;color:#555;">63</td></tr></tbody>
       </table>
-
-      <!-- Dica -->
       <div style="background:#fff8f3;border:1px solid rgba(255,117,31,0.2);border-radius:10px;padding:12px 16px;">
         <div style="font-size:12px;font-weight:700;color:#ff751f;margin-bottom:5px;">💡 Como medir</div>
-        <div style="font-size:12px;color:#666;line-height:1.7;">
-          <strong>Largura:</strong> meça de axila a axila com a camiseta aberta.<br>
-          <strong>Comprimento:</strong> do ombro até a barra.<br>
-          Em dúvida entre dois tamanhos, prefira o maior.
-        </div>
+        <div style="font-size:12px;color:#666;line-height:1.7;"><strong>Largura:</strong> meça de axila a axila com a camiseta aberta.<br><strong>Comprimento:</strong> do ombro até a barra.<br>Em dúvida entre dois tamanhos, prefira o maior.</div>
       </div>
     </div>
   </div>
 </div>
-
 <script>
-function abrirTabelaMedidas() {
-  const m = document.getElementById('modal-medidas');
-  m.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-}
-function fecharTabelaMedidas() {
-  const m = document.getElementById('modal-medidas');
-  m.style.display = 'none';
-  document.body.style.overflow = '';
-}
+function abrirTabelaMedidas(){const m=document.getElementById('modal-medidas');m.style.display='flex';document.body.style.overflow='hidden';}
+function fecharTabelaMedidas(){const m=document.getElementById('modal-medidas');m.style.display='none';document.body.style.overflow='';}
 </script>
 
 </body>
