@@ -1194,8 +1194,18 @@ async function loadKitsEvento(eventoId) {
       }
     }
 
-    // se há kits no banco, substitui os hardcoded
-    if (kits.length > 0) {
+    // se há kits no banco, substitui os hardcoded; caso contrário bloqueia
+    if (kits.length === 0) {
+      const container = document.getElementById('kits-container');
+      container.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:40px 20px;">
+          <div style="font-size:36px;margin-bottom:12px;">🎽</div>
+          <div style="font-size:15px;font-weight:700;color:rgba(42,37,32,0.7);margin-bottom:6px;">Kits não disponíveis</div>
+          <div style="font-size:13px;color:rgba(42,37,32,0.45);">Este evento ainda não tem kits cadastrados.<br>Tente novamente em breve.</div>
+        </div>`;
+      const btnNext = document.querySelector('.btn-step-next');
+      if (btnNext) { btnNext.disabled = true; btnNext.style.opacity = '0.35'; btnNext.style.cursor = 'not-allowed'; }
+    } else if (kits.length > 0) {
       const container = document.getElementById('kits-container');
       container.innerHTML = kits.map((k, i) => {
         const esgotado = k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite;
@@ -1275,6 +1285,9 @@ function resetWizard() {
   currentCupom = ''; currentCupomPct = 0;
   const fc = document.getElementById('f-cupom'); if (fc) fc.value = '';
   const cm = document.getElementById('cupom-msg'); if (cm) { cm.textContent = ''; cm.className = 'cupom-msg'; }
+  // reabilita botão Próximo (pode ter sido bloqueado por evento sem kits)
+  const btnNext = document.querySelector('.btn-step-next');
+  if (btnNext) { btnNext.disabled = false; btnNext.style.opacity = ''; btnNext.style.cursor = ''; }
   resetRegistro();
 }
 
