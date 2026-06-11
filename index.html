@@ -1016,7 +1016,10 @@
       <div class="form-section-title">Tamanho da camiseta</div>
       <div class="form-row">
         <div class="form-group">
-          <label>Tamanho da camiseta *</label>
+          <label style="display:flex;align-items:center;justify-content:space-between;">
+            <span>Tamanho da camiseta *</span>
+            <button type="button" onclick="abrirTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:var(--orange);text-decoration:underline;padding:0;font-family:inherit;">📏 Tabela de medidas</button>
+          </label>
           <select id="f-camisa">
             <option value="">Selecione</option>
             <option>Babylook tamanho único</option>
@@ -1194,18 +1197,8 @@ async function loadKitsEvento(eventoId) {
       }
     }
 
-    // se há kits no banco, substitui os hardcoded; caso contrário bloqueia
-    if (kits.length === 0) {
-      const container = document.getElementById('kits-container');
-      container.innerHTML = `
-        <div style="grid-column:1/-1;text-align:center;padding:40px 20px;">
-          <div style="font-size:36px;margin-bottom:12px;">🎽</div>
-          <div style="font-size:15px;font-weight:700;color:rgba(42,37,32,0.7);margin-bottom:6px;">Kits não disponíveis</div>
-          <div style="font-size:13px;color:rgba(42,37,32,0.45);">Este evento ainda não tem kits cadastrados.<br>Tente novamente em breve.</div>
-        </div>`;
-      const btnNext = document.querySelector('.btn-step-next');
-      if (btnNext) { btnNext.disabled = true; btnNext.style.opacity = '0.35'; btnNext.style.cursor = 'not-allowed'; }
-    } else if (kits.length > 0) {
+    // se há kits no banco, substitui os hardcoded
+    if (kits.length > 0) {
       const container = document.getElementById('kits-container');
       container.innerHTML = kits.map((k, i) => {
         const esgotado = k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite;
@@ -1285,9 +1278,6 @@ function resetWizard() {
   currentCupom = ''; currentCupomPct = 0;
   const fc = document.getElementById('f-cupom'); if (fc) fc.value = '';
   const cm = document.getElementById('cupom-msg'); if (cm) { cm.textContent = ''; cm.className = 'cupom-msg'; }
-  // reabilita botão Próximo (pode ter sido bloqueado por evento sem kits)
-  const btnNext = document.querySelector('.btn-step-next');
-  if (btnNext) { btnNext.disabled = false; btnNext.style.opacity = ''; btnNext.style.cursor = ''; }
   resetRegistro();
 }
 
@@ -2363,6 +2353,82 @@ window.addEventListener('scroll', () => {
     <path d="M21.5 18.5c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.63-.93-2.23-.24-.58-.49-.5-.68-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25d366"/>
   </svg>
 </a>
+
+<!-- MODAL TABELA DE MEDIDAS -->
+<div id="modal-medidas" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;" onclick="if(event.target===this)fecharTabelaMedidas()">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 24px 16px;border-bottom:1px solid rgba(0,0,0,0.08);">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:#1a1a1a;">📏 Tabela de Medidas</div>
+        <div style="font-size:12px;color:#888;margin-top:2px;">Todas as medidas em centímetros (cm)</div>
+      </div>
+      <button onclick="fecharTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#888;line-height:1;padding:4px;">✕</button>
+    </div>
+    <!-- Corpo -->
+    <div style="padding:20px 24px 28px;">
+
+      <!-- Camiseta Masculina / Unissex -->
+      <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;">Camiseta Unissex / Masculina</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:22px;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;">Largura</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;">Comprimento</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Manga</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:9px 12px;font-weight:600;color:#333;">P</td><td style="padding:9px 12px;text-align:center;color:#555;">50</td><td style="padding:9px 12px;text-align:center;color:#555;">68</td><td style="padding:9px 12px;text-align:center;color:#555;">20</td></tr>
+          <tr style="border-bottom:1px solid #f0f0f0;background:#fafafa;"><td style="padding:9px 12px;font-weight:600;color:#333;">M</td><td style="padding:9px 12px;text-align:center;color:#555;">53</td><td style="padding:9px 12px;text-align:center;color:#555;">71</td><td style="padding:9px 12px;text-align:center;color:#555;">22</td></tr>
+          <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:9px 12px;font-weight:600;color:#333;">G</td><td style="padding:9px 12px;text-align:center;color:#555;">56</td><td style="padding:9px 12px;text-align:center;color:#555;">74</td><td style="padding:9px 12px;text-align:center;color:#555;">23</td></tr>
+          <tr style="background:#fafafa;"><td style="padding:9px 12px;font-weight:600;color:#333;">GG</td><td style="padding:9px 12px;text-align:center;color:#555;">60</td><td style="padding:9px 12px;text-align:center;color:#555;">77</td><td style="padding:9px 12px;text-align:center;color:#555;">25</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Babylook -->
+      <div style="font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;">Babylook Feminina</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:22px;">
+        <thead>
+          <tr style="background:#f5f5f5;">
+            <th style="padding:9px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;">Largura</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;">Comprimento</th>
+            <th style="padding:9px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Manga</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:9px 12px;font-weight:600;color:#333;">Tamanho único</td><td style="padding:9px 12px;text-align:center;color:#555;">44</td><td style="padding:9px 12px;text-align:center;color:#555;">60</td><td style="padding:9px 12px;text-align:center;color:#555;">17</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Dica -->
+      <div style="background:#fff8f3;border:1px solid rgba(255,117,31,0.2);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:6px;">💡 Como medir</div>
+        <div style="font-size:12px;color:#666;line-height:1.7;">
+          <strong>Largura:</strong> meça de axila a axila com a camiseta aberta.<br>
+          <strong>Comprimento:</strong> do ombro até a barra.<br>
+          Em dúvida entre dois tamanhos, prefira o maior.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function abrirTabelaMedidas() {
+  const m = document.getElementById('modal-medidas');
+  m.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function fecharTabelaMedidas() {
+  const m = document.getElementById('modal-medidas');
+  m.style.display = 'none';
+  document.body.style.overflow = '';
+}
+</script>
 
 </body>
 </html>
