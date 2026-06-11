@@ -11,7 +11,7 @@
 :root{--orange:#ff751f;--orange-dark:#e05a08;--black:#0a0a0a;--bg:#faf9f7;--card:#ffffff;--border:rgba(42,37,32,0.10);--text:#2a2520;--muted:#7a7068;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.screen{display:none;}.screen.active{display:block;}#login.screen.active{display:flex;}
+.screen{display:none;}.screen.active{display:block;}#login.active{display:flex;}
 /* LOGIN */
 #login{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f0ede8;}
 .login-box{background:var(--card);border:1px solid rgba(255,117,31,.2);border-radius:16px;padding:48px 40px;width:360px;text-align:center;box-shadow:0 8px 32px rgba(42,37,32,0.10);}
@@ -1596,10 +1596,8 @@ async function abrirPatrocinadores(id, nome) {
   currentPatEvento = { id, nome };
   document.getElementById('pat-ev-nome').textContent = 'Patrocinadores — ' + nome;
   showInner('patrocinadores');
-  // Scroll para o topo
   const content = document.querySelector('.admin-content');
   if (content) content.scrollTop = 0;
-  window.scrollTo(0, 0);
   cancelarEditPat();
   await loadPatrocinadores();
 }
