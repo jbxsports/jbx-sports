@@ -800,7 +800,7 @@ function renderEventCards(evs,bans=[]){
     // banner — string concatenation (sem template literal aninhado)
     const bu=(bans.find(b=>String(b.id)===String(e.id))||{}).banner_url||e.banner_url||'';
     const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(''+bu+'');"></div>'
+      ? '<div class="ev-card-header-bg" style="background-image:url(' + bu + ');"></div>'
         +'<div class="ev-card-header-overlay"></div>'
       : '';
     return `
