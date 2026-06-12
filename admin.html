@@ -59,7 +59,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ev-card-header{background:linear-gradient(135deg,#ff751f,#e05a08);padding:20px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden;min-height:72px;}
 .ev-card-header-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;}
 .ev-card-header-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(190,60,0,0.80),rgba(160,40,0,0.70));z-index:1;}
-.ev-card-header>*{position:relative;z-index:2;}
+.ev-card-header>*:not(.ev-card-header-bg):not(.ev-card-header-overlay){position:relative;z-index:2;}
 .ev-card-header h3{font-size:16px;font-weight:700;color:#fff;max-width:75%;}
 .ev-card-stats{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ev-stat .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
