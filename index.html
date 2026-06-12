@@ -2001,7 +2001,8 @@ async function carregarEventos() {
     }
     grid.innerHTML = eventos.map((ev, i) => {
       const banner = banners.find(b => b.evento_id === ev.id);
-      return renderCard(ev, i, banner ? banner.url : null);
+      const bannerUrl = (banner ? banner.url : null) || ev.banner_url || null;
+      return renderCard(ev, i, bannerUrl);
     }).join('');
 
     // Guardar referência ao próximo evento aberto
