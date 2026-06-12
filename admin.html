@@ -797,7 +797,7 @@ function renderEventCards(evs){
   g.innerHTML=evs.map(e=>{
     const bu=e.banner_url||'';
     const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');"></div>'
+      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');">' + '</div>'
         +'<div class="ev-card-header-overlay"></div>'
       : '';
     return `
