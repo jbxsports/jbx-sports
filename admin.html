@@ -788,19 +788,16 @@ async function loadDashboard(){
     document.getElementById('g-total').textContent=fmt(stats.inscricoes_total);
     document.getElementById('g-hoje').textContent=fmt(stats.inscricoes_hoje);
     document.getElementById('g-ticket').textContent=brl(stats.ticket_medio);
-    let bans=[];
-    try{const br=await fetch(`${SB_URL}/rest/v1/eventos?select=id,banner_url`,{headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}});if(br.ok){const bd=await br.json();bans=Array.isArray(bd)?bd:[];}}catch(e2){console.warn('banners:',e2);}
-    renderEventCards(evs||[],bans);
+    renderEventCards(evs||[]);
   }catch(e){console.error(e);}
 }
-function renderEventCards(evs,bans=[]){
+function renderEventCards(evs){
   const g=document.getElementById('ev-grid');
   if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
   g.innerHTML=evs.map(e=>{
-    // banner — string concatenation (sem template literal aninhado)
-    const bu=(bans.find(b=>String(b.id)===String(e.id))||{}).banner_url||e.banner_url||'';
+    const bu=e.banner_url||'';
     const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(' + bu + ');"></div>'
+      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');"></div>'
         +'<div class="ev-card-header-overlay"></div>'
       : '';
     return `
