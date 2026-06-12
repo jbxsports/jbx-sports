@@ -58,7 +58,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ev-card:hover{border-color:rgba(255,117,31,.4);box-shadow:0 4px 16px rgba(42,37,32,.10);}
 .ev-card-header{background:linear-gradient(135deg,#ff751f,#e05a08);padding:20px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden;min-height:72px;}
 .ev-card-header-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0;}
-.ev-card-header-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(200,70,0,0.82) 0%,rgba(180,50,0,0.72) 100%);z-index:1;}
+.ev-card-header-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(190,60,0,0.80),rgba(160,40,0,0.70));z-index:1;}
 .ev-card-header>*{position:relative;z-index:2;}
 .ev-card-header h3{font-size:16px;font-weight:700;color:#fff;max-width:75%;}
 .ev-card-stats{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -370,17 +370,54 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
 
         <div class="ev-form-section-title">Imagens</div>
-        <div class="form-row2">
+        <div class="ev-form-grid">
+
+          <!-- BANNER DO CARD -->
           <div class="form-g" style="margin:0;">
-            <label>Banner do card (URL)</label>
-            <input id="ef-banner" placeholder="https://... — link direto da imagem">
-            <p class="hint">Exibida no card do evento. Ideal: 600×400px.</p>
+            <label>Banner do card</label>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span style="font-size:11px;font-weight:700;color:var(--orange);">600 × 400 px &nbsp;·&nbsp; proporção 3:2 &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span>
+            </div>
+            <div class="kit-upload-area" id="banner-card-area" onclick="document.getElementById('ef-banner-file').click()" style="cursor:pointer;height:160px;position:relative;">
+              <img id="banner-card-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <div class="kit-upload-ph" id="banner-card-ph" style="display:flex;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <span>Banner do card</span>
+                <span style="font-size:11px;opacity:0.6;">600 × 400 px</span>
+              </div>
+            </div>
+            <input type="file" id="ef-banner-file" accept="image/*" style="display:none;" onchange="uploadBannerCard(this)">
+            <div class="upload-row" style="margin-top:8px;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-file').click()">📁 Escolher arquivo</button>
+              <span id="banner-card-status" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input id="ef-banner" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerCard(this.value)">
           </div>
+
+          <!-- BANNER DA PÁGINA DO EVENTO -->
           <div class="form-g" style="margin:0;">
-            <label>Banner horizontal (URL)</label>
-            <input id="ef-banner-h" placeholder="https://... — link direto da imagem">
-            <p class="hint">Exibida na página do evento. Ideal: 1200×400px.</p>
+            <label>Banner da página do evento</label>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span style="font-size:11px;font-weight:700;color:var(--orange);">1200 × 400 px &nbsp;·&nbsp; proporção 3:1 &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span>
+            </div>
+            <div class="kit-upload-area" id="banner-h-area" onclick="document.getElementById('ef-banner-h-file').click()" style="cursor:pointer;height:110px;position:relative;">
+              <img id="banner-h-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+              <div class="kit-upload-ph" id="banner-h-ph" style="display:flex;">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="1.5"/><path d="M22 14l-5-4-4 3-3-2L2 14"/></svg>
+                <span>Banner da página</span>
+                <span style="font-size:11px;opacity:0.6;">1200 × 400 px — panorâmica</span>
+              </div>
+            </div>
+            <input type="file" id="ef-banner-h-file" accept="image/*" style="display:none;" onchange="uploadBannerHorizontal(this)">
+            <div class="upload-row" style="margin-top:8px;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-h-file').click()">📁 Escolher arquivo</button>
+              <span id="banner-h-status" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input id="ef-banner-h" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerH(this.value)">
           </div>
+
         </div>
 
         <div class="ev-form-section-title">Conteúdo das abas</div>
@@ -776,26 +813,30 @@ function showInner(name){
 /* ── DASHBOARD ── */
 async function loadDashboard(){
   try{
-    const[stats,evs,bans]=await Promise.all([rpc('admin_stats'),rpc('admin_eventos_stats'),rpc('banners_publicos')]);
+    const[stats,evs]=await Promise.all([rpc('admin_stats'),rpc('admin_eventos_stats')]);
     document.getElementById('g-eventos').textContent=fmt(stats.eventos_count);
     document.getElementById('g-fat').textContent=brl(stats.faturamento_total);
     document.getElementById('g-total').textContent=fmt(stats.inscricoes_total);
     document.getElementById('g-hoje').textContent=fmt(stats.inscricoes_hoje);
     document.getElementById('g-ticket').textContent=brl(stats.ticket_medio);
-    renderEventCards(evs||[], Array.isArray(bans)?bans:[]);
+    let bans=[];
+    try{
+      const br=await fetch(`${SB_URL}/rest/v1/eventos?select=id,banner_url`,{
+        headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`}
+      });
+      if(br.ok){const bd=await br.json();bans=Array.isArray(bd)?bd:[];}
+    }catch(e2){console.warn('banners:',e2);}
+    renderEventCards(evs||[],bans);
   }catch(e){console.error(e);}
 }
 function renderEventCards(evs,bans=[]){
   const g=document.getElementById('ev-grid');
   if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
-  g.innerHTML=evs.map(e=>{
-    const ban=bans.find(b=>b.evento_id===e.id);
-    const bgHtml=ban?`<div class="ev-card-header-bg" style="background-image:url('${ban.url}');"></div><div class="ev-card-header-overlay"></div>`:'';
-    return `
+  g.innerHTML=evs.map(e=>`
     <div class="ev-card">
       <div class="ev-card-header">
-        ${bgHtml}
-        <div><h3>${e.nome}</h3><div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
+        ${(()=>{const bu=(bans.find(b=>String(b.id)===String(e.id))||{}).banner_url||e.banner_url||'';return bu?`<div class="ev-card-header-bg" style="background-image:url('${bu}');"></div><div class="ev-card-header-overlay"></div>`:''})()}
+        <div><h3>${e.nome}</h3><div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''</div></div>
         <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
       </div>
       <div class="ev-card-stats">
@@ -815,7 +856,7 @@ function renderEventCards(evs,bans=[]){
         }
         <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
       </div>
-    </div>`;}).join('');
+    </div>`).join('');
 }
 
 /* ── EVENTO FORM ── */
@@ -824,6 +865,7 @@ async function loadEventoForm(id){
   document.getElementById('ef-id').value=id||'';
   document.getElementById('ev-form-feedback').textContent='';
   ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-taxa','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';});
+  previewBannerCard('');previewBannerH('');
   document.getElementById('ef-status').value='soon';
   if(id){
     try{
@@ -835,6 +877,7 @@ async function loadEventoForm(id){
         set('ef-percurso',ev.percurso);set('ef-percurso-mapa',ev.percurso_mapa);
         set('ef-retirada',ev.retirada_kit);set('ef-regulamento',ev.regulamento);
         set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);
+        previewBannerCard(ev.banner_url||'');previewBannerH(ev.banner_horizontal_url||'');
         document.getElementById('ef-status').value=ev.status||'soon';
       }
     }catch(e){console.error(e);}
@@ -987,6 +1030,57 @@ async function uploadKitFoto(input) {
     status.textContent = 'Erro no upload.'; status.style.color = '#ff6b6b';
     console.error(e);
   }
+}
+
+
+/* ── BANNERS DO EVENTO ── */
+function previewBannerCard(url){
+  const img=document.getElementById('banner-card-preview'),ph=document.getElementById('banner-card-ph');
+  if(!img||!ph)return;
+  if(url&&url.startsWith('http')){img.src=url;img.style.display='block';ph.style.display='none';}
+  else{img.src='';img.style.display='none';ph.style.display='flex';}
+}
+function previewBannerH(url){
+  const img=document.getElementById('banner-h-preview'),ph=document.getElementById('banner-h-ph');
+  if(!img||!ph)return;
+  if(url&&url.startsWith('http')){img.src=url;img.style.display='block';ph.style.display='none';}
+  else{img.src='';img.style.display='none';ph.style.display='flex';}
+}
+async function uploadBannerCard(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
+  const st=document.getElementById('banner-card-status');
+  st.textContent='Enviando…';st.style.color='var(--muted)';
+  const ext=file.name.split('.').pop()||'jpg';
+  const nome=`banner_card_${Date.now()}.${ext}`;
+  try{
+    const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{
+      method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file
+    });
+    if(!r.ok)throw new Error(await r.text());
+    const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('ef-banner').value=url;
+    previewBannerCard(url);
+    st.textContent='✓ Enviado!';st.style.color='#22c55e';
+  }catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}
+}
+async function uploadBannerHorizontal(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
+  const st=document.getElementById('banner-h-status');
+  st.textContent='Enviando…';st.style.color='var(--muted)';
+  const ext=file.name.split('.').pop()||'jpg';
+  const nome=`banner_h_${Date.now()}.${ext}`;
+  try{
+    const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{
+      method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file
+    });
+    if(!r.ok)throw new Error(await r.text());
+    const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('ef-banner-h').value=url;
+    previewBannerH(url);
+    st.textContent='✓ Enviado!';st.style.color='#22c55e';
+  }catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}
 }
 
 function editarKit(k){
