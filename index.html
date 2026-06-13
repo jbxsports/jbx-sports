@@ -12,12 +12,12 @@
     --orange-light: #ff9a54;
     
     
-    --black: #0a0a0a;
+    --black: #faf9f7;
     --white: #ffffff;
     --gray: #d9d9d9;
     --gray-dark: #888;
-    --bg-dark: #111111;
-    --bg-card: #1a1a1a;
+    --bg-dark: #f3f1ee;
+    --bg-card: #ffffff;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +27,7 @@
   body {
     font-family: 'Ubuntu', sans-serif;
     background: var(--black);
-    color: var(--white);
+    color: #2a2520;
     overflow-x: hidden;
   }
 
@@ -42,20 +42,20 @@
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 5%; height: 70px;
-    background: rgba(10,10,10,0.92);
+    background: rgba(250,249,247,0.96);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255,117,31,0.15);
   }
   .nav-logo { text-decoration: none; display: flex; align-items: center; }
   .nav-links { display: flex; gap: 32px; list-style: none; }
   .nav-links a {
-    color: rgba(255,255,255,0.7); text-decoration: none;
+    color: rgba(42,37,32,0.65); text-decoration: none;
     font-size: 14px; font-weight: 500; letter-spacing: 0.5px;
     transition: color 0.2s;
   }
   .nav-links a:hover { color: var(--orange); }
   .nav-cta {
-    background: var(--orange); color: var(--white);
+    background: var(--orange); color: #ffffff;
     padding: 10px 22px; border-radius: 6px;
     font-weight: 700; font-size: 14px; text-decoration: none;
     transition: background 0.2s, transform 0.15s;
@@ -89,6 +89,7 @@
     font-size: 12px; font-weight: 700; letter-spacing: 2px;
     color: var(--orange); text-transform: uppercase; margin-bottom: 28px;
   }
+
   .hero-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(1.4)} }
 
@@ -100,13 +101,13 @@
   }
   h1 em { font-style: normal; color: var(--orange); }
   .hero-sub {
-    font-size: 18px; color: rgba(255,255,255,0.6);
+    font-size: 18px; color: rgba(42,37,32,0.6);
     max-width: 480px; line-height: 1.7; margin-bottom: 48px;
     font-weight: 400;
   }
   .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
   .btn-primary {
-    background: var(--orange); color: var(--white);
+    background: var(--orange); color: #ffffff;
     padding: 16px 36px; border-radius: 6px;
     font-size: 16px; font-weight: 700; text-decoration: none;
     transition: all 0.2s; letter-spacing: 0.3px;
@@ -114,40 +115,20 @@
   }
   .btn-primary:hover { background: var(--orange-dark); border-color: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,117,31,0.35); }
   .btn-secondary {
-    background: transparent; color: var(--white);
+    background: transparent; color: #ffffff;
     padding: 16px 36px; border-radius: 6px;
     font-size: 16px; font-weight: 700; text-decoration: none;
-    transition: all 0.2s; border: 2px solid rgba(255,255,255,0.25);
+    transition: all 0.2s; border: 2px solid rgba(42,37,32,0.25);
   }
-  .btn-secondary:hover { border-color: var(--white); background: rgba(255,255,255,0.06); }
+  .btn-secondary:hover { border-color: #2a2520; background: rgba(42,37,32,0.06); }
 
   .hero-stats {
+    position: absolute; bottom: 48px; right: 5%;
     display: flex; gap: 48px;
-    position: relative; z-index: 3;
-    margin-top: 40px;
   }
-  .stat { text-align: left; }
-  .stat-num { font-size: 36px; font-weight: 700; color: var(--black); line-height: 1; }
-  .stat-label { font-size: 12px; color: rgba(0,0,0,0.6); font-weight: 400; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
-
-  /* ── COUNTDOWN ── */
-  #countdown-bar {
-    background: #1a1a1a; border-top: 3px solid var(--orange); border-bottom: 3px solid var(--orange);
-    padding: 16px 5%;
-    display: flex; align-items: center; justify-content: center; gap: 32px;
-    flex-wrap: wrap;
-  }
-  .countdown-label { font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.8); }
-  .countdown-timer { display: flex; gap: 16px; }
-  .timer-unit { text-align: center; }
-  .timer-num { font-size: 28px; font-weight: 700; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px; min-width: 54px; display: block; }
-  .timer-label { font-size: 10px; color: rgba(255,255,255,0.6); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
-  .countdown-cta {
-    background: var(--orange); color: var(--white);
-    padding: 10px 24px; border-radius: 6px; font-weight: 700; font-size: 14px;
-    text-decoration: none; transition: background 0.2s; white-space: nowrap;
-  }
-  .countdown-cta:hover { background: var(--orange-dark); }
+  .stat { text-align: right; }
+  .stat-num { font-size: 72px; font-weight: 700; color: #ffffff; line-height: 1; }
+  .stat-label { font-size: 14px; color: rgba(255,255,255,0.85); font-weight: 400; letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
 
   /* ── SECTION BASE ── */
   section { padding: 96px 5%; }
@@ -159,22 +140,23 @@
   .section-tag::after { content: ''; flex: 0 0 32px; height: 2px; background: var(--orange); }
   h2 { font-size: clamp(28px, 4vw, 48px); font-weight: 700; line-height: 1.1; letter-spacing: -1px; }
   h2 em { font-style: normal; color: var(--orange); }
-  .section-sub { font-size: 16px; color: rgba(255,255,255,0.55); margin-top: 12px; max-width: 560px; line-height: 1.7; }
+  .section-sub { font-size: 16px; color: rgba(42,37,32,0.55); margin-top: 12px; max-width: 560px; line-height: 1.7; }
 
   /* ── EVENTOS ── */
-  #eventos { background: #0d0d0d; }
+  #eventos { background: #f3f1ee; }
+  #eventos > * { max-width: 1400px; margin-left: auto; margin-right: auto; }
   .eventos-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 48px; flex-wrap: wrap; gap: 16px; }
-  .eventos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+  .eventos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
   .event-card {
     background: var(--bg-card); border-radius: 12px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(42,37,32,0.1);
     transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
     cursor: pointer;
   }
-  .event-card:hover { transform: translateY(-6px); border-color: rgba(255,117,31,0.4); box-shadow: 0 24px 48px rgba(0,0,0,0.5); }
+  .event-card:hover { transform: translateY(-6px); border-color: rgba(255,117,31,0.4); box-shadow: 0 24px 48px rgba(40,35,30,0.4); }
   .event-card-img {
-    height: 280px; position: relative; overflow: hidden;
+    height: 420px; position: relative; overflow: hidden;
     background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
   }
   .event-card-img .ev-bg {
@@ -184,40 +166,40 @@
   }
   .event-card-img .ev-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(26,26,26,1) 0%, transparent 60%);
+    background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.3) 50%, transparent 100%);
   }
   .event-badge {
     position: absolute; top: 16px; left: 16px;
     padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
   }
-  .badge-open { background: rgba(255,117,31,0.9); color: white; }
-  .badge-soon { background: rgba(255,117,31,0.7); color: white; }
-  .badge-sold { background: rgba(136,136,136,0.7); color: white; }
+  .badge-open { background: rgba(255,117,31,0.9); color: #ffffff; }
+  .badge-soon { background: rgba(255,117,31,0.7); color: #2a2520; }
+  .badge-sold { background: rgba(136,136,136,0.7); color: #2a2520; }
 
   .event-dist {
     position: absolute; bottom: 16px; right: 16px;
     display: flex; gap: 6px;
   }
   .dist-pill {
-    background: rgba(255,117,31,0.9); color: white;
+    background: rgba(255,117,31,0.9); color: #ffffff;
     padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
   }
 
-  .event-card-body { padding: 20px 24px 24px; }
-  .event-name { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+  .event-card-body { padding: 20px 24px 24px; position: relative; }
+  .event-name { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #2a2520; }
   .event-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
   .event-meta-item {
     display: flex; align-items: center; gap: 5px;
-    font-size: 13px; color: rgba(255,255,255,0.55);
+    font-size: 13px; color: rgba(42,37,32,0.55);
   }
   .event-meta-item svg { opacity: 0.6; }
   .event-price-row { display: flex; align-items: center; justify-content: space-between; }
   .event-price { }
-  .price-from { font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px; }
+  .price-from { font-size: 11px; color: rgba(42,37,32,0.4); text-transform: uppercase; letter-spacing: 1px; }
   .price-val { font-size: 26px; font-weight: 700; color: var(--orange); }
   .btn-inscricao {
-    background: var(--orange); color: white;
+    background: var(--orange); color: #ffffff;
     padding: 10px 22px; border-radius: 6px; border: none;
     font-size: 14px; font-weight: 700; cursor: pointer;
     transition: all 0.2s; font-family: 'Ubuntu', sans-serif;
@@ -233,7 +215,7 @@
   }
   .step:first-child { border-radius: 12px 0 0 12px; }
   .step:last-child { border-radius: 0 12px 12px 0; }
-  .step:hover { background: #222; }
+  .step:hover { background: #f5f3f0; }
   .step-num {
     font-size: 64px; font-weight: 700; color: rgba(255,117,31,0.12);
     line-height: 1; margin-bottom: 20px;
@@ -246,7 +228,7 @@
   }
   .step-icon svg { width: 24px; height: 24px; stroke: var(--orange); }
   .step h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
-  .step p { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+  .step p { font-size: 14px; color: rgba(42,37,32,0.5); line-height: 1.7; }
   .step-connector {
     position: absolute; top: 50%; right: -1px;
     width: 2px; height: 40px; transform: translateY(-50%);
@@ -257,13 +239,13 @@
   /* ── MODAL INSCRIÇÃO ── */
   .modal-overlay {
     position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+    background: rgba(40,35,30,0.55); backdrop-filter: blur(8px);
     display: flex; align-items: center; justify-content: center;
     padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
   }
   .modal-overlay.active { opacity: 1; pointer-events: all; }
   .modal {
-    background: #171717; border-radius: 16px; width: 100%; max-width: 560px;
+    background: #ffffff; border-radius: 16px; width: 100%; max-width: 720px;
     max-height: 90vh; overflow-y: auto;
     border: 1px solid rgba(255,117,31,0.2);
     transform: translateY(20px); transition: transform 0.3s;
@@ -271,16 +253,16 @@
   .modal-overlay.active .modal { transform: translateY(0); }
   .modal-header {
     padding: 28px 32px 24px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(42,37,32,0.07);
     display: flex; justify-content: space-between; align-items: flex-start;
   }
   .modal-header h3 { font-size: 22px; font-weight: 700; }
-  .modal-header .event-info { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .modal-header .event-info { font-size: 14px; color: rgba(42,37,32,0.5); margin-top: 4px; }
   .modal-close {
-    background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.5);
+    background: none; border: none; cursor: pointer; color: rgba(42,37,32,0.5);
     font-size: 24px; padding: 4px; transition: color 0.2s;
   }
-  .modal-close:hover { color: white; }
+  .modal-close:hover { color: #ffffff; }
   .modal-body { padding: 28px 32px; }
 
   .form-section-title {
@@ -290,28 +272,28 @@
   .form-section-title:first-child { margin-top: 0; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 6px; font-weight: 500; }
+  .form-group label { display: block; font-size: 13px; color: rgba(42,37,32,0.6); margin-bottom: 6px; font-weight: 500; }
   .form-group input, .form-group select {
-    width: 100%; background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-    padding: 11px 14px; color: white; font-size: 15px; font-family: 'Ubuntu', sans-serif;
+    width: 100%; background: rgba(42,37,32,0.05);
+    border: 1px solid rgba(42,37,32,0.08); border-radius: 8px;
+    padding: 11px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif;
     transition: border-color 0.2s;
   }
   .form-group input:focus, .form-group select:focus {
     outline: none; border-color: var(--orange);
     background: rgba(255,117,31,0.05);
   }
-  .form-group select option { background: #222; }
-  .form-group input::placeholder { color: rgba(255,255,255,0.25); }
+  .form-group select option { background: #f5f3f0; }
+  .form-group input::placeholder { color: rgba(42,37,32,0.25); }
 
   .category-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .cat-option {
-    border: 2px solid rgba(255,255,255,0.1); border-radius: 8px;
+    border: 2px solid rgba(42,37,32,0.08); border-radius: 8px;
     padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.2s;
   }
   .cat-option.selected { border-color: var(--orange); background: rgba(255,117,31,0.1); }
   .cat-option .cat-dist { font-size: 18px; font-weight: 700; color: var(--orange); }
-  .cat-option .cat-price { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .cat-option .cat-price { font-size: 12px; color: rgba(42,37,32,0.5); margin-top: 2px; }
 
   .order-summary {
     background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.2);
@@ -322,7 +304,7 @@
 
   .payment-methods { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 20px; }
   .pay-method {
-    border: 2px solid rgba(255,255,255,0.1); border-radius: 8px;
+    border: 2px solid rgba(42,37,32,0.08); border-radius: 8px;
     padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s;
     font-size: 13px; font-weight: 600;
   }
@@ -330,7 +312,7 @@
   .pay-method svg { display: block; margin: 0 auto 4px; opacity: 0.7; }
 
   .btn-pagar {
-    width: 100%; background: var(--orange); color: white;
+    width: 100%; background: var(--orange); color: #ffffff;
     padding: 16px; border-radius: 8px; border: none;
     font-size: 17px; font-weight: 700; cursor: pointer;
     font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
@@ -340,17 +322,252 @@
 
   .stripe-badge {
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.35);
+    margin-top: 12px; font-size: 12px; color: rgba(42,37,32,0.35);
   }
   .stripe-badge svg { opacity: 0.5; }
 
+  /* ── WIZARD (ETAPAS DA INSCRIÇÃO) ── */
+  .step-progress { display: flex; gap: 8px; margin-bottom: 28px; }
+  .step-dot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .step-dot span {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    background: rgba(42,37,32,0.07); color: rgba(42,37,32,0.5);
+    border: 2px solid transparent; transition: all 0.2s;
+  }
+  .step-dot label { font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; color: rgba(42,37,32,0.35); transition: color 0.2s; }
+  .step-dot.active span { background: var(--orange); color: #fff; }
+  .step-dot.active label { color: var(--orange); }
+  .step-dot.done span { background: rgba(255,117,31,0.18); color: var(--orange); border-color: var(--orange); }
+
+  .step-panel { display: none; }
+  .step-panel.active { display: block; animation: fadeStep 0.25s ease; }
+  @keyframes fadeStep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .kit-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .lote-badge { display: none; align-items: center; gap: 8px; background: rgba(255,117,31,0.12); border: 1px solid rgba(255,117,31,0.3); color: var(--orange); padding: 6px 16px; border-radius: 6px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; width: fit-content; }
+  .lote-badge.show { display: inline-flex; }
+  .lote-badge::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); flex-shrink: 0; }
+  .kit-option {
+    border: 2px solid rgba(42,37,32,0.08); border-radius: 12px; padding: 20px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .kit-option:hover { border-color: rgba(255,117,31,0.4); }
+  .kit-option.selected { border-color: var(--orange); background: rgba(255,117,31,0.08); }
+  .kit-name { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+  .kit-price { font-size: 24px; font-weight: 700; color: var(--orange); margin-bottom: 10px; }
+  .kit-desc { font-size: 12px; color: rgba(42,37,32,0.5); line-height: 1.5; }
+  .kit-img {
+    position: relative; width: 100%; aspect-ratio: 1 / 1;
+    border-radius: 10px; overflow: hidden; margin-bottom: 14px;
+    background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kit-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .kit-img-ph { font-size: 11px; color: rgba(42,37,32,0.3); text-align: center; line-height: 1.8; letter-spacing: 0.5px; }
+
+  .step-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; }
+  .btn-step-back, .btn-step-next {
+    padding: 13px 28px; border-radius: 8px; font-size: 15px; font-weight: 700;
+    cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+  }
+  .btn-step-back { background: transparent; color: rgba(42,37,32,0.65); border: 1px solid rgba(42,37,32,0.2); }
+  .btn-step-back:hover { border-color: #fff; color: #fff; }
+  .btn-step-next { background: var(--orange); color: #fff; border: none; margin-left: auto; }
+  .btn-step-next:hover { background: var(--orange-dark); transform: translateY(-1px); }
+  .btn-retornar-pag {
+    background: transparent; color: var(--orange);
+    border: 1px solid var(--orange); border-radius: 8px;
+    padding: 13px 20px; font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-retornar-pag:hover { background: rgba(255,117,31,0.1); }
+
+  @media (max-width: 600px) { .kit-options { grid-template-columns: 1fr; } }
+
+  /* ── PÁGINA DO EVENTO ── */
+  #evento-detalhe {
+    position: fixed; inset: 0; z-index: 150;
+    background: var(--black); overflow-y: auto; display: none;
+  }
+  #evento-detalhe.active { display: block; }
+  .ed-topbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; height: 64px; padding: 0 5%;
+    background: rgba(250,249,247,0.96); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,117,31,0.15);
+  }
+  .ed-back {
+    background: none; border: none; color: rgba(42,37,32,0.8);
+    font-size: 15px; font-weight: 500; cursor: pointer; font-family: 'Ubuntu', sans-serif;
+    transition: color 0.2s;
+  }
+  .ed-back:hover { color: var(--orange); }
+
+  /* Layout 3 colunas */
+  .ed-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* Coluna 1: Banner */
+  .ed-col-banner {
+    position: sticky; top: 64px;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+  .ed-banner {
+    width: 100%; height: 100%;
+    background: linear-gradient(135deg,#1e1e1e,#2a2a2a);
+    background-size: cover; background-position: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    padding: 32px 24px;
+  }
+  .ed-banner-ph { color: rgba(42,37,32,0.22); font-size: 18px; font-weight: 700; letter-spacing: 3px; }
+  .ed-banner.has-img .ed-banner-ph { display: none; }
+  .ed-banner-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  /* Coluna 2: Infos */
+  .ed-col-info {
+    border-left: 1px solid rgba(42,37,32,0.06);
+    border-right: 1px solid rgba(42,37,32,0.06);
+    padding: 32px 28px 80px;
+    overflow-y: auto;
+  }
+
+  /* Coluna 3: Patrocinadores */
+  .ed-col-sponsors {
+    padding: 32px 24px 80px;
+    overflow-y: auto;
+  }
+
+  .ed-wrap { display: none; } /* desativado — substituído pelo novo layout */
+  .sponsors-cat { margin-bottom: 24px; }
+  .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(42,37,32,0.3); margin-bottom: 12px; text-align: center; }
+  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; align-items: center; }
+  .sponsor-logo { display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; border-radius: 8px; background: transparent; padding: 4px; }
+  .sponsor-logo:hover { opacity: 0.75; }
+  .sponsor-logo img { display: block; object-fit: contain; }
+  .sponsor-master   .sponsor-logo img { width: 160px; height: 64px; }
+  .sponsor-parceiro .sponsor-logo img { width: 130px; height: 52px; }
+  .sponsor-ouro     .sponsor-logo img { width: 100px; height: 40px; }
+  .sponsor-prata    .sponsor-logo img { width: 80px;  height: 32px; }
+  .sponsor-bronze   .sponsor-logo img { width: 64px;  height: 26px; }
+  @media (max-width: 900px) {
+    .ed-layout { grid-template-columns: 1fr; }
+    .ed-col-banner { position: static; height: 260px; }
+    .ed-col-sponsors { border-top: 1px solid rgba(42,37,32,0.06); }
+  }
+  .ed-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 24px; padding: 28px 0; border-bottom: 1px solid rgba(42,37,32,0.07); flex-wrap: wrap;
+  }
+  .ed-header .event-badge { position: static; display: inline-block; margin-bottom: 12px; }
+  .ed-title { font-size: clamp(26px,4vw,40px); font-weight: 700; letter-spacing: -1px; line-height: 1.1; }
+  .ed-meta { font-size: 15px; color: rgba(42,37,32,0.55); margin-top: 12px; }
+  .ed-price { font-size: 22px; font-weight: 700; color: var(--orange); margin-top: 14px; }
+  .ed-inscrever {
+    background: var(--orange); color: #fff; border: none;
+    padding: 16px 36px; border-radius: 8px; font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; white-space: nowrap;
+  }
+  .ed-inscrever:hover { background: var(--orange-dark); transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,117,31,0.35); }
+  .ed-inscrever.disabled { background: #444; cursor: not-allowed; transform: none; box-shadow: none; }
+  .ed-tabs { display: flex; gap: 4px; margin-top: 8px; overflow-x: auto; border-bottom: 1px solid rgba(42,37,32,0.07); }
+  .ed-tab {
+    background: none; border: none; cursor: pointer; font-family: 'Ubuntu', sans-serif;
+    color: rgba(42,37,32,0.5); font-size: 15px; font-weight: 500;
+    padding: 16px 18px; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap;
+  }
+  .ed-tab:hover { color: rgba(42,37,32,0.85); }
+  .ed-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .ed-content { padding-top: 28px; }
+  .ed-pane { display: none; font-size: 16px; line-height: 1.8; color: rgba(42,37,32,0.75); white-space: pre-wrap; }
+  .ed-pane.active { display: block; }
+  .ed-pane.ed-empty { color: rgba(42,37,32,0.4); font-style: italic; }
+  .ed-mapa { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; border: 1px solid rgba(42,37,32,0.08); margin-bottom: 18px; background: #ffffff; }
+  .ed-mapa iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .ed-mapa-texto { white-space: pre-wrap; }
+  .ed-mapa-tabs { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .ed-mapa-tab { background: rgba(42,37,32,0.06); color: rgba(42,37,32,0.65); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 8px 18px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; }
+  .ed-mapa-tab:hover { border-color: var(--orange); color: #fff; }
+  .ed-mapa-tab.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .ed-retirada-texto { white-space: pre-wrap; }
+  .btn-termo { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; background: rgba(255,117,31,0.12); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 12px 22px; font-size: 14px; font-weight: 700; text-decoration: none; transition: all 0.2s; }
+  .btn-termo:hover { background: var(--orange); color: #fff; }
+  @media (max-width: 768px) { .ed-mapa { aspect-ratio: 4 / 3; } }
+  @media (max-width: 768px) { .ed-banner { height: 200px; } .ed-inscrever { width: 100%; } }
+
+  /* ── BUSCA DE ATLETA CADASTRADO ── */
+  .busca-atleta { background: rgba(255,255,255,0.04); border: 1px solid rgba(42,37,32,0.08); border-radius: 10px; padding: 16px 18px; margin-bottom: 22px; }
+  .busca-atleta-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .busca-atleta-sub { font-size: 12px; color: rgba(42,37,32,0.45); line-height: 1.5; margin-bottom: 12px; }
+  .busca-atleta-row { display: flex; gap: 8px; }
+  .busca-atleta-row input { flex: 1; background: rgba(42,37,32,0.05); border: 1px solid rgba(42,37,32,0.08); border-radius: 8px; padding: 11px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; }
+  .busca-atleta-row input:focus { outline: none; border-color: var(--orange); }
+  .btn-buscar { background: rgba(255,117,31,0.15); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 0 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Ubuntu', sans-serif; white-space: nowrap; transition: all 0.2s; }
+  .btn-buscar:hover { background: var(--orange); color: #fff; }
+  .busca-resultado { font-size: 13px; margin-top: 10px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .busca-resultado:empty { display: none; }
+  .busca-resultado.br-info { color: rgba(42,37,32,0.5); }
+  .busca-resultado.br-erro { color: #ff6b6b; }
+  .busca-resultado.br-ok { color: #22c55e; }
+  .btn-usar { background: var(--orange); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Ubuntu', sans-serif; }
+  .btn-usar:hover { background: var(--orange-dark); }
+  .protegido-card { display: flex; align-items: center; gap: 16px; background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.25); border-radius: 10px; padding: 18px 20px; flex-wrap: wrap; }
+  .protegido-ico { font-size: 24px; }
+  .protegido-nome { font-size: 15px; font-weight: 700; }
+  .protegido-sub { font-size: 12px; color: rgba(42,37,32,0.5); line-height: 1.5; margin-top: 2px; }
+  .btn-trocar { margin-left: auto; background: transparent; border: 1px solid rgba(42,37,32,0.25); color: rgba(42,37,32,0.8); border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Ubuntu', sans-serif; }
+  .btn-trocar:hover { border-color: #fff; color: #fff; }
+  @media (max-width: 600px) { .busca-atleta-row { flex-direction: column; } .btn-buscar { padding: 11px; } .btn-trocar { margin-left: 0; } }
+
+  /* ── CUPOM DE DESCONTO ── */
+  .cupom-box { margin-bottom: 16px; }
+  .cupom-row { display: flex; gap: 8px; }
+  .cupom-row input { flex: 1; background: rgba(42,37,32,0.05); border: 1px solid rgba(42,37,32,0.08); border-radius: 8px; padding: 11px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; text-transform: uppercase; }
+  .cupom-row input:focus { outline: none; border-color: var(--orange); }
+  .btn-cupom { background: rgba(255,117,31,0.15); color: var(--orange); border: 1px solid var(--orange); border-radius: 8px; padding: 0 20px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: 'Ubuntu', sans-serif; white-space: nowrap; transition: all 0.2s; }
+  .btn-cupom:hover { background: var(--orange); color: #fff; }
+  .cupom-msg { font-size: 13px; margin-top: 8px; }
+  .cupom-msg:empty { display: none; }
+  .cupom-msg.cm-info { color: rgba(42,37,32,0.5); }
+  .cupom-msg.cm-ok { color: #22c55e; }
+  .cupom-msg.cm-erro { color: #ff6b6b; }
+  .cpf-aviso { display: none; }
+  .cpf-aviso.show { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 12.5px; color: var(--orange); background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.25); border-radius: 8px; padding: 8px 12px; }
+  .cpf-aviso .btn-usar { padding: 6px 14px; font-size: 12px; }
+  @media (max-width: 600px) { .cupom-row { flex-direction: column; } .btn-cupom { padding: 11px; } }
+
+  /* ── LISTA DE ATLETAS (carrinho) ── */
+  #lista-atletas { display: flex; flex-direction: column; gap: 8px; }
+  .atleta-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(42,37,32,0.08); border-radius: 10px; padding: 12px 14px; }
+  .atleta-info { min-width: 0; }
+  .atleta-titulo { font-size: 14px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .atleta-sub { font-size: 12px; color: rgba(42,37,32,0.5); margin-top: 2px; }
+  .atleta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; white-space: nowrap; }
+  .atleta-preco { font-size: 14px; font-weight: 700; color: var(--orange); }
+  .atleta-remover { background: none; border: none; color: rgba(42,37,32,0.4); font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; font-family: 'Ubuntu', sans-serif; }
+  .atleta-remover:hover { color: #ff6b6b; }
+  .atleta-tag { font-size: 11px; color: var(--orange); background: rgba(255,117,31,0.12); border-radius: 6px; padding: 2px 8px; }
+  .btn-add-atleta { width: 100%; margin-top: 10px; background: transparent; color: var(--orange); border: 1px dashed var(--orange); border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s; }
+  .btn-add-atleta:hover { background: rgba(255,117,31,0.1); }
+
   /* ── SOBRE ── */
-  #sobre { background: #0d0d0d; }
+  #sobre { background: #f3f1ee; }
   .sobre-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-top: 56px; }
   .sobre-visual {
     position: relative; height: 420px;
     background: var(--bg-card); border-radius: 16px; overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(42,37,32,0.1);
   }
   .sobre-visual-inner {
     position: absolute; inset: 0;
@@ -366,35 +583,35 @@
   .sobre-stat-row { display: flex; gap: 40px; }
   .sobre-stat { text-align: center; }
   .sobre-stat .n { font-size: 32px; font-weight: 700; color: var(--orange); }
-  .sobre-stat .l { font-size: 12px; color: rgba(255,255,255,0.45); letter-spacing: 1px; text-transform: uppercase; }
-  .sobre-text p { font-size: 16px; color: rgba(255,255,255,0.6); line-height: 1.8; margin-bottom: 20px; }
+  .sobre-stat .l { font-size: 12px; color: rgba(42,37,32,0.45); letter-spacing: 1px; text-transform: uppercase; }
+  .sobre-text p { font-size: 16px; color: rgba(42,37,32,0.6); line-height: 1.8; margin-bottom: 20px; }
   .sobre-values { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 32px; }
   .value-card {
     background: var(--bg-card); border-radius: 10px; padding: 20px;
-    border: 1px solid rgba(255,255,255,0.06);
+    border: 1px solid rgba(42,37,32,0.1);
   }
   .value-card h4 { font-size: 14px; font-weight: 700; color: var(--orange); margin-bottom: 6px; }
-  .value-card p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.6; }
+  .value-card p { font-size: 13px; color: rgba(42,37,32,0.5); line-height: 1.6; }
 
   /* ── FOOTER ── */
   footer {
-    background: #080808; padding: 64px 5% 40px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    background: #f0ede8; padding: 64px 5% 40px;
+    border-top: 1px solid rgba(42,37,32,0.06);
   }
   .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
   .footer-logo { margin-bottom: 12px; }
 
-  .footer-desc { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.7; max-width: 280px; }
-  .footer-col h5 { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
-  .footer-col a { display: block; font-size: 14px; color: rgba(255,255,255,0.6); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
+  .footer-desc { font-size: 14px; color: rgba(42,37,32,0.55); line-height: 1.7; max-width: 280px; }
+  .footer-col h5 { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(42,37,32,0.5); margin-bottom: 16px; }
+  .footer-col a { display: block; font-size: 14px; color: rgba(42,37,32,0.65); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
   .footer-col a:hover { color: var(--orange); }
-  .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.06); }
-  .footer-bottom p { font-size: 13px; color: rgba(255,255,255,0.3); }
-  .footer-stripe { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(255,255,255,0.3); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding-top: 24px; border-top: 1px solid rgba(42,37,32,0.06); }
+  .footer-bottom p { font-size: 13px; color: rgba(42,37,32,0.45); }
+  .footer-stripe { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(42,37,32,0.3); }
 
   @media (max-width: 768px) {
     .nav-links { display: none; }
-    .hero-stats { margin-top: 32px; }
+    .hero-stats { position: static; margin-top: 48px; justify-content: flex-start; }
     .sobre-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .form-row { grid-template-columns: 1fr; }
@@ -411,7 +628,7 @@
 <!-- NAV -->
 <nav>
 <a href="#" class="nav-logo">
-  <svg height="28" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#ffffff;display:block;">
+  <svg height="28" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#2a2520;display:block;">
 <path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
 </svg>
 </a>
@@ -420,7 +637,13 @@
     <li><a href="#sobre">Sobre</a></li>
     <li><a href="#contato">Contato</a></li>
   </ul>
-  <a href="#eventos" class="nav-cta">Inscreva-se</a>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <a href="/atleta.html" style="color:rgba(42,37,32,0.65);text-decoration:none;font-size:14px;font-weight:500;padding:8px 16px;border:1px solid rgba(42,37,32,0.2);border-radius:6px;transition:all 0.2s;" onmouseover="this.style.borderColor='#fff';this.style.color='#fff'" onmouseout="this.style.borderColor='rgba(42,37,32,0.2)';this.style.color='rgba(42,37,32,0.65)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Login
+    </a>
+    <a href="/atleta.html?tela=cadastro" class="nav-cta">Cadastre-se</a>
+  </div>
 </nav>
 
 <!-- HERO -->
@@ -430,12 +653,12 @@
   <video
     id="hero-video"
     autoplay muted loop playsinline
-    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.45;"
+    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:1;"
   >
     <source src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/Video%20Project%203.mp4" type="video/mp4">
   </video>
   <!-- GRADIENT OVERLAY -->
-  <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(10,10,10,0.92) 40%, rgba(10,10,10,0.3) 100%);z-index:1;"></div>
+  <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(250,249,247,1) 0%, rgba(250,249,247,0.98) 28%, rgba(250,249,247,0.7) 38%, rgba(250,249,247,0.1) 48%, transparent 52%);z-index:1;"></div>
   <div class="topo-pattern" style="z-index:2;">
     <svg viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice" fill="none" stroke="white" stroke-width="1">
       <ellipse cx="700" cy="400" rx="600" ry="300"/>
@@ -452,15 +675,13 @@
     </svg>
   </div>
 
-  <div class="hero-tag" style="position:relative;z-index:3;">🏃 Próximo evento em 23 dias</div>
   <h1 style="position:relative;z-index:3;">Experiências esportivas<br>que <em>marcam.</em></h1>
 
   <div class="hero-actions" style="position:relative;z-index:3;">
     <a href="#eventos" class="btn-primary">Ver eventos</a>
-    <a href="#sobre" class="btn-secondary">Sobre a JBX</a>
   </div>
 
-  <div class="hero-stats">
+  <div class="hero-stats" style="z-index:3;">
     <div class="stat">
       <div class="stat-num">+40</div>
       <div class="stat-label">Eventos realizados</div>
@@ -469,20 +690,9 @@
       <div class="stat-num">+50.000</div>
       <div class="stat-label">Atletas inscritos</div>
     </div>
+
   </div>
 </section>
-
-<!-- COUNTDOWN BAR -->
-<div id="countdown-bar">
-  <div class="countdown-label">⚡ JBX Night Run – 27 Set 2026</div>
-  <div class="countdown-timer">
-    <div class="timer-unit"><span class="timer-num" id="t-dias">23</span><div class="timer-label">dias</div></div>
-    <div class="timer-unit"><span class="timer-num" id="t-hrs">14</span><div class="timer-label">horas</div></div>
-    <div class="timer-unit"><span class="timer-num" id="t-min">37</span><div class="timer-label">min</div></div>
-    <div class="timer-unit"><span class="timer-num" id="t-sec">00</span><div class="timer-label">seg</div></div>
-  </div>
-  <a href="#" class="countdown-cta" onclick="openModal('Night Run Ribeirão Preto','27 Set 2026 – 20h00','A partir de R$ 89'); return false;">Inscreva-se agora</a>
-</div>
 
 <!-- EVENTOS -->
 <section id="eventos">
@@ -495,7 +705,7 @@
   </div>
 
   <div class="eventos-grid" id="eventos-grid">
-    <div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">
+    <div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(42,37,32,0.4);">
       Carregando eventos...
     </div>
   </div>
@@ -532,11 +742,9 @@
     <div class="sobre-visual">
       <div class="sobre-visual-inner"></div>
       <div class="sobre-visual-content">
-<div class="sobre-logo-big">
-  <svg height="48" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#ffffff;display:block;">
+<div class="sobre-logo-big"><svg height="28" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#2a2520;display:block;">
 <path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
-</svg>
-</div>
+</svg></div>
         <div class="sobre-stat-row">
           <div class="sobre-stat"><div class="n">40+</div><div class="l">Eventos</div></div>
           <div class="sobre-stat"><div class="n">12K+</div><div class="l">Atletas</div></div>
@@ -551,11 +759,9 @@
 <footer id="contato">
   <div class="footer-grid">
     <div>
-<div class="footer-logo">
-  <svg height="32" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#ffffff;display:block;">
+<div class="footer-logo"><svg height="28" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#2a2520;display:block;">
 <path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
-</svg>
-</div>
+</svg></div>
       <p class="footer-desc">Desenvolvendo, produzindo e executando eventos esportivos de alto padrão em todo o Brasil.</p>
     </div>
     <div class="footer-col">
@@ -586,6 +792,54 @@
   </div>
 </footer>
 
+<!-- PÁGINA DO EVENTO -->
+<div id="evento-detalhe">
+  <div class="ed-topbar">
+    <button class="ed-back" onclick="voltarDoEvento()">← Voltar aos eventos</button>
+  </div>
+  <div class="ed-layout">
+
+    <!-- COLUNA 1: BANNER -->
+    <div class="ed-col-banner">
+      <div class="ed-banner" id="ed-banner">
+        <div class="ed-banner-overlay"></div>
+        <span class="ed-banner-ph">JBX SPORTS</span>
+      </div>
+    </div>
+
+    <!-- COLUNA 2: INFORMAÇÕES -->
+    <div class="ed-col-info">
+      <span class="event-badge badge-soon" id="ed-status">Em breve</span>
+      <h1 class="ed-title" id="ed-nome" style="margin-top:12px;">Evento</h1>
+      <div class="ed-meta" id="ed-meta"></div>
+      <div class="ed-price" id="ed-price"></div>
+      <button class="ed-inscrever" id="ed-inscrever" style="margin-top:20px;width:100%;">Inscreva-se →</button>
+      <div class="ed-tabs" style="margin-top:28px;">
+        <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
+        <button class="ed-tab" data-tab="percurso" onclick="edTab('percurso')">Percurso</button>
+        <button class="ed-tab" data-tab="retirada" onclick="edTab('retirada')">Retirada de kit</button>
+        <button class="ed-tab" data-tab="regulamento" onclick="edTab('regulamento')">Regulamento</button>
+      </div>
+      <div class="ed-content">
+        <div class="ed-pane active" data-pane="info" id="ed-info"></div>
+        <div class="ed-pane" data-pane="percurso" id="ed-percurso"></div>
+        <div class="ed-pane" data-pane="retirada" id="ed-retirada"></div>
+        <div class="ed-pane" data-pane="regulamento" id="ed-regulamento"></div>
+      </div>
+    </div>
+
+    <!-- COLUNA 3: PATROCINADORES -->
+    <div class="ed-col-sponsors">
+      <div id="ed-sponsors-box" style="display:none;">
+        <div class="sponsors-title" style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(42,37,32,0.35);margin-bottom:20px;">Patrocinadores</div>
+        <div id="ed-sponsors-content"></div>
+      </div>
+      <div id="ed-sponsors-empty" style="color:rgba(42,37,32,0.12);font-size:13px;text-align:center;padding-top:40px;"></div>
+    </div>
+
+  </div>
+</div>
+
 <!-- MODAL INSCRIÇÃO -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -598,23 +852,70 @@
     </div>
     <div class="modal-body">
 
-      <div class="form-section-title">Escolha a modalidade</div>
-      <div class="category-options" id="cat-options" style="grid-template-columns:repeat(3,1fr);">
-        <div class="cat-option selected" onclick="selectCat(this, 99.90, 'Corrida 4KM')">
-          <div class="cat-dist" style="font-size:14px;">Corrida 4KM</div>
-          <div class="cat-price">R$ 99,90</div>
-        </div>
-        <div class="cat-option" onclick="selectCat(this, 99.90, 'Corrida 8KM')">
-          <div class="cat-dist" style="font-size:14px;">Corrida 8KM</div>
-          <div class="cat-price">R$ 99,90</div>
-        </div>
-        <div class="cat-option" onclick="selectCat(this, 99.90, 'Caminhada 4KM')">
-          <div class="cat-dist" style="font-size:14px;">Caminhada 4KM</div>
-          <div class="cat-price">R$ 99,90</div>
+      <!-- PROGRESSO -->
+      <div class="step-progress">
+        <div class="step-dot active" data-step="1"><span>1</span><label>Kit</label></div>
+        <div class="step-dot" data-step="2"><span>2</span><label>Modalidade</label></div>
+        <div class="step-dot" data-step="3"><span>3</span><label>Dados</label></div>
+        <div class="step-dot" data-step="4"><span>4</span><label>Pagamento</label></div>
+      </div>
+
+      <!-- ETAPA 1: KIT -->
+      <div class="step-panel active" data-panel="1">
+        <div id="lote-badge" class="lote-badge"></div>
+        <div class="form-section-title">Escolha seu kit</div>
+        <script>function imgKitFallback(img){var l=(img.dataset.fallbacks||'').split('|').filter(Boolean);if(l.length){img.dataset.fallbacks=l.slice(1).join('|');img.src=l[0];}else{img.style.display='none';}}</script>
+        <div class="kit-options" id="kits-container">
+          <!-- preenchido dinamicamente por loadKitsEvento(); fallback abaixo se evento não tiver kits no BD -->
+          <div class="kit-option selected" id="kit-fallback-starter" onclick="selectKit(this, 99.90, 'Kit Starter')">
+            <div class="kit-img">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-starter.jpg.jpeg" alt="Kit Starter" onerror="imgKitFallback(this)">
+              <span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>
+            </div>
+            <div class="kit-name">Kit Starter</div>
+            <div class="kit-price">R$ 99,90</div>
+            <div class="kit-desc">Número de peito, chip de cronometragem, camiseta e medalha de participação.</div>
+          </div>
+          <div class="kit-option" id="kit-fallback-vip" onclick="selectKit(this, 159.90, 'Kit Vip JBX Sports')">
+            <div class="kit-img">
+              <img src="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg" data-fallbacks="https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpeg|https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/kit-vip.jpg.jpeg" alt="Kit Vip JBX Sports" onerror="imgKitFallback(this)">
+              <span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>
+            </div>
+            <div class="kit-name">Kit Vip JBX Sports</div>
+            <div class="kit-price">R$ 159,90</div>
+            <div class="kit-desc">Tudo do Starter + camiseta premium, sacochila exclusiva, brindes e retirada prioritária.</div>
+          </div>
         </div>
       </div>
 
-      <div class="form-section-title" style="margin-top:20px;">Dados pessoais</div>
+      <!-- ETAPA 2: MODALIDADE -->
+      <div class="step-panel" data-panel="2">
+        <div class="form-section-title">Escolha a modalidade</div>
+        <!-- preenchido por renderModalidades() com base em ev.distancias do banco -->
+        <div class="category-options" id="cat-options" style="grid-template-columns:repeat(3,1fr);">
+          <div style="grid-column:1/-1;text-align:center;padding:24px;color:rgba(42,37,32,0.4);font-size:14px;">
+            Carregando modalidades...
+          </div>
+        </div>
+      </div>
+
+      <!-- ETAPA 3: DADOS -->
+      <div class="step-panel" data-panel="3">
+
+      <div class="busca-atleta">
+        <div class="busca-atleta-title">Inscrevendo outra pessoa ou já participou antes?</div>
+        <div class="busca-atleta-sub">Digite o CPF do atleta para reaproveitar o cadastro existente. Por segurança, o nome aparece parcialmente mascarado para você confirmar.</div>
+        <div class="busca-atleta-row">
+          <input type="text" id="f-busca-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpfBusca(this)">
+          <button type="button" class="btn-buscar" onclick="buscarAtletaPorCpf()">Buscar</button>
+        </div>
+        <div id="busca-resultado" class="busca-resultado"></div>
+      </div>
+
+      <div id="dados-protegidos" style="display:none;"></div>
+
+      <div id="dados-wrap">
+      <div class="form-section-title" style="margin-top:0;">Dados pessoais</div>
       <div class="form-row">
         <div class="form-group">
           <label>Nome completo *</label>
@@ -623,6 +924,7 @@
         <div class="form-group">
           <label>CPF *</label>
           <input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14">
+          <div id="cpf-aviso" class="cpf-aviso"></div>
         </div>
       </div>
       <div class="form-row">
@@ -636,7 +938,6 @@
             <option value="">Selecione</option>
             <option>Masculino</option>
             <option>Feminino</option>
-            <option>Prefiro não informar</option>
           </select>
         </div>
       </div>
@@ -648,19 +949,6 @@
         <div class="form-group">
           <label>Telefone / WhatsApp *</label>
           <input type="tel" id="f-tel" placeholder="(16) 99999-0000">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Tamanho da camiseta *</label>
-          <select id="f-camisa">
-            <option value="">Selecione</option>
-            <option>Babylook tamanho único</option>
-            <option>Camiseta P</option>
-            <option>Camiseta M</option>
-            <option>Camiseta G</option>
-            <option>Camiseta GG</option>
-          </select>
         </div>
       </div>
 
@@ -723,7 +1011,33 @@
         </div>
       </div>
 
-      <div class="form-section-title" style="margin-top:20px;">Pagamento</div>
+      </div><!-- /dados-wrap -->
+
+      <div class="form-section-title">Tamanho da camiseta</div>
+      <div class="form-row">
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;"><label style="margin-bottom:0;font-size:13px;color:rgba(42,37,32,0.6);font-weight:500;">Tamanho da camiseta *</label><button type="button" onclick="abrirTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#ff751f;text-decoration:underline;padding:0;font-family:inherit;flex-shrink:0;">📏 Tabela de medidas</button></div>
+          <select id="f-camisa">
+            <option value="">Selecione</option>
+            <option>Babylook tamanho único</option>
+            <option>Camiseta P</option>
+            <option>Camiseta M</option>
+            <option>Camiseta G</option>
+            <option>Camiseta GG</option>
+          </select>
+        </div>
+      </div>
+      </div><!-- /etapa 3 -->
+
+      <!-- ETAPA 4: PAGAMENTO -->
+      <div class="step-panel" data-panel="4">
+      <div class="form-section-title" style="margin-top:0;">Atletas nesta inscrição</div>
+      <div id="lista-atletas"></div>
+      <div class="btn-area-atletas" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
+        <!-- preenchido dinamicamente por atualizarResumo() -->
+      </div>
+
+      <div class="form-section-title" style="margin-top:24px;">Pagamento</div>
       <div class="payment-methods">
         <div class="pay-method selected" onclick="selectPay(this)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -735,9 +1049,20 @@
         </div>
       </div>
 
+      <div class="form-section-title">Cupom de desconto</div>
+      <div class="cupom-box">
+        <div class="cupom-row">
+          <input type="text" id="f-cupom" placeholder="Tem um cupom? Digite aqui">
+          <button type="button" class="btn-cupom" onclick="aplicarCupom()">Aplicar</button>
+        </div>
+        <div id="cupom-msg" class="cupom-msg"></div>
+      </div>
+
       <div class="order-summary">
-        <div class="order-row"><span id="label-mod">Corrida 4KM</span><span id="price-cat">R$ 99,90</span></div>
-        <div class="order-row"><span>Total</span><span id="price-total">R$ 99,90</span></div>
+        <div class="order-row"><span>Subtotal</span><span id="price-subtotal">R$ 0,00</span></div>
+        <div class="order-row" id="row-desconto" style="display:none;"><span id="label-desconto">Descontos</span><span id="price-desconto">- R$ 0,00</span></div>
+        <div class="order-row" id="row-taxa" style="display:none;"><span id="label-taxa">Taxa de serviço</span><span id="price-taxa">R$ 0,00</span></div>
+        <div class="order-row"><span>Total</span><span id="price-total">R$ 0,00</span></div>
       </div>
 
       <button class="btn-pagar" onclick="handlePagamento()">
@@ -747,95 +1072,835 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Pagamento 100% seguro via Stripe
       </div>
+      </div><!-- /etapa 4 -->
+
+      <!-- NAVEGAÇÃO ENTRE ETAPAS -->
+      <div class="step-nav">
+        <button class="btn-step-back" onclick="prevStep()">Voltar</button>
+        <button class="btn-retornar-pag" onclick="cancelarAtleta()" style="display:none;">
+          ↩ Retornar ao pagamento
+        </button>
+        <button class="btn-step-next" onclick="nextStep()">Próximo →</button>
+      </div>
     </div>
   </div>
 </div>
 
+<!-- MODAL RETORNO STRIPE -->
+<div id="modal-retorno" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(40,35,30,0.55);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#ffffff;border-radius:16px;width:100%;max-width:440px;padding:40px 36px;text-align:center;border:1px solid rgba(255,117,31,0.2);">
+    <div id="retorno-icone" style="font-size:56px;margin-bottom:16px;">✅</div>
+    <h3 id="retorno-titulo" style="font-size:22px;font-weight:700;margin-bottom:12px;">Inscrição confirmada!</h3>
+    <p id="retorno-texto" style="font-size:15px;color:rgba(42,37,32,0.6);line-height:1.6;margin-bottom:28px;"></p>
+    <button onclick="document.getElementById('modal-retorno').style.display='none'" style="background:var(--orange);color:#fff;border:none;border-radius:8px;padding:14px 32px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;width:100%;">
+      Fechar
+    </button>
+  </div>
+</div>
+
 <script>
-// Countdown
-function updateCountdown() {
-  const targetStr = window._proximoEvento || '2026-06-27T17:30:00';
-  const target = new Date(targetStr);
-  const now = new Date();
-  const diff = target - now;
-  if (diff <= 0) return;
-  const d = Math.floor(diff/86400000);
-  const h = Math.floor((diff%86400000)/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  const s = Math.floor((diff%60000)/1000);
-  document.getElementById('t-dias').textContent = String(d).padStart(2,'0');
-  document.getElementById('t-hrs').textContent  = String(h).padStart(2,'0');
-  document.getElementById('t-min').textContent  = String(m).padStart(2,'0');
-  document.getElementById('t-sec').textContent  = String(s).padStart(2,'0');
-}
-updateCountdown();
-setInterval(updateCountdown, 1000);
+// Detecta retorno do Stripe (?status=sucesso ou ?status=cancelado)
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+  const pedido = params.get('pedido');
+  if (!status) return;
+
+  // limpa os params da URL sem recarregar a página
+  window.history.replaceState({}, '', window.location.pathname);
+
+  const modal = document.getElementById('modal-retorno');
+  const icone = document.getElementById('retorno-icone');
+  const titulo = document.getElementById('retorno-titulo');
+  const texto  = document.getElementById('retorno-texto');
+
+  if (status === 'sucesso') {
+    icone.textContent = '✅';
+    titulo.textContent = 'Inscrição confirmada!';
+    texto.textContent = 'Seu pagamento foi processado com sucesso. Em breve você receberá as informações do evento. Boa corrida! 🏃';
+    modal.style.display = 'flex';
+  } else if (status === 'cancelado') {
+    icone.textContent = '❌';
+    titulo.textContent = 'Pagamento não concluído';
+    texto.textContent = 'Sua inscrição não foi confirmada pois o pagamento foi cancelado. Você pode tentar novamente a qualquer momento.';
+    modal.style.display = 'flex';
+  }
+})();
+</script>
+<script>
+
 
 // Modal
 let currentPrice = 99.90;
 let currentModalidade = "Corrida 4KM";
-function openModal(title, info, price) {
+let currentEvento = "";
+let currentEventoId = "";   // uuid do evento (para carregar kits do banco)
+let currentKit = "Kit Starter";
+let currentKitId = "";      // uuid do kit (banco)
+let currentLoteId = "";     // uuid do lote ativo
+let currentLoteNome = "";   // nome do lote ativo (ex: "Lote 1")
+let currentPagamento = "Cartão";
+let currentStep = 1;
+let currentRef = "", currentCpf = "";
+let currentRotulo = ""; // nome mascarado do atleta buscado por CPF
+let _achadoAtleta = null;
+let currentCupom = "";
+let currentCupomPct = 0;
+let currentTaxa = 0;
+let cart = [];
+const TOTAL_STEPS = 4;
+
+function openModal(eventoId, title, info) {
+  currentEventoId = eventoId || "";
+  currentEvento = title;
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-info').textContent = info;
+  document.getElementById('modal-info').textContent = info || '';
   document.getElementById('modal').classList.add('active');
   document.body.style.overflow = 'hidden';
+  resetWizard();
+  // carrega taxa do evento do cache
+  const evCache = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+  currentTaxa = evCache ? (parseFloat(evCache.taxa_servico) || 0) : 0;
+  if (evCache) renderModalidades(evCache.distancias);
+  // carrega kits e lote do banco (se evento tiver id); atualizará modalidades tb se necessário
+  if (eventoId) loadKitsEvento(eventoId);
+}
+
+// Carrega kits e lote ativo do banco; fallback para os kits hardcoded
+async function loadKitsEvento(eventoId) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/kits_evento_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_evento_id: eventoId })
+    });
+    const data = await res.json();
+    const lote = data && data.lote;
+    const kits = data && Array.isArray(data.kits) ? data.kits : [];
+
+    // badge do lote
+    const badge = document.getElementById('lote-badge');
+    if (badge) {
+      if (lote && lote.nome) {
+        badge.textContent = lote.nome;
+        badge.classList.add('show');
+        currentLoteId = lote.id || '';
+        currentLoteNome = lote.nome || '';
+      } else {
+        badge.textContent = '';
+        badge.classList.remove('show');
+        currentLoteId = '';
+        currentLoteNome = '';
+      }
+    }
+
+    if (kits.length === 0) {
+      const container = document.getElementById('kits-container');
+      container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;"><div style="font-size:36px;margin-bottom:12px;">🎽</div><div style="font-size:15px;font-weight:700;color:rgba(42,37,32,0.7);margin-bottom:6px;">Kits não disponíveis</div><div style="font-size:13px;color:rgba(42,37,32,0.45);">Este evento ainda não tem kits cadastrados.</div></div>';
+      const btnNext = document.querySelector('.btn-step-next');
+      if (btnNext) { btnNext.disabled = true; btnNext.style.opacity = '0.35'; btnNext.style.cursor = 'not-allowed'; }
+    } else if (kits.length > 0) {
+      const container = document.getElementById('kits-container');
+      container.innerHTML = kits.map((k, i) => {
+        const esgotado = k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite;
+        const preco = Number(k.preco || 0);
+        const precoFmt = 'R$ ' + preco.toFixed(2).replace('.', ',');
+        return `<div class="kit-option${i === 0 && !esgotado ? ' selected' : ''}${esgotado ? ' disabled' : ''}"
+          onclick="${esgotado ? '' : `selectKit(this,${preco},'${k.nome.replace(/'/g,"\\'")}','${k.id}','${currentLoteId}')`}"
+          style="${esgotado ? 'opacity:.5;cursor:not-allowed;' : 'cursor:pointer;'}">
+          <div class="kit-img">
+            ${k.foto_url
+              ? `<img src="${k.foto_url}" alt="${k.nome}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">`
+              : `<span class="kit-img-ph"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><br>Foto do kit</span>`}
+          </div>
+          <div class="kit-name">${k.nome}${esgotado ? ' <span style="font-size:11px;color:#888;">(esgotado)</span>' : ''}</div>
+          <div class="kit-price">${precoFmt}</div>
+          ${k.descricao ? `<div class="kit-desc">${k.descricao}</div>` : ''}
+        </div>`;
+      }).join('');
+      // seleciona automaticamente o primeiro disponível
+      const primeiro = kits.find(k => !(k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite));
+      if (primeiro) {
+        currentKit = primeiro.nome;
+        currentPrice = Number(primeiro.preco);
+        currentKitId = primeiro.id;
+      }
+      atualizarResumo();
+    }
+
+    // ── carrega modalidades do evento (campo distancias) ──
+    const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+    renderModalidades(ev ? ev.distancias : null);
+
+  } catch (e) {
+    // fallback silencioso: mantém kits hardcoded e carrega modalidades do evento em cache
+    const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+    renderModalidades(ev ? ev.distancias : null);
+  }
+}
+
+// ── Renderiza as opções de modalidade a partir do campo "distancias" do evento ──
+// distancias é uma string separada por vírgula: "Corrida 4KM, Corrida 8KM, Caminhada 4KM"
+// Fallback hardcoded caso o evento não tenha o campo preenchido.
+function renderModalidades(distanciasStr) {
+  const FALLBACK = ['Corrida 4KM', 'Corrida 8KM', 'Caminhada 4KM'];
+  const lista = distanciasStr
+    ? distanciasStr.split(',').map(d => d.trim()).filter(Boolean)
+    : FALLBACK;
+
+  // grid adaptativo: 1 col se 1 item, 2 cols se 2, 3 cols se 3+
+  const cols = lista.length === 1 ? 1 : lista.length === 2 ? 2 : 3;
+  const container = document.getElementById('cat-options');
+  if (!container) return;
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  container.innerHTML = lista.map((d, i) => `
+    <div class="cat-option${i === 0 ? ' selected' : ''}" onclick="selectCat(this,'${d.replace(/'/g,"\\'")}')">
+      <div class="cat-dist" style="font-size:${d.length > 12 ? '12px' : '14px'};">${d}</div>
+    </div>`).join('');
+
+  // garante que currentModalidade reflete o primeiro item
+  currentModalidade = lista[0] || 'Corrida 4KM';
+  atualizarResumo();
 }
 function closeModal() {
   document.getElementById('modal').classList.remove('active');
-  document.body.style.overflow = '';
+  const ed = document.getElementById('evento-detalhe');
+  const edAtivo = ed && ed.classList.contains('active');
+  document.body.style.overflow = edAtivo ? 'hidden' : '';
 }
 document.getElementById('modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
-// Category selection
-function selectCat(el, price, modalidade) {
-  document.querySelectorAll('.cat-option').forEach(c => c.classList.remove('selected'));
+// ── WIZARD: navegação entre etapas ──
+// reset completo (ao abrir o modal): zera carrinho, cupom e a inscrição atual
+function resetWizard() {
+  cart = [];
+  currentCupom = ''; currentCupomPct = 0;
+  const fc = document.getElementById('f-cupom'); if (fc) fc.value = '';
+  const cm = document.getElementById('cupom-msg'); if (cm) { cm.textContent = ''; cm.className = 'cupom-msg'; }
+  const btnNext = document.querySelector('.btn-step-next');
+  if (btnNext) { btnNext.disabled = false; btnNext.style.opacity = ''; btnNext.style.cursor = ''; }
+  resetRegistro();
+}
+
+// reset apenas da inscrição atual (mantém carrinho e cupom) — usado entre atletas
+function resetRegistro() {
+  const kits = document.querySelectorAll('.kit-option');
+  kits.forEach(k => k.classList.remove('selected'));
+  if (kits[0]) kits[0].classList.add('selected');
+  currentKit = 'Kit Starter';
+  currentPrice = 99.90;
+  currentKitId = '';
+  currentLoteId = '';
+  currentLoteNome = '';
+  const badge = document.getElementById('lote-badge');
+  if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
+  // recarrega kits e lote do banco (e modalidades) para o novo atleta
+  if (currentEventoId) loadKitsEvento(currentEventoId);
+
+  // re-renderiza modalidades do evento atual (mantém opções corretas entre atletas)
+  const evAtual = (window._eventos || []).find(e => String(e.id) === String(currentEventoId));
+  renderModalidades(evAtual ? evAtual.distancias : null);
+
+  if (typeof limparAtleta === 'function') limparAtleta();
+  ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-comp','f-bairro','f-cidade','f-emerg-nome','f-emerg-tel','f-busca-cpf'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const est = document.getElementById('f-estado'); if (est) est.value = 'SP';
+  const br = document.getElementById('busca-resultado'); if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
+
+  atualizarResumo();
+  showStep(1);
+}
+
+// snapshot da inscrição atual (vira um item do carrinho)
+function snapshotAtual() {
+  const val = id => ((document.getElementById(id) || {}).value || '').trim();
+  const it = {
+    kit: currentKit,
+    kit_id: currentKitId,
+    lote_id: currentLoteId,
+    lote_nome: currentLoteNome,
+    valorBase: Number(currentPrice),
+    modalidade: currentModalidade,
+    camisa: val('f-camisa'),
+    ref: currentRef,
+    cpf: currentCpf,
+    idoso: (!currentRef) && (idadeDe(val('f-nasc')) !== null && idadeDe(val('f-nasc')) >= 60),
+    rotulo: currentRef ? (currentRotulo || 'Cadastro protegido') : (val('f-nome') || 'Atleta')
+  };
+  if (!currentRef) {
+    it.dados = {
+      nome: val('f-nome'), cpf: val('f-cpf'), nascimento: val('f-nasc'), genero: val('f-genero'),
+      email: val('f-email'), telefone: val('f-tel'),
+      cep: val('f-cep'), rua: val('f-rua'), numero: val('f-num'), complemento: val('f-comp'),
+      bairro: val('f-bairro'), cidade: val('f-cidade'), estado: val('f-estado'),
+      emergencia_nome: val('f-emerg-nome'), emergencia_telefone: val('f-emerg-tel')
+    };
+  }
+  return it;
+}
+
+// "Inscrever outro atleta": guarda o atual no carrinho e recomeça do kit
+function adicionarOutroAtleta() {
+  cart.push(snapshotAtual());
+  resetRegistro();
+  showStep(1); // volta ao kit para o novo atleta
+}
+
+// Cancela o atleta atual em edição e volta ao pagamento (carrinho preservado)
+function cancelarAtleta() {
+  if (!cart.length) return;
+  // limpa só o estado do atleta em edição — não toca no carrinho nem no cupom
+  if (typeof limparAtleta === 'function') limparAtleta();
+  ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa',
+   'f-cep','f-rua','f-num','f-comp','f-bairro','f-cidade',
+   'f-emerg-nome','f-emerg-tel','f-busca-cpf'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const est = document.getElementById('f-estado'); if (est) est.value = 'SP';
+  const br = document.getElementById('busca-resultado');
+  if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
+  currentKit = ''; currentKitId = ''; currentRef = ''; currentCpf = ''; currentRotulo = '';
+  showStep(4); // volta ao pagamento com o carrinho intacto
+}
+
+function removerAtleta(idx) {
+  if (idx >= 0 && idx < cart.length) {
+    cart.splice(idx, 1);
+    atualizarResumo();
+  }
+}
+
+// ── CUPOM DE DESCONTO ──
+async function aplicarCupom() {
+  const code = (document.getElementById('f-cupom').value || '').trim();
+  const msg = document.getElementById('cupom-msg');
+  msg.className = 'cupom-msg';
+  if (!code) {
+    currentCupom = ''; currentCupomPct = 0;
+    msg.textContent = ''; atualizarResumo();
+    return;
+  }
+  msg.textContent = 'Validando…'; msg.classList.add('cm-info');
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/validar_cupom`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_codigo: code })
+    });
+    const arr = await r.json();
+    const ok = Array.isArray(arr) && arr.length && arr[0].valido;
+    msg.className = 'cupom-msg';
+    if (ok) {
+      currentCupom = code.toUpperCase();
+      currentCupomPct = arr[0].percentual;
+      msg.textContent = `Cupom aplicado: ${currentCupomPct}% de desconto.`;
+      msg.classList.add('cm-ok');
+    } else {
+      currentCupom = ''; currentCupomPct = 0;
+      msg.textContent = 'Cupom inválido ou expirado.';
+      msg.classList.add('cm-erro');
+    }
+    atualizarResumo();
+  } catch (e) {
+    msg.className = 'cupom-msg cm-erro';
+    msg.textContent = 'Não foi possível validar o cupom agora.';
+  }
+}
+function showStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.step-panel').forEach(p =>
+    p.classList.toggle('active', Number(p.dataset.panel) === n));
+  document.querySelectorAll('.step-dot').forEach(d => {
+    const s = Number(d.dataset.step);
+    d.classList.toggle('active', s === n);
+    d.classList.toggle('done', s < n);
+  });
+  const back    = document.querySelector('.btn-step-back');
+  const next    = document.querySelector('.btn-step-next');
+  const retornar = document.querySelector('.btn-retornar-pag');
+  const naEtapaFinal = (n === TOTAL_STEPS);
+  const adicionandoMaisUm = cart.length > 0 && !naEtapaFinal;
+
+  if (back)     back.style.visibility = (n === 1) ? 'hidden' : 'visible';
+  if (next)     next.style.display    = naEtapaFinal ? 'none' : 'block';
+  // botão Retornar: visível só quando está adicionando atleta extra (etapas 1-3)
+  if (retornar) retornar.style.display = adicionandoMaisUm ? 'block' : 'none';
+
+  const body = document.querySelector('.modal-body');
+  if (body) body.scrollTop = 0;
+  if (naEtapaFinal) atualizarResumo();
+}
+function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
+function nextStep() {
+  if (currentStep === 3 && !validarDados()) return; // valida dados antes do pagamento
+  if (currentStep < TOTAL_STEPS) showStep(currentStep + 1);
+}
+// idade a partir da data de nascimento (yyyy-mm-dd)
+function idadeDe(nascStr) {
+  if (!nascStr) return null;
+  const d = new Date(nascStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return null;
+  const hoje = new Date();
+  let i = hoje.getFullYear() - d.getFullYear();
+  const m = hoje.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && hoje.getDate() < d.getDate())) i--;
+  return i;
+}
+
+// percentual de desconto de um item (não acumulativo: maior entre 60+ e cupom)
+function itemPct(it, pctCup) {
+  const p60 = it.idoso ? 50 : 0;
+  return Math.max(p60, pctCup);
+}
+
+function atualizarResumo() {
+  const fmt = v => 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+  const pctCup = currentCupomPct || 0;
+  // Na etapa 4:
+  // - se cart vazio (primeira inscrição): mostra o atleta atual como snapshot
+  // - se cart tem itens e veio via cancelarAtleta: mostra só o cart (descartou o em edição)
+  // Nas etapas 1-3: sempre inclui o snapshot atual para feedback visual
+  const naEtapa4 = (currentStep === TOTAL_STEPS);
+  const itens = naEtapa4 && cart.length > 0
+    ? [...cart]
+    : cart.concat([snapshotAtual()]);
+
+  // lista de atletas
+  const lista = document.getElementById('lista-atletas');
+  if (lista) {
+    lista.innerHTML = '';
+    itens.forEach((it, idx) => {
+      const ehAtual = (idx === itens.length - 1);
+      const tot = it.valorBase * (1 - itemPct(it, pctCup) / 100);
+      const row = document.createElement('div'); row.className = 'atleta-item';
+      const info = document.createElement('div'); info.className = 'atleta-info';
+      const t = document.createElement('div'); t.className = 'atleta-titulo'; t.textContent = it.rotulo;
+      const sub = document.createElement('div'); sub.className = 'atleta-sub';
+      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '');
+      info.appendChild(t); info.appendChild(sub);
+      const right = document.createElement('div'); right.className = 'atleta-right';
+      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(tot);
+      right.appendChild(preco);
+      if (ehAtual && !naEtapa4) {
+        const tag = document.createElement('span'); tag.className = 'atleta-tag'; tag.textContent = 'em edição';
+        right.appendChild(tag);
+      } else if (!ehAtual) {
+        const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'atleta-remover';
+        rm.textContent = 'remover'; rm.onclick = () => removerAtleta(idx);
+        right.appendChild(rm);
+      }
+      row.appendChild(info); row.appendChild(right);
+      lista.appendChild(row);
+    });
+  }
+
+  // totais
+  let subtotal = 0, totalComDesconto = 0;
+  itens.forEach(it => {
+    subtotal += it.valorBase;
+    totalComDesconto += it.valorBase * (1 - itemPct(it, pctCup) / 100);
+  });
+
+  // taxa de serviço (incide sobre valor após desconto)
+  const taxaValor = currentTaxa > 0 ? totalComDesconto * (currentTaxa / 100) : 0;
+  const total = totalComDesconto + taxaValor;
+
+  const elSub = document.getElementById('price-subtotal');
+  const rowDesc = document.getElementById('row-desconto');
+  const lblDesc = document.getElementById('label-desconto');
+  const elDesc = document.getElementById('price-desconto');
+  const rowTaxa = document.getElementById('row-taxa');
+  const lblTaxa = document.getElementById('label-taxa');
+  const elTaxa = document.getElementById('price-taxa');
+  const elTotal = document.getElementById('price-total');
+  if (elSub) elSub.textContent = fmt(subtotal);
+  const desc = subtotal - totalComDesconto;
+  if (rowDesc) {
+    if (desc > 0.005) {
+      rowDesc.style.display = '';
+      if (lblDesc) lblDesc.textContent = 'Descontos';
+      if (elDesc) elDesc.textContent = '- ' + fmt(desc);
+    } else {
+      rowDesc.style.display = 'none';
+    }
+  }
+  if (rowTaxa) {
+    if (taxaValor > 0.005) {
+      rowTaxa.style.display = '';
+      if (lblTaxa) lblTaxa.textContent = `Taxa de serviço (${currentTaxa}%)`;
+      if (elTaxa) elTaxa.textContent = fmt(taxaValor);
+    } else {
+      rowTaxa.style.display = 'none';
+    }
+  }
+  if (elTotal) elTotal.textContent = fmt(total);
+  // botão "+ Inscrever outro atleta" na etapa 4
+  const btnArea = document.querySelector('.btn-area-atletas');
+  if (btnArea) {
+    btnArea.innerHTML = '';
+    const btnAdd = document.createElement('button');
+    btnAdd.type = 'button'; btnAdd.className = 'btn-add-atleta';
+    btnAdd.style.marginTop = '0';
+    btnAdd.textContent = '+ Inscrever outro atleta';
+    btnAdd.onclick = adicionarOutroAtleta;
+    btnArea.appendChild(btnAdd);
+  }
+}
+
+// Imagem do kit: tenta nomes alternativos antes de mostrar o placeholder
+function imgKitFallback(img) {
+  const lista = (img.dataset.fallbacks || '').split('|').filter(Boolean);
+  if (lista.length) {
+    img.dataset.fallbacks = lista.slice(1).join('|');
+    img.src = lista[0];
+  } else {
+    img.style.display = 'none';
+  }
+}
+
+// Kit selection (o PREÇO vem daqui)
+function selectKit(el, price, nome, kitId, loteId) {
+  document.querySelectorAll('.kit-option').forEach(k => k.classList.remove('selected'));
   el.classList.add('selected');
   currentPrice = price;
-  currentModalidade = modalidade || el.querySelector('.cat-dist').textContent;
-  document.getElementById('price-cat').textContent = 'R$ ' + price.toFixed(2).replace('.',',');
-  document.getElementById('price-total').textContent = 'R$ ' + price.toFixed(2).replace('.',',');
-  document.getElementById('label-mod').textContent = currentModalidade;
+  currentKit = nome;
+  currentKitId = kitId || '';
+  currentLoteId = loteId || currentLoteId; // mantém o lote ativo se não for passado
+  atualizarResumo();
+}
+
+// Category selection (modalidade — não mexe no preço)
+function selectCat(el, modalidade) {
+  document.querySelectorAll('.cat-option').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentModalidade = modalidade || (el.querySelector('.cat-dist') || {}).textContent || '';
+  atualizarResumo();
 }
 
 // Payment selection
 function selectPay(el) {
   document.querySelectorAll('.pay-method').forEach(p => p.classList.remove('selected'));
   el.classList.add('selected');
+  currentPagamento = el.textContent.trim(); // "Cartão" ou "PIX"
 }
 
-// Payment handler (Stripe integration point)
-function handlePagamento() {
-  const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-camisa','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
-  for (const id of obrigatorios) {
-    const el = document.getElementById(id);
-    if (!el || !el.value.trim()) {
-      el && el.focus();
-      el && (el.style.borderColor = '#ff4444');
-      setTimeout(() => el && (el.style.borderColor = ''), 2000);
-      alert('Por favor, preencha todos os campos obrigatórios (*)');
+// ── BUSCA DE ATLETA CADASTRADO POR CPF (segura, com nome mascarado) ──
+
+// máscara CPF no campo de busca
+function mascararCpfBusca(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+  el.value = v;
+}
+
+// mascara o nome: "Stephano Bachim" → "St******* B*****"
+function mascararNome(nome) {
+  if (!nome) return '***';
+  return nome.split(' ').map(p => {
+    if (p.length <= 1) return p;
+    return p[0] + '*'.repeat(p.length - 1);
+  }).join(' ');
+}
+
+async function buscarAtletaPorCpf() {
+  const input = document.getElementById('f-busca-cpf');
+  const cpf = (input ? input.value : '').replace(/\D/g, '');
+  const res = document.getElementById('busca-resultado');
+  res.className = 'busca-resultado';
+
+  if (cpf.length !== 11) {
+    res.textContent = 'Digite um CPF completo (11 dígitos).';
+    res.classList.add('br-erro');
+    return;
+  }
+  res.textContent = 'Buscando…';
+  res.classList.add('br-info');
+  _achadoAtleta = null;
+
+  try {
+    // buscar_por_cpf retorna { ref } — só o UUID, sem dados pessoais
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/buscar_por_cpf`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_cpf: cpf })
+    });
+    const dado = await r.json();
+    // RPC retorna objeto direto ou array — normaliza
+    const achou = Array.isArray(dado) ? (dado.length ? dado[0] : null) : (dado && dado.ref ? dado : null);
+    res.className = 'busca-resultado';
+
+    if (!achou || !achou.ref) {
+      res.textContent = 'Nenhum cadastro encontrado para este CPF. Preencha os dados normalmente.';
+      res.classList.add('br-info');
       return;
     }
+
+    // rotulo vem do servidor se a RPC retornar (ex: "Stephano Bachim"); mascara para exibição
+    // se a RPC atual não retornar rotulo, mostra confirmação genérica
+    const nomeCompleto = achou.rotulo || '';
+    const nomeMascarado = nomeCompleto ? mascararNome(nomeCompleto) : '(cadastro encontrado)';
+    _achadoAtleta = { ref: achou.ref, rotulo: nomeCompleto, rotuloCurto: nomeMascarado, cpf: (document.getElementById('f-busca-cpf') ? document.getElementById('f-busca-cpf').value : '') };
+
+    res.classList.add('br-ok');
+    res.innerHTML = '';
+
+    const span = document.createElement('span');
+    span.textContent = '✓ Cadastro encontrado: ';
+    const strong = document.createElement('strong');
+    strong.textContent = nomeMascarado; // nome mascarado na tela
+    span.appendChild(strong);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-usar';
+    btn.textContent = 'Usar este cadastro!';
+    btn.onclick = usarAtleta;
+
+    res.appendChild(span);
+    res.appendChild(btn);
+  } catch (e) {
+    res.className = 'busca-resultado br-erro';
+    res.textContent = 'Não foi possível buscar agora. Preencha os dados manualmente.';
   }
+}
+
+function usarAtleta() {
+  if (!_achadoAtleta) return;
+  // passa o nome mascarado como rótulo visível — o nome completo nunca sai do servidor
+  const rotuloCurto = _achadoAtleta.rotuloCurto || mascararNome(_achadoAtleta.rotulo) || 'Cadastro protegido';
+  currentRotulo = rotuloCurto; // usado pelo snapshotAtual na lista de atletas
+  aplicarCadastro(_achadoAtleta.ref, rotuloCurto);
+  const br = document.getElementById('busca-resultado'); if (br) { br.innerHTML = ''; br.className = 'busca-resultado'; }
+}
+
+// Aplica o modo protegido (dados vêm do servidor via referência)
+// rotulo: já deve vir mascarado (ex: "St******* B*****") — nunca o nome completo
+// modo 'cpf': detecção automática pelo campo CPF do formulário (sem nome disponível)
+function aplicarCadastro(ref, rotulo, modo) {
+  currentRef = ref;
+  currentCpf = _achadoAtleta ? (_achadoAtleta.cpf || '').replace(/\D/g,'') : '';
+  document.getElementById('dados-wrap').style.display = 'none';
+  const card = document.getElementById('dados-protegidos');
+  card.style.display = 'block';
+  card.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.className = 'protegido-card';
+  const ico = document.createElement('div'); ico.className = 'protegido-ico'; ico.textContent = '🔒';
+  const mid = document.createElement('div');
+  const n = document.createElement('div'); n.className = 'protegido-nome';
+  const s = document.createElement('div'); s.className = 'protegido-sub';
+  const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'btn-trocar';
+  if (modo === 'cpf') {
+    // detecção automática: CPF já cadastrado digitado no formulário, sem nome visível
+    n.textContent = 'CPF já cadastrado — dados serão usados automaticamente';
+    s.textContent = 'Os dados salvos serão preenchidos com segurança no envio. Não é necessário preencher novamente.';
+    btn.textContent = 'Corrigir CPF';
+    btn.onclick = corrigirCpf;
+  } else {
+    // busca manual por CPF: rotulo já vem mascarado (ex: "St******* B*****")
+    n.textContent = rotulo ? ('Usando o cadastro de ' + rotulo) : 'Cadastro encontrado';
+    s.textContent = 'Os dados pessoais estão protegidos e serão preenchidos com segurança no envio.';
+    btn.textContent = 'Trocar / preencher eu mesmo';
+    btn.onclick = limparAtleta;
+  }
+  mid.appendChild(n); mid.appendChild(s);
+  wrap.appendChild(ico); wrap.appendChild(mid); wrap.appendChild(btn);
+  card.appendChild(wrap);
+}
+
+function limparAtleta() {
+  currentRef = '';
+  currentRotulo = '';
+  const wrap = document.getElementById('dados-wrap'); if (wrap) wrap.style.display = '';
+  const card = document.getElementById('dados-protegidos'); if (card) { card.style.display = 'none'; card.innerHTML = ''; }
+  const av = document.getElementById('cpf-aviso'); if (av) { av.innerHTML = ''; av.className = 'cpf-aviso'; }
+}
+
+// Saída do bloqueio por CPF: limpa o CPF e volta ao formulário
+function corrigirCpf() {
+  limparAtleta();
+  const el = document.getElementById('f-cpf');
+  if (el) { el.value = ''; el.focus(); }
+}
+
+// ── DETECÇÃO DE CPF JÁ CADASTRADO (bloqueia e usa o cadastro existente) ──
+let _cpfRef = '';
+async function checarCpf() {
+  if (currentRef) return; // já está num cadastro protegido
+  const el = document.getElementById('f-cpf');
+  if (!el) return;
+  const cpf = (el.value || '').replace(/\D/g, '');
+  _cpfRef = '';
+  if (cpf.length !== 11) return;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/buscar_por_cpf`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_cpf: cpf })
+    });
+    const dado = await r.json();
+    // RPC retorna objeto direto ou array — normaliza
+    const achou = Array.isArray(dado) ? (dado.length ? dado[0] : null) : (dado && dado.ref ? dado : null);
+    if (!achou) return;
+    _cpfRef = achou.ref;
+    aplicarCadastro(_cpfRef, '', 'cpf'); // trava automaticamente
+  } catch (e) { /* silencioso: segue o preenchimento manual */ }
+}
+
+// Validação dos campos obrigatórios da etapa 3
+function validarDados() {
+  const marcarErro = (el) => {
+    el && el.focus();
+    el && (el.style.borderColor = '#ff4444');
+    setTimeout(() => el && (el.style.borderColor = ''), 2000);
+    alert('Por favor, preencha todos os campos obrigatórios (*)');
+  };
+  // A camiseta é sempre obrigatória (escolhida a cada inscrição)
+  const cam = document.getElementById('f-camisa');
+  if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
+  // Com cadastro protegido, o resto vem do servidor
+  if (currentRef) return true;
+  const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
+  for (const id of obrigatorios) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) { marcarErro(el); return false; }
+  }
+  return true;
+}
+
+// monta o payload de criar_inscricao para um item do carrinho
+function montarDadosItem(it, pedido) {
+  const d = {
+    evento: currentEvento,
+    pedido: pedido,
+    ref: it.ref || '',
+    cpf: it.cpf || '',
+    cupom: currentCupom,
+    kit: it.kit,
+    kit_id: it.kit_id || '',      // servidor usa para preço autoritativo pelo lote
+    lote_id: it.lote_id || '',    // servidor valida quantidade disponível
+    modalidade: it.modalidade,
+    valor: it.valorBase,
+    tamanho_camisa: it.camisa,
+    forma_pagamento: currentPagamento
+  };
+  if (!it.ref && it.dados) Object.assign(d, it.dados);
+  return d;
+}
+
+// Finaliza: envia para /api/checkout que cria a sessão no Stripe
+// e redireciona o atleta para a página de pagamento
+async function handlePagamento() {
+  const cancelou = (cart.length > 0 && !currentKit);
+  let itens;
+  if (cancelou) {
+    itens = [...cart];
+  } else {
+    if (!validarDados()) return;
+    itens = cart.concat([snapshotAtual()]);
+  }
+  if (!itens.length) return;
+
   const btn = document.querySelector('.btn-pagar');
-  btn.textContent = '⏳ Processando...';
+  const textoOriginal = btn.textContent;
+  btn.textContent = '⏳ Aguarde...';
   btn.disabled = true;
-  setTimeout(() => {
-    btn.textContent = '✅ Inscrição confirmada!';
-    btn.style.background = '#22c55e';
-    setTimeout(() => {
-      closeModal('inscricao');
-      btn.textContent = '🔒 Finalizar inscrição';
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2500);
-  }, 1800);
+
+  const pedido = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('' + Date.now() + Math.random());
+
+  // monta payload com valor já descontado + taxa para o Stripe
+  const pctCup = currentCupomPct || 0;
+  const itensPayload = itens.map(it => {
+    const pct = itemPct(it, pctCup);
+    const valorComDesconto = it.valorBase * (1 - pct / 100);
+    const taxaItem = currentTaxa > 0 ? valorComDesconto * (currentTaxa / 100) : 0;
+    const valorFinal = Number((valorComDesconto + taxaItem).toFixed(2));
+    return {
+      ...montarDadosItem(it, pedido),
+      valor: valorFinal // valor final pós-desconto e pós-taxa
+    };
+  });
+
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        itens: itensPayload,
+        pedido,
+        cupom: currentCupom,
+        forma_pagamento: currentPagamento,
+        evento_nome: currentEvento
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Erro ao iniciar pagamento');
+    }
+
+    const { url } = await res.json();
+    // Redireciona para a página de pagamento do Stripe
+    window.location.href = url;
+
+  } catch (e) {
+    btn.textContent = textoOriginal;
+    btn.style.background = '';
+    btn.disabled = false;
+    alert('Não foi possível iniciar o pagamento. Tente novamente.\n\nDetalhe: ' + e.message);
+  }
+}
+
+
+// ── PATROCINADORES ───────────────────────────────────
+async function carregarPatrocinadores(eventoId) {
+  const box     = document.getElementById('ed-sponsors-box');
+  const content = document.getElementById('ed-sponsors-content');
+  if (!box || !content) return;
+  try {
+    const res  = await fetch(`${SB_URL}/rest/v1/rpc/patrocinadores_evento`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_evento_id: eventoId })
+    });
+    const lista = await res.json();
+    if (!Array.isArray(lista) || !lista.length) { box.style.display = 'none'; return; }
+    box.style.display = 'block';
+    content.innerHTML = renderPatrocinadores(lista);
+  } catch(e) { box.style.display = 'none'; }
+}
+
+function renderPatrocinadores(lista) {
+  const cats = [
+    { key: 'master',   label: 'Master' },
+    { key: 'parceiro', label: 'Parceiro Oficial' },
+    { key: 'ouro',     label: 'Ouro' },
+    { key: 'prata',    label: 'Prata' },
+    { key: 'bronze',   label: 'Bronze' },
+  ];
+  return cats.map(cat => {
+    const items = lista.filter(s => s.categoria === cat.key);
+    if (!items.length) return '';
+    const logos = items.map(s => {
+      const img = `<img src="${s.logo_url}" alt="${s.nome}" title="${s.nome}">`;
+      return s.site_url
+        ? `<a href="${s.site_url}" target="_blank" rel="noopener" class="sponsor-logo">${img}</a>`
+        : `<span class="sponsor-logo">${img}</span>`;
+    }).join('');
+    return `<div class="sponsors-cat sponsor-${cat.key}">
+      <div class="sponsors-cat-label">${cat.label}</div>
+      <div class="sponsors-logos">${logos}</div>
+    </div>`;
+  }).join('');
 }
 
 // ── CARREGAR EVENTOS DO SUPABASE ──
 const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
-const SB_KEY = 'sb_publishable_jzwfUGzygmC-GD5RRVe9Rg_4GpKEz-9';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
 
 const iconesEv = ['🏃','🌙','⛰️','🏙️','🚴','🏊','🎽','🏆'];
 const bgEv = [
@@ -869,7 +1934,7 @@ function renderCard(ev, idx, bannerUrl) {
     : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`;
 
   return `
-  <div class="event-card" onclick="openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')">
+  <div class="event-card" onclick="irParaEvento('${ev.id}')">
     <div class="event-card-img" style="${imgStyle}">
       ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
@@ -893,8 +1958,8 @@ function renderCard(ev, idx, bannerUrl) {
           <div class="price-from">a partir de</div>
           <div class="price-val">${preco}</div>
         </div>
-        <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();${ev.status !== 'closed' ? `openModal('${ev.nome}','${formatarData(ev.data, ev.hora)}','A partir de ${preco}')` : ''}">
-          ${ev.status === 'closed' ? 'Encerrado' : 'Inscrever-se'}
+        <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();irParaEvento('${ev.id}')">
+          ${ev.status === 'closed' ? 'Ver evento' : 'Ver evento'}
         </button>
       </div>
     </div>
@@ -903,26 +1968,35 @@ function renderCard(ev, idx, bannerUrl) {
 
 async function carregarEventos() {
   try {
-    const [evRes, banRes] = await Promise.all([
-      fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
+    const evRes = await fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const evText = await evRes.text();
+    console.log('[JBX] eventos_publicos status:', evRes.status);
+    console.log('[JBX] eventos_publicos resposta:', evText);
+    let evJson;
+    try { evJson = JSON.parse(evText); } catch(e) { evJson = []; }
+    const eventos = Array.isArray(evJson) ? evJson : [];
+    window._eventos = eventos;
+
+    // banners opcional — não quebra se falhar
+    let banners = [];
+    try {
+      const banRes = await fetch(`${SB_URL}/rest/v1/rpc/banners_publicos`, {
         method: 'POST',
         headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
         body: '{}'
-      }),
-      fetch(`${SB_URL}/rest/v1/rpc/banners_publicos`, {
-        method: 'POST',
-        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-        body: '{}'
-      })
-    ]);
-    const evJson = await evRes.json();
-    const banJson = await banRes.json();
-    const eventos = Array.isArray(evJson) ? evJson : (evJson || []);
-    const banners = Array.isArray(banJson) ? banJson : (banJson || []);
+      });
+      const banJson = await banRes.json();
+      banners = Array.isArray(banJson) ? banJson : [];
+    } catch(e) {}
+    window._banners = banners;
 
     const grid = document.getElementById('eventos-grid');
     if (!eventos.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Nenhum evento disponível no momento.</div>';
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(42,37,32,0.4);">Nenhum evento disponível no momento.</div>';
       return;
     }
     grid.innerHTML = eventos.map((ev, i) => {
@@ -930,14 +2004,245 @@ async function carregarEventos() {
       return renderCard(ev, i, banner ? banner.url : null);
     }).join('');
 
-    // Atualizar countdown com o próximo evento aberto
+    // Guardar referência ao próximo evento aberto
     const proximo = eventos.find(e => e.status === 'open' && e.data);
     if (proximo) {
-      document.querySelector('.countdown-label').textContent = `⚡ ${proximo.nome}`;
-      window._proximoEvento = proximo.data + 'T' + (proximo.hora ? proximo.hora.replace('h',':') + ':00' : '07:00:00');
+      window._proximoEventoId = proximo.id || '';
+      window._proximoEventoNome = proximo.nome || '';
     }
+
+    tratarRotaEvento(); // se a URL já vier com #evento/<id> (link compartilhado)
   } catch(e) {
-    document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(255,255,255,0.4);">Erro ao carregar eventos.</div>';
+    console.error('[JBX] Erro ao carregar eventos:', e);
+    document.getElementById('eventos-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(42,37,32,0.4);">Erro ao carregar eventos.</div>';
+  }
+}
+
+// ── PÁGINA DO EVENTO (detalhe em tela cheia + rota por hash) ──
+function irParaEvento(id) {
+  location.hash = 'evento/' + encodeURIComponent(id);
+}
+function voltarDoEvento() {
+  location.hash = 'eventos';
+}
+function edTab(name) {
+  document.querySelectorAll('.ed-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.ed-pane').forEach(p => p.classList.toggle('active', p.dataset.pane === name));
+}
+function tratarRotaEvento() {
+  const m = location.hash.match(/^#evento\/(.+)$/);
+  if (m) abrirEventoPorId(decodeURIComponent(m[1]));
+  else fecharEvento(true);
+}
+window.addEventListener('hashchange', tratarRotaEvento);
+
+function fecharEvento(semHash) {
+  const ov = document.getElementById('evento-detalhe');
+  if (ov) ov.classList.remove('active');
+  document.body.style.overflow = '';
+}
+function abrirOverlayEvento() {
+  const ov = document.getElementById('evento-detalhe');
+  if (ov) { ov.classList.add('active'); ov.scrollTop = 0; }
+  document.body.style.overflow = 'hidden';
+}
+
+async function abrirEventoPorId(id) {
+  const eventos = window._eventos || [];
+  const ev = eventos.find(e => String(e.id) === String(id));
+  if (!ev) return; // lista ainda não carregou ou id inexistente
+  const banner = (window._banners || []).find(b => b.evento_id === ev.id);
+  renderEventoBase(ev, banner ? banner.url : null);
+  abrirOverlayEvento();
+  preencherConteudo(null, true); // estado "carregando"
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/evento_detalhe`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: String(ev.id) })
+    });
+    const arr = await res.json();
+    const det = Array.isArray(arr) ? arr[0] : arr;
+    preencherConteudo(det || {}, false);
+  } catch (e) {
+    preencherConteudo({}, false);
+  }
+  // Carrega patrocinadores
+  carregarPatrocinadores(String(ev.id));
+}
+
+function renderEventoBase(ev, bannerUrl) {
+  const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
+  const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
+  const preco = ev.preco_min ? `R$ ${parseFloat(ev.preco_min).toFixed(2).replace('.', ',')}` : '—';
+
+  const banner = document.getElementById('ed-banner');
+  if (bannerUrl) {
+    banner.style.backgroundImage = `url('${bannerUrl}')`;
+    banner.classList.add('has-img');
+  } else {
+    banner.style.backgroundImage = '';
+    banner.classList.remove('has-img');
+  }
+  const st = document.getElementById('ed-status');
+  st.textContent = statusLabel[ev.status] || 'Em breve';
+  st.className = 'event-badge ' + (statusMap[ev.status] || 'badge-soon');
+
+  document.getElementById('ed-nome').textContent = ev.nome || '';
+  document.getElementById('ed-meta').textContent =
+    formatarData(ev.data, ev.hora) + (ev.local ? '  ·  ' + ev.local : '');
+  document.getElementById('ed-price').textContent = ev.preco_min ? ('a partir de ' + preco) : '';
+
+  const btn = document.getElementById('ed-inscrever');
+  if (ev.status === 'closed' || ev.status === 'soon') {
+    btn.textContent = ev.status === 'soon' ? 'Em breve' : 'Inscrições encerradas';
+    btn.classList.add('disabled');
+    btn.onclick = null;
+  } else {
+    btn.textContent = 'Inscreva-se →';
+    btn.classList.remove('disabled');
+    btn.onclick = () => openModal(ev.id, ev.nome, formatarData(ev.data, ev.hora) + (ev.local ? ' · ' + ev.local : ''));
+  }
+  edTab('info');
+}
+
+function preencherConteudo(det, loading) {
+  const campos = [
+    ['ed-info', 'descricao', 'Informações do evento em breve.'],
+    ['ed-regulamento', 'regulamento', 'Regulamento em breve.']
+  ];
+  campos.forEach(([elId, key, vazio]) => {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (loading) { el.textContent = 'Carregando…'; el.classList.add('ed-empty'); return; }
+    const txt = det && det[key] ? String(det[key]).trim() : '';
+    el.textContent = txt || vazio;
+    el.classList.toggle('ed-empty', !txt);
+  });
+  // Percurso: mapa interativo (Google My Maps) + texto
+  const pc = document.getElementById('ed-percurso');
+  if (pc) {
+    if (loading) { pc.innerHTML = ''; pc.textContent = 'Carregando…'; pc.classList.add('ed-empty'); }
+    else montarPercurso(det || {});
+  }
+  // Retirada de kit: texto + botão do termo (PDF)
+  const rk = document.getElementById('ed-retirada');
+  if (rk) {
+    if (loading) { rk.innerHTML = ''; rk.textContent = 'Carregando…'; rk.classList.add('ed-empty'); }
+    else montarRetirada(det || {});
+  }
+}
+
+// Link do termo (PDF) hospedado no repositório
+const TERMO_URL = 'https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/termo-retirada-terceiros.pdf';
+function montarRetirada(det) {
+  const el = document.getElementById('ed-retirada');
+  el.innerHTML = '';
+  el.classList.remove('ed-empty');
+  const txt = det && det.retirada_kit ? String(det.retirada_kit).trim() : '';
+  if (txt) {
+    const p = document.createElement('div');
+    p.className = 'ed-retirada-texto';
+    p.textContent = txt;
+    el.appendChild(p);
+  } else {
+    const p = document.createElement('div');
+    p.textContent = 'Informações de retirada de kit em breve.';
+    el.appendChild(p);
+    el.classList.add('ed-empty');
+  }
+  const a = document.createElement('a');
+  a.className = 'btn-termo';
+  a.href = TERMO_URL;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.setAttribute('download', '');
+  a.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> TERMO DE RETIRADA PARA TERCEIROS';
+  el.appendChild(a);
+}
+
+// Extrai a URL limpa do mapa de qualquer coisa colada:
+// código <iframe ...> inteiro, src="..." com sobra, ou só o link.
+function extrairUrlMapa(raw) {
+  if (!raw) return '';
+  let s = String(raw).trim();
+  const m = s.match(/src\s*=\s*["']([^"']+)["']/i); // pega o src se for código iframe
+  if (m) s = m[1];
+  s = s.split(/["'\s]/)[0]; // corta sobra após a URL (" width="640"... etc)
+  return s.trim();
+}
+
+// Monta a lista de mapas a partir do campo (aceita JSON [{rotulo,url}] ou link único)
+function parseMapas(raw) {
+  if (!raw) return [];
+  const s = String(raw).trim();
+  let lista = [];
+  if (s[0] === '[') {
+    try {
+      const arr = JSON.parse(s);
+      if (Array.isArray(arr)) {
+        lista = arr.map(o => ({ rotulo: (o && o.rotulo) || '', url: extrairUrlMapa(o && o.url) }));
+      }
+    } catch (e) { lista = []; }
+  }
+  if (!lista.length) {
+    const u = extrairUrlMapa(s);
+    if (u) lista = [{ rotulo: '', url: u }];
+  }
+  return lista.filter(m => /^https:\/\/(www\.)?google\.com\/maps\//.test(m.url) || /^https:\/\/maps\.google\.com\//.test(m.url));
+}
+
+function montarPercurso(det) {
+  const el = document.getElementById('ed-percurso');
+  el.classList.remove('ed-empty');
+  el.innerHTML = '';
+  let mapaRaw = det && det.percurso_mapa ? det.percurso_mapa : '';
+  let texto = det && det.percurso ? String(det.percurso).trim() : '';
+
+  let mapas = parseMapas(mapaRaw);
+  if (!mapas.length && /google\.com\/maps\//.test(texto)) {
+    mapas = parseMapas(texto);
+    if (mapas.length) texto = '';
+  }
+
+  if (mapas.length) {
+    const box = document.createElement('div');
+    box.className = 'ed-mapa';
+    const ifr = document.createElement('iframe');
+    ifr.src = mapas[0].url;
+    ifr.loading = 'lazy';
+    ifr.referrerPolicy = 'no-referrer-when-downgrade';
+    ifr.setAttribute('allowfullscreen', '');
+    box.appendChild(ifr);
+
+    if (mapas.length > 1) { // botões de distância (estilo Iguana)
+      const tabs = document.createElement('div');
+      tabs.className = 'ed-mapa-tabs';
+      mapas.forEach((m, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ed-mapa-tab' + (i === 0 ? ' active' : '');
+        b.textContent = m.rotulo || ('Mapa ' + (i + 1));
+        b.onclick = () => {
+          ifr.src = m.url;
+          tabs.querySelectorAll('.ed-mapa-tab').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+        };
+        tabs.appendChild(b);
+      });
+      el.appendChild(tabs);
+    }
+    el.appendChild(box);
+  }
+  if (texto) {
+    const p = document.createElement('div');
+    p.className = 'ed-mapa-texto';
+    p.textContent = texto;
+    el.appendChild(p);
+  }
+  if (!mapas.length && !texto) {
+    el.textContent = 'Percurso em breve.';
+    el.classList.add('ed-empty');
   }
 }
 
@@ -960,6 +2265,12 @@ async function carregarFooterEventos() {
 }
 carregarFooterEventos();
 
+function abrirProximoEvento() {
+  const id   = window._proximoEventoId   || '';
+  const nome = window._proximoEventoNome || 'Próximo Evento';
+  openModal(id, nome, '');
+}
+
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
@@ -973,6 +2284,99 @@ window.addEventListener('scroll', () => {
   document.querySelector('nav').style.borderBottomColor =
     window.scrollY > 40 ? 'rgba(255,117,31,0.3)' : 'rgba(255,117,31,0.15)';
 });
+
+// ── AUTOPREENCHIMENTO DE ENDEREÇO POR CEP (ViaCEP) ──
+(function () {
+  const cepInput = document.getElementById('f-cep');
+  if (!cepInput) return;
+
+  // máscara 00000-000 e busca quando completar 8 dígitos
+  cepInput.addEventListener('input', () => {
+    let v = cepInput.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
+    cepInput.value = v;
+    if (v.replace(/\D/g, '').length === 8) buscarEndereco();
+  });
+
+  async function buscarEndereco() {
+    const cep = cepInput.value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+
+    const rua    = document.getElementById('f-rua');
+    const bairro = document.getElementById('f-bairro');
+    const cidade = document.getElementById('f-cidade');
+    const estado = document.getElementById('f-estado');
+    const corOriginal = cepInput.style.borderColor;
+    cepInput.style.borderColor = 'var(--orange)'; // feedback "buscando"
+
+    try {
+      const res  = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (data.erro) { // CEP inexistente
+        cepInput.style.borderColor = '#ff4444';
+        setTimeout(() => cepInput.style.borderColor = corOriginal, 2000);
+        return;
+      }
+      if (rua    && data.logradouro) rua.value    = data.logradouro;
+      if (bairro && data.bairro)     bairro.value = data.bairro;
+      if (cidade && data.localidade) cidade.value = data.localidade;
+      if (estado && data.uf)         estado.value = data.uf;
+      cepInput.style.borderColor = corOriginal;
+      const num = document.getElementById('f-num'); // ViaCEP não traz número
+      if (num) num.focus();
+    } catch (e) {
+      cepInput.style.borderColor = corOriginal; // falhou: preenche manual
+    }
+  }
+})();
+
+// ── LIGA A DETECÇÃO DE CPF AO CAMPO ──
+(function () {
+  const cpf = document.getElementById('f-cpf');
+  if (!cpf) return;
+  let t;
+  cpf.addEventListener('input', () => { clearTimeout(t); t = setTimeout(checarCpf, 400); });
+  cpf.addEventListener('blur', checarCpf);
+})();
+</script>
+
+<!-- BOTÃO WHATSAPP FLUTUANTE -->
+<a href="https://wa.me/5516981118772" target="_blank" rel="noopener"
+   style="position:fixed;bottom:28px;right:28px;z-index:9999;
+          width:58px;height:58px;border-radius:50%;
+          background:#25d366;
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 16px rgba(37,211,102,0.4);
+          transition:transform 0.2s,box-shadow 0.2s;"
+   onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 24px rgba(37,211,102,0.55)'"
+   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(37,211,102,0.4)'"
+   title="Fale conosco no WhatsApp">
+  <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.663 4.61 1.816 6.51L4 29l7.697-1.793A12.94 12.94 0 0 0 16 28c6.627 0 12-5.373 12-12S22.627 3 16 3z" fill="#ffffff"/>
+    <path d="M21.5 18.5c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.63-.93-2.23-.24-.58-.49-.5-.68-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25d366"/>
+  </svg>
+</a>
+
+
+<!-- MODAL TABELA DE MEDIDAS -->
+<div id="modal-medidas" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;" onclick="if(event.target===this)fecharTabelaMedidas()">
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:560px;margin:auto;box-shadow:0 24px 64px rgba(0,0,0,0.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid rgba(0,0,0,0.08);">
+      <div><div style="font-size:17px;font-weight:700;color:#1a1a1a;">📏 Tabela de Medidas</div><div style="font-size:12px;color:#888;margin-top:2px;">Todas as medidas em centímetros (cm)</div></div>
+      <button onclick="fecharTabelaMedidas()" style="background:none;border:none;cursor:pointer;font-size:22px;color:#888;line-height:1;padding:4px;">✕</button>
+    </div>
+    <div style="padding:20px 24px 28px;">
+      <div style="margin-bottom:20px;"><img src="data:image/jpeg;base64,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" style="width:100%;max-width:520px;display:block;margin:0 auto 8px;border-radius:12px;" alt="Mockup camiseta JBX Sports"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ff751f;margin-bottom:8px;">Camiseta Masculina / Unissex</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;"><thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th></tr></thead><tbody><tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 12px;font-weight:600;color:#333;">P</td><td style="padding:8px 12px;text-align:center;color:#555;">49</td><td style="padding:8px 12px;text-align:center;color:#555;">70</td></tr><tr style="border-bottom:1px solid #f0f0f0;background:#fafafa;"><td style="padding:8px 12px;font-weight:600;color:#333;">M</td><td style="padding:8px 12px;text-align:center;color:#555;">51</td><td style="padding:8px 12px;text-align:center;color:#555;">73</td></tr><tr style="border-bottom:1px solid #f0f0f0;"><td style="padding:8px 12px;font-weight:600;color:#333;">G</td><td style="padding:8px 12px;text-align:center;color:#555;">56</td><td style="padding:8px 12px;text-align:center;color:#555;">76</td></tr><tr style="background:#fafafa;"><td style="padding:8px 12px;font-weight:600;color:#333;">GG</td><td style="padding:8px 12px;text-align:center;color:#555;">60</td><td style="padding:8px 12px;text-align:center;color:#555;">80</td></tr></tbody></table>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#ff751f;margin-bottom:8px;">Babylook Feminina</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;"><thead><tr style="background:#f5f5f5;"><th style="padding:8px 12px;text-align:left;font-weight:700;color:#333;border-radius:6px 0 0 6px;">Tamanho</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;">Largura</th><th style="padding:8px 12px;text-align:center;font-weight:700;color:#333;border-radius:0 6px 6px 0;">Comprimento</th></tr></thead><tbody><tr><td style="padding:8px 12px;font-weight:600;color:#333;">Tamanho único</td><td style="padding:8px 12px;text-align:center;color:#555;">47</td><td style="padding:8px 12px;text-align:center;color:#555;">63</td></tr></tbody></table>
+      <div style="background:#fff8f3;border:1px solid rgba(255,117,31,0.2);border-radius:10px;padding:12px 16px;"><div style="font-size:12px;font-weight:700;color:#ff751f;margin-bottom:5px;">💡 Como medir</div><div style="font-size:12px;color:#666;line-height:1.7;"><strong>Largura:</strong> meça de axila a axila com a camiseta aberta.<br><strong>Comprimento:</strong> do ombro até a barra.<br>Em dúvida entre dois tamanhos, prefira o maior.</div></div>
+    </div>
+  </div>
+</div>
+<script>
+function abrirTabelaMedidas(){const m=document.getElementById('modal-medidas');m.style.display='flex';document.body.style.overflow='hidden';}
+function fecharTabelaMedidas(){const m=document.getElementById('modal-medidas');m.style.display='none';document.body.style.overflow='';}
 </script>
 </body>
-</html>
