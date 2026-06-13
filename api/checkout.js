@@ -1,23 +1,24 @@
-// api/checkout.js
-import Stripe from 'stripe';
+// api/checkout.js — Mercado Pago Checkout Pro
+const { MercadoPagoConfig, Preference } = require('mercadopago');
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const mp = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
+});
 
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const SITE_URL       = process.env.SITE_URL || 'https://jbx-sports.vercel.app';
 
 async function buscarDadosAtleta(cpf) {
   try {
     const cpfLimpo = cpf.replace(/\D/g, '');
 
-    // Busca direto em atletas_contas (fonte mais confiável)
     const res = await fetch(`${SB_URL}/rest/v1/atletas_contas?cpf=eq.${cpfLimpo}&limit=1&select=nome,telefone,email`, {
       headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
     const data = await res.json();
     if (data && data.length > 0 && data[0].telefone) return data[0];
 
-    // Fallback: inscricoes com telefone não nulo
     const res2 = await fetch(`${SB_URL}/rest/v1/inscricoes?cpf=eq.${cpfLimpo}&telefone=not.is.null&order=id.desc&limit=1&select=nome,telefone,email`, {
       headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
     });
@@ -36,30 +37,30 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
     try {
       const dados = {
         pedido, evento: eventoNome || '',
-        ref:           item.ref        || '',
-        cpf:           item.cpf        || '',
-        kit_id:        item.kit_id     || '',
-        lote_id:       item.lote_id    || '',
-        kit:           item.kit        || '',
-        modalidade:    item.modalidade || '',
-        tamanho_camisa:item.tamanho_camisa || '',
-        cupom:         cupom           || '',
-        forma_pagamento: formaPagamento || 'cartao',
-        nome:          item.nome       || '',
-        nascimento:    item.nascimento || '',
-        genero:        item.genero     || '',
-        email:         item.email      || '',
-        telefone:      item.telefone   || '',
-        cep:           item.cep        || '',
-        rua:           item.rua        || '',
-        numero:        item.numero     || '',
-        complemento:   item.complemento|| '',
-        bairro:        item.bairro     || '',
-        cidade:        item.cidade     || '',
-        estado:        item.estado     || '',
-        emergencia_nome:     item.emergencia_nome      || '',
-        emergencia_telefone: item.emergencia_telefone  || '',
-        valor:         item.valor      || 0,
+        ref:                 item.ref                 || '',
+        cpf:                 item.cpf                 || '',
+        kit_id:              item.kit_id              || '',
+        lote_id:             item.lote_id             || '',
+        kit:                 item.kit                 || '',
+        modalidade:          item.modalidade          || '',
+        tamanho_camisa:      item.tamanho_camisa      || '',
+        cupom:               cupom                    || '',
+        forma_pagamento:     formaPagamento           || 'cartao',
+        nome:                item.nome                || '',
+        nascimento:          item.nascimento          || '',
+        genero:              item.genero              || '',
+        email:               item.email               || '',
+        telefone:            item.telefone            || '',
+        cep:                 item.cep                 || '',
+        rua:                 item.rua                 || '',
+        numero:              item.numero              || '',
+        complemento:         item.complemento         || '',
+        bairro:              item.bairro              || '',
+        cidade:              item.cidade              || '',
+        estado:              item.estado              || '',
+        emergencia_nome:     item.emergencia_nome     || '',
+        emergencia_telefone: item.emergencia_telefone || '',
+        valor:               item.valor               || 0,
       };
 
       const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
@@ -90,7 +91,7 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
   return resultados;
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -101,6 +102,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
 
+  // Cria inscrições no Supabase
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
@@ -112,24 +114,12 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Valor inválido.' });
   }
 
-  const line_items = itens.map((item, i) => ({
-    price_data: {
-      currency: 'brl',
-      product_data: {
-        name: `${item.kit || 'Kit'} — ${item.modalidade || ''} (${item.nome || item.rotulo || 'Atleta'})`,
-        description: evento_nome || '',
-      },
-      unit_amount: resultados[i].valor_cents,
-    },
-    quantity: 1,
-  }));
-
+  // Monta metadados dos atletas (para o webhook usar)
   const metadataItens = await Promise.all(itens.map(async (it) => {
     let nome     = it.nome     || '';
     let telefone = it.telefone || '';
     let email    = it.email    || '';
 
-    // Busca dados no banco se telefone ou email estiver vazio
     if (it.cpf && (!telefone || !email)) {
       const dadosBanco = await buscarDadosAtleta(it.cpf);
       if (dadosBanco) {
@@ -143,7 +133,7 @@ export default async function handler(req, res) {
 
     return {
       nome:       nome.slice(0, 40),
-      tel:        (telefone || '').replace(/\D/g, '').slice(0, 15),
+      tel:        (telefone || '').replace(/[^0-9]/g, '').slice(0, 15),
       email:      email.slice(0, 60),
       evento:     (evento_nome || '').slice(0, 40),
       kit:        (it.kit || '').slice(0, 20),
@@ -153,29 +143,51 @@ export default async function handler(req, res) {
     };
   }));
 
-  const itensJson = JSON.stringify(metadataItens);
-  console.log('[checkout] metadataItens final:', itensJson);
-
-  const payment_method_types = forma_pagamento === 'pix' ? ['pix'] : ['card'];
+  // Monta itens da preferência MP
+  const mpItems = itens.map((item, i) => ({
+    id:          `${pedido}-${i}`,
+    title:       `${item.kit || 'Kit'} — ${item.modalidade || ''} (${item.nome || 'Atleta'})`,
+    description: evento_nome || 'JBX Sports',
+    quantity:    1,
+    unit_price:  item.valor,
+    currency_id: 'BRL',
+  }));
 
   try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types,
-      line_items,
-      mode: 'payment',
-      success_url: `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/atleta.html?pedido=${pedido}`,
-      cancel_url:  `${process.env.SITE_URL || 'https://jbx-sports.vercel.app'}/?status=cancelado`,
-      metadata: {
-        pedido,
-        evento_nome: evento_nome || '',
-        cupom:       cupom       || '',
-        itens:       itensJson,
-      },
+    const preference = new Preference(mp);
+    const response = await preference.create({
+      body: {
+        items: mpItems,
+        external_reference: pedido,
+        metadata: {
+          pedido,
+          evento_nome: evento_nome || '',
+          cupom:       cupom       || '',
+          itens:       JSON.stringify(metadataItens),
+        },
+        payment_methods: {
+          // PIX + Cartão de crédito
+          excluded_payment_types: [
+            { id: 'ticket' },      // boleto
+            { id: 'debit_card' },  // débito
+          ],
+        },
+        back_urls: {
+          success: `${SITE_URL}/atleta.html?pedido=${pedido}`,
+          failure: `${SITE_URL}/?status=cancelado`,
+          pending: `${SITE_URL}/atleta.html?pedido=${pedido}&status=pendente`,
+        },
+        auto_return: 'approved',
+        notification_url: `${SITE_URL}/api/mp-webhook`,
+        statement_descriptor: 'JBX SPORTS',
+      }
     });
 
-    return res.status(200).json({ url: session.url });
+    console.log('[checkout] Preferência MP criada:', response.id);
+    return res.status(200).json({ url: response.init_point });
+
   } catch(e) {
-    console.error('[checkout] Stripe error:', e.message);
+    console.error('[checkout] Mercado Pago error:', e.message);
     return res.status(500).json({ error: e.message });
   }
-}
+};

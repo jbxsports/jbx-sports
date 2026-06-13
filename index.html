@@ -787,7 +787,7 @@
     <p>© 2026 JBX Sports. Todos os direitos reservados.</p>
     <div class="footer-stripe">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Pagamentos processados com segurança via Stripe
+      Pagamentos processados com segurança via Mercado Pago
     </div>
   </div>
 </footer>
@@ -1070,7 +1070,7 @@
       </button>
       <div class="stripe-badge">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Pagamento 100% seguro via Stripe
+        Pagamento 100% seguro via Mercado Pago
       </div>
       </div><!-- /etapa 4 -->
 
@@ -1792,7 +1792,7 @@ function montarDadosItem(it, pedido) {
   return d;
 }
 
-// Finaliza: envia para /api/checkout que cria a sessão no Stripe
+// Finaliza: envia para /api/checkout que cria a preferência no Mercado Pago
 // e redireciona o atleta para a página de pagamento
 async function handlePagamento() {
   const cancelou = (cart.length > 0 && !currentKit);
@@ -1844,7 +1844,7 @@ async function handlePagamento() {
     }
 
     const { url } = await res.json();
-    // Redireciona para a página de pagamento do Stripe
+    // Redireciona para a página de pagamento do Mercado Pago
     window.location.href = url;
 
   } catch (e) {
