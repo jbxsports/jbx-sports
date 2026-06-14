@@ -241,6 +241,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <nav class="admin-nav">
         <button class="nav-btn active" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
+        <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -259,7 +260,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
         <div class="dash-actions">
           <h2 style="font-size:16px;font-weight:700;color:var(--muted);">Eventos</h2>
-          <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
+            <button onclick="abrirConfiguracoes()" style="display:inline-flex;align-items:center;gap:8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.background='#f0ede8'" onmouseout="this.style.background='var(--card)'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+              Configurações
+            </button>
+          </div>
+          <button class="btn-new-ev" onclick="abrirConfiguracoes()" style="background:rgba(42,37,32,0.08);color:var(--text);border:1px solid var(--border);margin-left:10px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+            Configurações
+          </button>
         </div>
         <div class="eventos-grid-admin" id="ev-grid"><div class="empty-state">Carregando…</div></div>
       </div>
@@ -652,6 +663,37 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
       </div>
 
+
+      <!-- TELA CONFIGURAÇÕES -->
+      <div class="inner-screen" id="screen-config">
+        <div class="page-hd">
+          <h1>⚙️ Configurações Gerais</h1>
+        </div>
+        <div class="panel" style="max-width:680px;">
+          <h2>🎬 Vídeos em Destaque — Reels do Instagram</h2>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+            Esses 3 vídeos aparecem na página inicial do site. Cole o link completo do Reel.<br>
+            <span style="color:var(--orange);">Ex:</span> <code style="background:#f0ede8;padding:2px 8px;border-radius:4px;font-size:12px;">https://www.instagram.com/reel/ABC123/</code>
+          </p>
+          <div class="form-g">
+            <label>🎥 Vídeo 1</label>
+            <input type="url" id="cfg-video1" placeholder="https://www.instagram.com/reel/...">
+          </div>
+          <div class="form-g">
+            <label>🎥 Vídeo 2</label>
+            <input type="url" id="cfg-video2" placeholder="https://www.instagram.com/reel/...">
+          </div>
+          <div class="form-g">
+            <label>🎥 Vídeo 3</label>
+            <input type="url" id="cfg-video3" placeholder="https://www.instagram.com/reel/...">
+          </div>
+          <div id="cfg-msg" style="font-size:13px;min-height:18px;margin:12px 0;"></div>
+          <button class="btn-new-ev" id="btn-salvar-cfg" onclick="salvarConfiguracoes()" style="min-width:200px;">
+            💾 Salvar configurações
+          </button>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -776,6 +818,7 @@ function showInner(name){
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
+  if(name==='config'){loadConfiguracoes();}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
 }
 
@@ -1751,6 +1794,47 @@ async function deletarPatrocinador(id) {
     await rpc('admin_deletar_patrocinador', { p_id: id });
     await loadPatrocinadores();
   } catch(e) { alert('Erro ao deletar.'); }
+}
+
+
+/* ── CONFIGURAÇÕES ── */
+async function abrirConfiguracoes() {
+  document.querySelectorAll('.inner-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-config').classList.add('active');
+  window.scrollTo(0, 0);
+  await loadConfiguracoes();
+}
+
+async function loadConfiguracoes() {
+  try {
+    const res = await rpc('admin_buscar_configuracoes');
+    if (res) {
+      document.getElementById('cfg-video1').value = res.reels_video1 || '';
+      document.getElementById('cfg-video2').value = res.reels_video2 || '';
+      document.getElementById('cfg-video3').value = res.reels_video3 || '';
+    }
+  } catch(e) { console.error('Erro ao carregar configurações:', e); }
+}
+
+async function salvarConfiguracoes() {
+  const btn = document.getElementById('btn-salvar-cfg');
+  const msg = document.getElementById('cfg-msg');
+  btn.textContent = 'Salvando...'; btn.disabled = true; msg.textContent = '';
+  try {
+    await rpc('admin_salvar_configuracoes', {
+      p_reels_video1: document.getElementById('cfg-video1').value.trim(),
+      p_reels_video2: document.getElementById('cfg-video2').value.trim(),
+      p_reels_video3: document.getElementById('cfg-video3').value.trim()
+    });
+    msg.style.color = '#16a34a';
+    msg.textContent = '✅ Configurações salvas com sucesso!';
+    setTimeout(() => msg.textContent = '', 3000);
+  } catch(e) {
+    msg.style.color = '#dc2626';
+    msg.textContent = '❌ Erro: ' + e.message;
+  }
+  btn.textContent = '💾 Salvar configurações'; btn.disabled = false;
 }
 
 /* ── INIT ── */
