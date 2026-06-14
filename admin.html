@@ -850,8 +850,11 @@ function renderEventCards(evs){
     <div class="ev-card">
       <div class="ev-card-header">
         ${bgHtml}
-        <div><h3>${e.nome}</h3><div style="font-size:12px;color:rgba(255,255,255,0.85);margin-top:4px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div></div>
-        <span class="tag ${tagClass(e.status)}">${tagLabel(e.status)}</span>
+        <span class="tag ${tagClass(e.status)}" style="position:absolute;top:12px;right:12px;z-index:3;">${tagLabel(e.status)}</span>
+      </div>
+      <div style="padding:14px 20px 0;border-bottom:1px solid var(--border);padding-bottom:14px;">
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">${e.nome}</div>
+        <div style="font-size:12px;color:var(--muted);">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div>
       </div>
       <div class="ev-card-stats">
         <div class="ev-stat"><div class="l">Faturamento</div><div class="v">${brl(e.faturamento)}</div></div>
