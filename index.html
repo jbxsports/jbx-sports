@@ -696,14 +696,6 @@
 
 <!-- EVENTOS -->
 <section id="eventos">
-  <div class="eventos-header">
-    <div>
-      <div class="section-tag">Calendário 2026</div>
-      <h2>Próximos <em>eventos</em></h2>
-
-    </div>
-  </div>
-
   <div class="eventos-grid" id="eventos-grid">
     <div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(42,37,32,0.4);">
       Carregando eventos...
@@ -1905,7 +1897,6 @@ function renderCard(ev, idx, bannerUrl) {
       ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
       <span class="event-badge ${statusMap[ev.status] || 'badge-soon'}">${statusLabel[ev.status] || 'Em breve'}</span>
-      <div class="event-dist">${pills}</div>
     </div>
     <div class="event-card-body">
       <div class="event-name">${ev.nome}</div>
@@ -1920,12 +1911,9 @@ function renderCard(ev, idx, bannerUrl) {
         </div>
       </div>
       <div class="event-price-row">
-        <div class="event-price">
-          <div class="price-from">a partir de</div>
-          <div class="price-val">${preco}</div>
-        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${pills}</div>
         <button class="btn-inscricao ${disabled}" onclick="event.stopPropagation();irParaEvento('${ev.id}')">
-          ${ev.status === 'closed' ? 'Ver evento' : 'Ver evento'}
+          Ver evento
         </button>
       </div>
     </div>
