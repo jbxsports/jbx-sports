@@ -349,6 +349,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="page-hd">
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1 id="ev-form-titulo">Novo Evento</h1>
+          <button class="btn-sm btn-sm-green" style="padding:9px 16px;font-size:13px;display:none;" onclick="abrirKitsLotes()" id="btn-form-kits">🎟 Kits & Lotes</button>
+          <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#b8860b;border:1px solid rgba(255,215,0,.3);padding:9px 16px;font-size:13px;display:none;" onclick="abrirPatrocinadoresForm()" id="btn-form-pat">⭐ Patrocinadores</button>
         </div>
         <input type="hidden" id="ef-id">
 
@@ -428,8 +430,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="form-actions">
           <button class="btn-primary" onclick="salvarEvento()">Salvar evento</button>
           <button class="btn-ghost" onclick="showInner('dash')">Cancelar</button>
-          <button class="btn-sm btn-sm-green" style="padding:10px 18px;font-size:14px;" onclick="abrirKitsLotes()" id="btn-form-kits">🎟 Kits & Lotes</button>
-          <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#b8860b;border:1px solid rgba(255,215,0,.3);padding:10px 18px;font-size:14px;" onclick="abrirPatrocinadoresForm()" id="btn-form-pat">⭐ Patrocinadores</button>
           <span id="ev-form-feedback" style="font-size:13px;align-self:center;margin-left:auto;"></span>
         </div>
       </div>
@@ -848,10 +848,10 @@ function renderEventCards(evs){
       ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');"></div>'
         +'<div class="ev-card-header-overlay"></div>'
       : '';
-    const visIcon = (e.visivel_home===false||e.visivel_home==='false')
+    const oculto = (e.visivel_home===false||e.visivel_home==='false'); const visIcon = oculto
       ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
       : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site';
-    const visColor = (e.visivel_home===false||e.visivel_home==='false') ? '#dc2626' : '#16a34a';
+    const visColor = oculto ? '#dc2626' : '#16a34a';
     const linkEvento = `${window.location.origin.replace('admin.html','')}/index.html#evento-${e.id}`;
     return `
     <div class="ev-card">
