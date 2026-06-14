@@ -850,11 +850,19 @@ function renderEventCards(evs){
     <div class="ev-card">
       <div class="ev-card-header">
         ${bgHtml}
-        <span class="tag ${tagClass(e.status)}" style="position:absolute;top:12px;right:12px;z-index:3;">${tagLabel(e.status)}</span>
+
       </div>
-      <div style="padding:14px 20px 0;border-bottom:1px solid var(--border);padding-bottom:14px;">
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">${e.nome}</div>
-        <div style="font-size:12px;color:var(--muted);">${e.local||''} ${e.data?'· '+fmtDS(e.data):''}</div>
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${e.nome}</div>
+          <span class="tag ${tagClass(e.status)}" style="white-space:nowrap;flex-shrink:0;">${tagLabel(e.status)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''} ${e.hora?'· '+e.hora:''}</div>
+        <div style="font-size:12px;display:flex;align-items:center;gap:4px;color:${e.visivel_home===false||e.visivel_home==='false'?'#dc2626':'#16a34a'};">
+          ${e.visivel_home===false||e.visivel_home==='false'
+            ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
+            : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site'}
+        </div>
       </div>
       <div class="ev-card-stats">
         <div class="ev-stat"><div class="l">Faturamento</div><div class="v">${brl(e.faturamento)}</div></div>
@@ -863,7 +871,6 @@ function renderEventCards(evs){
         <div class="ev-stat"><div class="l">Ticket Médio</div><div class="v">${brl(e.ticket_medio)}</div></div>
       </div>
       <div class="ev-card-footer">
-        <span class="meta">${e.hora||''}</span>
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
         <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
         <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#ffd000;border:1px solid rgba(255,215,0,.25);" onclick="abrirPatrocinadores('${e.id}','${e.nome.replace(/'/g,"\\'")}')">⭐ Patrocinadores</button>
