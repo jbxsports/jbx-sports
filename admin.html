@@ -894,7 +894,7 @@ async function loadEventoForm(id){
         set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);
         previewBannerCard(ev.banner_url||'');previewBannerH(ev.banner_horizontal_url||'');
         document.getElementById('ef-status').value=ev.status||'soon';
-        document.getElementById('ef-visivel').value=ev.visivel_home===false?'false':'true';
+        document.getElementById('ef-visivel').value=(ev.visivel_home===false||ev.visivel_home==='false')?'false':'true';
       }
     }catch(e){console.error(e);}
   }
@@ -909,7 +909,7 @@ async function salvarEvento(){
     descricao:get('ef-descricao'),percurso:get('ef-percurso'),percurso_mapa:get('ef-percurso-mapa'),
     retirada_kit:get('ef-retirada'),regulamento:get('ef-regulamento'),
     banner_url:get('ef-banner'),banner_horizontal_url:get('ef-banner-h'),
-    visivel_home:document.getElementById('ef-visivel').value==='true'};
+    visivel_home:document.getElementById('ef-visivel').value};
   const fb=document.getElementById('ev-form-feedback');fb.style.color='var(--muted)';fb.textContent='Salvando…';
   try{
     const evId=await rpc('admin_salvar_evento',{dados});
