@@ -1014,7 +1014,8 @@ function imprimirInscricao(id) {
   .qr-box { text-align:center; padding:20px; background:#faf9f7; border-radius:10px; border:1px solid #e8e4e0; margin-bottom:24px; }
   .qr-id { font-family:monospace; font-size:11px; color:#aaa; margin-top:8px; }
   .rodape { font-size:11px; color:#bbb; text-align:center; border-top:1px solid #f0ede9; padding-top:16px; }
-  @media print { body { padding:24px; } @page { margin:16px; size:A4; } }
+  @media print { body { padding:24px; -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:16px; size:A4; } }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
 </style></head>
 <body>
 <div class="header">
