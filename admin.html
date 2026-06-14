@@ -845,82 +845,37 @@ function renderEventCards(evs){
   g.innerHTML=evs.map(e=>{
     const bu=e.banner_url||'';
     const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');">' + '</div>'
+      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');"></div>'
         +'<div class="ev-card-header-overlay"></div>'
       : '';
+    const visIcon = (e.visivel_home===false||e.visivel_home==='false')
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site';
+    const visColor = (e.visivel_home===false||e.visivel_home==='false') ? '#dc2626' : '#16a34a';
+    const linkEvento = `${window.location.origin.replace('admin.html','')}/index.html#evento-${e.id}`;
     return `
     <div class="ev-card">
-      <div class="ev-card-header">
-        ${bgHtml}
-
-      </div>
+      <div class="ev-card-header">${bgHtml}</div>
       <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
           <div style="font-size:15px;font-weight:700;color:var(--text);">${e.nome}</div>
           <span class="tag ${tagClass(e.status)}" style="white-space:nowrap;flex-shrink:0;">${tagLabel(e.status)}</span>
         </div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''} ${e.hora?'· '+e.hora:''}</div>
-        <div style="font-size:12px;display:flex;align-items:center;gap:4px;color:${e.visivel_home===false||e.visivel_home==='false'?'#dc2626':'#16a34a'};">
-          ${e.visivel_home===false||e.visivel_home==='false'
-            ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
-            : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site'}
-        </div>
+        <div style="font-size:12px;display:flex;align-items:center;gap:4px;color:${visColor};">${visIcon}</div>
       </div>
       <div class="ev-card-stats" style="grid-template-columns:1fr 1fr 1fr;">
         <div class="ev-stat"><div class="l">Faturamento</div><div class="v">${brl(e.faturamento)}</div></div>
         <div class="ev-stat"><div class="l">Inscrições</div><div class="v">${fmt(e.inscricoes_total)}</div></div>
-        <div class="ev-stat"><div class="l">Últimos 7 dias</div><div class="v">${fmt(e.inscricoes_7dias||0)}</div></div>
+        <div class="ev-stat"><div class="l">Últ. 7 dias</div><div class="v">${fmt(e.inscricoes_7dias||0)}</div></div>
         <div class="ev-stat"><div class="l">Ticket Médio</div><div class="v">${brl(e.ticket_medio)}</div></div>
         <div class="ev-stat"><div class="l">Hoje</div><div class="v">${fmt(e.inscricoes_hoje)}</div></div>
         <div class="ev-stat"><div class="l">Cortesias</div><div class="v" style="color:#8b5cf6;">${fmt(e.cortesias||0)}</div></div>
       </div>
-      <div class="ev-card-footer" style="justify-content:space-between;">
+      <div class="ev-card-footer" style="gap:8px;">
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
-        <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
-      </div>nderEventCards(evs){
-  const g=document.getElementById('ev-grid');
-  if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
-  g.innerHTML=evs.map(e=>{
-    const bu=e.banner_url||'';
-    const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');">' + '</div>'
-        +'<div class="ev-card-header-overlay"></div>'
-      : '';
-    return `
-    <div class="ev-card">
-      <div class="ev-card-header">
-        ${bgHtml}
-
-      </div>
-      <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text);">${e.nome}</div>
-          <span class="tag ${tagClass(e.status)}" style="white-space:nowrap;flex-shrink:0;">${tagLabel(e.status)}</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''} ${e.hora?'· '+e.hora:''}</div>
-        <div style="font-size:12px;display:flex;align-items:center;gap:4px;color:${e.visivel_home===false||e.visivel_home==='false'?'#dc2626':'#16a34a'};">
-          ${e.visivel_home===false||e.visivel_home==='false'
-            ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
-            : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site'}
-        </div>
-      </div>
-      <div class="ev-card-stats" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="ev-stat"><div class="l">Faturamento</div><div class="v">${brl(e.faturamento)}</div></div>
-        <div class="ev-stat"><div class="l">Inscrições</div><div class="v">${fmt(e.inscricoes_total)}</div></div>
-        <div class="ev-stat"><div class="l">Últimos 7 dias</div><div class="v">${fmt(e.inscricoes_7dias||0)}</div></div>
-        <div class="ev-stat"><div class="l">Ticket Médio</div><div class="v">${brl(e.ticket_medio)}</div></div>
-        <div class="ev-stat"><div class="l">Hoje</div><div class="v">${fmt(e.inscricoes_hoje)}</div></div>
-        <div class="ev-stat"><div class="l">Cortesias</div><div class="v" style="color:#8b5cf6;">${fmt(e.cortesias||0)}</div></div>
-      </div>
-      <div class="ev-card-footer">
-        <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
-        <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
-        <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#ffd000;border:1px solid rgba(255,215,0,.25);" onclick="abrirPatrocinadores('${e.id}','${e.nome.replace(/'/g,"\\'")}')">⭐ Patrocinadores</button>
-        ${Number(e.inscricoes_total||0) === 0
-          ? '<button class="btn-sm btn-sm-red" onclick="excluirEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\')">🗑 Excluir</button>'
-          : '<button class="btn-sm btn-sm-ghost" ' + (e.status==="closed"?'disabled style="opacity:0.4;cursor:not-allowed;"':'') + ' onclick="encerrarEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\',\'' + e.status + '\')">\u26d4 ' + (e.status==="closed"?'Encerrado':'Encerrar') + '</button>'
-        }
         <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
+        <button class="btn-sm" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25);" onclick="compartilharEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🔗 Compartilhar</button>
       </div>
     </div>`;
   }).join('');
@@ -983,6 +938,20 @@ function abrirKitsLotesById(id,nome){
   showInner('kits-lotes');
   document.getElementById('nav-dash').classList.add('active');
 }
+
+function compartilharEvento(id, nome) {
+  const url = 'https://jbx-sports.vercel.app/#evento-' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Link copiado!';
+    btn.style.background = 'rgba(34,197,94,.25)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = 'rgba(34,197,94,.1)'; }, 2000);
+  }).catch(() => {
+    prompt('Copie o link do evento:', 'https://jbx-sports.vercel.app/#evento-' + id);
+  });
+}
+
 function abrirKitsLotes(){if(currentEvento)abrirKitsLotesById(currentEvento.id,currentEvento.nome);}
 function abrirPatrocinadoresForm(){
   const id = document.getElementById('ef-id').value;
@@ -2832,54 +2801,7 @@ async function loadDashboard(){
     renderEventCards(evs||[]);
   }catch(e){console.error(e);}
 }
-function renderEventCards(evs){
-  const g=document.getElementById('ev-grid');
-  if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
-  g.innerHTML=evs.map(e=>{
-    const bu=e.banner_url||'';
-    const bgHtml=bu
-      ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');">' + '</div>'
-        +'<div class="ev-card-header-overlay"></div>'
-      : '';
-    return `
-    <div class="ev-card">
-      <div class="ev-card-header">
-        ${bgHtml}
 
-      </div>
-      <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text);">${e.nome}</div>
-          <span class="tag ${tagClass(e.status)}" style="white-space:nowrap;flex-shrink:0;">${tagLabel(e.status)}</span>
-        </div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''} ${e.hora?'· '+e.hora:''}</div>
-        <div style="font-size:12px;display:flex;align-items:center;gap:4px;color:${e.visivel_home===false||e.visivel_home==='false'?'#dc2626':'#16a34a'};">
-          ${e.visivel_home===false||e.visivel_home==='false'
-            ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg> Oculto no site'
-            : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site'}
-        </div>
-      </div>
-      <div class="ev-card-stats" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="ev-stat"><div class="l">Faturamento</div><div class="v">${brl(e.faturamento)}</div></div>
-        <div class="ev-stat"><div class="l">Inscrições</div><div class="v">${fmt(e.inscricoes_total)}</div></div>
-        <div class="ev-stat"><div class="l">Últimos 7 dias</div><div class="v">${fmt(e.inscricoes_7dias||0)}</div></div>
-        <div class="ev-stat"><div class="l">Ticket Médio</div><div class="v">${brl(e.ticket_medio)}</div></div>
-        <div class="ev-stat"><div class="l">Hoje</div><div class="v">${fmt(e.inscricoes_hoje)}</div></div>
-        <div class="ev-stat"><div class="l">Cortesias</div><div class="v" style="color:#8b5cf6;">${fmt(e.cortesias||0)}</div></div>
-      </div>
-      <div class="ev-card-footer">
-        <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
-        <button class="btn-sm btn-sm-green" onclick="abrirKitsLotesById('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🎟 Kits</button>
-        <button class="btn-sm" style="background:rgba(255,215,0,.12);color:#ffd000;border:1px solid rgba(255,215,0,.25);" onclick="abrirPatrocinadores('${e.id}','${e.nome.replace(/'/g,"\\'")}')">⭐ Patrocinadores</button>
-        ${Number(e.inscricoes_total||0) === 0
-          ? '<button class="btn-sm btn-sm-red" onclick="excluirEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\')">🗑 Excluir</button>'
-          : '<button class="btn-sm btn-sm-ghost" ' + (e.status==="closed"?'disabled style="opacity:0.4;cursor:not-allowed;"':'') + ' onclick="encerrarEvento(\'' + e.id + '\',\'' + e.nome.replace(/\'/g,"\\\'") + '\',\'' + e.status + '\')">\u26d4 ' + (e.status==="closed"?'Encerrado':'Encerrar') + '</button>'
-        }
-        <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
-      </div>
-    </div>`;
-  }).join('');
-}
 
 /* ── EVENTO FORM ── */
 async function loadEventoForm(id){
@@ -2938,6 +2860,20 @@ function abrirKitsLotesById(id,nome){
   showInner('kits-lotes');
   document.getElementById('nav-dash').classList.add('active');
 }
+
+function compartilharEvento(id, nome) {
+  const url = 'https://jbx-sports.vercel.app/#evento-' + id;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✅ Link copiado!';
+    btn.style.background = 'rgba(34,197,94,.25)';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = 'rgba(34,197,94,.1)'; }, 2000);
+  }).catch(() => {
+    prompt('Copie o link do evento:', 'https://jbx-sports.vercel.app/#evento-' + id);
+  });
+}
+
 function abrirKitsLotes(){if(currentEvento)abrirKitsLotesById(currentEvento.id,currentEvento.nome);}
 function abrirPatrocinadoresForm(){
   const id = document.getElementById('ef-id').value;
