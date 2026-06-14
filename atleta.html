@@ -217,6 +217,80 @@ nav {
   #screen-area { padding: 90px 16px 40px; }
   .codigo-inputs input { width: 40px; height: 50px; font-size: 22px; }
 }
+
+/* ── MODAL MEUS DADOS ── */
+.dados-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.dados-overlay.active { opacity: 1; pointer-events: all; }
+.dados-modal {
+  background: #ffffff; border-radius: 16px; width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto;
+  border: 1px solid rgba(255,117,31,0.25);
+  transform: translateY(16px); transition: transform 0.25s;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+}
+.dados-overlay.active .dados-modal { transform: translateY(0); }
+.dados-modal-header {
+  position: sticky; top: 0; background: #ffffff; z-index: 10;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid rgba(42,37,32,0.08);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.dados-modal-header h3 { font-size: 20px; font-weight: 700; color: #2a2520; }
+.dados-modal-close {
+  background: rgba(42,37,32,0.06); border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(42,37,32,0.5); transition: all 0.2s;
+}
+.dados-modal-close:hover { background: rgba(42,37,32,0.12); color: #2a2520; }
+.dados-modal-body { padding: 24px 28px 32px; }
+.dados-sucesso {
+  display: none; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #16a34a;
+  margin-bottom: 16px; text-align: center;
+}
+.dados-sucesso.show { display: block; }
+.dados-erro {
+  display: none; background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #dc2626;
+  margin-bottom: 16px;
+}
+.dados-erro.show { display: block; }
+.btn-meus-dados {
+  background: rgba(255,117,31,0.1); color: var(--orange);
+  border: 1px solid rgba(255,117,31,0.3); border-radius: 8px;
+  padding: 10px 20px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-meus-dados:hover { background: rgba(255,117,31,0.18); border-color: var(--orange); }
+.btn-salvar-dados {
+  width: 100%; background: var(--orange); color: #ffffff;
+  padding: 14px; border-radius: 8px; border: none;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; transition: all 0.2s; margin-top: 8px;
+}
+.btn-salvar-dados:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-salvar-dados:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.cpf-readonly {
+  width: 100%; background: rgba(42,37,32,0.04);
+  border: 1px solid rgba(42,37,32,0.08); border-radius: 8px;
+  padding: 12px 14px; color: rgba(42,37,32,0.4); font-size: 15px;
+  font-family: 'Ubuntu', sans-serif; cursor: not-allowed;
+}
+.dados-loading {
+  text-align: center; padding: 40px; color: rgba(42,37,32,0.4);
+}
+.dados-loading .spinner {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
+  animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+}
 </style>
 </head>
 <body>
@@ -465,11 +539,147 @@ nav {
         <h1>Olá, <span id="area-nome">Atleta</span>!</h1>
         <p class="area-subtitulo">Aqui estão todas as suas inscrições</p>
       </div>
+      <button class="btn-meus-dados" onclick="abrirMeusDados()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Meus Dados
+      </button>
     </div>
     <div id="inscricoes-wrap">
       <div class="loading-wrap">
         <div class="spinner"></div>
         <div>Carregando suas inscrições...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEUS DADOS -->
+<div class="dados-overlay" id="dados-overlay">
+  <div class="dados-modal">
+    <div class="dados-modal-header">
+      <h3>👤 Meus Dados</h3>
+      <button class="dados-modal-close" onclick="fecharMeusDados()">✕</button>
+    </div>
+    <div class="dados-modal-body">
+      <div class="dados-sucesso" id="dados-sucesso">✅ Dados atualizados com sucesso!</div>
+      <div class="dados-erro" id="dados-erro"></div>
+
+      <div class="dados-loading" id="dados-loading">
+        <div class="spinner"></div>
+        <div>Carregando seus dados...</div>
+      </div>
+
+      <div id="dados-form" style="display:none;">
+
+        <div class="form-section-label">Dados pessoais</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome completo *</label>
+            <input type="text" id="md-nome" placeholder="Seu nome completo">
+          </div>
+          <div class="form-group">
+            <label>CPF</label>
+            <div class="cpf-readonly" id="md-cpf-display">—</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data de nascimento *</label>
+            <input type="date" id="md-nasc">
+          </div>
+          <div class="form-group">
+            <label>Gênero *</label>
+            <select id="md-genero">
+              <option value="">Selecione</option>
+              <option>Masculino</option>
+              <option>Feminino</option>
+              <option>Prefiro não informar</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>E-mail *</label>
+            <input type="email" id="md-email" placeholder="seu@email.com">
+          </div>
+          <div class="form-group">
+            <label>Telefone / WhatsApp *</label>
+            <input type="tel" id="md-tel" placeholder="(16) 99999-0000">
+          </div>
+        </div>
+
+        <div class="form-section-label">Endereço</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CEP *</label>
+            <input type="text" id="md-cep" placeholder="00000-000" maxlength="9" oninput="mascararCepMd(this)">
+          </div>
+          <div class="form-group">
+            <label>Rua / Logradouro *</label>
+            <input type="text" id="md-rua" placeholder="Rua, Avenida...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número *</label>
+            <input type="text" id="md-num" placeholder="123">
+          </div>
+          <div class="form-group">
+            <label>Complemento</label>
+            <input type="text" id="md-comp" placeholder="Apto, Bloco...">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bairro *</label>
+            <input type="text" id="md-bairro" placeholder="Seu bairro">
+          </div>
+          <div class="form-group">
+            <label>Cidade *</label>
+            <input type="text" id="md-cidade" placeholder="Sua cidade">
+          </div>
+        </div>
+        <div class="form-group" style="max-width:50%;padding-right:6px;">
+          <label>Estado *</label>
+          <select id="md-estado">
+            <option value="">UF</option>
+            <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+            <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+            <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+            <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+            <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+            <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+            <option>SP</option><option>SE</option><option>TO</option>
+          </select>
+        </div>
+
+        <div class="form-section-label">Contato de emergência</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nome do responsável *</label>
+            <input type="text" id="md-emerg-nome" placeholder="Nome completo">
+          </div>
+          <div class="form-group">
+            <label>Telefone do responsável *</label>
+            <input type="tel" id="md-emerg-tel" placeholder="(16) 99999-0000">
+          </div>
+        </div>
+
+        <div class="form-section-label">Alterar senha <span style="font-weight:400;font-size:11px;color:rgba(42,37,32,0.4);letter-spacing:0;">(opcional — deixe em branco para manter a atual)</span></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nova senha</label>
+            <input type="password" id="md-senha" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="form-group">
+            <label>Confirmar nova senha</label>
+            <input type="password" id="md-senha2" placeholder="Repita a senha">
+          </div>
+        </div>
+
+        <button class="btn-salvar-dados" id="btn-salvar-dados" onclick="salvarMeusDados()">
+          Salvar alterações
+        </button>
       </div>
     </div>
   </div>
@@ -835,6 +1045,168 @@ async function gerarMd5(str) {
   return md5(str);
 }
 
+
+// ── MEUS DADOS ────────────────────────────────────
+function mascararCepMd(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.slice(0,5)+'-'+v.slice(5);
+  el.value = v;
+  if (v.replace(/\D/g,'').length === 8) buscarCepMd(v.replace(/\D/g,''));
+}
+
+async function buscarCepMd(cep) {
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (d.erro) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('md-rua',    d.logradouro);
+    set('md-bairro', d.bairro);
+    set('md-cidade', d.localidade);
+    set('md-estado', d.uf);
+    const numEl = document.getElementById('md-num');
+    if (numEl) numEl.focus();
+  } catch(e) {}
+}
+
+async function abrirMeusDados() {
+  const overlay = document.getElementById('dados-overlay');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // Limpa estados anteriores
+  document.getElementById('dados-sucesso').classList.remove('show');
+  document.getElementById('dados-erro').classList.remove('show');
+  document.getElementById('dados-loading').style.display = 'block';
+  document.getElementById('dados-form').style.display = 'none';
+  document.getElementById('md-senha').value = '';
+  document.getElementById('md-senha2').value = '';
+
+  const s = carregarSessao();
+  if (!s || !s.token) { fecharMeusDados(); return; }
+  const [cpf, hash] = (s.token || '').split(':');
+
+  try {
+    const res = await rpc('atleta_buscar_dados', { p_cpf: cpf, p_senha_hash: hash });
+    if (!res || !res.ok) {
+      document.getElementById('dados-loading').style.display = 'none';
+      document.getElementById('dados-erro').textContent = res?.erro || 'Erro ao carregar dados.';
+      document.getElementById('dados-erro').classList.add('show');
+      return;
+    }
+    const d = res.dados;
+    document.getElementById('md-cpf-display').textContent = cpf;
+    document.getElementById('md-nome').value       = d.nome             || '';
+    document.getElementById('md-nasc').value       = d.nascimento       || '';
+    document.getElementById('md-genero').value     = d.genero           || '';
+    document.getElementById('md-email').value      = d.email            || '';
+    document.getElementById('md-tel').value        = d.telefone         || '';
+    document.getElementById('md-cep').value        = d.cep              || '';
+    document.getElementById('md-rua').value        = d.rua              || '';
+    document.getElementById('md-num').value        = d.numero           || '';
+    document.getElementById('md-comp').value       = d.complemento      || '';
+    document.getElementById('md-bairro').value     = d.bairro           || '';
+    document.getElementById('md-cidade').value     = d.cidade           || '';
+    document.getElementById('md-estado').value     = d.estado           || '';
+    document.getElementById('md-emerg-nome').value = d.emergencia_nome  || '';
+    document.getElementById('md-emerg-tel').value  = d.emergencia_telefone || '';
+
+    document.getElementById('dados-loading').style.display = 'none';
+    document.getElementById('dados-form').style.display = 'block';
+  } catch(e) {
+    document.getElementById('dados-loading').style.display = 'none';
+    document.getElementById('dados-erro').textContent = 'Erro de conexão.';
+    document.getElementById('dados-erro').classList.add('show');
+  }
+}
+
+function fecharMeusDados() {
+  document.getElementById('dados-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('dados-overlay').addEventListener('click', function(e) {
+  if (e.target === this) fecharMeusDados();
+});
+
+async function salvarMeusDados() {
+  document.getElementById('dados-sucesso').classList.remove('show');
+  document.getElementById('dados-erro').classList.remove('show');
+
+  const nome       = document.getElementById('md-nome').value.trim();
+  const nasc       = document.getElementById('md-nasc').value;
+  const genero     = document.getElementById('md-genero').value;
+  const email      = document.getElementById('md-email').value.trim();
+  const tel        = document.getElementById('md-tel').value.trim();
+  const cep        = document.getElementById('md-cep').value.trim();
+  const rua        = document.getElementById('md-rua').value.trim();
+  const num        = document.getElementById('md-num').value.trim();
+  const comp       = document.getElementById('md-comp').value.trim();
+  const bairro     = document.getElementById('md-bairro').value.trim();
+  const cidade     = document.getElementById('md-cidade').value.trim();
+  const estado     = document.getElementById('md-estado').value;
+  const emergNome  = document.getElementById('md-emerg-nome').value.trim();
+  const emergTel   = document.getElementById('md-emerg-tel').value.trim();
+  const senha      = document.getElementById('md-senha').value;
+  const senha2     = document.getElementById('md-senha2').value;
+
+  const erroEl = document.getElementById('dados-erro');
+  function erro(msg) { erroEl.textContent = msg; erroEl.classList.add('show'); erroEl.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) return erro('Digite seu nome completo (nome e sobrenome).');
+  if (!nasc)   return erro('Informe sua data de nascimento.');
+  if (!genero) return erro('Selecione o gênero.');
+  if (!email || !email.includes('@')) return erro('E-mail inválido.');
+  if (!tel)    return erro('Informe seu telefone/WhatsApp.');
+  if (!cep || cep.replace(/\D/g,'').length < 8) return erro('CEP inválido.');
+  if (!rua)    return erro('Informe o logradouro.');
+  if (!num)    return erro('Informe o número.');
+  if (!bairro) return erro('Informe o bairro.');
+  if (!cidade) return erro('Informe a cidade.');
+  if (!estado) return erro('Selecione o estado.');
+  if (!emergNome) return erro('Informe o nome do contato de emergência.');
+  if (!emergTel)  return erro('Informe o telefone do contato de emergência.');
+  if (senha && senha.length < 6) return erro('A nova senha deve ter pelo menos 6 caracteres.');
+  if (senha && senha !== senha2) return erro('As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-salvar-dados');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  const s = carregarSessao();
+  const [cpf, hash] = (s.token || '').split(':');
+
+  const params = {
+    p_cpf: cpf, p_senha_hash: hash,
+    p_nome: nome, p_nascimento: nasc, p_genero: genero,
+    p_email: email, p_telefone: tel,
+    p_cep: cep, p_rua: rua, p_numero: num, p_complemento: comp,
+    p_bairro: bairro, p_cidade: cidade, p_estado: estado,
+    p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel,
+    p_nova_senha: senha || null
+  };
+
+  try {
+    const res = await rpc('atleta_atualizar_dados', params);
+    if (!res || !res.ok) {
+      erro(res?.erro || 'Erro ao salvar dados.');
+    } else {
+      document.getElementById('dados-sucesso').classList.add('show');
+      document.getElementById('md-senha').value = '';
+      document.getElementById('md-senha2').value = '';
+      // Atualiza nome na sessão e no header se mudou
+      if (sessao) {
+        sessao.nome = nome;
+        salvarSessao(sessao);
+        document.getElementById('area-nome').textContent = nome.split(' ')[0];
+        document.getElementById('nav-nome').textContent  = nome.split(' ')[0];
+      }
+      document.getElementById('dados-sucesso').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  } catch(e) {
+    erro('Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Salvar alterações'; btn.disabled = false;
+}
 
 function entrarNaArea(dados) {
   const nome = dados.nome || dados.cpf;
