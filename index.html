@@ -2231,7 +2231,7 @@ async function carregarReels() {
     grid.innerHTML = videos.map(url => {
       // Normaliza URL: remove query params e garante /embed/
       const clean = url.split('?')[0].replace(/\/?$/, '/');
-      const embedUrl = clean + 'embed/captioned/';
+      const embedUrl = clean + 'embed/';
       return `<div style="aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#000;position:relative;">
         <iframe
           src="${embedUrl}"
@@ -2241,6 +2241,9 @@ async function carregarReels() {
           allowfullscreen="true"
           loading="lazy">
         </iframe>
+        <!-- Bloqueia clique no overlay do Instagram que redireciona -->
+        <div style="position:absolute;bottom:0;left:0;right:0;height:60px;z-index:10;"></div>
+        <div style="position:absolute;top:0;left:0;right:0;height:70px;z-index:10;"></div>
       </div>`;
     }).join('');
   } catch(e) {
