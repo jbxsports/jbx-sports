@@ -1261,7 +1261,9 @@ function statusBadge(s) {
 function formatarData(str) {
   if (!str) return '—';
   const d = new Date(str);
-  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  const data = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  const hora = d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  return `${data} às ${hora}`;
 }
 
 function formatarValor(v) {
@@ -1280,8 +1282,22 @@ function mascararNomeAtleta(nome) {
 
 function renderInscricao(it, cpfTitular) {
   const desconto = it.desconto_pct ? ` <span style="color:rgba(42,37,32,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
+  const dataFormatada = formatarData(it.criado_em);
+  const valorFormatado = formatarValor(it.valor);
   return `
-  <div class="insc-card">
+  <div class="insc-card"
+    data-insc-id="${it.id}"
+    data-evento="${(it.evento||'').replace(/"/g,'&quot;')}"
+    data-status="${it.status||''}"
+    data-atleta="${(it.cpf === cpfTitular ? (it.nome||'—') : mascararNomeAtleta(it.nome)).replace(/"/g,'&quot;')}"
+    data-kit="${(it.kit||'—').replace(/"/g,'&quot;')}"
+    data-modalidade="${(it.modalidade||'—').replace(/"/g,'&quot;')}"
+    data-camisa="${(it.tamanho_camisa||'—').replace(/"/g,'&quot;')}"
+    data-lote="${(it.lote_nome||'—').replace(/"/g,'&quot;')}"
+    data-pagamento="${(it.forma_pagamento||'—').replace(/"/g,'&quot;')}"
+    data-valor="${valorFormatado}"
+    data-data="${dataFormatada}"
+  >
     <div class="insc-card-top">
       <div class="insc-evento">${it.evento}</div>
       <div style="margin-top:8px;">${statusBadge(it.status)}</div>
@@ -1304,6 +1320,19 @@ function renderInscricao(it, cpfTitular) {
       </div>
       <div class="qr-id">${it.id}</div>
     </div>` : ''}
+    <div style="padding:14px 22px 18px;border-top:1px solid rgba(42,37,32,0.06);">
+      <button onclick="imprimirInscricao('${it.id}')" style="
+        width:100%;background:rgba(42,37,32,0.05);color:rgba(42,37,32,0.65);
+        border:1px solid rgba(42,37,32,0.12);border-radius:8px;
+        padding:10px;font-size:13px;font-weight:600;cursor:pointer;
+        font-family:'Ubuntu',sans-serif;transition:all 0.2s;
+        display:flex;align-items:center;justify-content:center;gap:8px;"
+        onmouseover="this.style.background='rgba(42,37,32,0.1)'"
+        onmouseout="this.style.background='rgba(42,37,32,0.05)'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir / Salvar PDF
+      </button>
+    </div>
   </div>`;
 }
 
@@ -1314,6 +1343,102 @@ function gerarQR(id) {
     width: 160, margin: 0,
     color: { dark: '#000000', light: '#ffffff' }
   });
+}
+
+function imprimirInscricao(id) {
+  // Busca os dados do card pelo ID
+  const card = document.querySelector(`[data-insc-id="${id}"]`);
+  if (!card) return;
+
+  const evento    = card.dataset.evento    || '—';
+  const status    = card.dataset.status    || '—';
+  const atleta    = card.dataset.atleta    || '—';
+  const kit       = card.dataset.kit       || '—';
+  const modalidade= card.dataset.modalidade|| '—';
+  const camisa    = card.dataset.camisa    || '—';
+  const lote      = card.dataset.lote      || '—';
+  const pagamento = card.dataset.pagamento || '—';
+  const valor     = card.dataset.valor     || '—';
+  const data      = card.dataset.data      || '—';
+
+  // QR Code em base64 (se existir)
+  const canvas = document.getElementById('qr-' + id);
+  const qrBase64 = canvas ? canvas.toDataURL('image/png') : null;
+
+  const statusCor = { confirmado: '#16a34a', pendente: '#d97706', cancelado: '#dc2626' };
+  const statusLabel = { confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelado: '✕ Cancelado' };
+
+  const janela = window.open('', '_blank', 'width=700,height=900');
+  janela.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Comprovante — ${evento}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #fff; color: #1a1a1a; padding: 40px; }
+  .header { background: #ff751f; padding: 24px 32px; border-radius: 12px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
+  .header-titulo { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-sub { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 3px; }
+  .header-logo { color: #fff; font-size: 28px; font-weight: 900; letter-spacing: -1px; opacity: 0.9; }
+  .evento-nome { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid; margin-bottom: 20px; }
+  .tabela { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .tabela tr { border-bottom: 1px solid #f0ede9; }
+  .tabela td { padding: 11px 4px; font-size: 14px; }
+  .tabela td:first-child { color: #888; width: 45%; }
+  .tabela td:last-child { font-weight: 600; text-align: right; }
+  .valor-destaque { color: #ff751f; font-size: 16px; font-weight: 700; }
+  .qr-section { text-align: center; padding: 20px; background: #faf9f7; border-radius: 10px; border: 1px solid #e8e4e0; margin-bottom: 24px; }
+  .qr-section img { width: 150px; height: 150px; margin-bottom: 10px; }
+  .qr-section p { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .qr-section .qr-id { font-family: monospace; font-size: 11px; color: #aaa; letter-spacing: 1px; }
+  .rodape { font-size: 11px; color: #bbb; text-align: center; border-top: 1px solid #f0ede9; padding-top: 16px; }
+  @media print {
+    body { padding: 24px; }
+    @page { margin: 16px; size: A4; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="header-titulo">Comprovante de Inscrição</div>
+    <div class="header-sub">JBX Sports — Eventos Esportivos</div>
+  </div>
+  <div class="header-logo">JBX</div>
+</div>
+
+<div class="evento-nome">${evento}</div>
+<span class="badge" style="color:${statusCor[status]||'#888'};border-color:${statusCor[status]||'#ccc'};">
+  ${statusLabel[status]||status}
+</span>
+
+<table class="tabela">
+  <tr><td>Atleta</td><td>${atleta}</td></tr>
+  <tr><td>Kit</td><td>${kit}</td></tr>
+  <tr><td>Modalidade</td><td>${modalidade}</td></tr>
+  <tr><td>Camiseta</td><td>${camisa}</td></tr>
+  <tr><td>Lote</td><td>${lote}</td></tr>
+  <tr><td>Forma de pagamento</td><td>${pagamento}</td></tr>
+  <tr><td>Data da inscrição</td><td>${data}</td></tr>
+  <tr><td>Valor pago</td><td class="valor-destaque">${valor}</td></tr>
+</table>
+
+${qrBase64 ? `
+<div class="qr-section">
+  <p><strong>🎫 QR Code — Retirada do kit</strong></p>
+  <img src="${qrBase64}" alt="QR Code">
+  <div class="qr-id">${id}</div>
+</div>` : ''}
+
+<div class="rodape">
+  Documento gerado em ${new Date().toLocaleString('pt-BR')} · jbx-sports.vercel.app
+</div>
+
+<script>window.onload = function(){ window.print(); }<\/script>
+</body></html>`);
+  janela.document.close();
 }
 
 // ── INICIALIZAÇÃO ─────────────────────────────────
