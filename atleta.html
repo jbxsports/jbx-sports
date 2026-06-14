@@ -283,9 +283,7 @@ nav {
   padding: 12px 14px; color: rgba(42,37,32,0.4); font-size: 15px;
   font-family: 'Ubuntu', sans-serif; cursor: not-allowed;
 }
-.dados-loading {
-  text-align: center; padding: 40px; color: rgba(42,37,32,0.4);
-}
+.dados-loading { text-align: center; padding: 40px; color: rgba(42,37,32,0.4); }
 .dados-loading .spinner {
   width: 32px; height: 32px; border-radius: 50%;
   border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
@@ -563,127 +561,57 @@ nav {
     <div class="dados-modal-body">
       <div class="dados-sucesso" id="dados-sucesso">✅ Dados atualizados com sucesso!</div>
       <div class="dados-erro" id="dados-erro"></div>
-
-      <div class="dados-loading" id="dados-loading">
-        <div class="spinner"></div>
-        <div>Carregando seus dados...</div>
-      </div>
-
+      <div class="dados-loading" id="dados-loading"><div class="spinner"></div><div>Carregando seus dados...</div></div>
       <div id="dados-form" style="display:none;">
-
         <div class="form-section-label">Dados pessoais</div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Nome completo *</label>
-            <input type="text" id="md-nome" placeholder="Seu nome completo">
-          </div>
-          <div class="form-group">
-            <label>CPF</label>
-            <div class="cpf-readonly" id="md-cpf-display">—</div>
-          </div>
+          <div class="form-group"><label>Nome completo *</label><input type="text" id="md-nome" placeholder="Seu nome completo"></div>
+          <div class="form-group"><label>CPF</label><div class="cpf-readonly" id="md-cpf-display">—</div></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Data de nascimento *</label>
-            <input type="date" id="md-nasc">
-          </div>
-          <div class="form-group">
-            <label>Gênero *</label>
-            <select id="md-genero">
-              <option value="">Selecione</option>
-              <option>Masculino</option>
-              <option>Feminino</option>
-              <option>Prefiro não informar</option>
-            </select>
-          </div>
+          <div class="form-group"><label>Data de nascimento *</label><input type="date" id="md-nasc"></div>
+          <div class="form-group"><label>Gênero *</label><select id="md-genero"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option><option>Prefiro não informar</option></select></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>E-mail *</label>
-            <input type="email" id="md-email" placeholder="seu@email.com">
-          </div>
-          <div class="form-group">
-            <label>Telefone / WhatsApp *</label>
-            <input type="tel" id="md-tel" placeholder="(16) 99999-0000">
-          </div>
+          <div class="form-group"><label>E-mail *</label><input type="email" id="md-email" placeholder="seu@email.com"></div>
+          <div class="form-group"><label>Telefone / WhatsApp *</label><input type="tel" id="md-tel" placeholder="(16) 99999-0000"></div>
         </div>
-
         <div class="form-section-label">Endereço</div>
         <div class="form-row">
-          <div class="form-group">
-            <label>CEP *</label>
-            <input type="text" id="md-cep" placeholder="00000-000" maxlength="9" oninput="mascararCepMd(this)">
-          </div>
-          <div class="form-group">
-            <label>Rua / Logradouro *</label>
-            <input type="text" id="md-rua" placeholder="Rua, Avenida...">
-          </div>
+          <div class="form-group"><label>CEP *</label><input type="text" id="md-cep" placeholder="00000-000" maxlength="9" oninput="mascararCepMd(this)"></div>
+          <div class="form-group"><label>Rua / Logradouro *</label><input type="text" id="md-rua" placeholder="Rua, Avenida..."></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Número *</label>
-            <input type="text" id="md-num" placeholder="123">
-          </div>
-          <div class="form-group">
-            <label>Complemento</label>
-            <input type="text" id="md-comp" placeholder="Apto, Bloco...">
-          </div>
+          <div class="form-group"><label>Número *</label><input type="text" id="md-num" placeholder="123"></div>
+          <div class="form-group"><label>Complemento</label><input type="text" id="md-comp" placeholder="Apto, Bloco..."></div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Bairro *</label>
-            <input type="text" id="md-bairro" placeholder="Seu bairro">
-          </div>
-          <div class="form-group">
-            <label>Cidade *</label>
-            <input type="text" id="md-cidade" placeholder="Sua cidade">
-          </div>
+          <div class="form-group"><label>Bairro *</label><input type="text" id="md-bairro" placeholder="Seu bairro"></div>
+          <div class="form-group"><label>Cidade *</label><input type="text" id="md-cidade" placeholder="Sua cidade"></div>
         </div>
-        <div class="form-group" style="max-width:50%;padding-right:6px;">
-          <label>Estado *</label>
-          <select id="md-estado">
-            <option value="">UF</option>
-            <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
-            <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
-            <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
-            <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
-            <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
-            <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
-            <option>SP</option><option>SE</option><option>TO</option>
-          </select>
-        </div>
-
+        <div class="form-group" style="max-width:50%;padding-right:6px;"><label>Estado *</label><select id="md-estado"><option value="">UF</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option></select></div>
         <div class="form-section-label">Contato de emergência</div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Nome do responsável *</label>
-            <input type="text" id="md-emerg-nome" placeholder="Nome completo">
-          </div>
-          <div class="form-group">
-            <label>Telefone do responsável *</label>
-            <input type="tel" id="md-emerg-tel" placeholder="(16) 99999-0000">
-          </div>
+          <div class="form-group"><label>Nome do responsável *</label><input type="text" id="md-emerg-nome" placeholder="Nome completo"></div>
+          <div class="form-group"><label>Telefone do responsável *</label><input type="tel" id="md-emerg-tel" placeholder="(16) 99999-0000"></div>
         </div>
-
-        <div class="form-section-label">Alterar senha <span style="font-weight:400;font-size:11px;color:rgba(42,37,32,0.4);letter-spacing:0;">(opcional — deixe em branco para manter a atual)</span></div>
+        <div class="form-section-label">Alterar senha <span style="font-weight:400;font-size:11px;color:rgba(42,37,32,0.4);letter-spacing:0;">(opcional)</span></div>
         <div class="form-row">
-          <div class="form-group">
-            <label>Nova senha</label>
-            <input type="password" id="md-senha" placeholder="Mínimo 6 caracteres">
-          </div>
-          <div class="form-group">
-            <label>Confirmar nova senha</label>
-            <input type="password" id="md-senha2" placeholder="Repita a senha">
-          </div>
+          <div class="form-group"><label>Nova senha</label><input type="password" id="md-senha" placeholder="Mínimo 6 caracteres"></div>
+          <div class="form-group"><label>Confirmar nova senha</label><input type="password" id="md-senha2" placeholder="Repita a senha"></div>
         </div>
-
-        <button class="btn-salvar-dados" id="btn-salvar-dados" onclick="salvarMeusDados()">
-          Salvar alterações
-        </button>
+        <button class="btn-salvar-dados" id="btn-salvar-dados" onclick="salvarMeusDados()">Salvar alterações</button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- IFRAME oculto para impressão (evita bloqueio do Edge em about:blank) -->
+<iframe id="print-iframe" style="position:fixed;top:-9999px;left:-9999px;width:800px;height:1000px;border:none;" title="Impressão"></iframe>
+
+<script>
+const LOGO_PDF = 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzUwMCA4MTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJtMTE3MC42NSA2NjkuNzRjLTI2Ljc1IDAtNDguMzctMjEuNzQtNDguMzctNDguNjUgMC0yNi45MSAyMS42Mi00OC42NSA0OC4zNy00OC42NSAyNi43NSAwIDQ4LjM3IDIxLjc0IDQ4LjM3IDQ4LjY1IDAgMjYuOTEtMjEuNjIgNDguNjUtNDguMzcgNDguNjV6bTEzMjIuMjgtMjM2LjQ3cTAgNTMuODItMTUuMjEgOTcuODUtMTUuNzYgNDUuMTItNDQuNTcgNzYuNjUtMzAuNDMgMzEuNTMtNzEuMTkgNDguMzgtNDAuMjIgMTcuNC05MS44NSAxNy40LTUwLjU1IDAtOTEuMzEtMTcuNC00MC43Ni0xNi44NS03MC42NS00OC4zOC0yOC44LTMxLjUzLTQ1LjY1LTc2LjY1LTE2LjMtNDQuMDMtMTYuMy05Ny44NSAwLTUzLjI4IDE2Ljg0LTk3Ljg1IDE3LjM5LTQzLjQ5IDQ2Ljc0LTc1LjU3IDI5LjM1LTMwLjQ0IDcwLjY1LTQ3LjI5IDQxLjg1LTE3Ljk0IDg5LjY4LTE3Ljk0IDQ4LjM3IDAgODkuNjcgMTcuOTQgNDEuODUgMTYuODUgNzAuNjUgNDcuMjkgMjkuOSAzMi4wOCA0Ni4yIDc1LjU3IDE2LjMgNDQuNTcgMTYuMyA5Ny44NXptLTEzMS41MiAwcTAtNTkuOC0yMy4zNy05My41MS0yMy45MS0zNC4yNC02Ny45My0zNC4yNC00NC4wMiAwLTY3Ljk0IDM0LjI0LTI1IDMzLjcxLTI1IDkzLjUxIDAgNTkuMjUgMjUgOTQuNTkgMjMuOTIgMzQuNzkgNjcuOTQgMzQuNzkgNDQuMDIgMCA2Ny45My0zNC43OSAyMy4zNy0zNS4zNCAyMy4zNy05NC41OXptLTMzOS4xMy0zLjgxcTAgNTIuMTktMTMuMDQgOTQuNTktMTIuNSA0Mi40MS0zNi45NiA3Mi44NS0yNS41NCAzMC40NC02MS40MSA0Ny44NC0zNi45NiAxNi44NS04NC43OCAxNi44NS0yNi4wOSAwLTQ5LjQ2LTUuNDQtMjIuMjgtNC4zNC00NC4wMi0xMy41OXYxNjcuNDRoLTEyNi42M3YtNTg4Ljc1cTE3LjM5LTQuODkgMzkuMTMtMTAuODcgMjIuMjgtMy44IDQ2LjE5LTcuMDYgMjQuNDYtMy44MSA1MC01Ljk4IDI1LTIuMTggNDcuODMtMi4xOCA1NC44OSAwIDk4LjM3IDE2Ljg1IDQyLjkzIDE2Ljg2IDczLjM3IDQ2Ljc2IDI5Ljg5IDMwLjQ0IDQ1LjExIDczLjkzIDE2LjMgNDIuOTQgMTYuMyA5Ni43NnptLTEyOS44OSAzLjI2cTAtNTkuMjUtMjUuNTQtOTQuMDQtMjYuNjMtMzUuODgtNzguMjYtMzUuODgtMTcuMzkgMC0zMi4wNyAxLjYzLTE0LjY3IDEuNjMtMjMuOTEgMi43MnYyMjkuNDFxMTIuNSA3LjA2IDMxLjUyIDEzLjA0IDE5LjAyIDQuMzUgMzguNTkgNC4zNSA4OS42NyAwIDg5LjY3LTEyMS4yM3ptODk0LjAyLTEwOS4yNnEtMTYuODUtNC4zNS00MC4yMS05Ljc5LTIyLjgzLTQuMzUtNDkuNDYtNC4zNS0xMS40MSAwLTI4LjI2IDIuNzItMTYuMzEgMS4wOS0yNSA0LjM1djM0MC44NWgtMTI2LjYzdi00MjEuODVxMzQuMjQtMTIuNSA4MC45OC0yMi44MyA0NS42NS0xMC44OCAxMDIuMTctMTAuODggMTAuODcgMCAyNS41NCAxLjY0IDE0LjEzIDEuMDggMjguODEgMy4yNiAxMy41OCAyLjE3IDI4LjI2IDUuNDMgMTQuMTMgMi43MiAyNSA2LjUzem01MjYuMDkgMjQwLjgycTM0LjIzIDAgNDguOTEtNS45OCAxNC42Ny03LjYxIDE0LjY3LTI2LjY0IDAtMTUuMjItMTguNDgtMjYuNjMtMTguNDctMTEuNDItNTYuNTItMjUuNTUtMjkuMzUtMTAuODgtNTMuMjYtMjIuODQtMjQuNDYtMTEuNDEtNDAuNzYtMjcuNzItMTcuMzktMTYuODUtMjYuMDktMzkuMTQtOS4yNC0yMy4zOC05LjI0LTU0LjkxIDAtNjEuNDMgNDUuNjYtOTguMzkgNDYuNzQtMzYuNDMgMTI3LjE3LTM2LjQzIDQwLjIyIDAgNzcuMTcgNy42MSAzNi40MiA3LjA3IDU5LjI0IDE1Ljc3bC0yMi44MiA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEyLjUtMjUtNi41My01Ny42MS02LjUzLTU5LjI0IDAtNTkuMjQgMzIuNjIgMCA3LjA3IDMuMjYgMTMuMDUgMi4xOCA1Ljk4IDkuNzggMTEuOTYgNy42MSA0Ljg5IDIwLjY2IDEwLjg3IDEzLjA0IDYuNTIgMzMuMTUgMTMuNTkgNDEuMyAxNS4yMiA2Ny45MyAzMC40NCAyNi42MyAxNS4yMiA0Mi4zOSAzMS41MyAxNS43NiAxNy45NCAyMS43NCAzOS4xNCA2LjUzIDIxLjIgNi41MyA0OC4zOSAwIDY1LjIzLTQ5LjQ2IDk4Ljk0LTQ4LjkxIDMzLjctMTM4LjU5IDMzLjctNTkuMjQgMC05Ny44Mi05Ljc5LTM5LjEzLTEwLjMyLTUzLjgxLTE3LjM5bDIwLjY1LTEwMS42NnEzMi4wNyAxMi41IDY1LjIyIDIwLjEyIDMzLjcgNy4wNiA2Ni4zMSA3LjA2em0tNDgwLjk4LTQ3My40OWwxMzAuNDMtMjAuMTJ2MTM1LjM2aDE1NS45OHYxMDcuNjRoLTE1NS45OHYxNjEuNDZxMCA0MC43NyAxNC4xMyA2NS4yMyAxNC4xMyAyMy45MiA1OC4xNSAyMy45MiAyMC42NiAwIDQyLjQtMy4yNiAyMi44Mi0zLjggNDEuMy0xMC44N2wxOC40OCAxMDEuNjZxLTIzLjkyIDkuNzgtNTIuNzIgMTUuNzYtMjguOCA3LjA3LTcwLjY1IDcuMDctNTMuMjYgMC04OC41OS0xMy41OS0zNC4yNC0xNC42OC01NC44OS00MC43Ny0yMS4yLTI1LjU1LTI5Ljg5LTYxLjk4LTguMTUtMzcuNTEtOC4xNS04MS41NHptLTE0MzYuOTYgNDc0LjA0cTM0Ljc4IDAgNDkuNDYtNS45OCAxNC4xMy03LjA3IDE0LjEzLTI2LjY0IDAtMTQuNjgtMTguNDgtMjYuNjQtMTguNDgtMTAuODctNTUuOTgtMjUuNTUtMjkuMzUtMTAuODctNTMuMjYtMjIuMjgtMjQuNDYtMTEuNDItNDAuNzYtMjguMjctMTcuMzktMTYuMzEtMjYuNjMtMzkuMTQtOC43LTIyLjg0LTguNy01My44MiAwLTYzLjA2IDQ1LjY1LTk4Ljk0IDQ2Ljc0LTM2LjQzIDEyNy4xOC0zNi40MyAzOS42NyAwIDc3LjE3IDcuNjIgMzYuNDIgNy4wNiA1OC43IDE1Ljc2bC0yMi4yOCA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEzLjU5LTI2LjA5LTUuOTgtNTcuNjEtNS45OC01OS4yNCAwLTU5LjI0IDMzLjE2IDAgNy4wNyAyLjcyIDEzLjA1IDIuNzEgNS45OCAxMC4zMiAxMS45NiA4LjE1IDQuODkgMjAuNjUgMTAuODcgMTMuMDUgNy4wNyAzMy4xNiAxMy41OSA0MS4zIDE1LjIyIDY3LjkzIDMwLjQ0IDI2LjYzIDE0LjY4IDQyLjM5IDMxLjUzIDE1LjIyIDE3Ljk0IDIxLjIgMzguNiA3LjA2IDIxLjIgNy4wNiA0OS40NyAwIDY0LjE1LTQ5LjQ1IDk4LjQtNDkuNDYgMzMuMTYtMTM5LjEzIDMzLjE2LTU4LjE2IDAtOTcuODMtOS43OS0zOS4xMy05Ljc4LTUzLjI2LTE2LjMxbDIwLjExLTEwMi43NHEzMi4wNiAxMy4wNCA2Ni4zIDIwLjY2IDMzLjE2IDYuNTIgNjUuMjIgNi41MnptLTEzMDguMTUgMjQ0LjYzcS0xMS45NiAwLTM1Ljg3LTIuNzItMjQuNDYtMi43Mi00NS4xMS05Ljc4bDE3LjkzLTEwNC45MnExMi41IDQuMzUgMjMuOTIgNS45OCAxMC4zMiAxLjA4IDI3LjE3IDEuMDggMzAuNDQgMCA0Mi45NC0xNy45NCAxMS40MS0xNy45MyAxMS40MS01My4yN3YtNDM4LjE2aDEyOS44OXY0NDEuNDJxMCA5MC43OS00NC41NiAxMzQuODItNDQuMDMgNDMuNDktMTI3LjcyIDQzLjQ5em02MDguNjktMzc2LjE5cTAgNTMuMjgtMTUuNzYgOTUuNjgtMTUuMjEgNDMuNDktNDQuNTYgNzMuMzktMjkuMzUgMzAuNDQtNzEuNzQgNDcuMjktNDIuMzkgMTUuNzctOTcuODMgMTUuNzctMjIuMjggMC00Ny4yOC0xLjYzLTI1LTIuMTgtNDguOTEtNS40NC0yMy45Mi0zLjgtNDYuMi04LjE1LTIxLjE5LTUuNDQtMzguMDQtOS43OXYtNjE4LjFsMTI1LTE5LjU3djIyMC4xN3EyMS4xOS05LjI0IDQ0LjAyLTE0LjEzIDIyLjI4LTUuNDQgNDcuODMtNS40NCA0Ny4yOCAwIDg0LjIzIDE2LjMxIDM1LjMzIDE2LjMxIDU5Ljc5IDQ3LjI5IDI0LjQ1IDI5LjkgMzYuOTUgNzEuNzYgMTIuNSA0Mi40IDEyLjUgOTQuNTl6bS0xMjcuMTctMi43MnEwLTEyMS4yMi04OS4xMy0xMjEuMjItMTkuNTcgMC0zOC41OSA0Ljg5LTE4LjQ4IDUuNDMtMzAuNDMgMTIuNXYyMjguMzJxOC42OSAxLjA5IDIzLjkxIDIuMTggMTQuMTMgMi4xNyAzMC40NCAyLjE3IDUxLjYzIDAgNzcuMTctMzUuODggMjYuNjMtMzUuMzMgMjYuNjMtOTIuOTZ6bTMwMy4yNi04OS4xNWw4OS42Ny0xMzYuOTloMTMwLjk4bC0xNTMuOCAyMTYuMzZxNTEuNjMgNjQuMTUgOTIuOTMgMTI1LjAzIDQxLjg1IDYwLjM0IDY3LjM5IDEwOC43M2gtMTM2Ljk1cS02LjUyLTEzLjU5LTE2Ljg1LTMyLjYyLTEwLjMzLTE5LjAzLTIyLjgzLTM5LjY4LTEzLjU4LTIxLjIxLTI3LjcxLTQxLjg2LTE0LjEzLTIxLjIxLTI3LjE4LTM4LjA2LTEzLjA0IDE2LjMxLTI2LjYzIDM1LjM0LTEzLjA0IDE5LjU3LTI1IDQwLjIzLTExLjQxIDE5LjU3LTIzLjM3IDM5LjE0LTExLjQxIDIwLjY1LTIwLjExIDM3LjUxaC0xMjkuMzRxOS43OC0yMS43NSAyNy43MS01MC41NiAxNy45NC0yOS4zNiAzOS4xMy02MC4zNCAyMC42Ni0zMC45OSA0My40OC02Mi41MiAyMi44My0zMC45OSA0NS42NS01OC4xNy0zOC41OC01NC45LTc3LjE3LTEwOS4yNy0zNy41LTU0LjktNzUuNTQtMTA5LjI2aDEzNy41eiIvPjwvc3ZnPg==';
+</script>
 
 <script>
 const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
@@ -1046,6 +974,77 @@ async function gerarMd5(str) {
 }
 
 
+
+// ── IMPRIMIR ──────────────────────────────────────
+function imprimirInscricao(id) {
+  const card = document.querySelector(`[data-insc-id="${id}"]`);
+  if (!card) return;
+  const evento     = card.dataset.evento     || '—';
+  const status     = card.dataset.status     || '—';
+  const atleta     = card.dataset.atleta     || '—';
+  const kit        = card.dataset.kit        || '—';
+  const modalidade = card.dataset.modalidade || '—';
+  const camisa     = card.dataset.camisa     || '—';
+  const lote       = card.dataset.lote       || '—';
+  const pagamento  = card.dataset.pagamento  || '—';
+  const valor      = card.dataset.valor      || '—';
+  const data       = card.dataset.data       || '—';
+  const canvas     = document.getElementById('qr-' + id);
+  const qrBase64   = canvas ? canvas.toDataURL('image/png') : null;
+  const statusCor   = { confirmado: '#16a34a', pendente: '#d97706', cancelado: '#dc2626' };
+  const statusLabel = { confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelado: '✕ Cancelado' };
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Comprovante — ${evento}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Arial,sans-serif; background:#fff; color:#1a1a1a; padding:40px; }
+  .header { background:#ff751f; padding:24px 32px; border-radius:12px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; }
+  .header div .titulo { color:#fff; font-size:22px; font-weight:700; }
+  .header div .sub { color:rgba(255,255,255,0.8); font-size:13px; margin-top:3px; }
+  .evento-nome { font-size:20px; font-weight:700; margin-bottom:6px; }
+  .badge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid; margin-bottom:20px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:24px; }
+  tr { border-bottom:1px solid #f0ede9; }
+  td { padding:11px 4px; font-size:14px; }
+  td:first-child { color:#888; width:45%; }
+  td:last-child { font-weight:600; text-align:right; }
+  .destaque { color:#ff751f; font-size:16px; font-weight:700; }
+  .qr-box { text-align:center; padding:20px; background:#faf9f7; border-radius:10px; border:1px solid #e8e4e0; margin-bottom:24px; }
+  .qr-id { font-family:monospace; font-size:11px; color:#aaa; margin-top:8px; }
+  .rodape { font-size:11px; color:#bbb; text-align:center; border-top:1px solid #f0ede9; padding-top:16px; }
+  @media print { body { padding:24px; } @page { margin:16px; size:A4; } }
+</style></head>
+<body>
+<div class="header">
+  <div><div class="titulo">Comprovante de Inscrição</div><div class="sub">JBX Sports — Eventos Esportivos</div></div>
+  <img src="${LOGO_PDF}" style="height:36px;" alt="JBX Sports">
+</div>
+<div class="evento-nome">${evento}</div>
+<span class="badge" style="color:${statusCor[status]||'#888'};border-color:${statusCor[status]||'#ccc'};">${statusLabel[status]||status}</span>
+<table>
+  <tr><td>Atleta</td><td>${atleta}</td></tr>
+  <tr><td>Kit</td><td>${kit}</td></tr>
+  <tr><td>Modalidade</td><td>${modalidade}</td></tr>
+  <tr><td>Camiseta</td><td>${camisa}</td></tr>
+  <tr><td>Lote</td><td>${lote}</td></tr>
+  <tr><td>Forma de pagamento</td><td>${pagamento}</td></tr>
+  <tr><td>Data da inscrição</td><td>${data}</td></tr>
+  <tr><td>Valor pago</td><td class="destaque">${valor}</td></tr>
+</table>
+${qrBase64 ? `<div class="qr-box"><p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;">🎫 QR Code — Retirada do kit</p><img src="${qrBase64}" style="width:150px;height:150px;"><div class="qr-id">${id}</div></div>` : ''}
+<div class="rodape">Documento gerado em ${new Date().toLocaleString('pt-BR')} · jbx-sports.vercel.app</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+
+  const iframe = document.getElementById('print-iframe');
+  iframe.onload = function() {
+    setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 400);
+  };
+  iframe.srcdoc = html;
+}
+
 // ── MEUS DADOS ────────────────────────────────────
 function mascararCepMd(el) {
   let v = el.value.replace(/\D/g,'').slice(0,8);
@@ -1053,39 +1052,29 @@ function mascararCepMd(el) {
   el.value = v;
   if (v.replace(/\D/g,'').length === 8) buscarCepMd(v.replace(/\D/g,''));
 }
-
 async function buscarCepMd(cep) {
   try {
     const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
     const d = await r.json();
     if (d.erro) return;
     const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-    set('md-rua',    d.logradouro);
-    set('md-bairro', d.bairro);
-    set('md-cidade', d.localidade);
-    set('md-estado', d.uf);
-    const numEl = document.getElementById('md-num');
-    if (numEl) numEl.focus();
+    set('md-rua', d.logradouro); set('md-bairro', d.bairro);
+    set('md-cidade', d.localidade); set('md-estado', d.uf);
+    document.getElementById('md-num').focus();
   } catch(e) {}
 }
-
 async function abrirMeusDados() {
-  const overlay = document.getElementById('dados-overlay');
-  overlay.classList.add('active');
+  document.getElementById('dados-overlay').classList.add('active');
   document.body.style.overflow = 'hidden';
-
-  // Limpa estados anteriores
   document.getElementById('dados-sucesso').classList.remove('show');
   document.getElementById('dados-erro').classList.remove('show');
   document.getElementById('dados-loading').style.display = 'block';
   document.getElementById('dados-form').style.display = 'none';
   document.getElementById('md-senha').value = '';
   document.getElementById('md-senha2').value = '';
-
   const s = carregarSessao();
   if (!s || !s.token) { fecharMeusDados(); return; }
   const [cpf, hash] = (s.token || '').split(':');
-
   try {
     const res = await rpc('atleta_buscar_dados', { p_cpf: cpf, p_senha_hash: hash });
     if (!res || !res.ok) {
@@ -1110,7 +1099,6 @@ async function abrirMeusDados() {
     document.getElementById('md-estado').value     = d.estado           || '';
     document.getElementById('md-emerg-nome').value = d.emergencia_nome  || '';
     document.getElementById('md-emerg-tel').value  = d.emergencia_telefone || '';
-
     document.getElementById('dados-loading').style.display = 'none';
     document.getElementById('dados-form').style.display = 'block';
   } catch(e) {
@@ -1119,45 +1107,40 @@ async function abrirMeusDados() {
     document.getElementById('dados-erro').classList.add('show');
   }
 }
-
 function fecharMeusDados() {
   document.getElementById('dados-overlay').classList.remove('active');
   document.body.style.overflow = '';
 }
-
-document.getElementById('dados-overlay').addEventListener('click', function(e) {
-  if (e.target === this) fecharMeusDados();
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('dados-overlay');
+  if (overlay) overlay.addEventListener('click', function(e) { if (e.target === this) fecharMeusDados(); });
 });
-
 async function salvarMeusDados() {
   document.getElementById('dados-sucesso').classList.remove('show');
   document.getElementById('dados-erro').classList.remove('show');
-
-  const nome       = document.getElementById('md-nome').value.trim();
-  const nasc       = document.getElementById('md-nasc').value;
-  const genero     = document.getElementById('md-genero').value;
-  const email      = document.getElementById('md-email').value.trim();
-  const tel        = document.getElementById('md-tel').value.trim();
-  const cep        = document.getElementById('md-cep').value.trim();
-  const rua        = document.getElementById('md-rua').value.trim();
-  const num        = document.getElementById('md-num').value.trim();
-  const comp       = document.getElementById('md-comp').value.trim();
-  const bairro     = document.getElementById('md-bairro').value.trim();
-  const cidade     = document.getElementById('md-cidade').value.trim();
-  const estado     = document.getElementById('md-estado').value;
-  const emergNome  = document.getElementById('md-emerg-nome').value.trim();
-  const emergTel   = document.getElementById('md-emerg-tel').value.trim();
-  const senha      = document.getElementById('md-senha').value;
-  const senha2     = document.getElementById('md-senha2').value;
-
-  const erroEl = document.getElementById('dados-erro');
+  const nome      = document.getElementById('md-nome').value.trim();
+  const nasc      = document.getElementById('md-nasc').value;
+  const genero    = document.getElementById('md-genero').value;
+  const email     = document.getElementById('md-email').value.trim();
+  const tel       = document.getElementById('md-tel').value.trim();
+  const cep       = document.getElementById('md-cep').value.trim();
+  const rua       = document.getElementById('md-rua').value.trim();
+  const num       = document.getElementById('md-num').value.trim();
+  const comp      = document.getElementById('md-comp').value.trim();
+  const bairro    = document.getElementById('md-bairro').value.trim();
+  const cidade    = document.getElementById('md-cidade').value.trim();
+  const estado    = document.getElementById('md-estado').value;
+  const emergNome = document.getElementById('md-emerg-nome').value.trim();
+  const emergTel  = document.getElementById('md-emerg-tel').value.trim();
+  const senha     = document.getElementById('md-senha').value;
+  const senha2    = document.getElementById('md-senha2').value;
+  const erroEl    = document.getElementById('dados-erro');
   function erro(msg) { erroEl.textContent = msg; erroEl.classList.add('show'); erroEl.scrollIntoView({behavior:'smooth',block:'nearest'}); }
-
-  if (!nome || nome.split(' ').filter(Boolean).length < 2) return erro('Digite seu nome completo (nome e sobrenome).');
-  if (!nasc)   return erro('Informe sua data de nascimento.');
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) return erro('Digite seu nome completo.');
+  if (!nasc)   return erro('Informe a data de nascimento.');
   if (!genero) return erro('Selecione o gênero.');
   if (!email || !email.includes('@')) return erro('E-mail inválido.');
-  if (!tel)    return erro('Informe seu telefone/WhatsApp.');
+  if (!tel)    return erro('Informe o telefone.');
   if (!cep || cep.replace(/\D/g,'').length < 8) return erro('CEP inválido.');
   if (!rua)    return erro('Informe o logradouro.');
   if (!num)    return erro('Informe o número.');
@@ -1168,43 +1151,30 @@ async function salvarMeusDados() {
   if (!emergTel)  return erro('Informe o telefone do contato de emergência.');
   if (senha && senha.length < 6) return erro('A nova senha deve ter pelo menos 6 caracteres.');
   if (senha && senha !== senha2) return erro('As senhas não coincidem.');
-
   const btn = document.getElementById('btn-salvar-dados');
   btn.textContent = 'Salvando...'; btn.disabled = true;
-
   const s = carregarSessao();
   const [cpf, hash] = (s.token || '').split(':');
-
-  const params = {
-    p_cpf: cpf, p_senha_hash: hash,
-    p_nome: nome, p_nascimento: nasc, p_genero: genero,
-    p_email: email, p_telefone: tel,
-    p_cep: cep, p_rua: rua, p_numero: num, p_complemento: comp,
-    p_bairro: bairro, p_cidade: cidade, p_estado: estado,
-    p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel,
-    p_nova_senha: senha || null
-  };
-
   try {
-    const res = await rpc('atleta_atualizar_dados', params);
+    const res = await rpc('atleta_atualizar_dados', {
+      p_cpf: cpf, p_senha_hash: hash,
+      p_nome: nome, p_nascimento: nasc, p_genero: genero,
+      p_email: email, p_telefone: tel,
+      p_cep: cep, p_rua: rua, p_numero: num, p_complemento: comp,
+      p_bairro: bairro, p_cidade: cidade, p_estado: estado,
+      p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel,
+      p_nova_senha: senha || null
+    });
     if (!res || !res.ok) {
       erro(res?.erro || 'Erro ao salvar dados.');
     } else {
       document.getElementById('dados-sucesso').classList.add('show');
       document.getElementById('md-senha').value = '';
       document.getElementById('md-senha2').value = '';
-      // Atualiza nome na sessão e no header se mudou
-      if (sessao) {
-        sessao.nome = nome;
-        salvarSessao(sessao);
-        document.getElementById('area-nome').textContent = nome.split(' ')[0];
-        document.getElementById('nav-nome').textContent  = nome.split(' ')[0];
-      }
+      if (sessao) { sessao.nome = nome; salvarSessao(sessao); document.getElementById('area-nome').textContent = nome.split(' ')[0]; document.getElementById('nav-nome').textContent = nome.split(' ')[0]; }
       document.getElementById('dados-sucesso').scrollIntoView({behavior:'smooth',block:'nearest'});
     }
-  } catch(e) {
-    erro('Erro de conexão. Tente novamente.');
-  }
+  } catch(e) { erro('Erro de conexão. Tente novamente.'); }
   btn.textContent = 'Salvar alterações'; btn.disabled = false;
 }
 
@@ -1263,7 +1233,7 @@ function formatarData(str) {
   const d = new Date(str);
   const data = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
   const hora = d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-  return `${data} às ${hora}`;
+  return data + ' às ' + hora;
 }
 
 function formatarValor(v) {
@@ -1321,14 +1291,7 @@ function renderInscricao(it, cpfTitular) {
       <div class="qr-id">${it.id}</div>
     </div>` : ''}
     <div style="padding:14px 22px 18px;border-top:1px solid rgba(42,37,32,0.06);">
-      <button onclick="imprimirInscricao('${it.id}')" style="
-        width:100%;background:rgba(42,37,32,0.05);color:rgba(42,37,32,0.65);
-        border:1px solid rgba(42,37,32,0.12);border-radius:8px;
-        padding:10px;font-size:13px;font-weight:600;cursor:pointer;
-        font-family:'Ubuntu',sans-serif;transition:all 0.2s;
-        display:flex;align-items:center;justify-content:center;gap:8px;"
-        onmouseover="this.style.background='rgba(42,37,32,0.1)'"
-        onmouseout="this.style.background='rgba(42,37,32,0.05)'">
+      <button onclick="imprimirInscricao('${it.id}')" style="width:100%;background:rgba(42,37,32,0.05);color:rgba(42,37,32,0.65);border:1px solid rgba(42,37,32,0.12);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(42,37,32,0.1)'" onmouseout="this.style.background='rgba(42,37,32,0.05)'">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         Imprimir / Salvar PDF
       </button>
@@ -1345,101 +1308,32 @@ function gerarQR(id) {
   });
 }
 
-function imprimirInscricao(id) {
-  const card = document.querySelector(`[data-insc-id="${id}"]`);
-  if (!card) return;
+// ── INICIALIZAÇÃO ─────────────────────────────────
+(function init() {
+  const s = carregarSessao();
+  if (s && s.token) { entrarNaArea(s); return; }
+  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
+})();
+</script>
 
-  const evento     = card.dataset.evento     || '—';
-  const status     = card.dataset.status     || '—';
-  const atleta     = card.dataset.atleta     || '—';
-  const kit        = card.dataset.kit        || '—';
-  const modalidade = card.dataset.modalidade || '—';
-  const camisa     = card.dataset.camisa     || '—';
-  const lote       = card.dataset.lote       || '—';
-  const pagamento  = card.dataset.pagamento  || '—';
-  const valor      = card.dataset.valor      || '—';
-  const data       = card.dataset.data       || '—';
+<!-- BOTÃO WHATSAPP FLUTUANTE -->
+<a href="https://wa.me/5516981118772" target="_blank" rel="noopener"
+   style="position:fixed;bottom:28px;right:28px;z-index:9999;
+          width:58px;height:58px;border-radius:50%;
+          background:#25d366;
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 16px rgba(37,211,102,0.4);
+          transition:transform 0.2s,box-shadow 0.2s;"
+   onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 24px rgba(37,211,102,0.55)'"
+   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(37,211,102,0.4)'"
+   title="Fale conosco no WhatsApp">
+  <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.663 4.61 1.816 6.51L4 29l7.697-1.793A12.94 12.94 0 0 0 16 28c6.627 0 12-5.373 12-12S22.627 3 16 3z" fill="#ffffff"/>
+    <path d="M21.5 18.5c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.63-.93-2.23-.24-.58-.49-.5-.68-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25d366"/>
+  </svg>
+</a>
 
-  const canvas = document.getElementById('qr-' + id);
-  const qrBase64 = canvas ? canvas.toDataURL('image/png') : null;
-
-  const statusCor   = { confirmado: '#16a34a', pendente: '#d97706', cancelado: '#dc2626' };
-  const statusLabel = { confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelado: '✕ Cancelado' };
-
-  const logoSrc = 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzUwMCA4MTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJtMTE3MC42NSA2NjkuNzRjLTI2Ljc1IDAtNDguMzctMjEuNzQtNDguMzctNDguNjUgMC0yNi45MSAyMS42Mi00OC42NSA0OC4zNy00OC42NSAyNi43NSAwIDQ4LjM3IDIxLjc0IDQ4LjM3IDQ4LjY1IDAgMjYuOTEtMjEuNjIgNDguNjUtNDguMzcgNDguNjV6bTEzMjIuMjgtMjM2LjQ3cTAgNTMuODItMTUuMjEgOTcuODUtMTUuNzYgNDUuMTItNDQuNTcgNzYuNjUtMzAuNDMgMzEuNTMtNzEuMTkgNDguMzgtNDAuMjIgMTcuNC05MS44NSAxNy40LTUwLjU1IDAtOTEuMzEtMTcuNC00MC43Ni0xNi44NS03MC42NS00OC4zOC0yOC44LTMxLjUzLTQ1LjY1LTc2LjY1LTE2LjMtNDQuMDMtMTYuMy05Ny44NSAwLTUzLjI4IDE2Ljg0LTk3Ljg1IDE3LjM5LTQzLjQ5IDQ2Ljc0LTc1LjU3IDI5LjM1LTMwLjQ0IDcwLjY1LTQ3LjI5IDQxLjg1LTE3Ljk0IDg5LjY4LTE3Ljk0IDQ4LjM3IDAgODkuNjcgMTcuOTQgNDEuODUgMTYuODUgNzAuNjUgNDcuMjkgMjkuOSAzMi4wOCA0Ni4yIDc1LjU3IDE2LjMgNDQuNTcgMTYuMyA5Ny44NXptLTEzMS41MiAwcTAtNTkuOC0yMy4zNy05My41MS0yMy45MS0zNC4yNC02Ny45My0zNC4yNC00NC4wMiAwLTY3Ljk0IDM0LjI0LTI1IDMzLjcxLTI1IDkzLjUxIDAgNTkuMjUgMjUgOTQuNTkgMjMuOTIgMzQuNzkgNjcuOTQgMzQuNzkgNDQuMDIgMCA2Ny45My0zNC43OSAyMy4zNy0zNS4zNCAyMy4zNy05NC41OXptLTMzOS4xMy0zLjgxcTAgNTIuMTktMTMuMDQgOTQuNTktMTIuNSA0Mi40MS0zNi45NiA3Mi44NS0yNS41NCAzMC40NC02MS40MSA0Ny44NC0zNi45NiAxNi44NS04NC43OCAxNi44NS0yNi4wOSAwLTQ5LjQ2LTUuNDQtMjIuMjgtNC4zNC00NC4wMi0xMy41OXYxNjcuNDRoLTEyNi42M3YtNTg4Ljc1cTE3LjM5LTQuODkgMzkuMTMtMTAuODcgMjIuMjgtMy44IDQ2LjE5LTcuMDYgMjQuNDYtMy44MSA1MC01Ljk4IDI1LTIuMTggNDcuODMtMi4xOCA1NC44OSAwIDk4LjM3IDE2Ljg1IDQyLjkzIDE2Ljg2IDczLjM3IDQ2Ljc2IDI5Ljg5IDMwLjQ0IDQ1LjExIDczLjkzIDE2LjMgNDIuOTQgMTYuMyA5Ni43NnptLTEyOS44OSAzLjI2cTAtNTkuMjUtMjUuNTQtOTQuMDQtMjYuNjMtMzUuODgtNzguMjYtMzUuODgtMTcuMzkgMC0zMi4wNyAxLjYzLTE0LjY3IDEuNjMtMjMuOTEgMi43MnYyMjkuNDFxMTIuNSA3LjA2IDMxLjUyIDEzLjA0IDE5LjAyIDQuMzUgMzguNTkgNC4zNSA4OS42NyAwIDg5LjY3LTEyMS4yM3ptODk0LjAyLTEwOS4yNnEtMTYuODUtNC4zNS00MC4yMS05Ljc5LTIyLjgzLTQuMzUtNDkuNDYtNC4zNS0xMS40MSAwLTI4LjI2IDIuNzItMTYuMzEgMS4wOS0yNSA0LjM1djM0MC44NWgtMTI2LjYzdi00MjEuODVxMzQuMjQtMTIuNSA4MC45OC0yMi44MyA0NS42NS0xMC44OCAxMDIuMTctMTAuODggMTAuODcgMCAyNS41NCAxLjY0IDE0LjEzIDEuMDggMjguODEgMy4yNiAxMy41OCAyLjE3IDI4LjI2IDUuNDMgMTQuMTMgMi43MiAyNSA2LjUzem01MjYuMDkgMjQwLjgycTM0LjIzIDAgNDguOTEtNS45OCAxNC42Ny03LjYxIDE0LjY3LTI2LjY0IDAtMTUuMjItMTguNDgtMjYuNjMtMTguNDctMTEuNDItNTYuNTItMjUuNTUtMjkuMzUtMTAuODgtNTMuMjYtMjIuODQtMjQuNDYtMTEuNDEtNDAuNzYtMjcuNzItMTcuMzktMTYuODUtMjYuMDktMzkuMTQtOS4yNC0yMy4zOC05LjI0LTU0LjkxIDAtNjEuNDMgNDUuNjYtOTguMzkgNDYuNzQtMzYuNDMgMTI3LjE3LTM2LjQzIDQwLjIyIDAgNzcuMTcgNy42MSAzNi40MiA3LjA3IDU5LjI0IDE1Ljc3bC0yMi44MiA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEyLjUtMjUtNi41My01Ny42MS02LjUzLTU5LjI0IDAtNTkuMjQgMzIuNjIgMCA3LjA3IDMuMjYgMTMuMDUgMi4xOCA1Ljk4IDkuNzggMTEuOTYgNy42MSA0Ljg5IDIwLjY2IDEwLjg3IDEzLjA0IDYuNTIgMzMuMTUgMTMuNTkgNDEuMyAxNS4yMiA2Ny45MyAzMC40NCAyNi42MyAxNS4yMiA0Mi4zOSAzMS41MyAxNS43NiAxNy45NCAyMS43NCAzOS4xNCA2LjUzIDIxLjIgNi41MyA0OC4zOSAwIDY1LjIzLTQ5LjQ2IDk4Ljk0LTQ4LjkxIDMzLjctMTM4LjU5IDMzLjctNTkuMjQgMC05Ny44Mi05Ljc5LTM5LjEzLTEwLjMyLTUzLjgxLTE3LjM5bDIwLjY1LTEwMS42NnEzMi4wNyAxMi41IDY1LjIyIDIwLjEyIDMzLjcgNy4wNiA2Ni4zMSA3LjA2em0tNDgwLjk4LTQ3My40OWwxMzAuNDMtMjAuMTJ2MTM1LjM2aDE1NS45OHYxMDcuNjRoLTE1NS45OHYxNjEuNDZxMCA0MC43NyAxNC4xMyA2NS4yMyAxNC4xMyAyMy45MiA1OC4xNSAyMy45MiAyMC42NiAwIDQyLjQtMy4yNiAyMi44Mi0zLjggNDEuMy0xMC44N2wxOC40OCAxMDEuNjZxLTIzLjkyIDkuNzgtNTIuNzIgMTUuNzYtMjguOCA3LjA3LTcwLjY1IDcuMDctNTMuMjYgMC04OC41OS0xMy41OS0zNC4yNC0xNC42OC01NC44OS00MC43Ny0yMS4yLTI1LjU1LTI5Ljg5LTYxLjk4LTguMTUtMzcuNTEtOC4xNS04MS41NHptLTE0MzYuOTYgNDc0LjA0cTM0Ljc4IDAgNDkuNDYtNS45OCAxNC4xMy03LjA3IDE0LjEzLTI2LjY0IDAtMTQuNjgtMTguNDgtMjYuNjQtMTguNDgtMTAuODctNTUuOTgtMjUuNTUtMjkuMzUtMTAuODctNTMuMjYtMjIuMjgtMjQuNDYtMTEuNDItNDAuNzYtMjguMjctMTcuMzktMTYuMzEtMjYuNjMtMzkuMTQtOC43LTIyLjg0LTguNy01My44MiAwLTYzLjA2IDQ1LjY1LTk4Ljk0IDQ2Ljc0LTM2LjQzIDEyNy4xOC0zNi40MyAzOS42NyAwIDc3LjE3IDcuNjIgMzYuNDIgNy4wNiA1OC43IDE1Ljc2bC0yMi4yOCA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEzLjU5LTI2LjA5LTUuOTgtNTcuNjEtNS45OC01OS4yNCAwLTU5LjI0IDMzLjE2IDAgNy4wNyAyLjcyIDEzLjA1IDIuNzEgNS45OCAxMC4zMiAxMS45NiA4LjE1IDQuODkgMjAuNjUgMTAuODcgMTMuMDUgNy4wNyAzMy4xNiAxMy41OSA0MS4zIDE1LjIyIDY3LjkzIDMwLjQ0IDI2LjYzIDE0LjY4IDQyLjM5IDMxLjUzIDE1LjIyIDE3Ljk0IDIxLjIgMzguNiA3LjA2IDIxLjIgNy4wNiA0OS40NyAwIDY0LjE1LTQ5LjQ1IDk4LjQtNDkuNDYgMzMuMTYtMTM5LjEzIDMzLjE2LTU4LjE2IDAtOTcuODMtOS43OS0zOS4xMy05Ljc4LTUzLjI2LTE2LjMxbDIwLjExLTEwMi43NHEzMi4wNiAxMy4wNCA2Ni4zIDIwLjY2IDMzLjE2IDYuNTIgNjUuMjIgNi41MnptLTEzMDguMTUgMjQ0LjYzcS0xMS45NiAwLTM1Ljg3LTIuNzItMjQuNDYtMi43Mi00NS4xMS05Ljc4bDE3LjkzLTEwNC45MnExMi41IDQuMzUgMjMuOTIgNS45OCAxMC4zMiAxLjA4IDI3LjE3IDEuMDggMzAuNDQgMCA0Mi45NC0xNy45NCAxMS40MS0xNy45MyAxMS40MS01My4yN3YtNDM4LjE2aDEyOS44OXY0NDEuNDJxMCA5MC43OS00NC41NiAxMzQuODItNDQuMDMgNDMuNDktMTI3LjcyIDQzLjQ5em02MDguNjktMzc2LjE5cTAgNTMuMjgtMTUuNzYgOTUuNjgtMTUuMjEgNDMuNDktNDQuNTYgNzMuMzktMjkuMzUgMzAuNDQtNzEuNzQgNDcuMjktNDIuMzkgMTUuNzctOTcuODMgMTUuNzctMjIuMjggMC00Ny4yOC0xLjYzLTI1LTIuMTgtNDguOTEtNS40NC0yMy45Mi0zLjgtNDYuMi04LjE1LTIxLjE5LTUuNDQtMzguMDQtOS43OXYtNjE4LjFsMTI1LTE5LjU3djIyMC4xN3EyMS4xOS05LjI0IDQ0LjAyLTE0LjEzIDIyLjI4LTUuNDQgNDcuODMtNS40NCA0Ny4yOCAwIDg0LjIzIDE2LjMxIDM1LjMzIDE2LjMxIDU5Ljc5IDQ3LjI5IDI0LjQ1IDI5LjkgMzYuOTUgNzEuNzYgMTIuNSA0Mi40IDEyLjUgOTQuNTl6bS0xMjcuMTctMi43MnEwLTEyMS4yMi04OS4xMy0xMjEuMjItMTkuNTcgMC0zOC41OSA0Ljg5LTE4LjQ4IDUuNDMtMzAuNDMgMTIuNXYyMjguMzJxOC42OSAxLjA5IDIzLjkxIDIuMTggMTQuMTMgMi4xNyAzMC40NCAyLjE3IDUxLjYzIDAgNzcuMTctMzUuODggMjYuNjMtMzUuMzMgMjYuNjMtOTIuOTZ6bTMwMy4yNi04OS4xNWw4OS42Ny0xMzYuOTloMTMwLjk4bC0xNTMuOCAyMTYuMzZxNTEuNjMgNjQuMTUgOTIuOTMgMTI1LjAzIDQxLjg1IDYwLjM0IDY3LjM5IDEwOC43M2gtMTM2Ljk1cS02LjUyLTEzLjU5LTE2Ljg1LTMyLjYyLTEwLjMzLTE5LjAzLTIyLjgzLTM5LjY4LTEzLjU4LTIxLjIxLTI3LjcxLTQxLjg2LTE0LjEzLTIxLjIxLTI3LjE4LTM4LjA2LTEzLjA0IDE2LjMxLTI2LjYzIDM1LjM0LTEzLjA0IDE5LjU3LTI1IDQwLjIzLTExLjQxIDE5LjU3LTIzLjM3IDM5LjE0LTExLjQxIDIwLjY1LTIwLjExIDM3LjUxaC0xMjkuMzRxOS43OC0yMS43NSAyNy43MS01MC41NiAxNy45NC0yOS4zNiAzOS4xMy02MC4zNCAyMC42Ni0zMC45OSA0My40OC02Mi41MiAyMi44My0zMC45OSA0NS42NS01OC4xNy0zOC41OC01NC45LTc3LjE3LTEwOS4yNy0zNy41LTU0LjktNzUuNTQtMTA5LjI2aDEzNy41eiIvPjwvc3ZnPg==';
-
-  const html = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>Comprovante — ${evento}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; background: #fff; color: #1a1a1a; padding: 40px; }
-  .header { background: #ff751f; padding: 24px 32px; border-radius: 12px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
-  .header-titulo { color: #fff; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
-  .header-sub { color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 3px; }
-  .evento-nome { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-  .badge { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid; margin-bottom: 20px; }
-  .tabela { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-  .tabela tr { border-bottom: 1px solid #f0ede9; }
-  .tabela td { padding: 11px 4px; font-size: 14px; }
-  .tabela td:first-child { color: #888; width: 45%; }
-  .tabela td:last-child { font-weight: 600; text-align: right; }
-  .valor-destaque { color: #ff751f; font-size: 16px; font-weight: 700; }
-  .qr-section { text-align: center; padding: 20px; background: #faf9f7; border-radius: 10px; border: 1px solid #e8e4e0; margin-bottom: 24px; }
-  .qr-id { font-family: monospace; font-size: 11px; color: #aaa; letter-spacing: 1px; margin-top: 8px; }
-  .rodape { font-size: 11px; color: #bbb; text-align: center; border-top: 1px solid #f0ede9; padding-top: 16px; }
-  @media print { body { padding: 24px; } @page { margin: 16px; size: A4; } }
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <div class="header-titulo">Comprovante de Inscrição</div>
-    <div class="header-sub">JBX Sports — Eventos Esportivos</div>
-  </div>
-  <img src="${logoSrc}" alt="JBX Sports" style="height:36px;">
-</div>
-<div class="evento-nome">${evento}</div>
-<span class="badge" style="color:${statusCor[status]||'#888'};border-color:${statusCor[status]||'#ccc'};">
-  ${statusLabel[status]||status}
-</span>
-<table class="tabela">
-  <tr><td>Atleta</td><td>${atleta}</td></tr>
-  <tr><td>Kit</td><td>${kit}</td></tr>
-  <tr><td>Modalidade</td><td>${modalidade}</td></tr>
-  <tr><td>Camiseta</td><td>${camisa}</td></tr>
-  <tr><td>Lote</td><td>${lote}</td></tr>
-  <tr><td>Forma de pagamento</td><td>${pagamento}</td></tr>
-  <tr><td>Data da inscrição</td><td>${data}</td></tr>
-  <tr><td>Valor pago</td><td class="valor-destaque">${valor}</td></tr>
-</table>
-${qrBase64 ? `<div class="qr-section">
-  <p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;">🎫 QR Code — Retirada do kit</p>
-  <img src="${qrBase64}" style="width:150px;height:150px;">
-  <div class="qr-id">${id}</div>
-</div>` : ''}
-<div class="rodape">Documento gerado em ${new Date().toLocaleString('pt-BR')} · jbx-sports.vercel.app</div>
-</body></html>`;
-
-  // Usar iframe oculto na própria página — sem restrições de segurança do Edge
-  let iframe = document.getElementById('print-iframe');
-  if (!iframe) {
-    iframe = document.createElement('iframe');
-    iframe.id = 'print-iframe';
-    iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:800px;height:1000px;border:none;';
-    document.body.appendChild(iframe);
-  }
-
-  iframe.onload = function() {
-    setTimeout(() => {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    }, 300);
-  };
-
-  iframe.srcdoc = html;
-}
-
-
+</body>
+</html>
