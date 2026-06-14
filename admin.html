@@ -44,7 +44,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .tag-soon{background:rgba(255,255,255,0.95);color:#a07800;}
 .tag-closed{background:rgba(0,0,0,0.35);color:rgba(255,255,255,0.9);}
 /* STAT CARDS */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px;margin-bottom:32px;}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:32px;}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
 .stat-card .sc-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
 .stat-card .sc-val{font-size:28px;font-weight:700;color:var(--text);line-height:1;}
@@ -251,12 +251,19 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <!-- TELA 1: DASHBOARD -->
       <div class="inner-screen active" id="screen-dash">
         <div class="page-hd"><h1>Dashboard JBX Sports</h1></div>
-        <div class="stats-row">
+        <div class="stats-row" style="grid-template-columns:repeat(5,1fr) 1.8fr;">
           <div class="stat-card"><div class="sc-label">Eventos</div><div class="sc-val" id="g-eventos">—</div></div>
           <div class="stat-card"><div class="sc-label">Faturamento Global</div><div class="sc-val orange" id="g-fat">—</div></div>
           <div class="stat-card"><div class="sc-label">Inscrições Total</div><div class="sc-val" id="g-total">—</div></div>
           <div class="stat-card"><div class="sc-label">Inscrições Hoje</div><div class="sc-val orange" id="g-hoje">—</div></div>
           <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val" id="g-ticket">—</div></div>
+          <div class="stat-card" style="padding:16px 20px;">
+            <div class="sc-label" style="margin-bottom:6px;">Inscrições confirmadas — últimos 7 dias</div>
+            <div id="g-7dias-total" style="font-size:22px;font-weight:700;color:var(--orange);margin-bottom:8px;">—</div>
+            <div style="position:relative;height:56px;">
+              <canvas id="chart-7dias" style="width:100%;height:56px;"></canvas>
+            </div>
+          </div>
         </div>
         <div class="dash-actions">
           <h2 style="font-size:16px;font-weight:700;color:var(--muted);">Eventos</h2>
@@ -836,6 +843,47 @@ async function loadDashboard(){
     document.getElementById('g-total').textContent=fmt(stats.inscricoes_total);
     document.getElementById('g-hoje').textContent=fmt(stats.inscricoes_hoje);
     document.getElementById('g-ticket').textContent=brl(stats.ticket_medio);
+    // Mini gráfico 7 dias
+    try {
+      const dados7 = await rpc('admin_inscricoes_7dias');
+      if (dados7 && dados7.length) {
+        const total = dados7.reduce((s,d)=>s+Number(d.total),0);
+        document.getElementById('g-7dias-total').textContent = fmt(total);
+        const labels = dados7.map(d=>{const dt=new Date(d.dia+'T12:00:00');return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});});
+        const valores = dados7.map(d=>Number(d.total));
+        const ctx = document.getElementById('chart-7dias');
+        if(ctx && window.Chart) {
+          if(ctx._chartInst) ctx._chartInst.destroy();
+          ctx._chartInst = new Chart(ctx, {
+            type:'line',
+            data:{
+              labels,
+              datasets:[{
+                data:valores,
+                borderColor:'#ff751f',
+                backgroundColor:'rgba(255,117,31,0.12)',
+                borderWidth:2,
+                pointRadius:3,
+                pointBackgroundColor:'#ff751f',
+                fill:true,
+                tension:0.4
+              }]
+            },
+            options:{
+              responsive:true,
+              maintainAspectRatio:false,
+              plugins:{legend:{display:false},tooltip:{
+                callbacks:{label:ctx=>ctx.parsed.y+' inscrição(ões)'}
+              }},
+              scales:{
+                x:{display:false},
+                y:{display:false,min:0}
+              }
+            }
+          });
+        }
+      }
+    } catch(e) { console.log('7dias erro:', e); }
     renderEventCards(evs||[]);
   }catch(e){console.error(e);}
 }
