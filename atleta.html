@@ -976,6 +976,15 @@ async function gerarMd5(str) {
 
 
 // ── IMPRIMIR ──────────────────────────────────────
+function formatarDesconto(valorBaseStr, descontoPct) {
+  try {
+    const base = parseFloat(valorBaseStr.replace('R$ ','').replace(',','.'));
+    const orig = base / (1 - parseInt(descontoPct)/100);
+    const diff = orig - base;
+    return 'R$ ' + diff.toFixed(2).replace('.',',');
+  } catch(e) { return ''; }
+}
+
 function imprimirInscricao(id) {
   const card = document.querySelector(`[data-insc-id="${id}"]`);
   if (!card) return;
@@ -988,6 +997,10 @@ function imprimirInscricao(id) {
   const lote       = card.dataset.lote       || '—';
   const pagamento  = card.dataset.pagamento  || '—';
   const valor      = card.dataset.valor      || '—';
+  const valorBase  = card.dataset.valorBase  || '';
+  const valorTaxa  = card.dataset.valorTaxa  || '';
+  const cupom      = card.dataset.cupom      || '';
+  const desconto   = card.dataset.desconto   || '0';
   const data       = card.dataset.data       || '—';
   const canvas     = document.getElementById('qr-' + id);
   const qrBase64   = canvas ? canvas.toDataURL('image/png') : null;
@@ -1032,6 +1045,9 @@ function imprimirInscricao(id) {
   <tr><td>Lote</td><td>${lote}</td></tr>
   <tr><td>Forma de pagamento</td><td>${pagamento}</td></tr>
   <tr><td>Data da inscrição</td><td>${data}</td></tr>
+  ${valorBase ? `<tr><td>Valor da inscrição</td><td>${valorBase}</td></tr>` : ''}
+  ${cupom && parseInt(desconto) > 0 ? `<tr><td>Cupom (${cupom} − ${desconto}%)</td><td style="color:#16a34a;">− ${valorBase && valor ? formatarDesconto(valorBase, desconto) : ''}</td></tr>` : ''}
+  ${valorTaxa ? `<tr><td>Taxa de serviço</td><td>${valorTaxa}</td></tr>` : ''}
   <tr><td>Valor pago</td><td class="destaque">${valor}</td></tr>
 </table>
 ${qrBase64 ? `<div class="qr-box"><p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;">🎫 QR Code — Retirada do kit</p><img src="${qrBase64}" style="width:150px;height:150px;"><div class="qr-id">${id}</div></div>` : ''}
@@ -1267,6 +1283,10 @@ function renderInscricao(it, cpfTitular) {
     data-lote="${(it.lote_nome||'—').replace(/"/g,'&quot;')}"
     data-pagamento="${(it.forma_pagamento||'—').replace(/"/g,'&quot;')}"
     data-valor="${valorFormatado}"
+    data-valor-base="${it.valor_base ? formatarValor(it.valor_base) : ''}"
+    data-valor-taxa="${it.valor_taxa ? formatarValor(it.valor_taxa) : ''}"
+    data-cupom="${(it.cupom||'').replace(/"/g,'&quot;')}"
+    data-desconto="${it.desconto_pct || 0}"
     data-data="${dataFormatada}"
   >
     <div class="insc-card-top">
