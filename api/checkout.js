@@ -98,6 +98,10 @@ module.exports = async (req, res) => {
 
   const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
 
+  // LOG TEMPORÁRIO — remover após diagnóstico
+  const token = process.env.MP_ACCESS_TOKEN || '';
+  console.log('[checkout] TOKEN prefixo:', token.slice(0, 15), '| tamanho:', token.length);
+
   if (!itens || !itens.length) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
   }
