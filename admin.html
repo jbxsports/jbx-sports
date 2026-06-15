@@ -947,6 +947,7 @@ async function loadEventoForm(id){
         previewBannerCard(ev.banner_url||'');previewBannerH(ev.banner_horizontal_url||'');
         document.getElementById('ef-status').value=ev.status||'soon';
         document.getElementById('ef-visivel').value=(ev.visivel_home===false||ev.visivel_home==='false')?'false':'true';
+        currentEvento = { id, nome: ev.nome || '' };
       }
     }catch(e){console.error(e);}
   }
