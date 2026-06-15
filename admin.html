@@ -1065,7 +1065,11 @@ function renderLotesAdmin(lotes){
           <div class="lote-preco-item">
             <div class="kit-n">${kp.kit_nome}</div>
             <div class="preco-v">${brl(kp.preco)}</div>
-            <div class="qtd-v">${kp.quantidade_vendida||0}${kp.quantidade_limite?' / '+kp.quantidade_limite+' vagas':''}</div>
+            <div class="qtd-v">${kp.quantidade_vendida||0}${kp.quantidade_limite?' / '+kp.quantidade_limite+' vagas':' vagas ilimitadas'}</div>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+              <button onclick="toggleKitLote('${kp.kit_id}','${l.id}','esgotado',${!kp.esgotado})" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid ${kp.esgotado?'#ff6b6b':'rgba(255,255,255,0.2)'};cursor:pointer;background:${kp.esgotado?'rgba(255,107,107,0.2)':'transparent'};color:${kp.esgotado?'#ff6b6b':'var(--muted)'};">${kp.esgotado?'🔴 Esgotado':'⚪ Esgotar'}</button>
+              <button onclick="toggleKitLote('${kp.kit_id}','${l.id}','visivel',${!kp.visivel})" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid ${kp.visivel?'#22c55e':'rgba(255,255,255,0.2)'};cursor:pointer;background:${kp.visivel?'rgba(34,197,94,0.15)':'transparent'};color:${kp.visivel?'#22c55e':'var(--muted)'};">${kp.visivel?'🟢 Visível':'⚫ Oculto'}</button>
+            </div>
           </div>`).join('')}
       </div>
     </div>`).join('');
@@ -1190,6 +1194,16 @@ async function salvarLote(){
     loadKitsLotes();
   }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
 }
+async function toggleKitLote(kitId, loteId, campo, valor) {
+  try {
+    const params = { p_kit_id: kitId, p_lote_id: loteId };
+    if (campo === 'esgotado') params.p_esgotado = valor;
+    if (campo === 'visivel')  params.p_visivel  = valor;
+    await rpc('admin_atualizar_kit_lote', params);
+    loadKitsLotes();
+  } catch(e) { alert('Erro: ' + e.message); }
+}
+
 async function deletarLote(id,nome){
   if(!confirm(`Remover lote "${nome}"?`))return;
   try{await rpc('admin_deletar_lote',{p_id:id});loadKitsLotes();}catch(e){alert('Erro: '+e.message);}
