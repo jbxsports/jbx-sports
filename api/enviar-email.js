@@ -1,7 +1,21 @@
-const { Resend } = require('resend');
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const FROM = 'JBX Sports <suporte@jbxsports.com.br>';
+async function enviarResend(to, subject, html) {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + process.env.RESEND_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: 'JBX Sports <suporte@jbxsports.com.br>',
+      to,
+      subject,
+      html
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(JSON.stringify(data));
+  return data;
+}
 
 // ── Template base ──
 function templateBase(conteudo) {
@@ -127,22 +141,12 @@ module.exports = async (req, res) => {
 
   try {
     if (tipo === 'boas_vindas') {
-      await resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: `Bem-vindo à JBX Sports, ${(nome || '').split(' ')[0]}! 🎽`,
-        html: htmlBoasVindas(nome)
-      });
+      await enviarResend(email, `Bem-vindo à JBX Sports, ${(nome || '').split(' ')[0]}! 🎽`, htmlBoasVindas(nome));
       return res.status(200).json({ ok: true });
     }
 
     if (tipo === 'confirmacao_inscricao') {
-      await resend.emails.send({
-        from: FROM,
-        to: email,
-        subject: `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`,
-        html: htmlConfirmacaoInscricao(item, data_evento)
-      });
+      await enviarResend(email, `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`, htmlConfirmacaoInscricao(item, data_evento));
       return res.status(200).json({ ok: true });
     }
 
