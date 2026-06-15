@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Área — JBX Sports</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+:root {
+  --orange: #ff751f;
+  --orange-dark: #e05a08;
+  --black: #faf9f7;
+  --white: #ffffff;
+  --bg-card: #ffffff;
+  --bg-dark: #f3f1ee;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Ubuntu', sans-serif; background: var(--black); color: #2a2520; min-height: 100vh; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 5%; height: 70px;
+  background: rgba(250,249,247,0.97);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,117,31,0.15);
+}
+.nav-logo { text-decoration: none; display: flex; align-items: center; }
+.nav-user { display: flex; align-items: center; gap: 16px; }
+.nav-user-name { font-size: 14px; color: rgba(42,37,32,0.65); }
+.btn-logout {
+  background: transparent; color: rgba(42,37,32,0.6);
+  border: 1px solid rgba(42,37,32,0.2); border-radius: 6px;
+  padding: 8px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+}
+.btn-logout:hover { border-color: #fff; color: #fff; }
+
+/* TELAS */
+.screen { display: none; min-height: 100vh; padding-top: 70px; }
+.screen.active { display: flex; align-items: center; justify-content: center; padding: 90px 20px 40px; }
+#screen-area { align-items: flex-start; justify-content: flex-start; padding: 90px 5% 60px; }
+
+/* CARD AUTH */
+.auth-card {
+  background: #ffffff; border-radius: 16px; width: 100%; max-width: 560px;
+  padding: 40px 36px; border: 1px solid rgba(255,117,31,0.3);
+}
+.auth-logo { display: flex; justify-content: center; margin-bottom: 28px; }
+.auth-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; text-align: center; }
+.auth-sub { font-size: 14px; color: rgba(42,37,32,0.5); text-align: center; margin-bottom: 28px; }
+.form-group { margin-bottom: 16px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-section-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin: 20px 0 12px; display: flex; align-items: center; gap: 8px; }
+.form-section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,117,31,0.2); }
+.form-group select { width: 100%; background: rgba(42,37,32,0.05); border: 1px solid rgba(42,37,32,0.08); border-radius: 8px; padding: 11px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif; transition: border-color 0.2s; }
+.form-group select:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.06); }
+.form-group select option { background: #f5f3f0; }
+.form-group label { display: block; font-size: 13px; color: rgba(42,37,32,0.6); margin-bottom: 6px; font-weight: 500; }
+.form-group input {
+  width: 100%; background: rgba(42,37,32,0.05);
+  border: 1px solid rgba(42,37,32,0.08); border-radius: 8px;
+  padding: 12px 14px; color: #2a2520; font-size: 15px; font-family: 'Ubuntu', sans-serif;
+  transition: border-color 0.2s;
+}
+.form-group input:focus { outline: none; border-color: var(--orange); background: rgba(255,117,31,0.06); }
+.form-group input::placeholder { color: rgba(42,37,32,0.25); }
+.btn-auth {
+  width: 100%; background: var(--orange); color: #ffffff;
+  padding: 14px; border-radius: 8px; border: none;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; transition: all 0.2s; margin-top: 8px;
+}
+.btn-auth:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.auth-switch {
+  text-align: center; margin-top: 20px; font-size: 14px;
+  color: rgba(42,37,32,0.5);
+}
+.auth-switch a { color: var(--orange); cursor: pointer; text-decoration: none; font-weight: 600; }
+.auth-switch a:hover { text-decoration: underline; }
+.auth-erro {
+  background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+  border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #ff6b6b;
+  margin-bottom: 16px; display: none;
+}
+.auth-erro.show { display: block; }
+
+/* ÁREA DO ATLETA */
+.area-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 36px; flex-wrap: wrap; gap: 16px;
+}
+.area-header h1 { font-size: 28px; font-weight: 700; }
+.area-header h1 span { color: var(--orange); }
+.area-subtitulo { font-size: 14px; color: rgba(42,37,32,0.5); margin-top: 4px; }
+
+.inscricoes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+
+.insc-card {
+  background: var(--bg-card); border-radius: 14px;
+  border: 1px solid rgba(42,37,32,0.1);
+  overflow: hidden; transition: border-color 0.2s;
+}
+.insc-card:hover { border-color: rgba(255,117,31,0.3); }
+
+.insc-card-top {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid rgba(42,37,32,0.06);
+}
+.insc-evento { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: #2a2520; }
+.insc-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.status-confirmado { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+.status-pendente   { background: rgba(255,193,7,0.15);  color: #ffc107; border: 1px solid rgba(255,193,7,0.3); }
+.status-cancelado  { background: rgba(239,68,68,0.15);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+.insc-detalhes { padding: 16px 22px; }
+.insc-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid rgba(42,37,32,0.05);
+  font-size: 13px;
+}
+.insc-row:last-child { border-bottom: none; }
+.insc-label { color: rgba(42,37,32,0.45); }
+.insc-val { font-weight: 600; color: #2a2520; text-align: right; }
+.insc-val.orange { color: var(--orange); }
+
+.insc-qr {
+  padding: 16px 22px 20px;
+  border-top: 1px solid rgba(42,37,32,0.06);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.insc-qr-titulo {
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase; color: rgba(42,37,32,0.4);
+  align-self: flex-start;
+}
+.qr-wrap {
+  background: white; border-radius: 10px; padding: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.qr-id {
+  font-size: 11px; color: rgba(42,37,32,0.3);
+  font-family: monospace; letter-spacing: 1px;
+}
+
+.vazio {
+  grid-column: 1/-1; text-align: center; padding: 64px 20px;
+  color: rgba(42,37,32,0.3);
+}
+.vazio-icone { font-size: 48px; margin-bottom: 16px; }
+.vazio-texto { font-size: 16px; }
+
+/* loading */
+.loading-wrap { text-align: center; padding: 60px; color: rgba(42,37,32,0.4); }
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
+  animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* RECUPERAÇÃO DE SENHA */
+.rec-step {
+  display: none;
+}
+.rec-step.active { display: block; }
+
+.codigo-inputs {
+  display: flex; gap: 10px; justify-content: center; margin: 20px 0;
+}
+.codigo-inputs input {
+  width: 48px; height: 58px; text-align: center;
+  font-size: 26px; font-weight: 700;
+  background: rgba(42,37,32,0.05);
+  border: 2px solid rgba(42,37,32,0.08); border-radius: 10px;
+  color: #2a2520; font-family: 'Ubuntu', sans-serif;
+  transition: border-color 0.2s;
+}
+.codigo-inputs input:focus {
+  outline: none; border-color: var(--orange);
+  background: rgba(255,117,31,0.08);
+}
+.codigo-inputs input.filled { border-color: rgba(255,117,31,0.5); }
+
+.rec-email-destino {
+  background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.3);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px;
+  color: rgba(42,37,32,0.65); margin-bottom: 8px; text-align: center;
+}
+.rec-email-destino strong { color: var(--orange); }
+
+.btn-link {
+  background: none; border: none; color: var(--orange);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; text-decoration: none;
+  padding: 0;
+}
+.btn-link:hover { text-decoration: underline; }
+
+.rec-sucesso {
+  text-align: center; padding: 20px 0;
+}
+.rec-sucesso-icone { font-size: 52px; margin-bottom: 16px; }
+.rec-sucesso-titulo { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.rec-sucesso-sub { font-size: 14px; color: rgba(42,37,32,0.5); line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .inscricoes-grid { grid-template-columns: 1fr; }
+  .auth-card { padding: 28px 20px; }
+  #screen-area { padding: 90px 16px 40px; }
+  .codigo-inputs input { width: 40px; height: 50px; font-size: 22px; }
+}
+
+/* ── MODAL MEUS DADOS ── */
+.dados-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s;
+}
+.dados-overlay.active { opacity: 1; pointer-events: all; }
+.dados-modal {
+  background: #ffffff; border-radius: 16px; width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto;
+  border: 1px solid rgba(255,117,31,0.25);
+  transform: translateY(16px); transition: transform 0.25s;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+}
+.dados-overlay.active .dados-modal { transform: translateY(0); }
+.dados-modal-header {
+  position: sticky; top: 0; background: #ffffff; z-index: 10;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid rgba(42,37,32,0.08);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.dados-modal-header h3 { font-size: 20px; font-weight: 700; color: #2a2520; }
+.dados-modal-close {
+  background: rgba(42,37,32,0.06); border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(42,37,32,0.5); transition: all 0.2s;
+}
+.dados-modal-close:hover { background: rgba(42,37,32,0.12); color: #2a2520; }
+.dados-modal-body { padding: 24px 28px 32px; }
+.dados-sucesso {
+  display: none; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #16a34a;
+  margin-bottom: 16px; text-align: center;
+}
+.dados-sucesso.show { display: block; }
+.dados-erro {
+  display: none; background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.3);
+  border-radius: 8px; padding: 12px 16px; font-size: 14px; color: #dc2626;
+  margin-bottom: 16px;
+}
+.dados-erro.show { display: block; }
+.btn-meus-dados {
+  background: rgba(255,117,31,0.1); color: var(--orange);
+  border: 1px solid rgba(255,117,31,0.3); border-radius: 8px;
+  padding: 10px 20px; font-size: 14px; font-weight: 700;
+  cursor: pointer; font-family: 'Ubuntu', sans-serif; transition: all 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.btn-meus-dados:hover { background: rgba(255,117,31,0.18); border-color: var(--orange); }
+.btn-salvar-dados {
+  width: 100%; background: var(--orange); color: #ffffff;
+  padding: 14px; border-radius: 8px; border: none;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  font-family: 'Ubuntu', sans-serif; transition: all 0.2s; margin-top: 8px;
+}
+.btn-salvar-dados:hover { background: var(--orange-dark); transform: translateY(-1px); }
+.btn-salvar-dados:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.cpf-readonly {
+  width: 100%; background: rgba(42,37,32,0.04);
+  border: 1px solid rgba(42,37,32,0.08); border-radius: 8px;
+  padding: 12px 14px; color: rgba(42,37,32,0.4); font-size: 15px;
+  font-family: 'Ubuntu', sans-serif; cursor: not-allowed;
+}
+.dados-loading { text-align: center; padding: 40px; color: rgba(42,37,32,0.4); }
+.dados-loading .spinner {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 3px solid rgba(255,117,31,0.2); border-top-color: var(--orange);
+  animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="nav-logo"><svg height="28" viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" style="fill:#2a2520;display:block;">
+<path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
+</svg></a>
+  <div class="nav-user" id="nav-user" style="display:none;">
+    <span class="nav-user-name" id="nav-nome"></span>
+    <button class="btn-logout" onclick="logout()">Sair</button>
+  </div>
+</nav>
+
+<!-- TELA LOGIN -->
+<div class="screen active" id="screen-login">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Área do Atleta</h2>
+    <p class="auth-sub">Acesse suas inscrições e comprovantes</p>
+    <div class="auth-erro" id="login-erro"></div>
+    <div class="form-group">
+      <label>CPF</label>
+      <input type="text" id="login-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" id="login-senha" placeholder="Sua senha" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="auth-switch">
+      <a onclick="irParaRecuperacao()" style="font-size:13px;color:rgba(42,37,32,0.4);">Esqueci minha senha</a>
+    </div>
+    <div class="auth-switch">
+      Não tem conta? <a onclick="irParaCadastro()">Cadastre-se</a>
+    </div>
+  </div>
+</div>
+
+<!-- TELA CADASTRO -->
+<div class="screen" id="screen-cadastro">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Criar conta</h2>
+    <p class="auth-sub">Preencha todos os dados para agilizar suas inscrições</p>
+    <div class="auth-erro" id="cad-erro"></div>
+
+    <div class="form-section-label">Dados pessoais</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome completo *</label>
+        <input type="text" id="cad-nome" placeholder="Seu nome completo">
+      </div>
+      <div class="form-group">
+        <label>CPF *</label>
+        <input type="text" id="cad-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Data de nascimento *</label>
+        <input type="date" id="cad-nasc">
+      </div>
+      <div class="form-group">
+        <label>Gênero *</label>
+        <select id="cad-genero">
+          <option value="">Selecione</option>
+          <option>Masculino</option>
+          <option>Feminino</option>
+          
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>E-mail *</label>
+        <input type="email" id="cad-email" placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
+        <label>Telefone / WhatsApp *</label>
+        <input type="tel" id="cad-tel" placeholder="(16) 99999-0000">
+      </div>
+    </div>
+
+    <div class="form-section-label">Endereço</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>CEP *</label>
+        <input type="text" id="cad-cep" placeholder="00000-000" maxlength="9" oninput="mascararCep(this)">
+      </div>
+      <div class="form-group">
+        <label>Rua / Logradouro *</label>
+        <input type="text" id="cad-rua" placeholder="Rua, Avenida...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Número *</label>
+        <input type="text" id="cad-num" placeholder="123">
+      </div>
+      <div class="form-group">
+        <label>Complemento</label>
+        <input type="text" id="cad-comp" placeholder="Apto, Bloco...">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Bairro *</label>
+        <input type="text" id="cad-bairro" placeholder="Seu bairro">
+      </div>
+      <div class="form-group">
+        <label>Cidade *</label>
+        <input type="text" id="cad-cidade" placeholder="Sua cidade">
+      </div>
+    </div>
+    <div class="form-group" style="max-width:50%;padding-right:6px;">
+      <label>Estado *</label>
+      <select id="cad-estado">
+        <option value="">UF</option>
+        <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+        <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+        <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+        <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+        <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+        <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+        <option selected>SP</option><option>SE</option><option>TO</option>
+      </select>
+    </div>
+
+    <div class="form-section-label">Contato de emergência</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nome do responsável *</label>
+        <input type="text" id="cad-emerg-nome" placeholder="Nome completo">
+      </div>
+      <div class="form-group">
+        <label>Telefone do responsável *</label>
+        <input type="tel" id="cad-emerg-tel" placeholder="(16) 99999-0000">
+      </div>
+    </div>
+
+    <div class="form-section-label">Acesso à conta</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Senha *</label>
+        <input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar senha *</label>
+        <input type="password" id="cad-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')fazerCadastro()">
+      </div>
+    </div>
+
+    <button class="btn-auth" id="btn-cad" onclick="fazerCadastro()">Criar conta</button>
+    <div class="auth-switch">
+      Já tem conta? <a onclick="irParaLogin()">Fazer login</a>
+    </div>
+  </div>
+</div>
+
+<!-- TELA RECUPERAÇÃO DE SENHA -->
+<div class="screen" id="screen-recuperacao">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Recuperar senha</h2>
+    <div class="auth-erro" id="rec-erro"></div>
+
+    <!-- PASSO 1: digitar CPF -->
+    <div class="rec-step active" id="rec-passo1">
+      <p class="auth-sub">Informe seu CPF para receber o código de recuperação por e-mail.</p>
+      <div class="form-group" style="margin-top:8px;">
+        <label>CPF cadastrado</label>
+        <input type="text" id="rec-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)" onkeydown="if(event.key==='Enter')solicitarCodigo()">
+      </div>
+      <button class="btn-auth" id="btn-rec1" onclick="solicitarCodigo()">Enviar código</button>
+      <div class="auth-switch">
+        <a onclick="irParaLogin()">← Voltar ao login</a>
+      </div>
+    </div>
+
+    <!-- PASSO 2: digitar código -->
+    <div class="rec-step" id="rec-passo2">
+      <p class="auth-sub">Digite o código de 6 dígitos enviado para:</p>
+      <div class="rec-email-destino" id="rec-email-destino">
+        <strong id="rec-email-texto">***@***.com</strong>
+      </div>
+      <div class="codigo-inputs" id="codigo-inputs">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod0" oninput="avancarCodigo(this,0)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod1" oninput="avancarCodigo(this,1)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod2" oninput="avancarCodigo(this,2)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod3" oninput="avancarCodigo(this,3)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod4" oninput="avancarCodigo(this,4)">
+        <input type="text" inputmode="numeric" maxlength="1" id="cod5" oninput="avancarCodigo(this,5)" onkeyup="if(codigoCompleto())validarCodigo()">
+      </div>
+      <p style="font-size:12px;color:rgba(42,37,32,0.35);text-align:center;margin-bottom:16px;">⏱ Válido por 15 minutos</p>
+      <button class="btn-auth" id="btn-rec2" onclick="validarCodigo()">Verificar código</button>
+      <div class="auth-switch" style="margin-top:16px;">
+        Não recebeu? <button class="btn-link" onclick="reenviarCodigo()">Reenviar e-mail</button>
+        &nbsp;·&nbsp; <a onclick="irParaLogin()">← Voltar</a>
+      </div>
+    </div>
+
+    <!-- PASSO 3: nova senha -->
+    <div class="rec-step" id="rec-passo3">
+      <p class="auth-sub">Escolha uma nova senha para sua conta.</p>
+      <div class="form-group" style="margin-top:8px;">
+        <label>Nova senha *</label>
+        <input type="password" id="rec-senha1" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar nova senha *</label>
+        <input type="password" id="rec-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')redefinirSenha()">
+      </div>
+      <button class="btn-auth" id="btn-rec3" onclick="redefinirSenha()">Salvar nova senha</button>
+    </div>
+
+    <!-- PASSO 4: sucesso -->
+    <div class="rec-step" id="rec-passo4">
+      <div class="rec-sucesso">
+        <div class="rec-sucesso-icone">✅</div>
+        <div class="rec-sucesso-titulo">Senha redefinida!</div>
+        <div class="rec-sucesso-sub">Sua senha foi atualizada com sucesso.<br>Use a nova senha para entrar na sua conta.</div>
+        <button class="btn-auth" style="margin-top:28px;" onclick="irParaLogin()">Ir para o login</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="screen" id="screen-area">
+  <div style="width:100%;max-width:1200px;margin:0 auto;">
+    <div class="area-header">
+      <div>
+        <h1>Olá, <span id="area-nome">Atleta</span>!</h1>
+        <p class="area-subtitulo">Aqui estão todas as suas inscrições</p>
+      </div>
+      <button class="btn-meus-dados" onclick="abrirMeusDados()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Meus Dados
+      </button>
+    </div>
+    <div id="inscricoes-wrap">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div>Carregando suas inscrições...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEUS DADOS -->
+<div class="dados-overlay" id="dados-overlay">
+  <div class="dados-modal">
+    <div class="dados-modal-header">
+      <h3>👤 Meus Dados</h3>
+      <button class="dados-modal-close" onclick="fecharMeusDados()">✕</button>
+    </div>
+    <div class="dados-modal-body">
+      <div class="dados-sucesso" id="dados-sucesso">✅ Dados atualizados com sucesso!</div>
+      <div class="dados-erro" id="dados-erro"></div>
+      <div class="dados-loading" id="dados-loading"><div class="spinner"></div><div>Carregando seus dados...</div></div>
+      <div id="dados-form" style="display:none;">
+        <div class="form-section-label">Dados pessoais</div>
+        <div class="form-row">
+          <div class="form-group"><label>Nome completo *</label><input type="text" id="md-nome" placeholder="Seu nome completo"></div>
+          <div class="form-group"><label>CPF</label><div class="cpf-readonly" id="md-cpf-display">—</div></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Data de nascimento *</label><input type="date" id="md-nasc"></div>
+          <div class="form-group"><label>Gênero *</label><select id="md-genero"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option><option>Prefiro não informar</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>E-mail *</label><input type="email" id="md-email" placeholder="seu@email.com"></div>
+          <div class="form-group"><label>Telefone / WhatsApp *</label><input type="tel" id="md-tel" placeholder="(16) 99999-0000"></div>
+        </div>
+        <div class="form-section-label">Endereço</div>
+        <div class="form-row">
+          <div class="form-group"><label>CEP *</label><input type="text" id="md-cep" placeholder="00000-000" maxlength="9" oninput="mascararCepMd(this)"></div>
+          <div class="form-group"><label>Rua / Logradouro *</label><input type="text" id="md-rua" placeholder="Rua, Avenida..."></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Número *</label><input type="text" id="md-num" placeholder="123"></div>
+          <div class="form-group"><label>Complemento</label><input type="text" id="md-comp" placeholder="Apto, Bloco..."></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Bairro *</label><input type="text" id="md-bairro" placeholder="Seu bairro"></div>
+          <div class="form-group"><label>Cidade *</label><input type="text" id="md-cidade" placeholder="Sua cidade"></div>
+        </div>
+        <div class="form-group" style="max-width:50%;padding-right:6px;"><label>Estado *</label><select id="md-estado"><option value="">UF</option><option>AC</option><option>AL</option><option>AP</option><option>AM</option><option>BA</option><option>CE</option><option>DF</option><option>ES</option><option>GO</option><option>MA</option><option>MT</option><option>MS</option><option>MG</option><option>PA</option><option>PB</option><option>PR</option><option>PE</option><option>PI</option><option>RJ</option><option>RN</option><option>RS</option><option>RO</option><option>RR</option><option>SC</option><option>SP</option><option>SE</option><option>TO</option></select></div>
+        <div class="form-section-label">Contato de emergência</div>
+        <div class="form-row">
+          <div class="form-group"><label>Nome do responsável *</label><input type="text" id="md-emerg-nome" placeholder="Nome completo"></div>
+          <div class="form-group"><label>Telefone do responsável *</label><input type="tel" id="md-emerg-tel" placeholder="(16) 99999-0000"></div>
+        </div>
+        <div class="form-section-label">Alterar senha <span style="font-weight:400;font-size:11px;color:rgba(42,37,32,0.4);letter-spacing:0;">(opcional)</span></div>
+        <div class="form-row">
+          <div class="form-group"><label>Nova senha</label><input type="password" id="md-senha" placeholder="Mínimo 6 caracteres"></div>
+          <div class="form-group"><label>Confirmar nova senha</label><input type="password" id="md-senha2" placeholder="Repita a senha"></div>
+        </div>
+        <button class="btn-salvar-dados" id="btn-salvar-dados" onclick="salvarMeusDados()">Salvar alterações</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IFRAME oculto para impressão (evita bloqueio do Edge em about:blank) -->
+<iframe id="print-iframe" style="position:fixed;top:-9999px;left:-9999px;width:800px;height:1000px;border:none;" title="Impressão"></iframe>
+
+<script>
+const LOGO_PDF = 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzUwMCA4MTAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZmlsbD0iI2ZmZmZmZiIgZmlsbC1ydWxlPSJldmVub2RkIiBkPSJtMTE3MC42NSA2NjkuNzRjLTI2Ljc1IDAtNDguMzctMjEuNzQtNDguMzctNDguNjUgMC0yNi45MSAyMS42Mi00OC42NSA0OC4zNy00OC42NSAyNi43NSAwIDQ4LjM3IDIxLjc0IDQ4LjM3IDQ4LjY1IDAgMjYuOTEtMjEuNjIgNDguNjUtNDguMzcgNDguNjV6bTEzMjIuMjgtMjM2LjQ3cTAgNTMuODItMTUuMjEgOTcuODUtMTUuNzYgNDUuMTItNDQuNTcgNzYuNjUtMzAuNDMgMzEuNTMtNzEuMTkgNDguMzgtNDAuMjIgMTcuNC05MS44NSAxNy40LTUwLjU1IDAtOTEuMzEtMTcuNC00MC43Ni0xNi44NS03MC42NS00OC4zOC0yOC44LTMxLjUzLTQ1LjY1LTc2LjY1LTE2LjMtNDQuMDMtMTYuMy05Ny44NSAwLTUzLjI4IDE2Ljg0LTk3Ljg1IDE3LjM5LTQzLjQ5IDQ2Ljc0LTc1LjU3IDI5LjM1LTMwLjQ0IDcwLjY1LTQ3LjI5IDQxLjg1LTE3Ljk0IDg5LjY4LTE3Ljk0IDQ4LjM3IDAgODkuNjcgMTcuOTQgNDEuODUgMTYuODUgNzAuNjUgNDcuMjkgMjkuOSAzMi4wOCA0Ni4yIDc1LjU3IDE2LjMgNDQuNTcgMTYuMyA5Ny44NXptLTEzMS41MiAwcTAtNTkuOC0yMy4zNy05My41MS0yMy45MS0zNC4yNC02Ny45My0zNC4yNC00NC4wMiAwLTY3Ljk0IDM0LjI0LTI1IDMzLjcxLTI1IDkzLjUxIDAgNTkuMjUgMjUgOTQuNTkgMjMuOTIgMzQuNzkgNjcuOTQgMzQuNzkgNDQuMDIgMCA2Ny45My0zNC43OSAyMy4zNy0zNS4zNCAyMy4zNy05NC41OXptLTMzOS4xMy0zLjgxcTAgNTIuMTktMTMuMDQgOTQuNTktMTIuNSA0Mi40MS0zNi45NiA3Mi44NS0yNS41NCAzMC40NC02MS40MSA0Ny44NC0zNi45NiAxNi44NS04NC43OCAxNi44NS0yNi4wOSAwLTQ5LjQ2LTUuNDQtMjIuMjgtNC4zNC00NC4wMi0xMy41OXYxNjcuNDRoLTEyNi42M3YtNTg4Ljc1cTE3LjM5LTQuODkgMzkuMTMtMTAuODcgMjIuMjgtMy44IDQ2LjE5LTcuMDYgMjQuNDYtMy44MSA1MC01Ljk4IDI1LTIuMTggNDcuODMtMi4xOCA1NC44OSAwIDk4LjM3IDE2Ljg1IDQyLjkzIDE2Ljg2IDczLjM3IDQ2Ljc2IDI5Ljg5IDMwLjQ0IDQ1LjExIDczLjkzIDE2LjMgNDIuOTQgMTYuMyA5Ni43NnptLTEyOS44OSAzLjI2cTAtNTkuMjUtMjUuNTQtOTQuMDQtMjYuNjMtMzUuODgtNzguMjYtMzUuODgtMTcuMzkgMC0zMi4wNyAxLjYzLTE0LjY3IDEuNjMtMjMuOTEgMi43MnYyMjkuNDFxMTIuNSA3LjA2IDMxLjUyIDEzLjA0IDE5LjAyIDQuMzUgMzguNTkgNC4zNSA4OS42NyAwIDg5LjY3LTEyMS4yM3ptODk0LjAyLTEwOS4yNnEtMTYuODUtNC4zNS00MC4yMS05Ljc5LTIyLjgzLTQuMzUtNDkuNDYtNC4zNS0xMS40MSAwLTI4LjI2IDIuNzItMTYuMzEgMS4wOS0yNSA0LjM1djM0MC44NWgtMTI2LjYzdi00MjEuODVxMzQuMjQtMTIuNSA4MC45OC0yMi44MyA0NS42NS0xMC44OCAxMDIuMTctMTAuODggMTAuODcgMCAyNS41NCAxLjY0IDE0LjEzIDEuMDggMjguODEgMy4yNiAxMy41OCAyLjE3IDI4LjI2IDUuNDMgMTQuMTMgMi43MiAyNSA2LjUzem01MjYuMDkgMjQwLjgycTM0LjIzIDAgNDguOTEtNS45OCAxNC42Ny03LjYxIDE0LjY3LTI2LjY0IDAtMTUuMjItMTguNDgtMjYuNjMtMTguNDctMTEuNDItNTYuNTItMjUuNTUtMjkuMzUtMTAuODgtNTMuMjYtMjIuODQtMjQuNDYtMTEuNDEtNDAuNzYtMjcuNzItMTcuMzktMTYuODUtMjYuMDktMzkuMTQtOS4yNC0yMy4zOC05LjI0LTU0LjkxIDAtNjEuNDMgNDUuNjYtOTguMzkgNDYuNzQtMzYuNDMgMTI3LjE3LTM2LjQzIDQwLjIyIDAgNzcuMTcgNy42MSAzNi40MiA3LjA3IDU5LjI0IDE1Ljc3bC0yMi44MiA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEyLjUtMjUtNi41My01Ny42MS02LjUzLTU5LjI0IDAtNTkuMjQgMzIuNjIgMCA3LjA3IDMuMjYgMTMuMDUgMi4xOCA1Ljk4IDkuNzggMTEuOTYgNy42MSA0Ljg5IDIwLjY2IDEwLjg3IDEzLjA0IDYuNTIgMzMuMTUgMTMuNTkgNDEuMyAxNS4yMiA2Ny45MyAzMC40NCAyNi42MyAxNS4yMiA0Mi4zOSAzMS41MyAxNS43NiAxNy45NCAyMS43NCAzOS4xNCA2LjUzIDIxLjIgNi41MyA0OC4zOSAwIDY1LjIzLTQ5LjQ2IDk4Ljk0LTQ4LjkxIDMzLjctMTM4LjU5IDMzLjctNTkuMjQgMC05Ny44Mi05Ljc5LTM5LjEzLTEwLjMyLTUzLjgxLTE3LjM5bDIwLjY1LTEwMS42NnEzMi4wNyAxMi41IDY1LjIyIDIwLjEyIDMzLjcgNy4wNiA2Ni4zMSA3LjA2em0tNDgwLjk4LTQ3My40OWwxMzAuNDMtMjAuMTJ2MTM1LjM2aDE1NS45OHYxMDcuNjRoLTE1NS45OHYxNjEuNDZxMCA0MC43NyAxNC4xMyA2NS4yMyAxNC4xMyAyMy45MiA1OC4xNSAyMy45MiAyMC42NiAwIDQyLjQtMy4yNiAyMi44Mi0zLjggNDEuMy0xMC44N2wxOC40OCAxMDEuNjZxLTIzLjkyIDkuNzgtNTIuNzIgMTUuNzYtMjguOCA3LjA3LTcwLjY1IDcuMDctNTMuMjYgMC04OC41OS0xMy41OS0zNC4yNC0xNC42OC01NC44OS00MC43Ny0yMS4yLTI1LjU1LTI5Ljg5LTYxLjk4LTguMTUtMzcuNTEtOC4xNS04MS41NHptLTE0MzYuOTYgNDc0LjA0cTM0Ljc4IDAgNDkuNDYtNS45OCAxNC4xMy03LjA3IDE0LjEzLTI2LjY0IDAtMTQuNjgtMTguNDgtMjYuNjQtMTguNDgtMTAuODctNTUuOTgtMjUuNTUtMjkuMzUtMTAuODctNTMuMjYtMjIuMjgtMjQuNDYtMTEuNDItNDAuNzYtMjguMjctMTcuMzktMTYuMzEtMjYuNjMtMzkuMTQtOC43LTIyLjg0LTguNy01My44MiAwLTYzLjA2IDQ1LjY1LTk4Ljk0IDQ2Ljc0LTM2LjQzIDEyNy4xOC0zNi40MyAzOS42NyAwIDc3LjE3IDcuNjIgMzYuNDIgNy4wNiA1OC43IDE1Ljc2bC0yMi4yOCA5Ny4zMXEtMjEuMi03LjYxLTQ2Ljc0LTEzLjU5LTI2LjA5LTUuOTgtNTcuNjEtNS45OC01OS4yNCAwLTU5LjI0IDMzLjE2IDAgNy4wNyAyLjcyIDEzLjA1IDIuNzEgNS45OCAxMC4zMiAxMS45NiA4LjE1IDQuODkgMjAuNjUgMTAuODcgMTMuMDUgNy4wNyAzMy4xNiAxMy41OSA0MS4zIDE1LjIyIDY3LjkzIDMwLjQ0IDI2LjYzIDE0LjY4IDQyLjM5IDMxLjUzIDE1LjIyIDE3Ljk0IDIxLjIgMzguNiA3LjA2IDIxLjIgNy4wNiA0OS40NyAwIDY0LjE1LTQ5LjQ1IDk4LjQtNDkuNDYgMzMuMTYtMTM5LjEzIDMzLjE2LTU4LjE2IDAtOTcuODMtOS43OS0zOS4xMy05Ljc4LTUzLjI2LTE2LjMxbDIwLjExLTEwMi43NHEzMi4wNiAxMy4wNCA2Ni4zIDIwLjY2IDMzLjE2IDYuNTIgNjUuMjIgNi41MnptLTEzMDguMTUgMjQ0LjYzcS0xMS45NiAwLTM1Ljg3LTIuNzItMjQuNDYtMi43Mi00NS4xMS05Ljc4bDE3LjkzLTEwNC45MnExMi41IDQuMzUgMjMuOTIgNS45OCAxMC4zMiAxLjA4IDI3LjE3IDEuMDggMzAuNDQgMCA0Mi45NC0xNy45NCAxMS40MS0xNy45MyAxMS40MS01My4yN3YtNDM4LjE2aDEyOS44OXY0NDEuNDJxMCA5MC43OS00NC41NiAxMzQuODItNDQuMDMgNDMuNDktMTI3LjcyIDQzLjQ5em02MDguNjktMzc2LjE5cTAgNTMuMjgtMTUuNzYgOTUuNjgtMTUuMjEgNDMuNDktNDQuNTYgNzMuMzktMjkuMzUgMzAuNDQtNzEuNzQgNDcuMjktNDIuMzkgMTUuNzctOTcuODMgMTUuNzctMjIuMjggMC00Ny4yOC0xLjYzLTI1LTIuMTgtNDguOTEtNS40NC0yMy45Mi0zLjgtNDYuMi04LjE1LTIxLjE5LTUuNDQtMzguMDQtOS43OXYtNjE4LjFsMTI1LTE5LjU3djIyMC4xN3EyMS4xOS05LjI0IDQ0LjAyLTE0LjEzIDIyLjI4LTUuNDQgNDcuODMtNS40NCA0Ny4yOCAwIDg0LjIzIDE2LjMxIDM1LjMzIDE2LjMxIDU5Ljc5IDQ3LjI5IDI0LjQ1IDI5LjkgMzYuOTUgNzEuNzYgMTIuNSA0Mi40IDEyLjUgOTQuNTl6bS0xMjcuMTctMi43MnEwLTEyMS4yMi04OS4xMy0xMjEuMjItMTkuNTcgMC0zOC41OSA0Ljg5LTE4LjQ4IDUuNDMtMzAuNDMgMTIuNXYyMjguMzJxOC42OSAxLjA5IDIzLjkxIDIuMTggMTQuMTMgMi4xNyAzMC40NCAyLjE3IDUxLjYzIDAgNzcuMTctMzUuODggMjYuNjMtMzUuMzMgMjYuNjMtOTIuOTZ6bTMwMy4yNi04OS4xNWw4OS42Ny0xMzYuOTloMTMwLjk4bC0xNTMuOCAyMTYuMzZxNTEuNjMgNjQuMTUgOTIuOTMgMTI1LjAzIDQxLjg1IDYwLjM0IDY3LjM5IDEwOC43M2gtMTM2Ljk1cS02LjUyLTEzLjU5LTE2Ljg1LTMyLjYyLTEwLjMzLTE5LjAzLTIyLjgzLTM5LjY4LTEzLjU4LTIxLjIxLTI3LjcxLTQxLjg2LTE0LjEzLTIxLjIxLTI3LjE4LTM4LjA2LTEzLjA0IDE2LjMxLTI2LjYzIDM1LjM0LTEzLjA0IDE5LjU3LTI1IDQwLjIzLTExLjQxIDE5LjU3LTIzLjM3IDM5LjE0LTExLjQxIDIwLjY1LTIwLjExIDM3LjUxaC0xMjkuMzRxOS43OC0yMS43NSAyNy43MS01MC41NiAxNy45NC0yOS4zNiAzOS4xMy02MC4zNCAyMC42Ni0zMC45OSA0My40OC02Mi41MiAyMi44My0zMC45OSA0NS42NS01OC4xNy0zOC41OC01NC45LTc3LjE3LTEwOS4yNy0zNy41LTU0LjktNzUuNTQtMTA5LjI2aDEzNy41eiIvPjwvc3ZnPg==';
+</script>
+
+<script>
+const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
+
+// ── SESSÃO ──────────────────────────────────────
+let sessao = null;
+
+function salvarSessao(dados) {
+  sessao = dados;
+  localStorage.setItem('jbx_atleta', JSON.stringify(dados));
+}
+function carregarSessao() {
+  try { return JSON.parse(localStorage.getItem('jbx_atleta')); } catch { return null; }
+}
+function logout() {
+  localStorage.removeItem('jbx_atleta');
+  sessao = null;
+  mostrarTela('login');
+  document.getElementById('nav-user').style.display = 'none';
+}
+
+// ── TELAS ────────────────────────────────────────
+function mostrarTela(nome) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + nome).classList.add('active');
+}
+function irParaCadastro() { mostrarTela('cadastro'); limparErros(); }
+function irParaLogin()    { mostrarTela('login');    limparErros(); }
+function limparErros() {
+  document.querySelectorAll('.auth-erro').forEach(e => { e.textContent = ''; e.classList.remove('show'); });
+}
+function mostrarErro(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('show');
+}
+
+// ── MÁSCARAS ─────────────────────────────────────
+function mascararCpf(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if (v.length > 9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+  el.value = v;
+}
+
+function mascararCep(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.slice(0,5)+'-'+v.slice(5);
+  el.value = v;
+  if (v.replace(/\D/g,'').length === 8) buscarCep(v.replace(/\D/g,''));
+}
+
+async function buscarCep(cep) {
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (d.erro) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('cad-rua',    d.logradouro);
+    set('cad-bairro', d.bairro);
+    set('cad-cidade', d.localidade);
+    set('cad-estado', d.uf);
+    const numEl = document.getElementById('cad-num');
+    if (numEl) numEl.focus();
+  } catch(e) {}
+}
+
+// ── RPC ──────────────────────────────────────────
+async function rpc(fn, params) {
+  const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+  const text = await r.text();
+  return text ? JSON.parse(text) : {};
+}
+
+// ── LOGIN ────────────────────────────────────────
+async function fazerLogin() {
+  limparErros();
+  const cpf   = document.getElementById('login-cpf').value;
+  const senha = document.getElementById('login-senha').value;
+
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('login-erro', 'CPF inválido.');
+  if (!senha) return mostrarErro('login-erro', 'Digite sua senha.');
+
+  const btn = document.getElementById('btn-login');
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+
+  try {
+    const res = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
+    if (!res.ok) {
+      mostrarErro('login-erro', res.erro || 'Erro ao fazer login.');
+    } else {
+      salvarSessao(res);
+      entrarNaArea(res);
+    }
+  } catch(e) {
+    mostrarErro('login-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Entrar'; btn.disabled = false;
+}
+
+// ── CADASTRO ─────────────────────────────────────
+async function fazerCadastro() {
+  limparErros();
+  const nome       = (document.getElementById('cad-nome').value || '').trim();
+  const cpf        = document.getElementById('cad-cpf').value;
+  const nasc       = document.getElementById('cad-nasc').value;
+  const genero     = document.getElementById('cad-genero').value;
+  const email      = document.getElementById('cad-email').value.trim();
+  const tel        = document.getElementById('cad-tel').value.trim();
+  const cep        = document.getElementById('cad-cep').value.trim();
+  const rua        = document.getElementById('cad-rua').value.trim();
+  const num        = document.getElementById('cad-num').value.trim();
+  const comp       = document.getElementById('cad-comp').value.trim();
+  const bairro     = document.getElementById('cad-bairro').value.trim();
+  const cidade     = document.getElementById('cad-cidade').value.trim();
+  const estado     = document.getElementById('cad-estado').value;
+  const emergNome  = document.getElementById('cad-emerg-nome').value.trim();
+  const emergTel   = document.getElementById('cad-emerg-tel').value.trim();
+  const senha      = document.getElementById('cad-senha').value;
+  const senha2     = document.getElementById('cad-senha2').value;
+
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) return mostrarErro('cad-erro', 'Digite seu nome completo (nome e sobrenome).');
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('cad-erro', 'CPF inválido.');
+  if (!nasc) return mostrarErro('cad-erro', 'Informe sua data de nascimento.');
+  if (!genero) return mostrarErro('cad-erro', 'Selecione o gênero.');
+  if (!email || !email.includes('@')) return mostrarErro('cad-erro', 'E-mail inválido.');
+  if (!tel) return mostrarErro('cad-erro', 'Informe seu telefone/WhatsApp.');
+  if (!cep || cep.replace(/\D/g,'').length < 8) return mostrarErro('cad-erro', 'CEP inválido.');
+  if (!rua) return mostrarErro('cad-erro', 'Informe o logradouro.');
+  if (!num) return mostrarErro('cad-erro', 'Informe o número.');
+  if (!bairro) return mostrarErro('cad-erro', 'Informe o bairro.');
+  if (!cidade) return mostrarErro('cad-erro', 'Informe a cidade.');
+  if (!estado) return mostrarErro('cad-erro', 'Selecione o estado.');
+  if (!emergNome) return mostrarErro('cad-erro', 'Informe o nome do contato de emergência.');
+  if (!emergTel) return mostrarErro('cad-erro', 'Informe o telefone do contato de emergência.');
+  if (senha.length < 6) return mostrarErro('cad-erro', 'Senha deve ter pelo menos 6 caracteres.');
+  if (senha !== senha2) return mostrarErro('cad-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-cad');
+  btn.textContent = 'Criando conta...'; btn.disabled = true;
+
+  try {
+    const res = await rpc('atleta_cadastrar', {
+      p_cpf: cpf, p_email: email, p_senha: senha, p_nome: nome,
+      p_nascimento: nasc, p_genero: genero, p_telefone: tel,
+      p_cep: cep, p_rua: rua, p_numero: num, p_complemento: comp,
+      p_bairro: bairro, p_cidade: cidade, p_estado: estado,
+      p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel
+    });
+    if (!res.ok) {
+      mostrarErro('cad-erro', res.erro || 'Erro ao criar conta.');
+    } else {
+      // Envia e-mail de boas-vindas (sem bloquear o fluxo)
+      fetch('/api/enviar-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'boas_vindas', email, nome })
+      }).catch(() => {});
+
+      const login = await rpc('atleta_login', { p_cpf: cpf, p_senha: senha });
+      if (login.ok) { salvarSessao(login); entrarNaArea(login); }
+      else irParaLogin();
+    }
+  } catch(e) {
+    mostrarErro('cad-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Criar conta'; btn.disabled = false;
+}
+ 
+function irParaRecuperacao() {
+  limparErros();
+  // Reseta todos os passos
+  document.querySelectorAll('.rec-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('rec-passo1').classList.add('active');
+  document.getElementById('rec-cpf').value = '';
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('cod' + i);
+    if (el) { el.value = ''; el.classList.remove('filled'); }
+  }
+  document.getElementById('rec-senha1').value = '';
+  document.getElementById('rec-senha2').value = '';
+  mostrarTela('recuperacao');
+}
+
+function irParaPassoRec(n) {
+  document.querySelectorAll('.rec-step').forEach(s => s.classList.remove('active'));
+  document.getElementById('rec-passo' + n).classList.add('active');
+}
+
+// Navega entre os inputs do código automaticamente
+function avancarCodigo(el, idx) {
+  el.value = el.value.replace(/\D/g, '');
+  el.classList.toggle('filled', el.value !== '');
+  if (el.value && idx < 5) {
+    document.getElementById('cod' + (idx + 1)).focus();
+  }
+}
+
+function codigoCompleto() {
+  for (let i = 0; i < 6; i++) {
+    if (!document.getElementById('cod' + i).value) return false;
+  }
+  return true;
+}
+
+function getCodigo() {
+  return Array.from({length: 6}, (_, i) => document.getElementById('cod' + i).value).join('');
+}
+
+// PASSO 1 → solicitar código
+async function solicitarCodigo() {
+  limparErros();
+  const cpf = document.getElementById('rec-cpf').value;
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('rec-erro', 'CPF inválido.');
+
+  const btn = document.getElementById('btn-rec1');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'solicitar', cpf })
+    });
+    const dados = await res.json();
+
+    if (!dados.ok) {
+      mostrarErro('rec-erro', dados.erro || 'CPF não encontrado.');
+    } else {
+      document.getElementById('rec-email-texto').textContent = dados.email_mascarado;
+      irParaPassoRec(2);
+      setTimeout(() => document.getElementById('cod0').focus(), 100);
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Enviar código'; btn.disabled = false;
+}
+
+async function reenviarCodigo() {
+  const cpf = document.getElementById('rec-cpf').value;
+  if (!cpf) { irParaPassoRec(1); return; }
+  // Limpa campos do código
+  for (let i = 0; i < 6; i++) {
+    const el = document.getElementById('cod' + i);
+    if (el) { el.value = ''; el.classList.remove('filled'); }
+  }
+  limparErros();
+  try {
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'solicitar', cpf })
+    });
+    const dados = await res.json();
+    if (dados.ok) {
+      mostrarErro('rec-erro', '✅ Novo código enviado para ' + dados.email_mascarado);
+      document.getElementById('rec-erro').style.background = 'rgba(34,197,94,0.1)';
+      document.getElementById('rec-erro').style.borderColor = 'rgba(34,197,94,0.3)';
+      document.getElementById('rec-erro').style.color = '#22c55e';
+    } else {
+      mostrarErro('rec-erro', dados.erro || 'Erro ao reenviar.');
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão.');
+  }
+}
+
+// PASSO 2 → validar código (apenas avança para passo 3, validação real acontece no redefinir)
+function validarCodigo() {
+  limparErros();
+  if (!codigoCompleto()) return mostrarErro('rec-erro', 'Digite todos os 6 dígitos do código.');
+  irParaPassoRec(3);
+  setTimeout(() => document.getElementById('rec-senha1').focus(), 100);
+}
+
+// PASSO 3 → redefinir senha
+async function redefinirSenha() {
+  limparErros();
+  const senha1 = document.getElementById('rec-senha1').value;
+  const senha2 = document.getElementById('rec-senha2').value;
+  const cpf    = document.getElementById('rec-cpf').value;
+  const codigo = getCodigo();
+
+  if (senha1.length < 6) return mostrarErro('rec-erro', 'A senha deve ter pelo menos 6 caracteres.');
+  if (senha1 !== senha2) return mostrarErro('rec-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-rec3');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'redefinir', cpf, codigo, senha_nova: senha1 })
+    });
+    const dados = await res.json();
+
+    if (!dados.ok) {
+      mostrarErro('rec-erro', dados.erro || 'Código inválido ou expirado. Solicite um novo.');
+      // Se o código expirou, volta pro passo 1
+      if (dados.erro && dados.erro.includes('expirado')) {
+        setTimeout(() => irParaPassoRec(1), 2000);
+      }
+    } else {
+      irParaPassoRec(4);
+    }
+  } catch(e) {
+    mostrarErro('rec-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Salvar nova senha'; btn.disabled = false;
+}
+
+// MD5 via Web Crypto (mesmo padrão do sistema)
+async function gerarMd5(str) {
+  // Usa a mesma lógica que o backend: md5 puro
+  // Como Web Crypto não tem MD5, usamos uma implementação simples
+  function md5(string) {
+    function safeAdd(x, y) { const lsw = (x & 0xffff) + (y & 0xffff); return (((x >> 16) + (y >> 16) + (lsw >> 16)) << 16) | (lsw & 0xffff); }
+    function bitRotateLeft(num, cnt) { return (num << cnt) | (num >>> (32 - cnt)); }
+    function md5cmn(q,a,b,x,s,t) { return safeAdd(bitRotateLeft(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b); }
+    function md5ff(a,b,c,d,x,s,t) { return md5cmn((b&c)|((~b)&d),a,b,x,s,t); }
+    function md5gg(a,b,c,d,x,s,t) { return md5cmn((b&d)|(c&(~d)),a,b,x,s,t); }
+    function md5hh(a,b,c,d,x,s,t) { return md5cmn(b^c^d,a,b,x,s,t); }
+    function md5ii(a,b,c,d,x,s,t) { return md5cmn(c^(b|(~d)),a,b,x,s,t); }
+    const str8 = unescape(encodeURIComponent(string));
+    const x = [];
+    for (let i = 0; i < str8.length; i++) { x[i >> 2] |= str8.charCodeAt(i) << ((i % 4) * 8); }
+    x[str8.length >> 2] |= 0x80 << ((str8.length % 4) * 8);
+    x[(((str8.length + 8) >> 6) << 4) + 14] = str8.length * 8;
+    let a=1732584193, b=-271733879, c=-1732584194, d=271733878;
+    for (let i = 0; i < x.length; i += 16) {
+      const [oa,ob,oc,od]=[a,b,c,d];
+      a=md5ff(a,b,c,d,x[i],7,-680876936);d=md5ff(d,a,b,c,x[i+1],12,-389564586);c=md5ff(c,d,a,b,x[i+2],17,606105819);b=md5ff(b,c,d,a,x[i+3],22,-1044525330);
+      a=md5ff(a,b,c,d,x[i+4],7,-176418897);d=md5ff(d,a,b,c,x[i+5],12,1200080426);c=md5ff(c,d,a,b,x[i+6],17,-1473231341);b=md5ff(b,c,d,a,x[i+7],22,-45705983);
+      a=md5ff(a,b,c,d,x[i+8],7,1770035416);d=md5ff(d,a,b,c,x[i+9],12,-1958414417);c=md5ff(c,d,a,b,x[i+10],17,-42063);b=md5ff(b,c,d,a,x[i+11],22,-1990404162);
+      a=md5ff(a,b,c,d,x[i+12],7,1804603682);d=md5ff(d,a,b,c,x[i+13],12,-40341101);c=md5ff(c,d,a,b,x[i+14],17,-1502002290);b=md5ff(b,c,d,a,x[i+15],22,1236535329);
+      a=md5gg(a,b,c,d,x[i+1],5,-165796510);d=md5gg(d,a,b,c,x[i+6],9,-1069501632);c=md5gg(c,d,a,b,x[i+11],14,643717713);b=md5gg(b,c,d,a,x[i],20,-373897302);
+      a=md5gg(a,b,c,d,x[i+5],5,-701558691);d=md5gg(d,a,b,c,x[i+10],9,38016083);c=md5gg(c,d,a,b,x[i+15],14,-660478335);b=md5gg(b,c,d,a,x[i+4],20,-405537848);
+      a=md5gg(a,b,c,d,x[i+9],5,568446438);d=md5gg(d,a,b,c,x[i+14],9,-1019803690);c=md5gg(c,d,a,b,x[i+3],14,-187363961);b=md5gg(b,c,d,a,x[i+8],20,1163531501);
+      a=md5gg(a,b,c,d,x[i+13],5,-1444681467);d=md5gg(d,a,b,c,x[i+2],9,-51403784);c=md5gg(c,d,a,b,x[i+7],14,1735328473);b=md5gg(b,c,d,a,x[i+12],20,-1926607734);
+      a=md5hh(a,b,c,d,x[i+5],4,-378558);d=md5hh(d,a,b,c,x[i+8],11,-2022574463);c=md5hh(c,d,a,b,x[i+11],16,1839030562);b=md5hh(b,c,d,a,x[i+14],23,-35309556);
+      a=md5hh(a,b,c,d,x[i+1],4,-1530992060);d=md5hh(d,a,b,c,x[i+4],11,1272893353);c=md5hh(c,d,a,b,x[i+7],16,-155497632);b=md5hh(b,c,d,a,x[i+10],23,-1094730640);
+      a=md5hh(a,b,c,d,x[i+13],4,681279174);d=md5hh(d,a,b,c,x[i],11,-358537222);c=md5hh(c,d,a,b,x[i+3],16,-722521979);b=md5hh(b,c,d,a,x[i+6],23,76029189);
+      a=md5hh(a,b,c,d,x[i+9],4,-640364487);d=md5hh(d,a,b,c,x[i+12],11,-421815835);c=md5hh(c,d,a,b,x[i+15],16,530742520);b=md5hh(b,c,d,a,x[i+2],23,-995338651);
+      a=md5ii(a,b,c,d,x[i],6,-198630844);d=md5ii(d,a,b,c,x[i+7],10,1126891415);c=md5ii(c,d,a,b,x[i+14],15,-1416354905);b=md5ii(b,c,d,a,x[i+5],21,-57434055);
+      a=md5ii(a,b,c,d,x[i+12],6,1700485571);d=md5ii(d,a,b,c,x[i+3],10,-1894986606);c=md5ii(c,d,a,b,x[i+10],15,-1051523);b=md5ii(b,c,d,a,x[i+1],21,-2054922799);
+      a=md5ii(a,b,c,d,x[i+8],6,1873313359);d=md5ii(d,a,b,c,x[i+15],10,-30611744);c=md5ii(c,d,a,b,x[i+6],15,-1560198380);b=md5ii(b,c,d,a,x[i+13],21,1309151649);
+      a=md5ii(a,b,c,d,x[i+4],6,-145523070);d=md5ii(d,a,b,c,x[i+11],10,-1120210379);c=md5ii(c,d,a,b,x[i+2],15,718787259);b=md5ii(b,c,d,a,x[i+9],21,-343485551);
+      a=safeAdd(a,oa);b=safeAdd(b,ob);c=safeAdd(c,oc);d=safeAdd(d,od);
+    }
+    return [a,b,c,d].map(n => ('0'.repeat(8) + (n < 0 ? n + 4294967296 : n).toString(16)).slice(-8).match(/../g).map(h => h[1]+h[0]).join('')).join('');
+  }
+  return md5(str);
+}
+
+
+
+// ── IMPRIMIR ──────────────────────────────────────
+function formatarDesconto(valorBaseStr, descontoPct) {
+  try {
+    const base = parseFloat(valorBaseStr.replace('R$ ','').replace(',','.'));
+    const orig = base / (1 - parseInt(descontoPct)/100);
+    const diff = orig - base;
+    return 'R$ ' + diff.toFixed(2).replace('.',',');
+  } catch(e) { return ''; }
+}
+
+function imprimirInscricao(id) {
+  const card = document.querySelector(`[data-insc-id="${id}"]`);
+  if (!card) return;
+  const evento     = card.dataset.evento     || '—';
+  const status     = card.dataset.status     || '—';
+  const atleta     = card.dataset.atleta     || '—';
+  const kit        = card.dataset.kit        || '—';
+  const modalidade = card.dataset.modalidade || '—';
+  const camisa     = card.dataset.camisa     || '—';
+  const lote       = card.dataset.lote       || '—';
+  const pagamento  = card.dataset.pagamento  || '—';
+  const valor      = card.dataset.valor      || '—';
+  const valorBase  = card.dataset.valorBase  || '';
+  const valorTaxa  = card.dataset.valorTaxa  || '';
+  const cupom      = card.dataset.cupom      || '';
+  const desconto   = card.dataset.desconto   || '0';
+  const data       = card.dataset.data       || '—';
+  const canvas     = document.getElementById('qr-' + id);
+  const qrBase64   = canvas ? canvas.toDataURL('image/png') : null;
+  const statusCor   = { confirmado: '#16a34a', pendente: '#d97706', cancelado: '#dc2626' };
+  const statusLabel = { confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelado: '✕ Cancelado' };
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="UTF-8"><title>Comprovante — ${evento}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:Arial,sans-serif; background:#fff; color:#1a1a1a; padding:40px; }
+  .header { background:#ff751f; padding:24px 32px; border-radius:12px; margin-bottom:28px; display:flex; justify-content:space-between; align-items:center; }
+  .header div .titulo { color:#fff; font-size:22px; font-weight:700; }
+  .header div .sub { color:rgba(255,255,255,0.8); font-size:13px; margin-top:3px; }
+  .evento-nome { font-size:20px; font-weight:700; margin-bottom:6px; }
+  .badge { display:inline-block; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid; margin-bottom:20px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:24px; }
+  tr { border-bottom:1px solid #f0ede9; }
+  td { padding:11px 4px; font-size:14px; }
+  td:first-child { color:#888; width:45%; }
+  td:last-child { font-weight:600; text-align:right; }
+  .destaque { color:#ff751f; font-size:16px; font-weight:700; }
+  .qr-box { text-align:center; padding:20px; background:#faf9f7; border-radius:10px; border:1px solid #e8e4e0; margin-bottom:24px; }
+  .qr-id { font-family:monospace; font-size:11px; color:#aaa; margin-top:8px; }
+  .rodape { font-size:11px; color:#bbb; text-align:center; border-top:1px solid #f0ede9; padding-top:16px; }
+  @media print { body { padding:24px; -webkit-print-color-adjust:exact; print-color-adjust:exact; } @page { margin:16px; size:A4; } }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+</style></head>
+<body>
+<div class="header">
+  <div><div class="titulo">Comprovante de Inscrição</div><div class="sub">JBX Sports — Eventos Esportivos</div></div>
+  <img src="${LOGO_PDF}" style="height:36px;" alt="JBX Sports">
+</div>
+<div class="evento-nome">${evento}</div>
+<span class="badge" style="color:${statusCor[status]||'#888'};border-color:${statusCor[status]||'#ccc'};">${statusLabel[status]||status}</span>
+<table>
+  <tr><td>Atleta</td><td>${atleta}</td></tr>
+  <tr><td>Kit</td><td>${kit}</td></tr>
+  <tr><td>Modalidade</td><td>${modalidade}</td></tr>
+  <tr><td>Camiseta</td><td>${camisa}</td></tr>
+  <tr><td>Lote</td><td>${lote}</td></tr>
+  <tr><td>Forma de pagamento</td><td>${pagamento}</td></tr>
+  <tr><td>Data da inscrição</td><td>${data}</td></tr>
+  ${valorBase ? `<tr><td>Valor da inscrição</td><td>${valorBase}</td></tr>` : ''}
+  ${cupom && parseInt(desconto) > 0 ? `<tr><td>Cupom (${cupom} − ${desconto}%)</td><td style="color:#16a34a;">− ${valorBase && valor ? formatarDesconto(valorBase, desconto) : ''}</td></tr>` : ''}
+  ${valorTaxa ? `<tr><td>Taxa de serviço</td><td>${valorTaxa}</td></tr>` : ''}
+  <tr><td>Valor pago</td><td class="destaque">${valor}</td></tr>
+</table>
+${qrBase64 ? `<div class="qr-box"><p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;">🎫 QR Code — Retirada do kit</p><img src="${qrBase64}" style="width:150px;height:150px;"><div class="qr-id">${id}</div></div>` : ''}
+<div class="rodape">Documento gerado em ${new Date().toLocaleString('pt-BR')} · jbx-sports.vercel.app</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+
+  const iframe = document.getElementById('print-iframe');
+  iframe.onload = function() {
+    setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 400);
+  };
+  iframe.srcdoc = html;
+}
+
+// ── MEUS DADOS ────────────────────────────────────
+function mascararCepMd(el) {
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.slice(0,5)+'-'+v.slice(5);
+  el.value = v;
+  if (v.replace(/\D/g,'').length === 8) buscarCepMd(v.replace(/\D/g,''));
+}
+async function buscarCepMd(cep) {
+  try {
+    const r = await fetch('https://viacep.com.br/ws/' + cep + '/json/');
+    const d = await r.json();
+    if (d.erro) return;
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('md-rua', d.logradouro); set('md-bairro', d.bairro);
+    set('md-cidade', d.localidade); set('md-estado', d.uf);
+    document.getElementById('md-num').focus();
+  } catch(e) {}
+}
+async function abrirMeusDados() {
+  document.getElementById('dados-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('dados-sucesso').classList.remove('show');
+  document.getElementById('dados-erro').classList.remove('show');
+  document.getElementById('dados-loading').style.display = 'block';
+  document.getElementById('dados-form').style.display = 'none';
+  document.getElementById('md-senha').value = '';
+  document.getElementById('md-senha2').value = '';
+  const s = carregarSessao();
+  if (!s || !s.token) { fecharMeusDados(); return; }
+  const [cpf, hash] = (s.token || '').split(':');
+  try {
+    const res = await rpc('atleta_buscar_dados', { p_cpf: cpf, p_senha_hash: hash });
+    if (!res || !res.ok) {
+      document.getElementById('dados-loading').style.display = 'none';
+      document.getElementById('dados-erro').textContent = res?.erro || 'Erro ao carregar dados.';
+      document.getElementById('dados-erro').classList.add('show');
+      return;
+    }
+    const d = res.dados;
+    document.getElementById('md-cpf-display').textContent = cpf;
+    document.getElementById('md-nome').value       = d.nome             || '';
+    document.getElementById('md-nasc').value       = d.nascimento       || '';
+    document.getElementById('md-genero').value     = d.genero           || '';
+    document.getElementById('md-email').value      = d.email            || '';
+    document.getElementById('md-tel').value        = d.telefone         || '';
+    document.getElementById('md-cep').value        = d.cep              || '';
+    document.getElementById('md-rua').value        = d.rua              || '';
+    document.getElementById('md-num').value        = d.numero           || '';
+    document.getElementById('md-comp').value       = d.complemento      || '';
+    document.getElementById('md-bairro').value     = d.bairro           || '';
+    document.getElementById('md-cidade').value     = d.cidade           || '';
+    document.getElementById('md-estado').value     = d.estado           || '';
+    document.getElementById('md-emerg-nome').value = d.emergencia_nome  || '';
+    document.getElementById('md-emerg-tel').value  = d.emergencia_telefone || '';
+    document.getElementById('dados-loading').style.display = 'none';
+    document.getElementById('dados-form').style.display = 'block';
+  } catch(e) {
+    document.getElementById('dados-loading').style.display = 'none';
+    document.getElementById('dados-erro').textContent = 'Erro de conexão.';
+    document.getElementById('dados-erro').classList.add('show');
+  }
+}
+function fecharMeusDados() {
+  document.getElementById('dados-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const overlay = document.getElementById('dados-overlay');
+  if (overlay) overlay.addEventListener('click', function(e) { if (e.target === this) fecharMeusDados(); });
+});
+async function salvarMeusDados() {
+  document.getElementById('dados-sucesso').classList.remove('show');
+  document.getElementById('dados-erro').classList.remove('show');
+  const nome      = document.getElementById('md-nome').value.trim();
+  const nasc      = document.getElementById('md-nasc').value;
+  const genero    = document.getElementById('md-genero').value;
+  const email     = document.getElementById('md-email').value.trim();
+  const tel       = document.getElementById('md-tel').value.trim();
+  const cep       = document.getElementById('md-cep').value.trim();
+  const rua       = document.getElementById('md-rua').value.trim();
+  const num       = document.getElementById('md-num').value.trim();
+  const comp      = document.getElementById('md-comp').value.trim();
+  const bairro    = document.getElementById('md-bairro').value.trim();
+  const cidade    = document.getElementById('md-cidade').value.trim();
+  const estado    = document.getElementById('md-estado').value;
+  const emergNome = document.getElementById('md-emerg-nome').value.trim();
+  const emergTel  = document.getElementById('md-emerg-tel').value.trim();
+  const senha     = document.getElementById('md-senha').value;
+  const senha2    = document.getElementById('md-senha2').value;
+  const erroEl    = document.getElementById('dados-erro');
+  function erro(msg) { erroEl.textContent = msg; erroEl.classList.add('show'); erroEl.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+  if (!nome || nome.split(' ').filter(Boolean).length < 2) return erro('Digite seu nome completo.');
+  if (!nasc)   return erro('Informe a data de nascimento.');
+  if (!genero) return erro('Selecione o gênero.');
+  if (!email || !email.includes('@')) return erro('E-mail inválido.');
+  if (!tel)    return erro('Informe o telefone.');
+  if (!cep || cep.replace(/\D/g,'').length < 8) return erro('CEP inválido.');
+  if (!rua)    return erro('Informe o logradouro.');
+  if (!num)    return erro('Informe o número.');
+  if (!bairro) return erro('Informe o bairro.');
+  if (!cidade) return erro('Informe a cidade.');
+  if (!estado) return erro('Selecione o estado.');
+  if (!emergNome) return erro('Informe o nome do contato de emergência.');
+  if (!emergTel)  return erro('Informe o telefone do contato de emergência.');
+  if (senha && senha.length < 6) return erro('A nova senha deve ter pelo menos 6 caracteres.');
+  if (senha && senha !== senha2) return erro('As senhas não coincidem.');
+  const btn = document.getElementById('btn-salvar-dados');
+  btn.textContent = 'Salvando...'; btn.disabled = true;
+  const s = carregarSessao();
+  const [cpf, hash] = (s.token || '').split(':');
+  try {
+    const res = await rpc('atleta_atualizar_dados', {
+      p_cpf: cpf, p_senha_hash: hash,
+      p_nome: nome, p_nascimento: nasc, p_genero: genero,
+      p_email: email, p_telefone: tel,
+      p_cep: cep, p_rua: rua, p_numero: num, p_complemento: comp,
+      p_bairro: bairro, p_cidade: cidade, p_estado: estado,
+      p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel,
+      p_nova_senha: senha || null
+    });
+    if (!res || !res.ok) {
+      erro(res?.erro || 'Erro ao salvar dados.');
+    } else {
+      document.getElementById('dados-sucesso').classList.add('show');
+      document.getElementById('md-senha').value = '';
+      document.getElementById('md-senha2').value = '';
+      if (sessao) { sessao.nome = nome; salvarSessao(sessao); document.getElementById('area-nome').textContent = nome.split(' ')[0]; document.getElementById('nav-nome').textContent = nome.split(' ')[0]; }
+      document.getElementById('dados-sucesso').scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+  } catch(e) { erro('Erro de conexão. Tente novamente.'); }
+  btn.textContent = 'Salvar alterações'; btn.disabled = false;
+}
+
+function entrarNaArea(dados) {
+  const nome = dados.nome || dados.cpf;
+  document.getElementById('area-nome').textContent = nome.split(' ')[0];
+  document.getElementById('nav-nome').textContent  = nome.split(' ')[0];
+  document.getElementById('nav-user').style.display = 'flex';
+  mostrarTela('area');
+  carregarInscricoes(dados);
+}
+
+async function carregarInscricoes(dados) {
+  const wrap = document.getElementById('inscricoes-wrap');
+  wrap.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div>Carregando...</div></div>';
+
+  try {
+    const [cpf, hash] = (dados.token || '').split(':');
+    const res = await rpc('atleta_minhas_inscricoes', { p_cpf: cpf, p_senha_hash: hash });
+
+    if (!res.ok) { wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro ao carregar inscrições.</div></div>'; return; }
+
+    const lista = res.inscricoes || [];
+    if (!lista.length) {
+      wrap.innerHTML = `
+        <div class="vazio">
+          <div class="vazio-icone">🏃</div>
+          <div class="vazio-texto" style="font-size:18px;font-weight:700;margin-bottom:8px;">Nenhuma inscrição ainda</div>
+          <div style="font-size:14px;color:rgba(42,37,32,0.4);margin-bottom:24px;">Quando as inscrições abrirem, você poderá se inscrever rapidamente com seus dados já cadastrados.</div>
+          <a href="/" style="background:var(--orange);color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px;">Ver eventos</a>
+        </div>`;
+      return;
+    }
+
+    wrap.innerHTML = `<div class="inscricoes-grid">${lista.map(it => renderInscricao(it, cpf)).join('')}</div>`;
+    // Gera QR codes após renderizar
+    lista.forEach(it => gerarQR(it.id));
+
+  } catch(e) {
+    wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro de conexão.</div></div>';
+  }
+}
+
+function statusBadge(s) {
+  const map = {
+    confirmado: ['status-confirmado', '✓ Confirmado'],
+    pendente:   ['status-pendente',   '⏳ Pendente'],
+    cancelado:  ['status-cancelado',  '✕ Cancelado'],
+  };
+  const [cls, txt] = map[s] || ['status-pendente', s];
+  return `<span class="insc-status ${cls}">${txt}</span>`;
+}
+
+function formatarData(str) {
+  if (!str) return '—';
+  const d = new Date(str);
+  const data = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'short', year:'numeric' });
+  const hora = d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  return data + ' às ' + hora;
+}
+
+function formatarValor(v) {
+  return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+}
+
+
+// ── MASCARA NOME DE TERCEIROS ──────────────────────
+function mascararNomeAtleta(nome) {
+  if (!nome) return '—';
+  return nome.split(' ').map(p => {
+    if (p.length <= 1) return p;
+    return p[0] + '*'.repeat(p.length - 1);
+  }).join(' ');
+}
+
+function renderInscricao(it, cpfTitular) {
+  const desconto = it.desconto_pct ? ` <span style="color:rgba(42,37,32,0.4);font-size:11px;">(-${it.desconto_pct}%)</span>` : '';
+  const dataFormatada = formatarData(it.criado_em);
+  const valorFormatado = formatarValor(it.valor);
+  return `
+  <div class="insc-card"
+    data-insc-id="${it.id}"
+    data-evento="${(it.evento||'').replace(/"/g,'&quot;')}"
+    data-status="${it.status||''}"
+    data-atleta="${(it.cpf === cpfTitular ? (it.nome||'—') : mascararNomeAtleta(it.nome)).replace(/"/g,'&quot;')}"
+    data-kit="${(it.kit||'—').replace(/"/g,'&quot;')}"
+    data-modalidade="${(it.modalidade||'—').replace(/"/g,'&quot;')}"
+    data-camisa="${(it.tamanho_camisa||'—').replace(/"/g,'&quot;')}"
+    data-lote="${(it.lote_nome||'—').replace(/"/g,'&quot;')}"
+    data-pagamento="${(it.forma_pagamento||'—').replace(/"/g,'&quot;')}"
+    data-valor="${valorFormatado}"
+    data-valor-base="${it.valor_base ? formatarValor(it.valor_base) : ''}"
+    data-valor-taxa="${it.valor_taxa ? formatarValor(it.valor_taxa) : ''}"
+    data-cupom="${(it.cupom||'').replace(/"/g,'&quot;')}"
+    data-desconto="${it.desconto_pct || 0}"
+    data-data="${dataFormatada}"
+  >
+    <div class="insc-card-top">
+      <div class="insc-evento">${it.evento}</div>
+      <div style="margin-top:8px;">${statusBadge(it.status)}</div>
+    </div>
+    <div class="insc-detalhes">
+      <div class="insc-row"><span class="insc-label">Atleta</span><span class="insc-val" style="font-weight:700;">${it.cpf === cpfTitular ? (it.nome || '—') : mascararNomeAtleta(it.nome)}</span></div>
+      <div class="insc-row"><span class="insc-label">Kit</span><span class="insc-val">${it.kit || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Modalidade</span><span class="insc-val">${it.modalidade || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Camiseta</span><span class="insc-val">${it.tamanho_camisa || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Lote</span><span class="insc-val">${it.lote_nome || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Pagamento</span><span class="insc-val">${it.forma_pagamento || '—'}</span></div>
+      <div class="insc-row"><span class="insc-label">Valor</span><span class="insc-val orange">${formatarValor(it.valor)}${desconto}</span></div>
+      <div class="insc-row"><span class="insc-label">Data</span><span class="insc-val">${formatarData(it.criado_em)}</span></div>
+    </div>
+    ${it.status === 'confirmado' ? `
+    <div class="insc-qr">
+      <div class="insc-qr-titulo">🎫 QR Code — Retirada do kit</div>
+      <div class="qr-wrap">
+        <canvas id="qr-${it.id}" width="160" height="160"></canvas>
+      </div>
+      <div class="qr-id">${it.id}</div>
+    </div>` : ''}
+    <div style="padding:14px 22px 18px;border-top:1px solid rgba(42,37,32,0.06);">
+      <button onclick="imprimirInscricao('${it.id}')" style="width:100%;background:rgba(42,37,32,0.05);color:rgba(42,37,32,0.65);border:1px solid rgba(42,37,32,0.12);border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(42,37,32,0.1)'" onmouseout="this.style.background='rgba(42,37,32,0.05)'">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir / Salvar PDF
+      </button>
+    </div>
+  </div>`;
+}
+
+function gerarQR(id) {
+  const canvas = document.getElementById('qr-' + id);
+  if (!canvas) return;
+  QRCode.toCanvas(canvas, id, {
+    width: 160, margin: 0,
+    color: { dark: '#000000', light: '#ffffff' }
+  });
+}
+
+// ── INICIALIZAÇÃO ─────────────────────────────────
+(function init() {
+  const s = carregarSessao();
+  if (s && s.token) { entrarNaArea(s); return; }
+  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
+})();
+</script>
+
+<!-- BOTÃO WHATSAPP FLUTUANTE -->
+<a href="https://wa.me/5516981118772" target="_blank" rel="noopener"
+   style="position:fixed;bottom:28px;right:28px;z-index:9999;
+          width:58px;height:58px;border-radius:50%;
+          background:#25d366;
+          display:flex;align-items:center;justify-content:center;
+          box-shadow:0 4px 16px rgba(37,211,102,0.4);
+          transition:transform 0.2s,box-shadow 0.2s;"
+   onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 6px 24px rgba(37,211,102,0.55)'"
+   onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(37,211,102,0.4)'"
+   title="Fale conosco no WhatsApp">
+  <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 3C9.373 3 4 8.373 4 15c0 2.385.663 4.61 1.816 6.51L4 29l7.697-1.793A12.94 12.94 0 0 0 16 28c6.627 0 12-5.373 12-12S22.627 3 16 3z" fill="#ffffff"/>
+    <path d="M21.5 18.5c-.3-.15-1.77-.87-2.04-.97-.28-.1-.48-.15-.68.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.68-1.63-.93-2.23-.24-.58-.49-.5-.68-.51-.17-.01-.37-.01-.57-.01-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.22 1.36.19 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" fill="#25d366"/>
+  </svg>
+</a>
+
+</body>
+</html>
