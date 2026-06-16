@@ -127,8 +127,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .data-table .edit-btn:hover{border-color:var(--orange);color:var(--orange);}
 .status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
 .status-confirmado{background:rgba(22,163,74,.12);color:#16a34a;}
+.status-pago{background:rgba(22,163,74,.12);color:#16a34a;}
 .status-pendente{background:rgba(180,140,0,.12);color:#a07800;}
 .status-cancelado{background:rgba(100,100,100,.1);color:#777;}
+.status-cancelada{background:rgba(100,100,100,.1);color:#777;}
 .btn-export{display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-export:hover{background:rgba(22,163,74,.18);}
 /* KITS & LOTES */
@@ -338,6 +340,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <h2 style="font-size:18px;font-weight:700;">Inscritos</h2>
           <input class="search-input" id="search-inscrito" placeholder="Buscar por nome, CPF…" oninput="filtrarInscritos()">
           <span class="inscritos-count" id="inscritos-count"></span>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="toggle-canceladas" onchange="filtrarInscritos()" style="accent-color:var(--orange);">
+            Mostrar canceladas
+          </label>
           <button class="btn-export" onclick="exportarExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Exportar Excel
@@ -1244,7 +1250,11 @@ function renderCharts(d){const s=a=>a||[];
   mkChart('chart-diario','bar',s(d.diario_15dias).map(x=>x.dia),s(d.diario_15dias).map(x=>x.count));
 }
 function renderInscritos(arr){
-  document.getElementById('inscritos-count').textContent=arr.length+' inscritos';
+  const canceladas = arr.filter(i => i.status === 'cancelada' || i.status === 'cancelado');
+  const ativos     = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
+  document.getElementById('inscritos-count').textContent =
+    ativos.length + ' inscritos' + (canceladas.length ? ' · ' + canceladas.length + ' cancelada(s)' : '');
+  const ativos = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
   const tb=document.getElementById('inscritos-tbody');
   if(!arr.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
@@ -1259,7 +1269,14 @@ function renderInscritos(arr){
     <td><button class="edit-btn" onclick='editarInscrito(${JSON.stringify(i)})'>Editar</button></td>
   </tr>`).join('');
 }
-function filtrarInscritos(){const q=document.getElementById('search-inscrito').value.toLowerCase();renderInscritos(q?todosInscritos.filter(i=>(i.nome||'').toLowerCase().includes(q)||(i.cpf||'').includes(q)):todosInscritos);}
+function filtrarInscritos(){
+  const q = document.getElementById('search-inscrito').value.toLowerCase();
+  const mostrarCanceladas = document.getElementById('toggle-canceladas')?.checked;
+  let arr = todosInscritos;
+  if (!mostrarCanceladas) arr = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
+  if (q) arr = arr.filter(i => (i.nome||'').toLowerCase().includes(q) || (i.cpf||'').includes(q));
+  renderInscritos(arr);
+}
 
 /* ── EXCEL ── */
 async function exportarExcel(){
