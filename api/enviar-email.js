@@ -129,6 +129,46 @@ function linhaDetalhe(label, valor, destaque = false) {
     </tr>`;
 }
 
+
+// ── E-mail 3: Pagamento recusado ──
+function htmlPagamentoRecusado(nome, eventoNome, motivo) {
+  const primeiroNome = (nome || 'Atleta').split(' ')[0];
+  return templateBase(`
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:52px;margin-bottom:16px;">❌</div>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">Pagamento não aprovado</h1>
+      <p style="color:rgba(255,255,255,0.5);font-size:15px;margin:0;">Sua inscrição não foi realizada</p>
+    </div>
+    <p style="color:#ffffff;font-size:16px;margin:0 0 20px;">Olá, <strong>${primeiroNome}</strong>.</p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.8;margin:0 0 24px;">
+      Infelizmente seu pagamento para o evento <strong style="color:#ff751f;">${eventoNome || 'JBX Sports'}</strong> não foi aprovado e sua inscrição <strong>não foi confirmada</strong>.
+    </p>
+
+    <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:10px;padding:16px 20px;margin-bottom:28px;">
+      <p style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0 0 8px;">Motivo</p>
+      <p style="color:#ef4444;font-size:14px;font-weight:600;margin:0;">${motivo || 'Pagamento recusado pelo banco.'}</p>
+    </div>
+
+    <div style="background:#0a0a0a;border-left:3px solid #ff751f;border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:28px;">
+      <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0 0 10px;font-weight:700;">O que fazer agora?</p>
+      <p style="color:rgba(255,255,255,0.55);font-size:13px;margin:0;line-height:1.9;">
+        ✅ Verifique os dados do cartão (número, validade, CVV)<br>
+        ✅ Confirme o limite disponível com seu banco<br>
+        ✅ Tente realizar a inscrição novamente com outro cartão<br>
+        ✅ Em caso de dúvidas, entre em contato com seu banco
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="https://jbx-sports.vercel.app" style="display:inline-block;background:#ff751f;color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:0.3px;">Tentar novamente →</a>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.3);font-size:12px;text-align:center;margin-top:24px;">
+      Dúvidas? Fale com a gente no Instagram <strong>@jbx.sports</strong>
+    </p>
+  `);
+}
+
 // ── Handler ──
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -147,6 +187,12 @@ module.exports = async (req, res) => {
 
     if (tipo === 'confirmacao_inscricao') {
       await enviarResend(email, `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`, htmlConfirmacaoInscricao(item, data_evento));
+      return res.status(200).json({ ok: true });
+    }
+
+    if (tipo === 'pagamento_recusado') {
+      const { evento_nome, motivo } = req.body;
+      await enviarResend(email, `Pagamento não aprovado — ${evento_nome || 'JBX Sports'} ❌`, htmlPagamentoRecusado(nome, evento_nome, motivo));
       return res.status(200).json({ ok: true });
     }
 
