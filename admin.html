@@ -1254,7 +1254,6 @@ function renderInscritos(arr){
   const ativos     = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
   document.getElementById('inscritos-count').textContent =
     ativos.length + ' inscritos' + (canceladas.length ? ' · ' + canceladas.length + ' cancelada(s)' : '');
-  const ativos = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
   const tb=document.getElementById('inscritos-tbody');
   if(!arr.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
