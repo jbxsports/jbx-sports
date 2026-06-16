@@ -630,7 +630,7 @@
 
     /* EVENTOS — 1 coluna no mobile */
     .eventos-grid { grid-template-columns: 1fr !important; gap: 16px; }
-    .event-card-img { height: 220px; }
+    .event-card-img { height: 280px; }
     .event-name { font-size: 18px; }
     .price-val { font-size: 22px; }
     .btn-inscricao { padding: 10px 16px; font-size: 13px; }
@@ -1936,7 +1936,7 @@ function formatarData(dataStr, hora) {
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}${hora ? ' · ' + hora : ''}`;
 }
 
-function renderCard(ev, idx, bannerUrl) {
+function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
   const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
   const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
   const dists = ev.distancias ? ev.distancias.split(',').map(d => d.trim()) : [];
@@ -1955,7 +1955,10 @@ function renderCard(ev, idx, bannerUrl) {
   return `
   <div class="event-card" onclick="${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}" style="${ev.status !== 'open' ? 'cursor:default;' : ''}">
     <div class="event-card-img" style="${imgStyle}">
-      ${bannerUrl ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
+      ${(bannerUrl || bannerMobileUrl) ? `<picture style="position:absolute;inset:0;width:100%;height:100%;z-index:0;">
+        ${bannerMobileUrl ? `<source media="(max-width:768px)" srcset="${bannerMobileUrl}">` : ''}
+        <img src="${bannerUrl || bannerMobileUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center;" onerror="this.style.display='none'">
+      </picture>` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
     </div>
     <div class="event-card-body">
@@ -2017,7 +2020,7 @@ async function carregarEventos() {
     }
     grid.innerHTML = eventos.map((ev, i) => {
       const banner = banners.find(b => b.evento_id === ev.id);
-      return renderCard(ev, i, banner ? banner.url : null);
+      return renderCard(ev, i, banner ? banner.url : null, ev.banner_mobile_url || null);
     }).join('');
 
     // Guardar referência ao próximo evento aberto
