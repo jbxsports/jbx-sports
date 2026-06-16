@@ -187,8 +187,8 @@
   }
 
   .event-card-body { padding: 20px 24px 24px; position: relative; }
-  .event-name { font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #2a2520; }
-  .event-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .event-name { font-size: 22px; font-weight: 700; margin-bottom: 0; color: #2a2520; line-height: 1.2; }
+  .event-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
   .event-meta-item {
     display: flex; align-items: center; gap: 5px;
     font-size: 13px; color: rgba(42,37,32,0.55);
@@ -200,10 +200,11 @@
   .price-val { font-size: 26px; font-weight: 700; color: var(--orange); }
   .btn-inscricao {
     background: var(--orange); color: #ffffff;
-    padding: 10px 22px; border-radius: 6px; border: none;
-    font-size: 14px; font-weight: 700; cursor: pointer;
+    padding: 9px 14px; border-radius: 6px; border: none;
+    font-size: 13px; font-weight: 700; cursor: pointer;
     transition: all 0.2s; font-family: 'Ubuntu', sans-serif;
     text-decoration: none; display: inline-block;
+    white-space: nowrap; line-height: 1.3;
   }
   .btn-inscricao:hover { background: var(--orange-dark); transform: translateY(-1px); }
   .btn-inscricao.disabled { background: #444; cursor: not-allowed; }
@@ -1979,7 +1980,14 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
       <div class="ev-overlay"></div>
     </div>
     <div class="event-card-body">
-      <div class="event-name">${ev.nome}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+        <div class="event-name" style="margin-bottom:0;flex:1;">${ev.nome}</div>
+        <button class="btn-inscricao ${ev.status === 'closed' ? 'disabled' : ''}"
+          style="flex-shrink:0;${ev.status === 'open' ? '' : 'opacity:0.7;cursor:default;'}"
+          onclick="event.stopPropagation();${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}">
+          ${ev.status === 'open' ? 'Inscrições abertas' : ev.status === 'soon' ? 'Em breve' : 'Encerrado'}
+        </button>
+      </div>
       <div class="event-meta">
         <div class="event-meta-item">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -1990,14 +1998,7 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
           ${ev.local || '—'}
         </div>
       </div>
-      <div class="event-price-row">
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">${pills}</div>
-        <button class="btn-inscricao ${ev.status === 'closed' ? 'disabled' : ''}"
-          style="${ev.status === 'open' ? '' : 'opacity:0.7;cursor:default;'}"
-          onclick="event.stopPropagation();${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}">
-          ${ev.status === 'open' ? 'Inscrições abertas' : ev.status === 'soon' ? 'Em breve' : 'Encerrado'}
-        </button>
-      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">${pills}</div>
     </div>
   </div>`;
 }
