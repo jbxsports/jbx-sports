@@ -325,6 +325,9 @@ nav {
     </div>
     <button class="btn-auth" id="btn-login" onclick="fazerLogin()">Entrar</button>
     <div class="auth-switch">
+      <a onclick="irParaPrimeiroAcesso()" style="font-size:13px;color:var(--orange);font-weight:600;">🔑 Primeiro acesso? Crie sua senha</a>
+    </div>
+    <div class="auth-switch">
       <a onclick="irParaRecuperacao()" style="font-size:13px;color:rgba(42,37,32,0.4);">Esqueci minha senha</a>
     </div>
     <div class="auth-switch">
@@ -459,6 +462,36 @@ nav {
 </div>
 
 <!-- TELA RECUPERAÇÃO DE SENHA -->
+<!-- TELA PRIMEIRO ACESSO -->
+<div class="screen" id="screen-primeiro-acesso">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="background:rgba(255,117,31,0.1);border:1px solid rgba(255,117,31,0.3);border-radius:12px;padding:14px 20px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+    </div>
+    <h2 class="auth-title">Crie sua senha</h2>
+    <p class="auth-sub">Sua inscrição foi confirmada! Crie uma senha para acessar sua área do atleta.</p>
+    <div class="auth-erro" id="primeiro-erro"></div>
+    <div class="form-group">
+      <label>CPF</label>
+      <input type="text" id="primeiro-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)" readonly style="background:rgba(42,37,32,0.04);color:rgba(42,37,32,0.6);">
+    </div>
+    <div class="form-group">
+      <label>Criar senha *</label>
+      <input type="password" id="primeiro-senha1" placeholder="Mínimo 6 caracteres">
+    </div>
+    <div class="form-group">
+      <label>Confirmar senha *</label>
+      <input type="password" id="primeiro-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')criarPrimeiraSenha()">
+    </div>
+    <button class="btn-auth" id="btn-primeiro" onclick="criarPrimeiraSenha()">Criar senha e entrar</button>
+    <div class="auth-switch">
+      <a onclick="irParaLogin()">← Já tenho senha, fazer login</a>
+    </div>
+  </div>
+</div>
+
 <div class="screen" id="screen-recuperacao">
   <div class="auth-card">
     <div class="auth-logo">
@@ -786,6 +819,46 @@ async function fazerCadastro() {
   btn.textContent = 'Criar conta'; btn.disabled = false;
 }
  
+function irParaPrimeiroAcesso(cpf) {
+  limparErros();
+  const el = document.getElementById('primeiro-cpf');
+  if (cpf) { el.value = cpf; el.readOnly = true; }
+  else { el.value = ''; el.readOnly = false; }
+  document.getElementById('primeiro-senha1').value = '';
+  document.getElementById('primeiro-senha2').value = '';
+  mostrarTela('primeiro-acesso');
+}
+
+async function criarPrimeiraSenha() {
+  limparErros();
+  const cpf   = document.getElementById('primeiro-cpf').value;
+  const s1    = document.getElementById('primeiro-senha1').value;
+  const s2    = document.getElementById('primeiro-senha2').value;
+
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('primeiro-erro', 'CPF inválido.');
+  if (s1.length < 6)  return mostrarErro('primeiro-erro', 'A senha deve ter pelo menos 6 caracteres.');
+  if (s1 !== s2)      return mostrarErro('primeiro-erro', 'As senhas não coincidem.');
+
+  const btn = document.getElementById('btn-primeiro');
+  btn.textContent = 'Criando...'; btn.disabled = true;
+
+  try {
+    const res = await rpc('criar_conta_primeiro_acesso', { p_cpf: cpf, p_senha: s1 });
+    if (!res.ok) {
+      mostrarErro('primeiro-erro', res.erro || 'Erro ao criar conta.');
+      btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
+      return;
+    }
+    // Conta criada — faz login automático
+    document.getElementById('login-cpf').value = cpf;
+    document.getElementById('login-senha').value = s1;
+    await fazerLogin();
+  } catch(e) {
+    mostrarErro('primeiro-erro', 'Erro de conexão. Tente novamente.');
+    btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
+  }
+}
+
 function irParaRecuperacao() {
   limparErros();
   // Reseta todos os passos
@@ -1330,12 +1403,48 @@ function gerarQR(id) {
 }
 
 // ── INICIALIZAÇÃO ─────────────────────────────────
-(function init() {
+(async function init() {
   const s = carregarSessao();
   if (s && s.token) { entrarNaArea(s); return; }
-  // Se veio com ?tela=cadastro (botão "Cadastre-se" do site), abre direto no cadastro
+
   const params = new URLSearchParams(window.location.search);
-  if (params.get('tela') === 'cadastro') mostrarTela('cadastro');
+
+  // Botão "Cadastre-se" do site
+  if (params.get('tela') === 'cadastro') { mostrarTela('cadastro'); return; }
+
+  // Vindo do link "Ver minha inscrição" do email
+  const pedido = params.get('pedido');
+  if (pedido) {
+    try {
+      // Busca o CPF da inscrição pelo pedido_id
+      const r = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido_id=eq.${pedido}&select=cpf&limit=1`, {
+        headers: { 'apikey': SB_KEY }
+      });
+      const data = await r.json();
+      if (data && data.length > 0 && data[0].cpf) {
+        const cpf = data[0].cpf;
+        // Verifica se já tem conta
+        const check = await rpc('verificar_primeiro_acesso', { p_cpf: cpf });
+        // Formata CPF para exibição
+        const cpfFmt = cpf.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+        if (!check.tem_conta) {
+          // Sem conta → tela de criar senha
+          irParaPrimeiroAcesso(cpfFmt);
+          return;
+        } else {
+          // Tem conta → login com CPF pré-preenchido
+          document.getElementById('login-cpf').value = cpfFmt;
+          mostrarTela('login');
+          setTimeout(() => document.getElementById('login-senha').focus(), 300);
+          return;
+        }
+      }
+    } catch(e) {
+      console.warn('[init] Erro ao verificar pedido:', e.message);
+    }
+  }
+
+  // Padrão: tela de login
 })();
 </script>
 
