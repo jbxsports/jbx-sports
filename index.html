@@ -1424,7 +1424,10 @@ function atualizarResumo() {
   // - se cart tem itens e veio via cancelarAtleta: mostra só o cart (descartou o em edição)
   // Nas etapas 1-3: sempre inclui o snapshot atual para feedback visual
   const naEtapa4 = (currentStep === TOTAL_STEPS);
-  const itens = naEtapa4 && cart.length > 0
+  // Na etapa 4: inclui o atleta atual se ele já escolheu kit (veio pelas etapas normais)
+  // Se currentKit está vazio, significa que veio via cancelarAtleta — mostra só o cart
+  const atualTemKit = !!currentKit;
+  const itens = naEtapa4 && cart.length > 0 && !atualTemKit
     ? [...cart]
     : cart.concat([snapshotAtual()]);
 
