@@ -463,8 +463,25 @@
   .sponsor-bronze   .sponsor-logo img { width: 64px;  height: 26px; }
   @media (max-width: 900px) {
     .ed-layout { grid-template-columns: 1fr; }
-    .ed-col-banner { position: static; height: 260px; }
-    .ed-col-sponsors { border-top: 1px solid rgba(42,37,32,0.06); }
+    .ed-col-banner {
+      position: static; height: 300px;
+      /* gradiente suave na borda inferior para não cortar bruscamente */
+    }
+    .ed-banner {
+      position: relative;
+    }
+    .ed-banner::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, #faf9f7);
+      pointer-events: none;
+    }
+    .ed-col-info { padding: 20px 18px 60px; }
+    .ed-col-sponsors { border-top: 1px solid rgba(42,37,32,0.06); padding: 20px 18px 40px; }
+    .ed-tabs { margin-top: 4px; }
+    .ed-tab { font-size: 14px; padding: 14px 14px; }
   }
   .ed-header {
     display: flex; justify-content: space-between; align-items: flex-start;
