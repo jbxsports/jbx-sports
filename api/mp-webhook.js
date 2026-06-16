@@ -33,7 +33,7 @@ async function enviarWhatsApp(telefone, mensagem) {
   }
 }
 
-// ── E-mail ──
+// ── E-mail confirmação ──
 async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
   if (!email) return;
   try {
@@ -45,6 +45,21 @@ async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
     console.log('[mp-webhook] E-mail confirmação status:', r.status, 'para', email.slice(0,4) + '***');
   } catch(e) {
     console.error('[mp-webhook] Erro e-mail confirmação:', e.message);
+  }
+}
+
+// ── E-mail recusa ──
+async function enviarEmailRecusa(email, nome, eventoNome, motivo) {
+  if (!email) return;
+  try {
+    const r = await fetch(`${SITE_URL}/api/enviar-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo: 'pagamento_recusado', email, nome, evento_nome: eventoNome, motivo })
+    });
+    console.log('[mp-webhook] E-mail recusa status:', r.status, 'para', email.slice(0,4) + '***');
+  } catch(e) {
+    console.error('[mp-webhook] Erro e-mail recusa:', e.message);
   }
 }
 
@@ -64,6 +79,23 @@ async function marcarComoPago(pedido, formaPagamento) {
     console.log('[mp-webhook] confirmar_pagamento status:', res.status, '| forma:', formaPagamento, text);
   } catch(e) {
     console.error('[mp-webhook] Erro confirmar_pagamento:', e.message);
+  }
+}
+
+// ── Supabase: deletar inscrições do pedido (pagamento recusado) ──
+async function deletarInscricoesPedido(pedido) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido_id=eq.${pedido}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+        'Content-Type':  'application/json'
+      }
+    });
+    console.log('[mp-webhook] deletar inscrições recusadas — pedido:', pedido, '| status:', res.status);
+  } catch(e) {
+    console.error('[mp-webhook] Erro deletar inscrições:', e.message);
   }
 }
 
@@ -89,18 +121,41 @@ function formatarData(dataStr, hora) {
 
 // ── Detectar forma de pagamento real do MP ──
 function detectarFormaPagamento(payment) {
-  const tipo = (payment.payment_type_id || '').toLowerCase();
+  const tipo   = (payment.payment_type_id  || '').toLowerCase();
   const metodo = (payment.payment_method_id || '').toLowerCase();
   if (tipo === 'account_money') return 'Mercado Pago';
   if (tipo === 'bank_transfer' || metodo === 'pix') return 'PIX';
-  if (tipo === 'credit_card') return 'Cartão de crédito';
-  if (tipo === 'debit_card') return 'Cartão de débito';
+  if (tipo === 'credit_card')  return 'Cartão de crédito';
+  if (tipo === 'debit_card')   return 'Cartão de débito';
   return 'Cartão';
 }
 
-function montarMensagemWhatsApp(item, evento, formaPagamento) {
-  const primeiroNome = (item.nome || item.rotulo || 'Atleta').split(' ')[0];
-  const dataEvento = evento ? formatarData(evento.data, evento.hora) : '—';
+// ── Traduzir motivo de recusa do MP ──
+function traduzirMotivo(statusDetail) {
+  const motivos = {
+    'cc_rejected_bad_filled_card_number': 'Número do cartão inválido.',
+    'cc_rejected_bad_filled_date':        'Data de vencimento inválida.',
+    'cc_rejected_bad_filled_other':       'Dados do cartão incorretos.',
+    'cc_rejected_bad_filled_security_code': 'Código de segurança inválido.',
+    'cc_rejected_blacklist':              'Cartão bloqueado. Entre em contato com seu banco.',
+    'cc_rejected_call_for_authorize':     'O banco solicitou autorização. Ligue para seu banco e tente novamente.',
+    'cc_rejected_card_disabled':          'Cartão desabilitado. Entre em contato com seu banco.',
+    'cc_rejected_card_error':             'Erro no cartão. Tente novamente ou use outro cartão.',
+    'cc_rejected_duplicated_payment':     'Pagamento duplicado detectado.',
+    'cc_rejected_high_risk':              'Pagamento recusado por medida de segurança. Tente outro cartão.',
+    'cc_rejected_insufficient_amount':    'Saldo insuficiente no cartão.',
+    'cc_rejected_invalid_installments':   'Número de parcelas inválido para este cartão.',
+    'cc_rejected_max_attempts':           'Número máximo de tentativas atingido. Tente novamente amanhã.',
+    'cc_rejected_other_reason':           'Pagamento recusado pelo banco.',
+    'rejected_by_bank':                   'Pagamento recusado pelo banco.',
+    'rejected_insufficient_data':         'Dados insuficientes para processar o pagamento.',
+  };
+  return motivos[statusDetail] || 'Pagamento não aprovado. Tente novamente ou use outro cartão.';
+}
+
+function montarMensagemWhatsAppConfirmacao(item, evento, formaPagamento) {
+  const primeiroNome = (item.nome || 'Atleta').split(' ')[0];
+  const dataEvento   = evento ? formatarData(evento.data, evento.hora) : '—';
   return (
     `🎽 *Inscrição confirmada, ${primeiroNome}!*\n\n` +
     `Sua inscrição na *JBX Sports* foi confirmada com sucesso. ✅\n\n` +
@@ -114,6 +169,23 @@ function montarMensagemWhatsApp(item, evento, formaPagamento) {
     `📍 Fique de olho nas nossas redes para informações sobre retirada de kit e concentração.\n\n` +
     `📸 *@jbx.sports*\n\n` +
     `Boa corrida! Vamos juntos! 🧡🏁`
+  );
+}
+
+function montarMensagemWhatsAppRecusa(nome, eventoNome, motivo) {
+  const primeiroNome = (nome || 'Atleta').split(' ')[0];
+  return (
+    `⚠️ *Pagamento não confirmado, ${primeiroNome}.*\n\n` +
+    `Seu pagamento para o evento *${eventoNome || 'JBX Sports'}* não foi aprovado e sua inscrição *não foi realizada*.\n\n` +
+    `❌ *Motivo:* ${motivo}\n\n` +
+    `🔁 Você pode tentar novamente acessando o site:\n` +
+    `👉 *${SITE_URL}*\n\n` +
+    `Dicas:\n` +
+    `• Confira os dados do cartão\n` +
+    `• Tente outro cartão\n` +
+    `• Verifique o limite disponível\n\n` +
+    `Em caso de dúvidas, fale com a gente pelo Instagram:\n` +
+    `📸 *@jbx.sports* 🧡`
   );
 }
 
@@ -137,17 +209,38 @@ module.exports = async (req, res) => {
       const paymentClient = new Payment(mp);
       const payment = await paymentClient.get({ id: data.id });
 
-      console.log('[mp-webhook] payment status:', payment.status, '| tipo:', payment.payment_type_id, '| metodo:', payment.payment_method_id);
+      console.log('[mp-webhook] payment status:', payment.status, '| detail:', payment.status_detail, '| tipo:', payment.payment_type_id);
 
+      const meta     = payment.metadata || {};
+      pedido         = payment.external_reference;
+      eventoNome     = meta.evento_nome || '';
+      try { itens = JSON.parse(meta.itens || '[]'); } catch(e) {}
+
+      // ── Pagamento RECUSADO ──
+      if (payment.status === 'rejected') {
+        const motivo = traduzirMotivo(payment.status_detail);
+        console.log('[mp-webhook] pagamento recusado — pedido:', pedido, '| motivo:', motivo);
+
+        // Deleta inscrições pendentes do banco
+        if (pedido) await deletarInscricoesPedido(pedido);
+
+        // Notifica cada atleta
+        for (const item of itens) {
+          if (item.tel)   await enviarWhatsApp(item.tel, montarMensagemWhatsAppRecusa(item.nome, eventoNome, motivo));
+          if (item.email) await enviarEmailRecusa(item.email, item.nome, eventoNome, motivo);
+        }
+
+        return res.status(200).json({ received: true, status: 'rejected', motivo });
+      }
+
+      // ── Pagamento não aprovado nem recusado (pendente, em processamento) ──
       if (payment.status !== 'approved') {
+        console.log('[mp-webhook] pagamento pendente/outro status:', payment.status);
         return res.status(200).json({ received: true, status: payment.status });
       }
 
-      pedido         = payment.external_reference;
+      // ── Pagamento APROVADO ──
       formaPagamento = detectarFormaPagamento(payment);
-      const meta     = payment.metadata || {};
-      eventoNome     = meta.evento_nome || '';
-      try { itens = JSON.parse(meta.itens || '[]'); } catch(e) {}
     }
 
     // ── Notificação de merchant_order ──
@@ -166,11 +259,9 @@ module.exports = async (req, res) => {
       eventoNome = meta.evento_nome || '';
       try { itens = JSON.parse(meta.itens || '[]'); } catch(e) {}
 
-      // Tenta pegar forma de pagamento do primeiro pagamento da order
       if (order.payments && order.payments.length > 0) {
         const p = order.payments[0];
-        const tipoFake = { payment_type_id: p.payment_type, payment_method_id: p.payment_method_id || '' };
-        formaPagamento = detectarFormaPagamento(tipoFake);
+        formaPagamento = detectarFormaPagamento({ payment_type_id: p.payment_type, payment_method_id: p.payment_method_id || '' });
       }
     }
 
@@ -188,7 +279,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({ received: true });
   }
 
-  console.log('[mp-webhook] processando pedido:', pedido, '| forma:', formaPagamento, '| itens:', itens.length);
+  console.log('[mp-webhook] aprovado — pedido:', pedido, '| forma:', formaPagamento, '| itens:', itens.length);
 
   // Marca como pago com forma de pagamento real
   await marcarComoPago(pedido, formaPagamento);
@@ -197,10 +288,13 @@ module.exports = async (req, res) => {
   const evento     = await buscarEvento(eventoNome);
   const dataEvento = evento ? formatarData(evento.data, evento.hora) : '—';
 
-  // Para cada atleta: WhatsApp + e-mail
+  // Para cada atleta: WhatsApp + e-mail de confirmação
   for (const item of itens) {
-    if (item.tel) await enviarWhatsApp(item.tel, montarMensagemWhatsApp(item, evento, formaPagamento));
-    if (item.email) await enviarEmailConfirmacao(item.email, item.nome, item, dataEvento);
+    if (item.tel) await enviarWhatsApp(item.tel, montarMensagemWhatsAppConfirmacao(item, evento, formaPagamento));
+    if (item.email) {
+      const itemEmail = { ...item, tamanho_camisa: item.tamanho_camisa || item.camisa || '—' };
+      await enviarEmailConfirmacao(item.email, item.nome, itemEmail, dataEvento);
+    }
   }
 
   return res.status(200).json({ received: true, pedido, forma: formaPagamento, itens: itens.length });
