@@ -610,16 +610,70 @@
   .footer-stripe { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(42,37,32,0.3); }
 
   @media (max-width: 768px) {
+    /* NAV */
     .nav-links { display: none; }
-    .hero-stats { position: static; margin-top: 48px; justify-content: flex-start; }
+    nav { padding: 0 4%; height: 60px; }
+    .nav-cta { padding: 8px 14px; font-size: 13px; }
+
+    /* HERO */
+    #hero { padding: 90px 4% 60px; }
+    h1 { font-size: clamp(32px, 9vw, 52px); letter-spacing: -1px; }
+    .hero-sub { font-size: 15px; margin-bottom: 32px; }
+    .hero-stats { position: static; margin-top: 40px; justify-content: flex-start; gap: 28px; }
+    .stat-num { font-size: 28px; }
+    .btn-primary, .btn-secondary { padding: 13px 24px; font-size: 15px; }
+
+    /* COUNTDOWN */
+    #countdown-bar { padding: 14px 4%; gap: 16px; flex-direction: column; text-align: center; }
+    .countdown-timer { justify-content: center; }
+    .countdown-cta { width: 100%; text-align: center; }
+
+    /* EVENTOS — 1 coluna no mobile */
+    .eventos-grid { grid-template-columns: 1fr !important; gap: 16px; }
+    .event-card-img { height: 220px; }
+    .event-name { font-size: 18px; }
+    .price-val { font-size: 22px; }
+    .btn-inscricao { padding: 10px 16px; font-size: 13px; }
+    .eventos-header { margin-bottom: 28px; }
+    section { padding: 64px 4%; }
+
+    /* SOBRE */
     .sobre-grid { grid-template-columns: 1fr; }
-    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .sobre-visual { height: 280px; }
+
+    /* FOOTER */
+    .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+    footer { padding: 48px 4% 32px; }
+
+    /* MODAL */
     .form-row { grid-template-columns: 1fr; }
+    .modal { border-radius: 12px 12px 0 0; max-height: 95vh; }
+    .modal-header { padding: 20px 20px 16px; }
+    .modal-body { padding: 16px 20px; }
+
+    /* STEPS */
     .steps-grid { grid-template-columns: 1fr; }
-    .step:first-child, .step:last-child { border-radius: 0; }
     .step:first-child { border-radius: 12px 12px 0 0; }
     .step:last-child { border-radius: 0 0 12px 12px; }
     .step-connector { display: none; }
+  }
+
+  /* REELS — responsivo */
+  @media (max-width: 900px) {
+    #reels-grid-inner { grid-template-columns: 1fr !important; max-width: 380px; margin: 0 auto; }
+  }
+  @media (min-width: 901px) and (max-width: 1100px) {
+    #reels-grid-inner { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+
+  @media (max-width: 480px) {
+    /* MOBILE PEQUENO */
+    h1 { font-size: clamp(28px, 8vw, 40px); }
+    .footer-grid { grid-template-columns: 1fr; }
+    .hero-actions { flex-direction: column; }
+    .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+    .timer-num { font-size: 22px; min-width: 44px; }
+    .stat-num { font-size: 24px; }
   }
 </style>
 </head>
@@ -708,11 +762,11 @@
 
 <!-- REELS -->
 <section id="reels" style="background:var(--orange);padding:64px 3%;">
-  <div id="reels-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1300px;margin:0 auto;">
+  <div id="reels-grid" style="max-width:1300px;margin:0 auto;"><div id="reels-grid-inner" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
     <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
     <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
     <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-  </div>
+  </div></div>
 </section>
 
 <!-- PARCEIROS OFICIAIS -->
@@ -2244,7 +2298,7 @@ async function carregarReels() {
     const videos = [dados.reels_video1, dados.reels_video2, dados.reels_video3].filter(Boolean);
     if (!videos.length) return;
 
-    const grid = document.getElementById('reels-grid');
+    const grid = document.getElementById('reels-grid-inner');
     grid.innerHTML = videos.map(url => {
       // Normaliza URL: remove query params e garante /embed/
       const clean = url.split('?')[0].replace(/\/?$/, '/');
