@@ -37,6 +37,7 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
     try {
       const dados = {
         pedido, evento: eventoNome || '',
+        evento_id:           item.evento_id           || '',
         ref:                 item.ref                 || '',
         cpf:                 item.cpf                 || '',
         kit_id:              item.kit_id              || '',
