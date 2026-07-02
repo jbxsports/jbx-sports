@@ -328,6 +328,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
+        <button class="nav-btn" id="nav-designer" onclick="showInner('designer')">Designer</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
     </header>
@@ -931,6 +932,7 @@ function showInner(name){
   if(name==='config'){loadConfiguracoes();}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calRender();}
+  if(name==='designer'){document.getElementById('nav-designer').classList.add('active');initDesignerFrame();}
 }
 
 /* ── DASHBOARD ── */
@@ -2248,6 +2250,13 @@ function calRender(){
   _calBuilt.completo = true;
 }
 
+
+function initDesignerFrame(){
+  const f = document.getElementById('designer-frame');
+  if(!f.src || f.src === window.location.href)
+    f.src = 'https://infinitystamp.github.io/JBX-HUB-CRIATIVO/';
+}
+
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
 <div class="modal-overlay2" id="confirmar-overlay" onclick="if(event.target===this)fecharConfirmarDialog()">
@@ -2362,6 +2371,26 @@ function calRender(){
         <div style="margin-top:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;">
           Feriados municipais: São Sebastião e Aniversário (RP); Aniversário/São José (SJRP); N. Sra. Conceição (Campinas); N. Sra. Abadia e Aniversário (Uberlândia); Aniversário (Sertãozinho, Franca, Bauru). Estadual: Revolução Constitucionalista — SP (9/jul).
         </div>
+      </div>
+
+      <!-- TELA: DESIGNER -->
+      <div class="inner-screen" id="screen-designer" style="padding:0;display:flex;flex-direction:column;height:calc(100vh - 60px);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
+            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">JBX HUB CRIATIVO</span>
+            <span style="font-size:11px;color:var(--muted);">— ao vivo</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="document.getElementById('designer-frame').src=document.getElementById('designer-frame').src"
+              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
+              ⟳ Atualizar</button>
+            <a href="https://infinitystamp.github.io/JBX-HUB-CRIATIVO/" target="_blank"
+              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
+              ↗ Abrir</a>
+          </div>
+        </div>
+        <iframe id="designer-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
       </div>
     </main>
   </div>
