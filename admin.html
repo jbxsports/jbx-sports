@@ -2247,7 +2247,7 @@ function calBuildCompleto(){
 const CAL_MESES_ABREV=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function calBuildLista(){
   const isHist = _calYear==='hist';
-  const ord=[...CAL_EVENTOS].filter(e=>isHist ? e.historico : (_calYear===0||e.inicio.startsWith(String(_calYear)))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
   const rows=ord.map(e=>{
     const [anoFull,mi,di]=e.inicio.split("-");
     const ano = anoFull.slice(2);
@@ -2303,6 +2303,21 @@ function calBuildResumido(){
   return html;
 }
 
+// ── Filtra eventos pelo ano selecionado (usada por stats e builds) ──
+function calFiltrarEventos(){
+  if(_calYear==='hist') return CAL_EVENTOS.filter(e=>e.historico);
+  if(_calYear===0)      return CAL_EVENTOS.filter(e=>!e.historico); // Todos = 2026+2027
+  return CAL_EVENTOS.filter(e=>!e.historico && e.inicio.startsWith(String(_calYear)));
+}
+
+// ── Atualiza os 3 cards de estatísticas no topo ──
+function calUpdateStats(){
+  const evs = calFiltrarEventos();
+  document.getElementById('cal-stat-total').textContent = evs.length;
+  document.getElementById('cal-stat-cidades').textContent = new Set(evs.map(e=>e.cidade)).size;
+  document.getElementById('cal-stat-publico').textContent = evs.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+}
+
 function calSetView(view){
   document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
   ['lista','resumido','completo'].forEach(v=>{
@@ -2316,18 +2331,13 @@ function calSetView(view){
     document.getElementById('cal-pane-resumido').innerHTML=calBuildResumido();
     _calBuilt.resumido=true; _calBuilt.resumidoAno=_calYear;
   }
+  calUpdateStats(); // atualiza stats em qualquer view
 }
 
 function calRender(){
   if(_calBuilt.completo && _calBuilt.ano===_calYear) return;
   document.getElementById('cal-grid').innerHTML = calBuildCompleto();
-  // stats
-  const evAno=_calYear==='hist' ? CAL_EVENTOS.filter(e=>e.historico)
-    : _calYear===0 ? CAL_EVENTOS
-    : CAL_EVENTOS.filter(e=>e.inicio.startsWith(String(_calYear)));
-  document.getElementById('cal-stat-total').textContent = evAno.length;
-  document.getElementById('cal-stat-cidades').textContent = new Set(evAno.map(e=>e.cidade)).size;
-  document.getElementById('cal-stat-publico').textContent = evAno.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+  calUpdateStats();
   _calBuilt.completo = true;
   _calBuilt.ano = _calYear;
 }
