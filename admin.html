@@ -2239,9 +2239,7 @@ function calBuildResumido(){
   let html='';
   anos.forEach(year=>{
     if(_calYear===0) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
-    const _html_init='<div class="cal-resumido-grid">';
-    html+=_html_init;
-  let html='<div class="cal-resumido-grid">';
+    html+='<div class="cal-resumido-grid">';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
     const firstDay=new Date(year,m,1).getDay();
