@@ -2072,6 +2072,29 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
    CALENDÁRIO JBX 2027
 ══════════════════════════════════════ */
 const CAL_EVENTOS = [
+  // ── Histórico 2020–2025 ──
+  { inicio:"2020-08-01", fim:"2020-08-01", evento:"Crossfit Moura Lacerda",       cidade:"Ribeirão Preto", tipo:"especial", publico:176,  horario:null, realizado:true, historico:true },
+  { inicio:"2021-08-01", fim:"2021-08-01", evento:"Crossfit Moura Lacerda",       cidade:"Ribeirão Preto", tipo:"especial", publico:320,  horario:null, realizado:true, historico:true },
+  { inicio:"2022-08-01", fim:"2022-08-01", evento:"Crossfit Moura Lacerda",       cidade:"Ribeirão Preto", tipo:"especial", publico:650,  horario:null, realizado:true, historico:true },
+  { inicio:"2022-10-01", fim:"2022-10-01", evento:"Red Bull Ladeira Abaixo",      cidade:"Ribeirão Preto", tipo:"especial", publico:500,  horario:null, realizado:true, historico:true },
+  { inicio:"2022-10-15", fim:"2022-10-15", evento:"Beach Tennis JBX Sports",      cidade:"Ribeirão Preto", tipo:"beach",   publico:300,  horario:null, realizado:true, historico:true },
+  { inicio:"2023-01-01", fim:"2023-01-01", evento:"1ª Corrida JBX Sports",        cidade:"Ribeirão Preto", tipo:"corrida", publico:890,  horario:"7h", realizado:true, historico:true },
+  { inicio:"2023-04-01", fim:"2023-04-01", evento:"Liga Beach Tennis JBX Sports", cidade:"Ribeirão Preto", tipo:"beach",   publico:808,  horario:null, realizado:true, historico:true },
+  { inicio:"2023-08-01", fim:"2023-08-01", evento:"2ª Corrida JBX Sports",        cidade:"Ribeirão Preto", tipo:"corrida", publico:1250, horario:"7h", realizado:true, historico:true },
+  { inicio:"2023-08-15", fim:"2023-08-15", evento:"Olympics",                     cidade:"Ribeirão Preto", tipo:"especial", publico:2000, horario:null, realizado:true, historico:true },
+  { inicio:"2023-09-01", fim:"2023-09-01", evento:"1º Colors Run",                cidade:"Ribeirão Preto", tipo:"corrida", publico:1700, horario:"7h", realizado:true, historico:true },
+  { inicio:"2024-02-01", fim:"2024-02-01", evento:"Beach Tennis JBX Sports",      cidade:"Ribeirão Preto", tipo:"beach",   publico:450,  horario:null, realizado:true, historico:true },
+  { inicio:"2024-04-01", fim:"2024-04-01", evento:"2º Colors Run",                cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h", realizado:true, historico:true },
+  { inicio:"2024-06-01", fim:"2024-06-01", evento:"Beach Tennis JBX Sports",      cidade:"Ribeirão Preto", tipo:"beach",   publico:500,  horario:null, realizado:true, historico:true },
+  { inicio:"2024-09-01", fim:"2024-09-01", evento:"Corrida Mind Track&Field",     cidade:"Ribeirão Preto", tipo:"corrida", publico:1300, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-02-01", fim:"2025-02-01", evento:"1º AeroRun RP",                cidade:"Ribeirão Preto", tipo:"corrida", publico:2850, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-04-01", fim:"2025-04-01", evento:"3º Colors Run",                cidade:"Ribeirão Preto", tipo:"corrida", publico:2650, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-05-01", fim:"2025-05-01", evento:"Beach Tennis JBX Sports",      cidade:"Ribeirão Preto", tipo:"beach",   publico:320,  horario:null, realizado:true, historico:true },
+  { inicio:"2025-06-01", fim:"2025-06-01", evento:"2º AeroRun Franca",            cidade:"Franca",         tipo:"corrida", publico:1300, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-08-01", fim:"2025-08-01", evento:"4º Colors Night Run",          cidade:"Ribeirão Preto", tipo:"corrida", publico:1850, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-10-01", fim:"2025-10-01", evento:"1ª Corrida New Nutrition",     cidade:"Ribeirão Preto", tipo:"corrida", publico:2100, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-11-01", fim:"2025-11-01", evento:"2º AeroRun RP",                cidade:"Ribeirão Preto", tipo:"corrida", publico:1600, horario:"7h", realizado:true, historico:true },
+  { inicio:"2025-12-01", fim:"2025-12-01", evento:"1º Migalhas Run",              cidade:"Ribeirão Preto", tipo:"corrida", publico:500,  horario:"7h", realizado:true, historico:true },
   // ── 2026 · Realizados ──
   { inicio:"2026-01-22", fim:"2026-01-22", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:380, horario:null, realizado:true },
   { inicio:"2026-03-22", fim:"2026-03-22", evento:"Corrida Contra Polio Rotaract", cidade:"Ribeirão Preto", tipo:"corrida", publico:0, horario:"7h", realizado:true },
@@ -2201,16 +2224,19 @@ function calBuildMonthTable(m, year){
 }
 
 function calBuildCompleto(){
-  const anos = _calYear===0 ? [2026,2027] : [_calYear];
+  const isHist = _calYear==='hist';
+  const anos = isHist ? [2020,2021,2022,2023,2024,2025] : (_calYear===0 ? [2026,2027] : [_calYear]);
   let html='';
   anos.forEach(year=>{
-    if(_calYear===0) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
+    const showLabel = isHist || _calYear===0;
+    if(showLabel) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
-    const evs=CAL_EVENTOS.filter(e=>(_calYear===0||e.inicio.startsWith(String(_calYear)))&&calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
+    const evs=CAL_EVENTOS.filter(e=>(isHist ? e.historico : (_calYear===0||e.inicio.startsWith(String(_calYear))))&&calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
     const count=evs.length;
+    if(isHist && count===0) continue; // pula meses vazios no histórico
     html += '<div class="cal-month-card">'
-      + '<div class="cal-month-head"><h3>'+CAL_MESES[m]+'</h3><span class="cal-month-count">'+count+' prova'+(count!==1?'s':'')+'</span></div>'
+      + '<div class="cal-month-head"><h3>'+CAL_MESES[m]+(isHist?' '+year:'')+'</h3><span class="cal-month-count">'+count+' prova'+(count!==1?'s':'')+'</span></div>'
       + calBuildMonthTable(m,year)
       + '</div>';
   }
@@ -2218,12 +2244,16 @@ function calBuildCompleto(){
   return html;
 }
 
+const CAL_MESES_ABREV=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function calBuildLista(){
-  const ord=[...CAL_EVENTOS].filter(e=>_calYear===0||e.inicio.startsWith(String(_calYear))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const isHist = _calYear==='hist';
+  const ord=[...CAL_EVENTOS].filter(e=>isHist ? e.historico : (_calYear===0||e.inicio.startsWith(String(_calYear)))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
   const rows=ord.map(e=>{
-    const [,mi,di]=e.inicio.split("-");
-    const ano = e.inicio.slice(0,4).slice(2);
-    const datafmt = e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano;
+    const [anoFull,mi,di]=e.inicio.split("-");
+    const ano = anoFull.slice(2);
+    const mesAbrev = CAL_MESES_ABREV[parseInt(mi,10)-1];
+    const datafmt = e.historico ? mesAbrev+"/"+anoFull
+      : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
     const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo];
     const pill = e.realizado
       ? '<span class="cal-tipo-pill" style="background:#e8e6e2;color:#9a9690;">✓ Realizado</span>'
@@ -2236,17 +2266,18 @@ function calBuildLista(){
 }
 
 function calBuildResumido(){
-  const anos = _calYear===0 ? [2026,2027] : [_calYear];
+  const isHist = _calYear==='hist';
+  const anos = isHist ? [2020,2021,2022,2023,2024,2025] : (_calYear===0 ? [2026,2027] : [_calYear]);
   let html='';
   anos.forEach(year=>{
-    if(_calYear===0) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
+    if(isHist||_calYear===0) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
     html+='<div class="cal-resumido-grid">';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
     const firstDay=new Date(year,m,1).getDay();
     const daysInMonth=new Date(year,m+1,0).getDate();
     const dotDays={};
-    CAL_EVENTOS.forEach(e=>{
+    CAL_EVENTOS.filter(e=>isHist ? e.historico : true).forEach(e=>{
       calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
         if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)] = e.realizado ? '#c8c4be' : CAL_DOTCOLOR[e.tipo];
       });
@@ -2291,7 +2322,9 @@ function calRender(){
   if(_calBuilt.completo && _calBuilt.ano===_calYear) return;
   document.getElementById('cal-grid').innerHTML = calBuildCompleto();
   // stats
-  const evAno=_calYear===0 ? CAL_EVENTOS : CAL_EVENTOS.filter(e=>e.inicio.startsWith(String(_calYear)));
+  const evAno=_calYear==='hist' ? CAL_EVENTOS.filter(e=>e.historico)
+    : _calYear===0 ? CAL_EVENTOS
+    : CAL_EVENTOS.filter(e=>e.inicio.startsWith(String(_calYear)));
   document.getElementById('cal-stat-total').textContent = evAno.length;
   document.getElementById('cal-stat-cidades').textContent = new Set(evAno.map(e=>e.cidade)).size;
   document.getElementById('cal-stat-publico').textContent = evAno.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
@@ -2317,11 +2350,10 @@ function initSocialFrame(){
 function calSetYear(year){
   _calYear = year;
   _calBuilt = {};
-  document.querySelectorAll('.cal-year-btn').forEach(b=>b.classList.toggle('cal-view-active', parseInt(b.dataset.year)===year));
-  // atualiza o título
-  document.getElementById('cal-titulo-ano').textContent = year === 0 ? '2026–2027' : year;
-  // re-renderiza a view ativa
-  const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active'))?.dataset.view || 'completo';
+  document.querySelectorAll('.cal-year-btn').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.year===String(year)));
+  const tituloMap = {0:'2026–2027', hist:'Histórico 2020–2025'};
+  document.getElementById('cal-titulo-ano').textContent = tituloMap[year] ?? year;
+  const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active') && b.dataset.view)?.dataset.view || 'completo';
   if(activeView==='completo') calRender();
   else calSetView(activeView);
 }
@@ -2428,6 +2460,7 @@ function calSetYear(year){
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#8A8A82;display:inline-block;"></i>Feriado</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="cal-year-btn cal-view-btn" data-year="hist" onclick="calSetYear('hist')">Até 2025</button>
           <button class="cal-year-btn cal-view-btn cal-view-active" data-year="2026" onclick="calSetYear(2026)">2026</button>
           <button class="cal-year-btn cal-view-btn" data-year="2027" onclick="calSetYear(2027)">2027</button>
           <button class="cal-year-btn cal-view-btn" data-year="0" onclick="calSetYear(0)">Todos</button>
