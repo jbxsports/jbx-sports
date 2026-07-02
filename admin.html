@@ -220,6 +220,87 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .modal-box2-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
 .modal-box2-header h3{font-size:18px;font-weight:700;color:var(--text);}
 @media(max-width:600px){.contas-row{grid-template-columns:1fr;}.fin-ev-card-body{grid-template-columns:1fr 1fr;}.float-dialog{min-width:100%;border-radius:14px 14px 0 0;}}
+
+  /* ── CALENDÁRIO ── */
+  .cal-view-btn{
+    font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:500;
+    color:var(--muted);background:var(--bg);border:1px solid var(--border);
+    border-radius:20px;padding:7px 16px;cursor:pointer;transition:all .15s;
+  }
+  .cal-view-btn:hover{border-color:var(--orange);color:var(--orange);}
+  .cal-view-btn.cal-view-active{background:var(--orange);color:#fff;border-color:var(--orange);}
+
+  table.cal-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+  table.cal-table th{
+    font-size:10px;color:var(--muted);font-weight:400;
+    padding:8px 0 5px;text-align:center;text-transform:uppercase;
+  }
+  table.cal-table td{
+    text-align:left;vertical-align:top;font-size:11px;color:var(--muted);
+    height:120px;width:14.28%;position:relative;
+    border:0.5px solid var(--border);padding:5px;overflow:hidden;
+  }
+  table.cal-table td.cal-pad{background:#f9f8f6;}
+  table.cal-table .cal-daynum{
+    font-size:10px;color:var(--muted);font-weight:500;
+    display:block;margin-bottom:3px;
+  }
+  table.cal-table td.cal-has-event{background:#fffaf6;}
+  table.cal-table td.cal-has-feriado{background:#faf9f5;}
+  table.cal-table td.cal-has-event .cal-daynum,
+  table.cal-table td.cal-has-feriado .cal-daynum{color:var(--text);}
+
+  .cal-evt{
+    display:block;font-size:10px;font-weight:700;line-height:1.25;
+    padding:2px 5px;border-radius:5px;margin-bottom:2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .cal-evt-city{display:block;font-size:8.5px;color:var(--muted);padding:0 5px 3px;}
+  .cal-fer{
+    display:block;font-size:9px;font-weight:500;line-height:1.2;
+    padding:2px 5px;border-radius:4px;margin-bottom:2px;
+    color:#888;background:#f0ede8;border:0.5px solid #dedad3;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .cal-largada{
+    display:flex;align-items:center;gap:3px;
+    font-size:8.5px;color:var(--muted);padding:0 5px 2px;
+  }
+  .cal-bg-corrida{background:rgba(255,117,31,.12);color:#c95500;}
+  .cal-bg-beach{background:#f9f0c0;color:#8a7000;}
+  .cal-bg-especial{background:#f5d5d5;color:#8a2020;}
+
+  .cal-month-card{
+    background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  }
+  .cal-month-head{
+    padding:14px 18px 10px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .cal-month-head h3{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .cal-month-count{font-size:11px;color:var(--muted);}
+
+  /* Lista */
+  table.cal-lista{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  table.cal-lista th{text-align:left;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 14px;border-bottom:1px solid var(--border);}
+  table.cal-lista td{padding:11px 14px;font-size:12px;color:var(--muted);border-bottom:0.5px solid var(--border);}
+  table.cal-lista tr:last-child td{border-bottom:none;}
+  table.cal-lista td.cal-col-evt{color:var(--text);font-weight:500;}
+  .cal-tipo-pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
+
+  /* Resumido */
+  .cal-resumido-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  @media(max-width:1000px){.cal-resumido-grid{grid-template-columns:repeat(2,1fr);}}
+  .cal-resumido-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px;}
+  .cal-resumido-card h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px;color:var(--muted);}
+  table.cal-res{width:100%;border-collapse:collapse;}
+  table.cal-res th{font-size:8px;color:var(--muted);font-weight:400;padding:2px 0;text-align:center;}
+  table.cal-res td{font-size:9px;color:var(--muted);text-align:center;height:20px;position:relative;}
+  table.cal-res td .crday{position:relative;z-index:1;}
+  table.cal-res td.cal-res-dot .crdot{
+    position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+    width:4px;height:4px;border-radius:50%;
+  }
 </style>
 </head>
 <body>
@@ -246,6 +327,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
+        <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
     </header>
@@ -848,6 +930,7 @@ function showInner(name){
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
+  if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calRender();}
 }
 
 /* ── DASHBOARD ── */
@@ -1968,6 +2051,203 @@ async function salvarConfiguracoes() {
 /* ── INIT ── */
 try{if(sessionStorage.getItem('jbx_admin')==='1')showAdmin();}catch(e){}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+
+/* ══════════════════════════════════════
+   CALENDÁRIO JBX 2027
+══════════════════════════════════════ */
+const CAL_EVENTOS = [
+  { inicio:"2027-01-14", fim:"2027-01-17", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
+  { inicio:"2027-01-24", fim:"2027-01-24", evento:"Aero Run", cidade:"São José do Rio Preto", tipo:"corrida", publico:1500, horario:"7h" },
+  { inicio:"2027-02-21", fim:"2027-02-21", evento:"Aero Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2500, horario:"7h" },
+  { inicio:"2027-03-14", fim:"2027-03-14", evento:"360 - Piloto", cidade:"Ribeirão Preto", tipo:"corrida", publico:1000, horario:"7h" },
+  { inicio:"2027-04-11", fim:"2027-04-11", evento:"9ª Colors Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:3500, horario:"7h" },
+  { inicio:"2027-04-25", fim:"2027-04-25", evento:"Reveza Run", cidade:"Campinas", tipo:"corrida", publico:1500, horario:"7h" },
+  { inicio:"2027-05-16", fim:"2027-05-16", evento:"Reveza Run", cidade:"Uberlândia", tipo:"corrida", publico:1500, horario:"7h" },
+  { inicio:"2027-05-23", fim:"2027-05-23", evento:"2ª Corrida pela Vida PM", cidade:"Ribeirão Preto", tipo:"corrida", publico:1500, horario:"7h" },
+  { inicio:"2027-06-10", fim:"2027-06-13", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
+  { inicio:"2027-06-27", fim:"2027-06-27", evento:"Corrida Kit", cidade:"Ribeirão Preto", tipo:"corrida", publico:3000, horario:"7h" },
+  { inicio:"2027-07-04", fim:"2027-07-04", evento:"Trail Run", cidade:"Sertãozinho", tipo:"corrida", publico:1000, horario:"7h" },
+  { inicio:"2027-07-25", fim:"2027-07-25", evento:"João Rock", cidade:"Ribeirão Preto", tipo:"especial", publico:3000, horario:null },
+  { inicio:"2027-08-22", fim:"2027-08-22", evento:"Aero Run", cidade:"Franca", tipo:"corrida", publico:2000, horario:"7h" },
+  { inicio:"2027-09-19", fim:"2027-09-19", evento:"2ª Travessia Bonfim-RP", cidade:"Ribeirão Preto", tipo:"corrida", publico:3500, horario:"7h" },
+  { inicio:"2027-10-10", fim:"2027-10-10", evento:"Reveza Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h" },
+  { inicio:"2027-10-28", fim:"2027-10-31", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
+  { inicio:"2027-11-07", fim:"2027-11-07", evento:"Savegnago", cidade:"Sertãozinho", tipo:"corrida", publico:3500, horario:"7h" },
+  { inicio:"2027-11-21", fim:"2027-11-21", evento:"Reveza Run", cidade:"Bauru", tipo:"corrida", publico:1000, horario:"7h" },
+];
+
+const CAL_FERIADOS = [
+  { data:"2027-01-01", nome:"Confraternização Universal" },
+  { data:"2027-01-20", nome:"São Sebastião · RP" },
+  { data:"2027-02-08", nome:"Carnaval" },
+  { data:"2027-02-09", nome:"Carnaval" },
+  { data:"2027-03-19", nome:"Aniversário SJRP" },
+  { data:"2027-03-26", nome:"Sexta-feira Santa" },
+  { data:"2027-04-21", nome:"Tiradentes" },
+  { data:"2027-05-01", nome:"Dia do Trabalho" },
+  { data:"2027-05-27", nome:"Corpus Christi" },
+  { data:"2027-06-19", nome:"Aniversário de RP" },
+  { data:"2027-07-09", nome:"Revolução Const." },
+  { data:"2027-08-01", nome:"Aniversário de Bauru" },
+  { data:"2027-08-15", nome:"N. Sra. da Abadia · Uberlândia" },
+  { data:"2027-08-31", nome:"Aniversário de Uberlândia" },
+  { data:"2027-09-07", nome:"Independência" },
+  { data:"2027-10-12", nome:"N. Sra. Aparecida" },
+  { data:"2027-11-02", nome:"Finados" },
+  { data:"2027-11-15", nome:"Proclamação da República" },
+  { data:"2027-11-20", nome:"Consciência Negra" },
+  { data:"2027-11-28", nome:"Aniversário de Franca" },
+  { data:"2027-12-05", nome:"Aniversário de Sertãozinho" },
+  { data:"2027-12-08", nome:"N. Sra. da Conceição" },
+  { data:"2027-12-25", nome:"Natal" },
+];
+
+const CAL_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const CAL_DS = ["D","S","T","Q","Q","S","S"];
+const CAL_BG = { corrida:"cal-bg-corrida", beach:"cal-bg-beach", especial:"cal-bg-especial" };
+const CAL_DOTCOLOR = { corrida:"var(--orange)", beach:"#F4D35E", especial:"#C94F4F" };
+let _calBuilt = {};
+
+function calDiasIntervalo(ini, fim){
+  const dias = []; let d = new Date(ini+"T00:00:00");
+  const end = new Date(fim+"T00:00:00");
+  while(d <= end){ dias.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1); }
+  return dias;
+}
+
+function calBuildMonthTable(m, year){
+  const prefix = year+"-"+String(m+1).padStart(2,"0");
+  const firstDay = new Date(year,m,1).getDay();
+  const daysInMonth = new Date(year,m+1,0).getDate();
+
+  const evDays = {};
+  CAL_EVENTOS.forEach(e=>{
+    calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
+      if(!d.startsWith(prefix)) return;
+      const day = parseInt(d.slice(8,10),10);
+      if(!evDays[day]) evDays[day]=[];
+      evDays[day].push({...e, isStart: d===e.inicio});
+    });
+  });
+
+  const ferDays = {};
+  CAL_FERIADOS.forEach(f=>{
+    if(!f.data.startsWith(prefix)) return;
+    const day = parseInt(f.data.slice(8,10),10);
+    if(!ferDays[day]) ferDays[day]=[];
+    ferDays[day].push(f);
+  });
+
+  let html = '<table class="cal-table"><thead><tr>';
+  CAL_DS.forEach(d=> html += '<th>'+d+'</th>');
+  html += '</tr></thead><tbody><tr>';
+  for(let i=0;i<firstDay;i++) html += '<td class="cal-pad"></td>';
+  let col = firstDay;
+  for(let day=1;day<=daysInMonth;day++){
+    if(col===7){html+='</tr><tr>';col=0;}
+    const evs=evDays[day], fers=ferDays[day];
+    let inner = '<span class="cal-daynum">'+day+'</span>';
+    let cls='';
+    if(fers){cls+=' cal-has-feriado'; fers.forEach(f=>{ inner+='<span class="cal-fer">'+f.nome+'</span>'; }); }
+    if(evs){
+      cls+=' cal-has-event';
+      evs.forEach(e=>{
+        inner += '<span class="cal-evt '+CAL_BG[e.tipo]+'">'+e.evento+'</span>';
+        inner += '<span class="cal-evt-city">'+e.cidade+'</span>';
+        if(e.isStart && e.horario) inner += '<span class="cal-largada">⏱ '+e.horario+'</span>';
+      });
+    }
+    html += '<td class="'+cls.trim()+'">'+inner+'</td>';
+    col++;
+  }
+  while(col<7){html+='<td class="cal-pad"></td>';col++;}
+  html += '</tr></tbody></table>';
+  return html;
+}
+
+function calBuildCompleto(){
+  const year=2027; let html='';
+  for(let m=0;m<12;m++){
+    const prefix=year+"-"+String(m+1).padStart(2,"0");
+    const evs=CAL_EVENTOS.filter(e=>calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
+    const count=evs.length;
+    html += '<div class="cal-month-card">'
+      + '<div class="cal-month-head"><h3>'+CAL_MESES[m]+'</h3><span class="cal-month-count">'+count+' prova'+(count!==1?'s':'')+'</span></div>'
+      + calBuildMonthTable(m,year)
+      + '</div>';
+  }
+  return html;
+}
+
+function calBuildLista(){
+  const ord=[...CAL_EVENTOS].sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const rows=ord.map(e=>{
+    const [,mi,di]=e.inicio.split("-");
+    const datafmt = e.inicio===e.fim ? di+"/"+mi : di+"–"+e.fim.slice(8,10)+"/"+mi;
+    const pill = '<span class="cal-tipo-pill '+CAL_BG[e.tipo]+'">'+{corrida:"Corrida",beach:"Beach",especial:"Especial"}[e.tipo]+'</span>';
+    const pub = e.publico ? e.publico.toLocaleString('pt-BR') : '—';
+    return '<tr><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td><td>'+pill+'</td><td>'+pub+'</td><td>'+(e.horario||'—')+'</td></tr>';
+  }).join('');
+  return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th>Tipo</th><th>Público</th><th>Largada</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function calBuildResumido(){
+  const year=2027;
+  let html='<div class="cal-resumido-grid">';
+  for(let m=0;m<12;m++){
+    const prefix=year+"-"+String(m+1).padStart(2,"0");
+    const firstDay=new Date(year,m,1).getDay();
+    const daysInMonth=new Date(year,m+1,0).getDate();
+    const dotDays={};
+    CAL_EVENTOS.forEach(e=>{
+      calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
+        if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)]=CAL_DOTCOLOR[e.tipo];
+      });
+    });
+    let t='<table class="cal-res"><thead><tr>';
+    CAL_DS.forEach(d=>t+='<th>'+d+'</th>');
+    t+='</tr></thead><tbody><tr>';
+    for(let i=0;i<firstDay;i++) t+='<td></td>';
+    let col=firstDay;
+    for(let day=1;day<=daysInMonth;day++){
+      if(col===7){t+='</tr><tr>';col=0;}
+      const dc=dotDays[day];
+      if(dc) t+='<td class="cal-res-dot"><span class="crday">'+day+'</span><span class="crdot" style="background:'+dc+'"></span></td>';
+      else t+='<td><span class="crday">'+day+'</span></td>';
+      col++;
+    }
+    while(col<7){t+='<td></td>';col++;}
+    t+='</tr></tbody></table>';
+    html+='<div class="cal-resumido-card"><h4>'+CAL_MESES[m]+'</h4>'+t+'</div>';
+  }
+  return html+'</div>';
+}
+
+function calSetView(view){
+  document.querySelectorAll('.cal-view-btn').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
+  ['lista','resumido','completo'].forEach(v=>{
+    document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
+  });
+  if(view==='lista' && !_calBuilt.lista){
+    document.getElementById('cal-pane-lista').innerHTML=calBuildLista();
+    _calBuilt.lista=true;
+  }
+  if(view==='resumido' && !_calBuilt.resumido){
+    document.getElementById('cal-pane-resumido').innerHTML=calBuildResumido();
+    _calBuilt.resumido=true;
+  }
+}
+
+function calRender(){
+  if(_calBuilt.completo) return;
+  document.getElementById('cal-grid').innerHTML = calBuildCompleto();
+  // stats
+  document.getElementById('cal-stat-total').textContent = CAL_EVENTOS.length;
+  document.getElementById('cal-stat-cidades').textContent = new Set(CAL_EVENTOS.map(e=>e.cidade)).size;
+  document.getElementById('cal-stat-publico').textContent = CAL_EVENTOS.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+  _calBuilt.completo = true;
+}
+
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
 <div class="modal-overlay2" id="confirmar-overlay" onclick="if(event.target===this)fecharConfirmarDialog()">
@@ -2050,6 +2330,39 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
 
 
 
+      <!-- TELA: CALENDÁRIO -->
+      <div class="inner-screen" id="screen-calendario">
+        <div class="page-hd" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h1>Calendário <span style="color:var(--orange);">2027</span></h1>
+            <p style="font-size:13px;color:var(--muted);margin-top:4px;">Planejamento anual de eventos e feriados</p>
+          </div>
+          <div style="display:flex;gap:24px;">
+            <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-total">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Provas</div></div>
+            <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-cidades">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Cidades</div></div>
+            <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-publico">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Público total</div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:20px;">
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:var(--orange);display:inline-block;"></i>Corrida</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#F4D35E;display:inline-block;"></i>Beach Tennis</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#C94F4F;display:inline-block;"></i>Especial</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#8A8A82;display:inline-block;"></i>Feriado</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+          <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
+          <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
+          <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
+        </div>
+        <div id="cal-pane-lista" style="display:none;"></div>
+        <div id="cal-pane-resumido" style="display:none;"></div>
+        <div id="cal-pane-completo">
+          <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
+        </div>
+        <div style="margin-top:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;">
+          Feriados municipais: São Sebastião e Aniversário (RP); Aniversário/São José (SJRP); N. Sra. Conceição (Campinas); N. Sra. Abadia e Aniversário (Uberlândia); Aniversário (Sertãozinho, Franca, Bauru). Estadual: Revolução Constitucionalista — SP (9/jul).
+        </div>
+      </div>
     </main>
   </div>
 </div>
