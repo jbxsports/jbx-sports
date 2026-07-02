@@ -255,6 +255,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
     padding:2px 5px;border-radius:5px;margin-bottom:2px;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
+  .cal-evt.realizado{
+    background:#e8e6e2 !important;color:#9a9690 !important;
+    text-decoration:line-through;font-weight:500;
+  }
+  .cal-bg-corrida.realizado,.cal-bg-beach.realizado,.cal-bg-especial.realizado{
+    background:#e8e6e2 !important;color:#9a9690 !important;
+  }
   .cal-evt-city{display:block;font-size:8.5px;color:var(--muted);padding:0 5px 3px;}
   .cal-fer{
     display:block;font-size:9px;font-weight:500;line-height:1.2;
@@ -2065,7 +2072,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
    CALENDÁRIO JBX 2027
 ══════════════════════════════════════ */
 const CAL_EVENTOS = [
-  // ── 2026 ──
+  // ── 2026 · Realizados ──
+  { inicio:"2026-01-22", fim:"2026-01-22", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:380, horario:null, realizado:true },
+  { inicio:"2026-03-22", fim:"2026-03-22", evento:"Corrida Contra Polio Rotaract", cidade:"Ribeirão Preto", tipo:"corrida", publico:0, horario:"7h", realizado:true },
+  { inicio:"2026-04-12", fim:"2026-04-12", evento:"7ª Colors Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2466, horario:"7h", realizado:true },
+  { inicio:"2026-05-24", fim:"2026-05-24", evento:"Corrida PM", cidade:"Ribeirão Preto", tipo:"corrida", publico:1283, horario:"7h", realizado:true },
+  { inicio:"2026-06-27", fim:"2026-06-27", evento:"San Diego Vibra Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:1485, horario:"7h", realizado:true },
+  // ── 2026 · Próximos ──
   { inicio:"2026-07-23", fim:"2026-07-23", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
   { inicio:"2026-08-16", fim:"2026-08-16", evento:"Aero Run Franca", cidade:"Franca", tipo:"corrida", publico:1600, horario:"7h" },
   { inicio:"2026-08-23", fim:"2026-08-23", evento:"Migalhas Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:800, horario:"7h" },
@@ -2172,8 +2185,10 @@ function calBuildMonthTable(m, year){
     if(evs){
       cls+=' cal-has-event';
       evs.forEach(e=>{
-        inner += '<span class="cal-evt '+CAL_BG[e.tipo]+'">'+e.evento+'</span>';
-        inner += '<span class="cal-evt-city">'+e.cidade+'</span>';
+        const realizadoCls = e.realizado ? ' realizado' : '';
+        const realizadoPfx = e.realizado ? '✓ ' : '';
+        inner += '<span class="cal-evt '+CAL_BG[e.tipo]+realizadoCls+'">'+realizadoPfx+e.evento+'</span>';
+        inner += '<span class="cal-evt-city" style="'+(e.realizado?'opacity:.5':'')+'">'+e.cidade+'</span>';
         if(e.isStart && e.horario) inner += '<span class="cal-largada">⏱ '+e.horario+'</span>';
       });
     }
@@ -2208,9 +2223,13 @@ function calBuildLista(){
   const rows=ord.map(e=>{
     const [,mi,di]=e.inicio.split("-");
     const datafmt = e.inicio===e.fim ? di+"/"+mi : di+"–"+e.fim.slice(8,10)+"/"+mi;
-    const pill = '<span class="cal-tipo-pill '+CAL_BG[e.tipo]+'">'+{corrida:"Corrida",beach:"Beach",especial:"Especial"}[e.tipo]+'</span>';
+    const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo];
+    const pill = e.realizado
+      ? '<span class="cal-tipo-pill" style="background:#e8e6e2;color:#9a9690;">✓ Realizado</span>'
+      : '<span class="cal-tipo-pill '+CAL_BG[e.tipo]+'">'+tipoTxt+'</span>';
     const pub = e.publico ? e.publico.toLocaleString('pt-BR') : '—';
-    return '<tr><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td><td>'+pill+'</td><td>'+pub+'</td><td>'+(e.horario||'—')+'</td></tr>';
+    const trStyle = e.realizado ? ' style="opacity:.55;"' : '';
+    return '<tr'+trStyle+'><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td><td>'+pill+'</td><td>'+pub+'</td><td>'+(e.horario||'—')+'</td></tr>';
   }).join('');
   return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th>Tipo</th><th>Público</th><th>Largada</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
@@ -2230,7 +2249,7 @@ function calBuildResumido(){
     const dotDays={};
     CAL_EVENTOS.forEach(e=>{
       calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
-        if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)]=CAL_DOTCOLOR[e.tipo];
+        if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)] = e.realizado ? '#c8c4be' : CAL_DOTCOLOR[e.tipo];
       });
     });
     let t='<table class="cal-res"><thead><tr>';
