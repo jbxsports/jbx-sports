@@ -2060,6 +2060,16 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
    CALENDÁRIO JBX 2027
 ══════════════════════════════════════ */
 const CAL_EVENTOS = [
+  // ── 2026 ──
+  { inicio:"2026-07-23", fim:"2026-07-23", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
+  { inicio:"2026-08-16", fim:"2026-08-16", evento:"Aero Run Franca", cidade:"Franca", tipo:"corrida", publico:1600, horario:"7h" },
+  { inicio:"2026-08-23", fim:"2026-08-23", evento:"Migalhas Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:800, horario:"7h" },
+  { inicio:"2026-09-20", fim:"2026-09-20", evento:"Travessia Bonfim Ribeirão", cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h" },
+  { inicio:"2026-10-18", fim:"2026-10-18", evento:"Trail Run Artesano", cidade:"Ribeirão Preto", tipo:"corrida", publico:1600, horario:"7h" },
+  { inicio:"2026-11-05", fim:"2026-11-05", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:380, horario:null },
+  { inicio:"2026-11-15", fim:"2026-11-15", evento:"13ª Savegnago", cidade:"Sertãozinho", tipo:"corrida", publico:3500, horario:"7h" },
+  { inicio:"2026-11-29", fim:"2026-11-29", evento:"Reveza Run Outlet", cidade:"Ribeirão Preto", tipo:"corrida", publico:1600, horario:"7h" },
+  // ── 2027 ──
   { inicio:"2027-01-14", fim:"2027-01-17", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
   { inicio:"2027-01-24", fim:"2027-01-24", evento:"Aero Run", cidade:"São José do Rio Preto", tipo:"corrida", publico:1500, horario:"7h" },
   { inicio:"2027-02-21", fim:"2027-02-21", evento:"Aero Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2500, horario:"7h" },
@@ -2111,6 +2121,7 @@ const CAL_DS = ["D","S","T","Q","Q","S","S"];
 const CAL_BG = { corrida:"cal-bg-corrida", beach:"cal-bg-beach", especial:"cal-bg-especial" };
 const CAL_DOTCOLOR = { corrida:"var(--orange)", beach:"#F4D35E", especial:"#C94F4F" };
 let _calBuilt = {};
+let _calYear = 2026;
 
 function calDiasIntervalo(ini, fim){
   const dias = []; let d = new Date(ini+"T00:00:00");
@@ -2170,7 +2181,7 @@ function calBuildMonthTable(m, year){
 }
 
 function calBuildCompleto(){
-  const year=2027; let html='';
+  const year=_calYear; let html='';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
     const evs=CAL_EVENTOS.filter(e=>calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
@@ -2184,7 +2195,7 @@ function calBuildCompleto(){
 }
 
 function calBuildLista(){
-  const ord=[...CAL_EVENTOS].sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const ord=[...CAL_EVENTOS].filter(e=>e.inicio.startsWith(String(_calYear))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
   const rows=ord.map(e=>{
     const [,mi,di]=e.inicio.split("-");
     const datafmt = e.inicio===e.fim ? di+"/"+mi : di+"–"+e.fim.slice(8,10)+"/"+mi;
@@ -2196,7 +2207,7 @@ function calBuildLista(){
 }
 
 function calBuildResumido(){
-  const year=2027;
+  const year=_calYear;
   let html='<div class="cal-resumido-grid">';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
@@ -2232,24 +2243,26 @@ function calSetView(view){
   ['lista','resumido','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
-  if(view==='lista' && !_calBuilt.lista){
+  if(view==='lista' && (!_calBuilt.lista || _calBuilt.listaAno!==_calYear)){
     document.getElementById('cal-pane-lista').innerHTML=calBuildLista();
-    _calBuilt.lista=true;
+    _calBuilt.lista=true; _calBuilt.listaAno=_calYear;
   }
-  if(view==='resumido' && !_calBuilt.resumido){
+  if(view==='resumido' && (!_calBuilt.resumido || _calBuilt.resumidoAno!==_calYear)){
     document.getElementById('cal-pane-resumido').innerHTML=calBuildResumido();
-    _calBuilt.resumido=true;
+    _calBuilt.resumido=true; _calBuilt.resumidoAno=_calYear;
   }
 }
 
 function calRender(){
-  if(_calBuilt.completo) return;
+  if(_calBuilt.completo && _calBuilt.ano===_calYear) return;
   document.getElementById('cal-grid').innerHTML = calBuildCompleto();
   // stats
-  document.getElementById('cal-stat-total').textContent = CAL_EVENTOS.length;
-  document.getElementById('cal-stat-cidades').textContent = new Set(CAL_EVENTOS.map(e=>e.cidade)).size;
-  document.getElementById('cal-stat-publico').textContent = CAL_EVENTOS.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+  const evAno=CAL_EVENTOS.filter(e=>e.inicio.startsWith(String(_calYear)));
+  document.getElementById('cal-stat-total').textContent = evAno.length;
+  document.getElementById('cal-stat-cidades').textContent = new Set(evAno.map(e=>e.cidade)).size;
+  document.getElementById('cal-stat-publico').textContent = evAno.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
   _calBuilt.completo = true;
+  _calBuilt.ano = _calYear;
 }
 
 
@@ -2264,6 +2277,19 @@ function initSocialFrame(){
   const f = document.getElementById('social-frame');
   if(!f.src || f.src === window.location.href)
     f.src = 'https://moonlit-otter-2038bf.netlify.app/';
+}
+
+
+function calSetYear(year){
+  _calYear = year;
+  _calBuilt = {};
+  document.querySelectorAll('.cal-year-btn').forEach(b=>b.classList.toggle('cal-view-active', parseInt(b.dataset.year)===year));
+  // atualiza o título
+  document.getElementById('cal-titulo-ano').textContent = year;
+  // re-renderiza a view ativa
+  const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active'))?.dataset.view || 'completo';
+  if(activeView==='completo') calRender();
+  else calSetView(activeView);
 }
 
 </script>
@@ -2352,7 +2378,7 @@ function initSocialFrame(){
       <div class="inner-screen" id="screen-calendario">
         <div class="page-hd" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
           <div>
-            <h1>Calendário <span style="color:var(--orange);">2027</span></h1>
+            <h1>Calendário <span style="color:var(--orange);" id="cal-titulo-ano">2026</span></h1>
             <p style="font-size:13px;color:var(--muted);margin-top:4px;">Planejamento anual de eventos e feriados</p>
           </div>
           <div style="display:flex;gap:24px;">
@@ -2367,7 +2393,10 @@ function initSocialFrame(){
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#C94F4F;display:inline-block;"></i>Especial</span>
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#8A8A82;display:inline-block;"></i>Feriado</span>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+          <button class="cal-year-btn cal-view-btn cal-view-active" data-year="2026" onclick="calSetYear(2026)">2026</button>
+          <button class="cal-year-btn cal-view-btn" data-year="2027" onclick="calSetYear(2027)">2027</button>
+          <span style="width:1px;background:var(--border);margin:0 4px;"></span>
           <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
