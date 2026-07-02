@@ -327,6 +327,15 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-status-sel.s-ok       {background:#dcfce7;color:#166534;}
   table.cal-lista th.col-status{font-size:9px;min-width:120px;text-align:center;}
   table.cal-lista td.col-status{text-align:center;padding:8px 10px;}
+  table.cal-lista th.col-check{font-size:9px;width:80px;text-align:center;}
+  table.cal-lista td.col-check{text-align:center;padding:8px 10px;}
+  .cal-check-btn{
+    width:28px;height:28px;border-radius:6px;border:2px solid var(--border);
+    background:#fff;cursor:pointer;display:inline-flex;align-items:center;
+    justify-content:center;font-size:15px;transition:all .15s;
+  }
+  .cal-check-btn.checked{background:#dcfce7;border-color:#16a34a;color:#16a34a;}
+  .cal-check-btn:not(.checked){color:transparent;}
 </style>
 </head>
 <body>
@@ -2258,6 +2267,16 @@ function calBuildCompleto(){
   return html;
 }
 
+// ── ID Visual: toggle checkbox ──
+function calIdVisualToggle(btn, key){
+  const d = calStatusLoad();
+  if(!d[key]) d[key]={};
+  d[key]['idvisual'] = !d[key]['idvisual'];
+  calStatusSave(d);
+  btn.classList.toggle('checked', d[key]['idvisual']);
+  btn.textContent = d[key]['idvisual'] ? '✓' : '';
+}
+
 // ── Status: Alvará e Percurso/Arena ──
 const CAL_STATUS_KEY='jbx_cal_status';
 function calStatusLoad(){try{return JSON.parse(localStorage.getItem(CAL_STATUS_KEY)||'{}');}catch(e){return{};}}
@@ -2300,13 +2319,18 @@ function calBuildLista(){
       +'<option value="nao"'+(perVal==='nao'?' selected':'')+'>Não definido</option>'
       +'<option value="ok"'+(perVal==='ok'?' selected':'')+'>Definido</option>'
       +'</select>';
+    const idvVal=calStatusGet(eKey,'idvisual',false);
+    const idvBtn='<button class="cal-check-btn'+(idvVal?' checked':'')+''"
+      +'onclick="calIdVisualToggle(this,\''+eKey+'\')" '
+      +'title="ID. Visual">'+(idvVal?'✓':'')+'</button>';
     return '<tr'+trStyle+'><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td><td>'+pill+'</td><td>'+pub+'</td>'
       +'<td>'+(e.horario||'—')+'</td>'
+      +'<td class="col-check">'+idvBtn+'</td>'
       +'<td class="col-status">'+alvSel+'</td>'
       +'<td class="col-status">'+perSel+'</td>'
       +'</tr>';
   }).join('');
-  return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-status\">Alvará</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Alvará</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function calBuildResumido(){
