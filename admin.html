@@ -2320,7 +2320,7 @@ function calBuildLista(){
       +'<option value="ok"'+(perVal==='ok'?' selected':'')+'>Definido</option>'
       +'</select>';
     const idvVal=calStatusGet(eKey,'idvisual',false);
-    const idvBtn='<button class="cal-check-btn'+(idvVal?' checked':'')+''"
+    const idvBtn='<button class="cal-check-btn'+(idvVal?' checked':'')+'" '
       +'onclick="calIdVisualToggle(this,\''+eKey+'\')" '
       +'title="ID. Visual">'+(idvVal?'✓':'')+'</button>';
     return '<tr'+trStyle+'><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td><td>'+pill+'</td><td>'+pub+'</td>'
