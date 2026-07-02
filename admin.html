@@ -34,7 +34,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{background:rgba(42,37,32,.1);color:var(--text);}
 .admin-content{padding:32px;width:100%;box-sizing:border-box;overflow-x:hidden;}
-.inner-screen{display:none;}.inner-screen.active{display:block;}
+.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-social.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--text);}
@@ -2222,7 +2222,8 @@ function calBuildLista(){
   const ord=[...CAL_EVENTOS].filter(e=>_calYear===0||e.inicio.startsWith(String(_calYear))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
   const rows=ord.map(e=>{
     const [,mi,di]=e.inicio.split("-");
-    const datafmt = e.inicio===e.fim ? di+"/"+mi : di+"–"+e.fim.slice(8,10)+"/"+mi;
+    const ano = e.inicio.slice(0,4).slice(2);
+    const datafmt = e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano;
     const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo];
     const pill = e.realizado
       ? '<span class="cal-tipo-pill" style="background:#e8e6e2;color:#9a9690;">✓ Realizado</span>'
@@ -2446,7 +2447,7 @@ function calSetYear(year){
       </div>
 
       <!-- TELA: DESIGNER -->
-      <div class="inner-screen" id="screen-designer" style="padding:0;display:flex;flex-direction:column;height:calc(100vh - 60px);">
+      <div class="inner-screen" id="screen-designer" style="padding:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
@@ -2466,7 +2467,7 @@ function calSetYear(year){
       </div>
 
       <!-- TELA: SOCIAL MEDIA -->
-      <div class="inner-screen" id="screen-social" style="padding:0;display:flex;flex-direction:column;height:calc(100vh - 60px);">
+      <div class="inner-screen" id="screen-social" style="padding:0;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
