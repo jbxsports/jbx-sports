@@ -34,7 +34,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{background:rgba(42,37,32,.1);color:var(--text);}
 .admin-content{padding:32px;width:100%;box-sizing:border-box;overflow-x:hidden;}
-.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-social.active,#screen-parceiros.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
+.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-social.active,#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--text);}
@@ -366,6 +366,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-designer" onclick="showInner('designer')">Designer</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-parceiros" onclick="showInner('parceiros')">Patrocinadores</button>
+        <button class="nav-btn" id="nav-patseg" onclick="showInner('patseg')">Pat. Segmentos</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
     </header>
@@ -972,6 +973,7 @@ function showInner(name){
   if(name==='designer'){document.getElementById('nav-designer').classList.add('active');initDesignerFrame();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');initSocialFrame();}
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
+  if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
 }
 
 /* ── DASHBOARD ── */
@@ -2432,6 +2434,12 @@ function initParceirosFrame(){
     f.src = 'https://docs.google.com/spreadsheets/d/1xTlq5HxRtazGwpHldfDK1mItTCzc9Mv-/edit?usp=sharing';
 }
 
+function initPatSegFrame(){
+  const f = document.getElementById('patseg-frame');
+  if(!f.src || f.src === window.location.href)
+    f.src = 'https://docs.google.com/spreadsheets/d/11XHi7jHRxYCqwUttc6M4A3lRF-JBRbKY/edit?usp=sharing';
+}
+
 
 function calSetYear(year){
   _calYear = year;
@@ -2623,6 +2631,26 @@ function calSetYear(year){
           </div>
         </div>
         <iframe id="parceiros-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
+      </div>
+
+      <!-- TELA: PAT. SEGMENTOS (PLANILHA) -->
+      <div class="inner-screen" id="screen-patseg" style="padding:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
+            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">PAT. SEGMENTOS</span>
+            <span style="font-size:11px;color:var(--muted);">— planilha em tempo real</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="document.getElementById('patseg-frame').src=document.getElementById('patseg-frame').src"
+              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
+              ⟳ Atualizar</button>
+            <a href="https://docs.google.com/spreadsheets/d/11XHi7jHRxYCqwUttc6M4A3lRF-JBRbKY/edit?usp=sharing" target="_blank"
+              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
+              ↗ Abrir e editar</a>
+          </div>
+        </div>
+        <iframe id="patseg-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
       </div>
     </main>
   </div>
