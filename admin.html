@@ -2337,6 +2337,34 @@ function calBuildLista(){
   return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Alvará</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
+/* ── EXCEL: Calendário (formato Lista) ── */
+const CAL_ALVARA_LABEL={nao:'Não iniciou',andamento:'Entrada',ok:'Finalizado'};
+const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
+function exportarCalendarioExcel(){
+  try{
+    const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const ws_data=[['Data','Evento','Cidade','Tipo','Público','Largada','ID. Visual','Alvará','Percurso/Arena']];
+    ord.forEach(e=>{
+      const [anoFull,mi,di]=e.inicio.split("-");
+      const ano=anoFull.slice(2);
+      const mesAbrev=CAL_MESES_ABREV[parseInt(mi,10)-1];
+      const datafmt=e.historico ? mesAbrev+"/"+anoFull
+        : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
+      const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo]||e.tipo||'');
+      const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+      const alvVal=calStatusGet(eKey,'alvara','nao');
+      const perVal=calStatusGet(eKey,'percurso','nao');
+      const idvVal=calStatusGet(eKey,'idvisual',false);
+      ws_data.push([datafmt,e.evento||'',e.cidade||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_ALVARA_LABEL[alvVal]||alvVal,CAL_PERCURSO_LABEL[perVal]||perVal]);
+    });
+    const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols']=ws_data[0].map((_,i)=>({wch:i===1?30:i===2?18:14}));
+    XLSX.utils.book_append_sheet(wb,ws,'Calendário');
+    const anoLabel=_calYear==='hist'?'ate2025':(_calYear===0?'todos':_calYear);
+    XLSX.writeFile(wb,`calendario_${anoLabel}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }catch(e){alert('Erro ao exportar: '+e.message);}
+}
+
 function calBuildResumido(){
   const isHist = _calYear==='hist';
   const anos = isHist ? [2020,2021,2022,2023,2024,2025] : (_calYear===0 ? [2026,2027] : [_calYear]);
@@ -2395,6 +2423,7 @@ function calSetView(view){
   ['lista','resumido','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
+  document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
   if(view==='lista' && (!_calBuilt.lista || _calBuilt.listaAno!==_calYear)){
     document.getElementById('cal-pane-lista').innerHTML=calBuildLista();
     _calBuilt.lista=true; _calBuilt.listaAno=_calYear;
@@ -2562,6 +2591,7 @@ function calSetYear(year){
           <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
+          <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;margin-left:auto;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
         </div>
         <div id="cal-pane-lista" style="display:none;"></div>
         <div id="cal-pane-resumido" style="display:none;"></div>
