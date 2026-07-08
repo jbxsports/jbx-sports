@@ -858,49 +858,12 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="panel" style="max-width:680px;">
           <h2>🎬 Vídeos em Destaque — Home</h2>
           <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
-            Esses 3 vídeos aparecem na página inicial em formato reel (9:16), tocando automaticamente.<br>
-            Envie o arquivo <b>MP4</b> de cada vídeo (máx. 50MB) e, se quiser, cole o link do post no Instagram — ele vira um ícone clicável no card.
+            Esses vídeos aparecem na página inicial em formato reel (9:16), em um carrossel deslizante.<br>
+            Envie o arquivo <b>MP4</b> de cada vídeo (máx. 50MB) e, se quiser, cole o link do post no Instagram.
+            Use as setas ↑↓ para mudar a ordem de exibição.
           </p>
-
-          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
-            <label style="font-weight:700;">🎥 Vídeo 1</label>
-            <video id="cfg-prev1" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
-            <input type="hidden" id="cfg-video1">
-            <div class="upload-row" style="margin:8px 0;">
-              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file1').click()">📁 Enviar vídeo MP4</button>
-              <span id="cfg-status1" style="font-size:12px;color:var(--muted);"></span>
-            </div>
-            <input type="file" id="cfg-file1" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(1,this)">
-            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
-            <input type="url" id="cfg-link1" placeholder="https://www.instagram.com/reel/...">
-          </div>
-
-          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
-            <label style="font-weight:700;">🎥 Vídeo 2</label>
-            <video id="cfg-prev2" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
-            <input type="hidden" id="cfg-video2">
-            <div class="upload-row" style="margin:8px 0;">
-              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file2').click()">📁 Enviar vídeo MP4</button>
-              <span id="cfg-status2" style="font-size:12px;color:var(--muted);"></span>
-            </div>
-            <input type="file" id="cfg-file2" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(2,this)">
-            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
-            <input type="url" id="cfg-link2" placeholder="https://www.instagram.com/reel/...">
-          </div>
-
-          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
-            <label style="font-weight:700;">🎥 Vídeo 3</label>
-            <video id="cfg-prev3" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
-            <input type="hidden" id="cfg-video3">
-            <div class="upload-row" style="margin:8px 0;">
-              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file3').click()">📁 Enviar vídeo MP4</button>
-              <span id="cfg-status3" style="font-size:12px;color:var(--muted);"></span>
-            </div>
-            <input type="file" id="cfg-file3" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(3,this)">
-            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
-            <input type="url" id="cfg-link3" placeholder="https://www.instagram.com/reel/...">
-          </div>
-
+          <div id="cfg-reels-list"></div>
+          <button type="button" class="btn-ghost" onclick="cfgAddReel()" style="width:100%;margin-bottom:16px;border:1px dashed var(--orange);color:var(--orange);">➕ Adicionar vídeo</button>
           <div id="cfg-msg" style="font-size:13px;min-height:18px;margin:12px 0;"></div>
           <button class="btn-new-ev" id="btn-salvar-cfg" onclick="salvarConfiguracoes()" style="min-width:200px;">
             💾 Salvar configurações
@@ -2122,42 +2085,83 @@ async function abrirConfiguracoes() {
   await loadConfiguracoes();
 }
 
+let cfgReels = []; // [{video, link}]
+const CFG_REELS_MAX = 15;
+
 async function loadConfiguracoes() {
   try {
     const res = await rpc('admin_buscar_configuracoes');
     if (res) {
-      for (let n = 1; n <= 3; n++) {
-        const url = res['reels_video'+n] || '';
-        document.getElementById('cfg-video'+n).value = url;
-        document.getElementById('cfg-link'+n).value = res['reels_link'+n] || '';
-        cfgPreview(n, url);
+      if (Array.isArray(res.reels) && res.reels.length) {
+        cfgReels = res.reels.map(r => ({ video: r.video || '', link: r.link || '' }));
+      } else {
+        // migra do formato antigo (3 colunas)
+        cfgReels = [1,2,3].map(n => ({ video: res['reels_video'+n] || '', link: res['reels_link'+n] || '' })).filter(r => r.video);
       }
     }
+    if (!cfgReels.length) cfgReels = [{ video:'', link:'' }];
+    renderCfgReels();
   } catch(e) { console.error('Erro ao carregar configurações:', e); }
 }
 
-function cfgPreview(n, url) {
-  const v = document.getElementById('cfg-prev'+n);
-  const st = document.getElementById('cfg-status'+n);
-  // só faz preview de arquivo de vídeo direto (não de link do Instagram)
-  if (url && !url.includes('instagram.com')) {
-    v.src = url; v.style.display = 'block';
-    v.play().catch(()=>{});
-    if (st && !st.textContent) st.textContent = '✓ Vídeo configurado';
-  } else {
-    v.style.display = 'none'; v.removeAttribute('src');
-    if (url && url.includes('instagram.com') && st) st.textContent = 'Link antigo do Instagram — envie o MP4 para migrar.';
-  }
+function renderCfgReels() {
+  const list = document.getElementById('cfg-reels-list');
+  list.innerHTML = cfgReels.map((r, i) => {
+    const temVideo = r.video && !r.video.includes('instagram.com');
+    const preview = temVideo
+      ? `<video src="${r.video.replace(/"/g,'&quot;')}" muted loop playsinline autoplay style="width:110px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;flex-shrink:0;"></video>`
+      : `<div style="width:110px;aspect-ratio:9/16;border-radius:8px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;">🎥</div>`;
+    return `<div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;display:flex;gap:14px;align-items:flex-start;">
+      ${preview}
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <label style="font-weight:700;margin:0;">Vídeo ${i+1}</label>
+          <div style="display:flex;gap:4px;">
+            <button type="button" onclick="cfgMoveReel(${i},-1)" ${i===0?'disabled':''} style="border:1px solid var(--border);background:#fff;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;${i===0?'opacity:.3;':''}" title="Subir">↑</button>
+            <button type="button" onclick="cfgMoveReel(${i},1)" ${i===cfgReels.length-1?'disabled':''} style="border:1px solid var(--border);background:#fff;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;${i===cfgReels.length-1?'opacity:.3;':''}" title="Descer">↓</button>
+            <button type="button" onclick="cfgRemoveReel(${i})" style="border:1px solid #fca5a5;background:#fff;color:#dc2626;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;" title="Remover">🗑</button>
+          </div>
+        </div>
+        <div class="upload-row" style="margin:6px 0;">
+          <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file-${i}').click()">📁 ${temVideo ? 'Trocar vídeo' : 'Enviar vídeo MP4'}</button>
+          <span id="cfg-status-${i}" style="font-size:12px;color:var(--muted);">${r.video && r.video.includes('instagram.com') ? 'Link antigo do Instagram — envie o MP4 para migrar.' : (temVideo ? '✓ Vídeo configurado' : '')}</span>
+        </div>
+        <input type="file" id="cfg-file-${i}" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(${i},this)">
+        <label style="margin-top:8px;">Link do post no Instagram (opcional)</label>
+        <input type="url" value="${(r.link||'').replace(/"/g,'&quot;')}" placeholder="https://www.instagram.com/reel/..." onchange="cfgReels[${i}].link=this.value.trim()">
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function uploadReelVideo(n, input) {
+function cfgAddReel() {
+  if (cfgReels.length >= CFG_REELS_MAX) { alert('Máximo de '+CFG_REELS_MAX+' vídeos.'); return; }
+  cfgReels.push({ video:'', link:'' });
+  renderCfgReels();
+}
+
+function cfgRemoveReel(i) {
+  if (!confirm('Remover o Vídeo '+(i+1)+'?')) return;
+  cfgReels.splice(i, 1);
+  if (!cfgReels.length) cfgReels = [{ video:'', link:'' }];
+  renderCfgReels();
+}
+
+function cfgMoveReel(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= cfgReels.length) return;
+  [cfgReels[i], cfgReels[j]] = [cfgReels[j], cfgReels[i]];
+  renderCfgReels();
+}
+
+async function uploadReelVideo(i, input) {
   const file = input.files[0];
   if (!file) return;
   if (file.size > 50 * 1024 * 1024) { alert('Máximo 50MB. Comprima o vídeo antes de enviar.'); input.value=''; return; }
-  const st = document.getElementById('cfg-status'+n);
+  const st = document.getElementById('cfg-status-'+i);
   st.textContent = 'Enviando… (vídeos podem demorar um pouco)'; st.style.color = 'var(--muted)';
   const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
-  const nome = 'reel_' + n + '_' + Date.now() + '.' + ext;
+  const nome = 'reel_' + Date.now() + '_' + i + '.' + ext;
   try {
     const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
       method: 'POST',
@@ -2165,10 +2169,10 @@ async function uploadReelVideo(n, input) {
       body: file
     });
     if (!r.ok) throw new Error(await r.text());
-    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
-    document.getElementById('cfg-video'+n).value = url;
-    st.textContent = '✓ Vídeo enviado! Clique em Salvar configurações.'; st.style.color = '#22c55e';
-    cfgPreview(n, url);
+    cfgReels[i].video = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    renderCfgReels();
+    const st2 = document.getElementById('cfg-status-'+i);
+    if (st2) { st2.textContent = '✓ Vídeo enviado! Clique em Salvar configurações.'; st2.style.color = '#22c55e'; }
   } catch(e) {
     st.textContent = 'Erro no upload.'; st.style.color = '#ff6b6b';
     console.error(e);
@@ -2181,14 +2185,8 @@ async function salvarConfiguracoes() {
   const msg = document.getElementById('cfg-msg');
   btn.textContent = 'Salvando...'; btn.disabled = true; msg.textContent = '';
   try {
-    await rpc('admin_salvar_configuracoes', {
-      p_reels_video1: document.getElementById('cfg-video1').value.trim(),
-      p_reels_video2: document.getElementById('cfg-video2').value.trim(),
-      p_reels_video3: document.getElementById('cfg-video3').value.trim(),
-      p_reels_link1: document.getElementById('cfg-link1').value.trim(),
-      p_reels_link2: document.getElementById('cfg-link2').value.trim(),
-      p_reels_link3: document.getElementById('cfg-link3').value.trim()
-    });
+    const limpos = cfgReels.filter(r => r.video);
+    await rpc('admin_salvar_configuracoes', { p_reels: limpos });
     msg.style.color = '#16a34a';
     msg.textContent = '✅ Configurações salvas com sucesso!';
     setTimeout(() => msg.textContent = '', 3000);
