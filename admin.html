@@ -259,7 +259,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
     background:#e8e6e2 !important;color:#9a9690 !important;
     text-decoration:line-through;font-weight:500;
   }
-  .cal-bg-corrida.realizado,.cal-bg-beach.realizado,.cal-bg-especial.realizado{
+  .cal-bg-corrida.realizado,.cal-bg-beach.realizado,.cal-bg-especial.realizado,.cal-bg-hyrox.realizado{
     background:#e8e6e2 !important;color:#9a9690 !important;
   }
   .cal-evt-city{display:block;font-size:8.5px;color:var(--muted);padding:0 5px 3px;}
@@ -276,6 +276,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-bg-corrida{background:rgba(255,117,31,.12);color:#c95500;}
   .cal-bg-beach{background:#f9f0c0;color:#8a7000;}
   .cal-bg-especial{background:#f5d5d5;color:#8a2020;}
+  .cal-bg-hyrox{background:#dbe8f9;color:#1d4e89;}
 
   .cal-month-card{
     background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;
@@ -2137,11 +2138,11 @@ const CAL_EVENTOS = [
   { inicio:"2026-11-05", fim:"2026-11-05", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:380, horario:null },
   { inicio:"2026-11-15", fim:"2026-11-15", evento:"13ª Savegnago", cidade:"Sertãozinho", tipo:"corrida", publico:3500, horario:"7h" },
   { inicio:"2026-11-29", fim:"2026-11-29", evento:"Reveza Run Outlet", cidade:"Ribeirão Preto", tipo:"corrida", publico:1600, horario:"7h" },
-  // ── 2027 ──
+  // ── 2027 (atualizado conforme calendario_atualizado.pdf) ──
   { inicio:"2027-01-14", fim:"2027-01-17", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
+  { inicio:"2027-01-16", fim:"2027-01-16", evento:"Hybrid Race Jbx Sports", cidade:"Ribeirão Preto", tipo:"hyrox", publico:700, horario:"8h" },
   { inicio:"2027-01-24", fim:"2027-01-24", evento:"Aero Run", cidade:"São José do Rio Preto", tipo:"corrida", publico:1500, horario:"7h" },
   { inicio:"2027-02-21", fim:"2027-02-21", evento:"Aero Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2500, horario:"7h" },
-  { inicio:"2027-03-14", fim:"2027-03-14", evento:"360 - Piloto", cidade:"Ribeirão Preto", tipo:"corrida", publico:1000, horario:"7h" },
   { inicio:"2027-04-11", fim:"2027-04-11", evento:"9ª Colors Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:3500, horario:"7h" },
   { inicio:"2027-04-25", fim:"2027-04-25", evento:"Reveza Run", cidade:"Campinas", tipo:"corrida", publico:1500, horario:"7h" },
   { inicio:"2027-05-16", fim:"2027-05-16", evento:"Reveza Run", cidade:"Uberlândia", tipo:"corrida", publico:1500, horario:"7h" },
@@ -2150,12 +2151,13 @@ const CAL_EVENTOS = [
   { inicio:"2027-06-27", fim:"2027-06-27", evento:"Corrida Kit", cidade:"Ribeirão Preto", tipo:"corrida", publico:3000, horario:"7h" },
   { inicio:"2027-07-04", fim:"2027-07-04", evento:"Trail Run", cidade:"Sertãozinho", tipo:"corrida", publico:1000, horario:"7h" },
   { inicio:"2027-07-25", fim:"2027-07-25", evento:"João Rock", cidade:"Ribeirão Preto", tipo:"especial", publico:3000, horario:null },
-  { inicio:"2027-08-22", fim:"2027-08-22", evento:"Aero Run", cidade:"Franca", tipo:"corrida", publico:2000, horario:"7h" },
+  { inicio:"2027-08-22", fim:"2027-08-22", evento:"Migalhas Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:800, horario:"7h" },
   { inicio:"2027-09-19", fim:"2027-09-19", evento:"2ª Travessia Bonfim-RP", cidade:"Ribeirão Preto", tipo:"corrida", publico:3500, horario:"7h" },
-  { inicio:"2027-11-21", fim:"2027-11-21", evento:"Reveza Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h" },
+  { inicio:"2027-10-10", fim:"2027-10-10", evento:"Reveza Run", cidade:"Bauru", tipo:"corrida", publico:1000, horario:"7h" },
+  { inicio:"2027-10-17", fim:"2027-10-17", evento:"2ª Trail Run Artesano", cidade:"Ribeirão Preto", tipo:"corrida", publico:1200, horario:"7h" },
   { inicio:"2027-10-28", fim:"2027-10-31", evento:"Torneio Beach Tennis", cidade:"Ribeirão Preto", tipo:"beach", publico:400, horario:null },
   { inicio:"2027-11-07", fim:"2027-11-07", evento:"Savegnago", cidade:"Sertãozinho", tipo:"corrida", publico:3500, horario:"7h" },
-  { inicio:"2027-10-10", fim:"2027-10-10", evento:"Reveza Run", cidade:"Bauru", tipo:"corrida", publico:1000, horario:"7h" },
+  { inicio:"2027-11-21", fim:"2027-11-21", evento:"Reveza Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h" },
 ];
 
 const CAL_FERIADOS = [
@@ -2186,8 +2188,8 @@ const CAL_FERIADOS = [
 
 const CAL_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const CAL_DS = ["D","S","T","Q","Q","S","S"];
-const CAL_BG = { corrida:"cal-bg-corrida", beach:"cal-bg-beach", especial:"cal-bg-especial" };
-const CAL_DOTCOLOR = { corrida:"var(--orange)", beach:"#F4D35E", especial:"#C94F4F" };
+const CAL_BG = { corrida:"cal-bg-corrida", beach:"cal-bg-beach", especial:"cal-bg-especial", hyrox:"cal-bg-hyrox" };
+const CAL_DOTCOLOR = { corrida:"var(--orange)", beach:"#F4D35E", especial:"#C94F4F", hyrox:"#1d4e89" };
 let _calBuilt = {};
 let _calYear = 2026;
 
@@ -2305,7 +2307,7 @@ function calBuildLista(){
     const mesAbrev = CAL_MESES_ABREV[parseInt(mi,10)-1];
     const datafmt = e.historico ? mesAbrev+"/"+anoFull
       : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
-    const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo];
+    const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo];
     const pill = e.realizado
       ? '<span class="cal-tipo-pill" style="background:#e8e6e2;color:#9a9690;">✓ Realizado</span>'
       : '<span class="cal-tipo-pill '+CAL_BG[e.tipo]+'">'+tipoTxt+'</span>';
@@ -2350,7 +2352,7 @@ function exportarCalendarioExcel(){
       const mesAbrev=CAL_MESES_ABREV[parseInt(mi,10)-1];
       const datafmt=e.historico ? mesAbrev+"/"+anoFull
         : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
-      const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial'}[e.tipo]||e.tipo||'');
+      const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo]||e.tipo||'');
       const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
       const alvVal=calStatusGet(eKey,'alvara','nao');
       const perVal=calStatusGet(eKey,'percurso','nao');
