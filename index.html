@@ -83,6 +83,22 @@
     background: #111;
     overflow: hidden;
   }
+  .hero-slide {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: 0; transition: opacity 1s ease;
+  }
+  .hero-slide.ativo { opacity: 1; }
+  #hero-dots {
+    position: absolute; bottom: 16px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 8px; z-index: 2;
+  }
+  .hero-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.45);
+    transition: background 0.3s, transform 0.3s;
+  }
+  .hero-dot.ativo { background: #fff; transform: scale(1.25); }
   .hero-accent { display:none; } .hero-accent-off {
     position: absolute; top: 0; right: 0;
     width: 55%; height: 100%;
@@ -2320,6 +2336,8 @@ async function carregarReels() {
     const dados = await res.json();
     if (!dados) return;
 
+    renderHeroBanners(dados);
+
     let reels = Array.isArray(dados.reels)
       ? dados.reels.filter(r => r && r.video).map(r => ({ video: r.video, link: r.link || '' }))
       : [];
@@ -2400,6 +2418,44 @@ function reelsScroll(dir) {
   const card = inner.querySelector('.reel-card');
   const passo = card ? (card.offsetWidth + 20) * 2 : inner.clientWidth * 0.8;
   inner.scrollBy({ left: dir * passo, behavior: 'smooth' });
+}
+
+// ── CARROSSEL DE BANNERS DO HERO ──────────────────
+function renderHeroBanners(dados) {
+  const banners = Array.isArray(dados.banners) ? dados.banners.filter(b => b && b.desktop) : [];
+  if (!banners.length) return; // sem banners → mantém o vídeo
+  const hero = document.getElementById('hero');
+  if (!hero || document.getElementById('hero-slides')) return;
+
+  const vid = document.getElementById('hero-video');
+  if (vid) { try { vid.pause(); } catch(e){} vid.style.display = 'none'; }
+
+  const isMob = window.innerWidth <= 768;
+  const urlDe = b => ((isMob && b.mobile) ? b.mobile : b.desktop).replace(/'/g, "%27");
+
+  const slides = document.createElement('div');
+  slides.id = 'hero-slides';
+  slides.style.cssText = 'position:absolute;inset:0;z-index:0;';
+  slides.innerHTML = banners.map((b, i) =>
+    `<div class="hero-slide${i===0?' ativo':''}" style="background-image:url('${urlDe(b)}')"></div>`
+  ).join('') + (banners.length > 1
+    ? `<div id="hero-dots">${banners.map((_, i) => `<span class="hero-dot${i===0?' ativo':''}"></span>`).join('')}</div>`
+    : '');
+  hero.appendChild(slides);
+
+  // pré-carrega as próximas imagens
+  banners.slice(1).forEach(b => { const img = new Image(); img.src = (isMob && b.mobile) ? b.mobile : b.desktop; });
+
+  if (banners.length > 1) {
+    let idx = 0;
+    setInterval(() => {
+      const sl = slides.querySelectorAll('.hero-slide');
+      const dots = slides.querySelectorAll('.hero-dot');
+      sl[idx].classList.remove('ativo'); if (dots[idx]) dots[idx].classList.remove('ativo');
+      idx = (idx + 1) % sl.length;
+      sl[idx].classList.add('ativo'); if (dots[idx]) dots[idx].classList.add('ativo');
+    }, 5000);
+  }
 }
 
 function reelToggleSom(card) {
