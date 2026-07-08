@@ -346,6 +346,22 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-status-input:focus{border-color:var(--orange);background:#fff;}
   table.cal-lista th.col-statustxt{font-size:9px;min-width:160px;text-align:left;}
   table.cal-lista td.col-statustxt{padding:6px 8px;}
+  /* Campos editáveis (modo Supabase) */
+  .cal-edit-input,.cal-edit-num,.cal-edit-date,.cal-edit-sel{
+    border:1px solid transparent;border-radius:5px;padding:4px 6px;
+    font-size:11px;font-family:'Ubuntu',sans-serif;outline:none;
+    background:transparent;color:var(--text);width:100%;
+  }
+  .cal-edit-num{width:52px;text-align:center;}
+  .cal-edit-date{width:112px;font-size:10px;display:block;}
+  .cal-edit-sel{cursor:pointer;width:auto;}
+  .cal-edit-input:hover,.cal-edit-num:hover,.cal-edit-date:hover,.cal-edit-sel:hover{border-color:var(--border);background:#faf9f7;}
+  .cal-edit-input:focus,.cal-edit-num:focus,.cal-edit-date:focus,.cal-edit-sel:focus{border-color:var(--orange);background:#fff;}
+  .cal-del-btn{
+    background:none;border:none;cursor:pointer;font-size:13px;opacity:.35;
+    padding:4px 6px;transition:opacity .15s;
+  }
+  .cal-del-btn:hover{opacity:1;}
   .cal-check-btn{
     width:28px;height:28px;border-radius:6px;border:2px solid var(--border);
     background:#fff;cursor:pointer;display:inline-flex;align-items:center;
@@ -986,7 +1002,7 @@ function showInner(name){
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
-  if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calRender();}
+  if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='designer'){document.getElementById('nav-designer').classList.add('active');initDesignerFrame();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');initSocialFrame();}
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
@@ -2176,6 +2192,136 @@ const CAL_EVENTOS = [
   { inicio:"2027-11-21", fim:"2027-11-21", evento:"Reveza Run", cidade:"Ribeirão Preto", tipo:"corrida", publico:2000, horario:"7h", confianca:50, status:"Depende do resultado de RP 29/11" },
 ];
 
+/* ── FONTE DE DADOS DO CALENDÁRIO ──
+   _calDados começa com o array embutido (fallback) e é substituído
+   pelos dados do Supabase (tabela calendario) quando a RPC existir. */
+let _calDados = CAL_EVENTOS;
+let _calDB = false;        // true = dados vêm do Supabase (edição completa habilitada)
+let _calCarregado = false; // evita recarregar a cada troca de aba
+
+async function calInitCalendario(){
+  calRender(); // mostra imediatamente com o que tiver
+  if(_calCarregado) return;
+  _calCarregado = true;
+  try{
+    const rows = await rpc('admin_calendario_listar');
+    if(Array.isArray(rows) && rows.length){
+      _calDados = rows.map(r=>({...r, publico: r.publico||0, inicio:String(r.inicio).slice(0,10), fim:String(r.fim||r.inicio).slice(0,10)}));
+      _calDB = true;
+      await calMigrarLocalStorage();
+      _calBuilt = {};
+      calRefreshCurrentView();
+    }
+  }catch(e){ console.warn('Calendário: RPC indisponível, usando dados embutidos.', e); }
+}
+
+function calRefreshCurrentView(){
+  const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active') && b.dataset.view)?.dataset.view || 'completo';
+  if(activeView==='completo'){ _calBuilt.completo=false; calRender(); }
+  else calSetView(activeView);
+}
+
+// Migra uma única vez os status Alvará/Percurso/ID Visual/Status do localStorage → Supabase
+async function calMigrarLocalStorage(){
+  try{
+    const d = calStatusLoad();
+    if(!Object.keys(d).length) return;
+    for(const ev of _calDados){
+      const k = (ev.inicio+ev.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+      const m = d[k];
+      if(!m) continue;
+      let mudou = false;
+      if(m.alvara && m.alvara!=='nao' && ev.alvara==='nao'){ ev.alvara=m.alvara; mudou=true; }
+      if(m.percurso && m.percurso!=='nao' && ev.percurso==='nao'){ ev.percurso=m.percurso; mudou=true; }
+      if(m.idvisual && !ev.idvisual){ ev.idvisual=true; mudou=true; }
+      if(m.status && !ev.status){ ev.status=m.status; mudou=true; }
+      if(mudou){ try{ await rpc('admin_calendario_salvar',{dados:calPayload(ev)}); }catch(e){} }
+    }
+    localStorage.removeItem(CAL_STATUS_KEY);
+  }catch(e){}
+}
+
+function calPayload(e){
+  return { id:e.id, inicio:e.inicio, fim:e.fim||e.inicio, evento:e.evento||'', cidade:e.cidade||'',
+    tipo:e.tipo||'corrida', publico:e.publico||0, horario:e.horario||null,
+    confianca:(e.confianca===''||e.confianca==null)?null:e.confianca, status:e.status||'',
+    alvara:e.alvara||'nao', percurso:e.percurso||'nao',
+    idvisual:!!e.idvisual, realizado:!!e.realizado, historico:!!e.historico };
+}
+
+function calSalvandoUI(estado){
+  const el = document.getElementById('cal-save-ind');
+  if(!el) return;
+  clearTimeout(el._t);
+  if(estado===1){ el.textContent='Salvando…'; el.style.color='var(--muted)'; }
+  else if(estado===2){ el.textContent='✓ Salvo'; el.style.color='#16a34a'; el._t=setTimeout(()=>el.textContent='',2500); }
+  else { el.textContent='⚠ Erro ao salvar'; el.style.color='#dc2626'; }
+}
+
+const calEsc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+
+function calEdit(id, campo, valor, el){
+  const ev = _calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  if(campo==='publico'){ valor = valor==='' ? 0 : (parseInt(valor,10)||0); }
+  if(campo==='confianca'){ valor = valor==='' ? null : Math.max(0,Math.min(100,parseInt(valor,10)||0)); if(el&&valor!=null)el.value=valor; }
+  ev[campo] = valor;
+  if(campo==='inicio'){ ev.historico = valor < '2026-01-01'; if(!ev.fim || ev.fim < valor){ ev.fim = valor; } }
+  if(campo==='fim' && valor < ev.inicio){ ev.fim = ev.inicio; if(el) el.value = ev.inicio; }
+  if(campo==='alvara' && el) el.className = 'cal-status-sel '+calStatusCls(valor,'alvara');
+  if(campo==='percurso' && el) el.className = 'cal-status-sel '+calStatusCls(valor,'percurso');
+  calPersistir(ev);
+}
+
+function calToggleCampo(id, campo, btn){
+  const ev = _calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  ev[campo] = !ev[campo];
+  if(btn){ btn.classList.toggle('checked', ev[campo]); btn.textContent = ev[campo] ? '✓' : ''; }
+  calPersistir(ev);
+  if(campo==='realizado'){ // realizado muda visual da linha inteira → rebuild
+    document.getElementById('cal-pane-lista').innerHTML = calBuildLista();
+    _calBuilt.lista=true; _calBuilt.listaAno=_calYear;
+  }
+}
+
+async function calPersistir(ev){
+  _calBuilt = { lista:_calBuilt.lista, listaAno:_calBuilt.listaAno }; // invalida resumido/completo
+  calUpdateStats();
+  if(!_calDB) return;
+  calSalvandoUI(1);
+  try{ await rpc('admin_calendario_salvar',{dados:calPayload(ev)}); calSalvandoUI(2); }
+  catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
+async function calAdicionarEvento(){
+  const ano = (_calYear===0) ? 2027 : (_calYear==='hist' ? 2025 : _calYear);
+  const novo = { inicio:ano+'-01-01', fim:ano+'-01-01', evento:'Novo evento', cidade:'Ribeirão Preto',
+    tipo:'corrida', publico:0, horario:'7h', confianca:null, status:'', alvara:'nao', percurso:'nao',
+    idvisual:false, realizado:false, historico:ano<2026 };
+  calSalvandoUI(1);
+  try{
+    const r = await rpc('admin_calendario_salvar',{dados:calPayload(novo)});
+    novo.id = (typeof r==='string') ? r : (r && r.id) || null;
+    if(!novo.id) throw new Error('RPC não retornou id');
+    _calDados.push(novo);
+    document.getElementById('cal-pane-lista').innerHTML = calBuildLista();
+    _calBuilt = { lista:true, listaAno:_calYear };
+    calUpdateStats(); calSalvandoUI(2);
+  }catch(e){ calSalvandoUI(3); alert('Erro ao adicionar: '+e.message); }
+}
+
+async function calExcluirEvento(id){
+  const ev = _calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  if(!confirm('Excluir "'+ev.evento+'" ('+fmtDS(ev.inicio)+')?')) return;
+  calSalvandoUI(1);
+  try{
+    await rpc('admin_calendario_excluir',{p_id:ev.id});
+    _calDados = _calDados.filter(x=>String(x.id)!==String(id));
+    document.getElementById('cal-pane-lista').innerHTML = calBuildLista();
+    _calBuilt = { lista:true, listaAno:_calYear };
+    calUpdateStats(); calSalvandoUI(2);
+  }catch(e){ calSalvandoUI(3); alert('Erro ao excluir: '+e.message); }
+}
+
 const CAL_FERIADOS = [
   { data:"2027-01-01", nome:"Confraternização Universal" },
   { data:"2027-01-20", nome:"São Sebastião · RP" },
@@ -2222,7 +2368,7 @@ function calBuildMonthTable(m, year){
   const daysInMonth = new Date(year,m+1,0).getDate();
 
   const evDays = {};
-  CAL_EVENTOS.forEach(e=>{
+  _calDados.forEach(e=>{
     calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
       if(!d.startsWith(prefix)) return;
       const day = parseInt(d.slice(8,10),10);
@@ -2277,7 +2423,7 @@ function calBuildCompleto(){
     if(showLabel) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
   for(let m=0;m<12;m++){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
-    const evs=CAL_EVENTOS.filter(e=>(isHist ? e.historico : (_calYear===0||e.inicio.startsWith(String(_calYear))))&&calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
+    const evs=_calDados.filter(e=>(isHist ? e.historico : (_calYear===0||e.inicio.startsWith(String(_calYear))))&&calDiasIntervalo(e.inicio,e.fim).some(d=>d.startsWith(prefix)));
     const count=evs.length;
     if(isHist && count===0) continue; // pula meses vazios no histórico
     html += '<div class="cal-month-card">'
@@ -2324,6 +2470,7 @@ function calConfCls(v){
 
 const CAL_MESES_ABREV=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 function calBuildLista(){
+  if(_calDB) return calBuildListaDB();
   const isHist = _calYear==='hist';
   const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
   const rows=ord.map(e=>{
@@ -2372,6 +2519,60 @@ function calBuildLista(){
   return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
+// ── Lista 100% editável (modo Supabase) ──
+function calBuildListaDB(){
+  const ord=[..._filtrarOrdenado()];
+  const rows=ord.map(e=>{
+    const id=calEsc(e.id);
+    const trStyle=e.realizado?' style="opacity:.55;"':'';
+    const multiDia = e.fim && e.fim!==e.inicio;
+    const dataInp='<input type="date" class="cal-edit-date" value="'+calEsc(e.inicio)+'" onchange="calEdit(\''+id+'\',\'inicio\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<input type="date" class="cal-edit-date" value="'+calEsc(e.fim||e.inicio)+'" title="Data final (eventos de vários dias)" onchange="calEdit(\''+id+'\',\'fim\',this.value,this)" onclick="event.stopPropagation()" style="margin-top:3px;'+(multiDia?'':'opacity:.45;')+'">';
+    const evInp='<input type="text" class="cal-edit-input" style="min-width:150px;font-weight:600;" value="'+calEsc(e.evento)+'" onchange="calEdit(\''+id+'\',\'evento\',this.value)" onclick="event.stopPropagation()">';
+    const cidInp='<input type="text" class="cal-edit-input" style="min-width:110px;" value="'+calEsc(e.cidade)+'" onchange="calEdit(\''+id+'\',\'cidade\',this.value)" onclick="event.stopPropagation()">';
+    const confInp='<span style="display:inline-flex;align-items:center;gap:2px;"><input type="number" min="0" max="100" step="5" class="cal-edit-num" value="'+(e.confianca==null?'':calEsc(e.confianca))+'" placeholder="—" onchange="calEdit(\''+id+'\',\'confianca\',this.value,this)" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--muted);">%</span></span>';
+    const statusInp='<input type="text" class="cal-status-input" value="'+calEsc(e.status)+'" placeholder="Escrever…" onchange="calEdit(\''+id+'\',\'status\',this.value)" onclick="event.stopPropagation()">';
+    const alvVal=e.alvara||'nao';
+    const alvSel='<select class="cal-status-sel '+calStatusCls(alvVal,'alvara')+'" onchange="calEdit(\''+id+'\',\'alvara\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
+      +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
+      +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
+      +'</select>';
+    const tipoSel='<select class="cal-edit-sel" onchange="calEdit(\''+id+'\',\'tipo\',this.value)" onclick="event.stopPropagation()">'
+      +['corrida','beach','especial','hyrox'].map(t=>'<option value="'+t+'"'+((e.tipo||'corrida')===t?' selected':'')+'>'+({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[t])+'</option>').join('')
+      +'</select>';
+    const pubInp='<input type="number" min="0" class="cal-edit-num" style="width:64px;" value="'+calEsc(e.publico||0)+'" onchange="calEdit(\''+id+'\',\'publico\',this.value)" onclick="event.stopPropagation()">';
+    const larInp='<input type="text" class="cal-edit-input" style="width:48px;text-align:center;" value="'+calEsc(e.horario||'')+'" placeholder="—" onchange="calEdit(\''+id+'\',\'horario\',this.value)" onclick="event.stopPropagation()">';
+    const idvBtn='<button class="cal-check-btn'+(e.idvisual?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'idvisual\',this)" title="ID. Visual">'+(e.idvisual?'✓':'')+'</button>';
+    const perVal=e.percurso||'nao';
+    const perSel='<select class="cal-status-sel '+calStatusCls(perVal,'percurso')+'" onchange="calEdit(\''+id+'\',\'percurso\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(perVal==='nao'?' selected':'')+'>Não definido</option>'
+      +'<option value="ok"'+(perVal==='ok'?' selected':'')+'>Definido</option>'
+      +'</select>';
+    const realBtn='<button class="cal-check-btn'+(e.realizado?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'realizado\',this)" title="Marcar como realizado">'+(e.realizado?'✓':'')+'</button>';
+    const delBtn='<button class="cal-del-btn" onclick="calExcluirEvento(\''+id+'\')" title="Excluir evento">🗑</button>';
+    return '<tr'+trStyle+'>'
+      +'<td style="min-width:118px;">'+dataInp+'</td>'
+      +'<td class="cal-col-evt">'+evInp+'</td>'
+      +'<td>'+cidInp+'</td>'
+      +'<td class="col-conf">'+confInp+'</td>'
+      +'<td class="col-statustxt">'+statusInp+'</td>'
+      +'<td class="col-status">'+alvSel+'</td>'
+      +'<td>'+tipoSel+'</td>'
+      +'<td>'+pubInp+'</td>'
+      +'<td>'+larInp+'</td>'
+      +'<td class="col-check">'+idvBtn+'</td>'
+      +'<td class="col-status">'+perSel+'</td>'
+      +'<td class="col-check">'+realBtn+'</td>'
+      +'<td>'+delBtn+'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+    +'<button onclick="calAdicionarEvento()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Adicionar evento</button></div>'
+    +'<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _filtrarOrdenado(){ return [...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio)); }
+
 /* ── EXCEL: Calendário (formato Lista) ── */
 const CAL_ALVARA_LABEL={nao:'Não iniciou',andamento:'Entrada',ok:'Finalizado'};
 const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
@@ -2388,10 +2589,10 @@ function exportarCalendarioExcel(){
       const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo]||e.tipo||'');
       const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
       const confVal=e.confianca!=null?e.confianca+'%':'—';
-      const statusVal=calStatusGet(eKey,'status', e.status||'');
-      const alvVal=calStatusGet(eKey,'alvara','nao');
-      const perVal=calStatusGet(eKey,'percurso','nao');
-      const idvVal=calStatusGet(eKey,'idvisual',false);
+      const statusVal=_calDB ? (e.status||'') : calStatusGet(eKey,'status', e.status||'');
+      const alvVal=_calDB ? (e.alvara||'nao') : calStatusGet(eKey,'alvara','nao');
+      const perVal=_calDB ? (e.percurso||'nao') : calStatusGet(eKey,'percurso','nao');
+      const idvVal=_calDB ? !!e.idvisual : calStatusGet(eKey,'idvisual',false);
       ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,statusVal,CAL_ALVARA_LABEL[alvVal]||alvVal,tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal]);
     });
     const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
@@ -2442,9 +2643,9 @@ function calBuildResumido(){
 
 // ── Filtra eventos pelo ano selecionado (usada por stats e builds) ──
 function calFiltrarEventos(){
-  if(_calYear==='hist') return CAL_EVENTOS.filter(e=>e.historico);
-  if(_calYear===0)      return CAL_EVENTOS.filter(e=>!e.historico); // Todos = 2026+2027
-  return CAL_EVENTOS.filter(e=>!e.historico && e.inicio.startsWith(String(_calYear)));
+  if(_calYear==='hist') return _calDados.filter(e=>e.historico);
+  if(_calYear===0)      return _calDados.filter(e=>!e.historico); // Todos = 2026+2027
+  return _calDados.filter(e=>!e.historico && e.inicio.startsWith(String(_calYear)));
 }
 
 // ── Atualiza os 3 cards de estatísticas no topo ──
@@ -2617,6 +2818,7 @@ function calSetYear(year){
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:var(--orange);display:inline-block;"></i>Corrida</span>
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#F4D35E;display:inline-block;"></i>Beach Tennis</span>
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#C94F4F;display:inline-block;"></i>Especial</span>
+          <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#1d4e89;display:inline-block;"></i>Hyrox</span>
           <span style="display:inline-flex;align-items:center;gap:6px;"><i style="width:9px;height:9px;border-radius:50%;background:#8A8A82;display:inline-block;"></i>Feriado</span>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
@@ -2628,7 +2830,8 @@ function calSetYear(year){
           <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
-          <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;margin-left:auto;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
+          <span id="cal-save-ind" style="align-self:center;font-size:11px;font-weight:600;margin-left:auto;"></span>
+          <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
         </div>
         <div id="cal-pane-lista" style="display:none;"></div>
         <div id="cal-pane-resumido" style="display:none;"></div>
