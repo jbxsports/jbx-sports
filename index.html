@@ -689,7 +689,24 @@
 
   /* REELS — responsivo */
   @media (max-width: 900px) {
-    #reels-grid-inner { grid-template-columns: 1fr !important; max-width: 380px; margin: 0 auto; }
+    /* Carrossel horizontal com swipe */
+    #reels-grid-inner {
+      display: flex !important;
+      grid-template-columns: none !important;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      gap: 14px !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 8% 8px;
+      scrollbar-width: none;
+    }
+    #reels-grid-inner::-webkit-scrollbar { display: none; }
+    #reels-grid-inner .reel-card {
+      flex: 0 0 72%;
+      scroll-snap-align: center;
+    }
   }
   @media (min-width: 901px) and (max-width: 1100px) {
     #reels-grid-inner { grid-template-columns: repeat(2, 1fr) !important; }
@@ -762,9 +779,9 @@
 <!-- REELS -->
 <section id="reels" style="background:var(--orange);padding:64px 3%;">
   <div id="reels-grid" style="max-width:1300px;margin:0 auto;"><div id="reels-grid-inner" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-    <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-    <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-    <div class="reel-placeholder" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
   </div></div>
 </section>
 
@@ -2296,33 +2313,82 @@ async function carregarReels() {
       body: '{}'
     });
     const dados = await res.json();
-    if (!dados || !dados.reels_video1) return;
+    if (!dados) return;
 
-    const videos = [dados.reels_video1, dados.reels_video2, dados.reels_video3].filter(Boolean);
-    if (!videos.length) return;
+    const reels = [1,2,3].map(n => ({
+      video: dados['reels_video'+n] || '',
+      link:  dados['reels_link'+n]  || ''
+    })).filter(r => r.video);
+    if (!reels.length) return;
 
     const grid = document.getElementById('reels-grid-inner');
-    grid.innerHTML = videos.map(url => {
-      // Normaliza URL: remove query params e garante /embed/
-      const clean = url.split('?')[0].replace(/\/?$/, '/');
-      const embedUrl = clean + 'embed/';
-      return `<div style="aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#000;position:relative;">
-        <iframe
-          src="${embedUrl}"
-          style="position:absolute;inset:0;width:100%;height:100%;border:none;transform:scale(1.01);"
-          scrolling="no"
-          allowtransparency="true"
-          allowfullscreen="true"
-          loading="lazy">
-        </iframe>
-        <!-- Bloqueia clique no overlay do Instagram que redireciona -->
-        <div style="position:absolute;bottom:0;left:0;right:0;height:60px;z-index:10;"></div>
-        <div style="position:absolute;top:0;left:0;right:0;height:70px;z-index:10;"></div>
+    grid.innerHTML = reels.map((r, i) => {
+      if (r.video.includes('instagram.com')) {
+        // Fallback: link antigo do Instagram ainda configurado → embed
+        const clean = r.video.split('?')[0].replace(/\/?$/, '/');
+        return `<div class="reel-card" style="aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#000;position:relative;">
+          <iframe src="${clean}embed/" style="position:absolute;inset:0;width:100%;height:100%;border:none;transform:scale(1.01);" scrolling="no" allowtransparency="true" allowfullscreen="true" loading="lazy"></iframe>
+          <div style="position:absolute;bottom:0;left:0;right:0;height:60px;z-index:10;"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:70px;z-index:10;"></div>
+        </div>`;
+      }
+      // Vídeo nativo (MP4 no Supabase Storage)
+      const instaBtn = r.link
+        ? `<a href="${r.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);" title="Ver no Instagram">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="#fff" stroke="none"/></svg>
+          </a>` : '';
+      return `<div class="reel-card" style="aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#000;position:relative;cursor:pointer;" onclick="reelToggleSom(this)">
+        <video src="${r.video}" muted loop playsinline preload="metadata"
+          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;"></video>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to top, rgba(0,0,0,0.55), transparent);">
+          <span style="color:#fff;font-size:13px;font-weight:700;letter-spacing:.3px;">@jbx.sports</span>
+          ${instaBtn}
+        </div>
+        <div class="reel-som" style="position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;">
+          <svg class="ic-mute" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#fff" stroke="none"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+          <svg class="ic-som" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="#fff" stroke="none"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        </div>
       </div>`;
     }).join('');
+
+    // Autoplay quando o card entra na tela / pausa quando sai
+    const vids = grid.querySelectorAll('video');
+    if ('IntersectionObserver' in window && vids.length) {
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          const v = en.target;
+          if (en.isIntersecting) v.play().catch(()=>{});
+          else { v.pause(); v.muted = true; reelAtualizaIcone(v.closest('.reel-card')); }
+        });
+      }, { threshold: 0.4 });
+      vids.forEach(v => io.observe(v));
+    } else {
+      vids.forEach(v => v.play().catch(()=>{}));
+    }
   } catch(e) {
     console.log('[reels] Sem vídeos configurados');
   }
+}
+
+function reelToggleSom(card) {
+  const v = card.querySelector('video');
+  if (!v) return;
+  v.muted = !v.muted;
+  if (!v.muted) {
+    v.play().catch(()=>{});
+    // silencia os outros
+    document.querySelectorAll('#reels-grid-inner video').forEach(o => { if (o !== v) { o.muted = true; reelAtualizaIcone(o.closest('.reel-card')); } });
+  }
+  reelAtualizaIcone(card);
+}
+
+function reelAtualizaIcone(card) {
+  if (!card) return;
+  const v = card.querySelector('video');
+  const mu = card.querySelector('.ic-mute'), so = card.querySelector('.ic-som');
+  if (!v || !mu || !so) return;
+  mu.style.display = v.muted ? '' : 'none';
+  so.style.display = v.muted ? 'none' : '';
 }
 
 carregarReels();
