@@ -863,7 +863,21 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             Use as setas ↑↓ para mudar a ordem de exibição.
           </p>
           <div id="cfg-reels-list"></div>
-          <button type="button" class="btn-ghost" onclick="cfgAddReel()" style="width:100%;margin-bottom:16px;border:1px dashed var(--orange);color:var(--orange);">➕ Adicionar vídeo</button>
+          <button type="button" class="btn-ghost" onclick="cfgAddReel()" style="width:100%;margin-bottom:8px;border:1px dashed var(--orange);color:var(--orange);">➕ Adicionar vídeo</button>
+        </div>
+
+        <div class="panel" style="max-width:680px;margin-top:24px;">
+          <h2>🖼 Banners do Carrossel — Home</h2>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+            Imagens do banner principal da home, trocando automaticamente a cada 5 segundos.<br>
+            <b>Desktop:</b> 1920×810px (obrigatória) · <b>Mobile:</b> 1080×1750px (opcional — se não enviar, usa a desktop).
+            Use as setas ↑↓ para mudar a ordem.
+          </p>
+          <div id="cfg-banners-list"></div>
+          <button type="button" class="btn-ghost" onclick="cfgAddBanner()" style="width:100%;margin-bottom:8px;border:1px dashed var(--orange);color:var(--orange);">➕ Adicionar banner</button>
+        </div>
+
+        <div style="max-width:680px;margin-top:20px;">
           <div id="cfg-msg" style="font-size:13px;min-height:18px;margin:12px 0;"></div>
           <button class="btn-new-ev" id="btn-salvar-cfg" onclick="salvarConfiguracoes()" style="min-width:200px;">
             💾 Salvar configurações
@@ -2086,7 +2100,9 @@ async function abrirConfiguracoes() {
 }
 
 let cfgReels = []; // [{video, link}]
+let cfgBanners = []; // [{desktop, mobile}]
 const CFG_REELS_MAX = 15;
+const CFG_BANNERS_MAX = 10;
 
 async function loadConfiguracoes() {
   try {
@@ -2098,9 +2114,12 @@ async function loadConfiguracoes() {
         // migra do formato antigo (3 colunas)
         cfgReels = [1,2,3].map(n => ({ video: res['reels_video'+n] || '', link: res['reels_link'+n] || '' })).filter(r => r.video);
       }
+      cfgBanners = Array.isArray(res.banners) ? res.banners.map(b => ({ desktop: b.desktop || '', mobile: b.mobile || '' })) : [];
     }
     if (!cfgReels.length) cfgReels = [{ video:'', link:'' }];
+    if (!cfgBanners.length) cfgBanners = [{ desktop:'', mobile:'' }];
     renderCfgReels();
+    renderCfgBanners();
   } catch(e) { console.error('Erro ao carregar configurações:', e); }
 }
 
@@ -2185,8 +2204,10 @@ async function salvarConfiguracoes() {
   const msg = document.getElementById('cfg-msg');
   btn.textContent = 'Salvando...'; btn.disabled = true; msg.textContent = '';
   try {
-    const limpos = cfgReels.filter(r => r.video);
-    await rpc('admin_salvar_configuracoes', { p_reels: limpos });
+    await rpc('admin_salvar_configuracoes', {
+      p_reels: cfgReels.filter(r => r.video),
+      p_banners: cfgBanners.filter(b => b.desktop)
+    });
     msg.style.color = '#16a34a';
     msg.textContent = '✅ Configurações salvas com sucesso!';
     setTimeout(() => msg.textContent = '', 3000);
@@ -2195,6 +2216,93 @@ async function salvarConfiguracoes() {
     msg.textContent = '❌ Erro: ' + e.message;
   }
   btn.textContent = '💾 Salvar configurações'; btn.disabled = false;
+}
+
+/* ── BANNERS DO CARROSSEL (home) ── */
+function renderCfgBanners() {
+  const list = document.getElementById('cfg-banners-list');
+  list.innerHTML = cfgBanners.map((b, i) => {
+    const prevD = b.desktop
+      ? `<img src="${b.desktop.replace(/"/g,'&quot;')}" style="width:200px;aspect-ratio:1920/810;object-fit:cover;border-radius:8px;background:#f0ede8;display:block;">`
+      : `<div style="width:200px;aspect-ratio:1920/810;border-radius:8px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div>`;
+    const prevM = b.mobile
+      ? `<img src="${b.mobile.replace(/"/g,'&quot;')}" style="width:52px;aspect-ratio:1080/1750;object-fit:cover;border-radius:6px;background:#f0ede8;display:block;">`
+      : `<div style="width:52px;aspect-ratio:1080/1750;border-radius:6px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:14px;">📱</div>`;
+    return `<div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <label style="font-weight:700;margin:0;">Banner ${i+1}</label>
+        <div style="display:flex;gap:4px;">
+          <button type="button" onclick="cfgMoveBanner(${i},-1)" ${i===0?'disabled':''} style="border:1px solid var(--border);background:#fff;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;${i===0?'opacity:.3;':''}" title="Subir">↑</button>
+          <button type="button" onclick="cfgMoveBanner(${i},1)" ${i===cfgBanners.length-1?'disabled':''} style="border:1px solid var(--border);background:#fff;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;${i===cfgBanners.length-1?'opacity:.3;':''}" title="Descer">↓</button>
+          <button type="button" onclick="cfgRemoveBanner(${i})" style="border:1px solid #fca5a5;background:#fff;color:#dc2626;border-radius:5px;padding:2px 8px;cursor:pointer;font-size:12px;" title="Remover">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        <div>
+          ${prevD}
+          <div class="upload-row" style="margin-top:6px;">
+            <button type="button" class="btn-upload" onclick="document.getElementById('cfg-bfile-d-${i}').click()">🖥 ${b.desktop?'Trocar desktop':'Enviar desktop'}</button>
+          </div>
+          <input type="file" id="cfg-bfile-d-${i}" accept="image/*" style="display:none;" onchange="uploadBannerHome(${i},'desktop',this)">
+        </div>
+        <div>
+          ${prevM}
+          <div class="upload-row" style="margin-top:6px;">
+            <button type="button" class="btn-upload" onclick="document.getElementById('cfg-bfile-m-${i}').click()">📱 ${b.mobile?'Trocar':'Mobile'}</button>
+          </div>
+          <input type="file" id="cfg-bfile-m-${i}" accept="image/*" style="display:none;" onchange="uploadBannerHome(${i},'mobile',this)">
+        </div>
+        <span id="cfg-bstatus-${i}" style="font-size:12px;color:var(--muted);align-self:center;flex:1;"></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cfgAddBanner() {
+  if (cfgBanners.length >= CFG_BANNERS_MAX) { alert('Máximo de '+CFG_BANNERS_MAX+' banners.'); return; }
+  cfgBanners.push({ desktop:'', mobile:'' });
+  renderCfgBanners();
+}
+
+function cfgRemoveBanner(i) {
+  if (!confirm('Remover o Banner '+(i+1)+'?')) return;
+  cfgBanners.splice(i, 1);
+  if (!cfgBanners.length) cfgBanners = [{ desktop:'', mobile:'' }];
+  renderCfgBanners();
+}
+
+function cfgMoveBanner(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= cfgBanners.length) return;
+  [cfgBanners[i], cfgBanners[j]] = [cfgBanners[j], cfgBanners[i]];
+  renderCfgBanners();
+}
+
+async function uploadBannerHome(i, tipo, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { alert('Máximo 10MB por imagem.'); input.value=''; return; }
+  const st = document.getElementById('cfg-bstatus-'+i);
+  if (st) { st.textContent = 'Enviando…'; st.style.color = 'var(--muted)'; }
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const nome = 'banner_home_' + Date.now() + '_' + i + '_' + tipo + '.' + ext;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) throw new Error(await r.text());
+    cfgBanners[i][tipo] = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    renderCfgBanners();
+    const st2 = document.getElementById('cfg-bstatus-'+i);
+    if (st2) { st2.textContent = '✓ Imagem enviada! Clique em Salvar configurações.'; st2.style.color = '#22c55e'; }
+  } catch(e) {
+    const st2 = document.getElementById('cfg-bstatus-'+i);
+    if (st2) { st2.textContent = 'Erro no upload.'; st2.style.color = '#ff6b6b'; }
+    console.error(e);
+  }
+  input.value = '';
 }
 
 /* ── INIT ── */
