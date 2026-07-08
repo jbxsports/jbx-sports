@@ -687,29 +687,38 @@
     .step-connector { display: none; }
   }
 
-  /* REELS — responsivo */
-  @media (max-width: 900px) {
-    /* Carrossel horizontal com swipe */
-    #reels-grid-inner {
-      display: flex !important;
-      grid-template-columns: none !important;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      gap: 14px !important;
-      max-width: none !important;
-      margin: 0 !important;
-      padding: 0 8% 8px;
-      scrollbar-width: none;
-    }
-    #reels-grid-inner::-webkit-scrollbar { display: none; }
-    #reels-grid-inner .reel-card {
-      flex: 0 0 72%;
-      scroll-snap-align: center;
-    }
+  /* REELS — carrossel horizontal */
+  #reels-grid-inner {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 2px 10px;
   }
-  @media (min-width: 901px) and (max-width: 1100px) {
-    #reels-grid-inner { grid-template-columns: repeat(2, 1fr) !important; }
+  #reels-grid-inner::-webkit-scrollbar { display: none; }
+  #reels-grid-inner .reel-card {
+    flex: 0 0 clamp(220px, 21vw, 290px);
+    scroll-snap-align: start;
+  }
+  .reels-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 5; width: 44px; height: 44px; border-radius: 50%;
+    border: none; cursor: pointer; font-size: 26px; line-height: 1;
+    background: rgba(255,255,255,0.92); color: var(--orange);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    display: none; align-items: center; justify-content: center;
+    transition: transform 0.15s, background 0.15s;
+    font-family: 'Ubuntu', sans-serif; padding-bottom: 4px;
+  }
+  .reels-arrow:hover { background: #fff; transform: translateY(-50%) scale(1.08); }
+  #reels-prev { left: -14px; }
+  #reels-next { right: -14px; }
+  @media (max-width: 900px) {
+    #reels-grid-inner { gap: 14px; padding: 0 8% 8px; }
+    #reels-grid-inner .reel-card { flex: 0 0 72%; scroll-snap-align: center; }
+    .reels-arrow { display: none !important; }
   }
 
   @media (max-width: 480px) {
@@ -778,11 +787,15 @@
 
 <!-- REELS -->
 <section id="reels" style="background:var(--orange);padding:64px 3%;">
-  <div id="reels-grid" style="max-width:1300px;margin:0 auto;"><div id="reels-grid-inner" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;">
-    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-    <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
-  </div></div>
+  <div id="reels-grid" style="max-width:1300px;margin:0 auto;position:relative;">
+    <button class="reels-arrow" id="reels-prev" onclick="reelsScroll(-1)" aria-label="Anterior">‹</button>
+    <div id="reels-grid-inner">
+      <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+      <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+      <div class="reel-placeholder reel-card" style="aspect-ratio:9/16;background:rgba(0,0,0,0.15);border-radius:16px;"></div>
+    </div>
+    <button class="reels-arrow" id="reels-next" onclick="reelsScroll(1)" aria-label="Próximo">›</button>
+  </div>
 </section>
 
 <!-- PARCEIROS OFICIAIS -->
@@ -2315,10 +2328,16 @@ async function carregarReels() {
     const dados = await res.json();
     if (!dados) return;
 
-    const reels = [1,2,3].map(n => ({
-      video: dados['reels_video'+n] || '',
-      link:  dados['reels_link'+n]  || ''
-    })).filter(r => r.video);
+    let reels = Array.isArray(dados.reels)
+      ? dados.reels.filter(r => r && r.video).map(r => ({ video: r.video, link: r.link || '' }))
+      : [];
+    if (!reels.length) {
+      // fallback: formato antigo de 3 colunas
+      reels = [1,2,3].map(n => ({
+        video: dados['reels_video'+n] || '',
+        link:  dados['reels_link'+n]  || ''
+      })).filter(r => r.video);
+    }
     if (!reels.length) return;
 
     const grid = document.getElementById('reels-grid-inner');
@@ -2365,9 +2384,30 @@ async function carregarReels() {
     } else {
       vids.forEach(v => v.play().catch(()=>{}));
     }
+
+    // Setas de navegação (desktop): só aparecem se houver overflow
+    reelsAtualizaSetas();
+    window.addEventListener('resize', reelsAtualizaSetas);
   } catch(e) {
     console.log('[reels] Sem vídeos configurados');
   }
+}
+
+function reelsAtualizaSetas() {
+  const inner = document.getElementById('reels-grid-inner');
+  const temOverflow = inner && inner.scrollWidth > inner.clientWidth + 10;
+  ['reels-prev','reels-next'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = temOverflow ? 'flex' : 'none';
+  });
+}
+
+function reelsScroll(dir) {
+  const inner = document.getElementById('reels-grid-inner');
+  if (!inner) return;
+  const card = inner.querySelector('.reel-card');
+  const passo = card ? (card.offsetWidth + 20) * 2 : inner.clientWidth * 0.8;
+  inner.scrollBy({ left: dir * passo, behavior: 'smooth' });
 }
 
 function reelToggleSom(card) {
