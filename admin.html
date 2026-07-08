@@ -856,23 +856,51 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <h1>⚙️ Configurações Gerais</h1>
         </div>
         <div class="panel" style="max-width:680px;">
-          <h2>🎬 Vídeos em Destaque — Reels do Instagram</h2>
+          <h2>🎬 Vídeos em Destaque — Home</h2>
           <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
-            Esses 3 vídeos aparecem na página inicial do site. Cole o link completo do Reel.<br>
-            <span style="color:var(--orange);">Ex:</span> <code style="background:#f0ede8;padding:2px 8px;border-radius:4px;font-size:12px;">https://www.instagram.com/reel/ABC123/</code>
+            Esses 3 vídeos aparecem na página inicial em formato reel (9:16), tocando automaticamente.<br>
+            Envie o arquivo <b>MP4</b> de cada vídeo (máx. 50MB) e, se quiser, cole o link do post no Instagram — ele vira um ícone clicável no card.
           </p>
-          <div class="form-g">
-            <label>🎥 Vídeo 1</label>
-            <input type="url" id="cfg-video1" placeholder="https://www.instagram.com/reel/...">
+
+          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <label style="font-weight:700;">🎥 Vídeo 1</label>
+            <video id="cfg-prev1" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
+            <input type="hidden" id="cfg-video1">
+            <div class="upload-row" style="margin:8px 0;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file1').click()">📁 Enviar vídeo MP4</button>
+              <span id="cfg-status1" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input type="file" id="cfg-file1" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(1,this)">
+            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
+            <input type="url" id="cfg-link1" placeholder="https://www.instagram.com/reel/...">
           </div>
-          <div class="form-g">
-            <label>🎥 Vídeo 2</label>
-            <input type="url" id="cfg-video2" placeholder="https://www.instagram.com/reel/...">
+
+          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <label style="font-weight:700;">🎥 Vídeo 2</label>
+            <video id="cfg-prev2" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
+            <input type="hidden" id="cfg-video2">
+            <div class="upload-row" style="margin:8px 0;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file2').click()">📁 Enviar vídeo MP4</button>
+              <span id="cfg-status2" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input type="file" id="cfg-file2" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(2,this)">
+            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
+            <input type="url" id="cfg-link2" placeholder="https://www.instagram.com/reel/...">
           </div>
-          <div class="form-g">
-            <label>🎥 Vídeo 3</label>
-            <input type="url" id="cfg-video3" placeholder="https://www.instagram.com/reel/...">
+
+          <div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+            <label style="font-weight:700;">🎥 Vídeo 3</label>
+            <video id="cfg-prev3" muted loop playsinline style="display:none;width:120px;aspect-ratio:9/16;object-fit:cover;border-radius:8px;background:#000;margin:8px 0;"></video>
+            <input type="hidden" id="cfg-video3">
+            <div class="upload-row" style="margin:8px 0;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('cfg-file3').click()">📁 Enviar vídeo MP4</button>
+              <span id="cfg-status3" style="font-size:12px;color:var(--muted);"></span>
+            </div>
+            <input type="file" id="cfg-file3" accept="video/mp4,video/quicktime" style="display:none;" onchange="uploadReelVideo(3,this)">
+            <label style="margin-top:10px;">Link do post no Instagram (opcional)</label>
+            <input type="url" id="cfg-link3" placeholder="https://www.instagram.com/reel/...">
           </div>
+
           <div id="cfg-msg" style="font-size:13px;min-height:18px;margin:12px 0;"></div>
           <button class="btn-new-ev" id="btn-salvar-cfg" onclick="salvarConfiguracoes()" style="min-width:200px;">
             💾 Salvar configurações
@@ -2098,11 +2126,54 @@ async function loadConfiguracoes() {
   try {
     const res = await rpc('admin_buscar_configuracoes');
     if (res) {
-      document.getElementById('cfg-video1').value = res.reels_video1 || '';
-      document.getElementById('cfg-video2').value = res.reels_video2 || '';
-      document.getElementById('cfg-video3').value = res.reels_video3 || '';
+      for (let n = 1; n <= 3; n++) {
+        const url = res['reels_video'+n] || '';
+        document.getElementById('cfg-video'+n).value = url;
+        document.getElementById('cfg-link'+n).value = res['reels_link'+n] || '';
+        cfgPreview(n, url);
+      }
     }
   } catch(e) { console.error('Erro ao carregar configurações:', e); }
+}
+
+function cfgPreview(n, url) {
+  const v = document.getElementById('cfg-prev'+n);
+  const st = document.getElementById('cfg-status'+n);
+  // só faz preview de arquivo de vídeo direto (não de link do Instagram)
+  if (url && !url.includes('instagram.com')) {
+    v.src = url; v.style.display = 'block';
+    v.play().catch(()=>{});
+    if (st && !st.textContent) st.textContent = '✓ Vídeo configurado';
+  } else {
+    v.style.display = 'none'; v.removeAttribute('src');
+    if (url && url.includes('instagram.com') && st) st.textContent = 'Link antigo do Instagram — envie o MP4 para migrar.';
+  }
+}
+
+async function uploadReelVideo(n, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 50 * 1024 * 1024) { alert('Máximo 50MB. Comprima o vídeo antes de enviar.'); input.value=''; return; }
+  const st = document.getElementById('cfg-status'+n);
+  st.textContent = 'Enviando… (vídeos podem demorar um pouco)'; st.style.color = 'var(--muted)';
+  const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+  const nome = 'reel_' + n + '_' + Date.now() + '.' + ext;
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'video/mp4', 'x-upsert': 'true' },
+      body: file
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const url = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('cfg-video'+n).value = url;
+    st.textContent = '✓ Vídeo enviado! Clique em Salvar configurações.'; st.style.color = '#22c55e';
+    cfgPreview(n, url);
+  } catch(e) {
+    st.textContent = 'Erro no upload.'; st.style.color = '#ff6b6b';
+    console.error(e);
+  }
+  input.value = '';
 }
 
 async function salvarConfiguracoes() {
@@ -2113,7 +2184,10 @@ async function salvarConfiguracoes() {
     await rpc('admin_salvar_configuracoes', {
       p_reels_video1: document.getElementById('cfg-video1').value.trim(),
       p_reels_video2: document.getElementById('cfg-video2').value.trim(),
-      p_reels_video3: document.getElementById('cfg-video3').value.trim()
+      p_reels_video3: document.getElementById('cfg-video3').value.trim(),
+      p_reels_link1: document.getElementById('cfg-link1').value.trim(),
+      p_reels_link2: document.getElementById('cfg-link2').value.trim(),
+      p_reels_link3: document.getElementById('cfg-link3').value.trim()
     });
     msg.style.color = '#16a34a';
     msg.textContent = '✅ Configurações salvas com sucesso!';
