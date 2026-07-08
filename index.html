@@ -64,12 +64,24 @@
   }
   .nav-cta:hover { background: var(--orange-dark); transform: translateY(-1px); }
 
+  /* ── FAIXA FRASE ── */
+  #frase-bar {
+    margin-top: 70px; /* compensa o nav fixo */
+    background: var(--white, #faf9f7);
+    border-bottom: 1px solid rgba(42,37,32,0.08);
+    padding: 13px 5%;
+    text-align: center;
+  }
+  #frase-bar p {
+    font-size: 15px; font-weight: 400; letter-spacing: 1.5px;
+    color: rgba(42,37,32,0.75);
+  }
+  #frase-bar p em { font-style: normal; color: var(--orange); font-weight: 500; }
+
   /* ── HERO ── */
   #hero {
-    position: relative; min-height: 100vh;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: flex-start;
-    padding: 120px 5% 80px;
+    position: relative;
+    height: 75vh;
     background: #111;
     overflow: hidden;
   }
@@ -636,12 +648,9 @@
     .nav-cta { padding: 8px 14px; font-size: 13px; }
 
     /* HERO */
-    #hero { padding: 90px 4% 60px; }
-    h1 { font-size: clamp(32px, 9vw, 52px); letter-spacing: -1px; }
-    .hero-sub { font-size: 15px; margin-bottom: 32px; }
-    .hero-stats { position: static; margin-top: 40px; justify-content: flex-start; gap: 28px; }
-    .stat-num { font-size: 28px; }
-    .btn-primary, .btn-secondary { padding: 13px 24px; font-size: 15px; }
+    #hero { height: 75vh; }
+    #frase-bar { padding: 11px 4%; }
+    #frase-bar p { font-size: 13px; letter-spacing: 1px; }
 
     /* COUNTDOWN */
     #countdown-bar { padding: 14px 4%; gap: 16px; flex-direction: column; text-align: center; }
@@ -722,52 +731,22 @@
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- FAIXA FRASE -->
+<div id="frase-bar">
+  <p>Experiências esportivas que <em>marcam.</em></p>
+</div>
+
+<!-- HERO (banner limpo — em breve carrossel de imagens) -->
 <section id="hero">
   <div class="hero-line"></div>
   <!-- VIDEO BACKGROUND -->
   <video
     id="hero-video"
     autoplay muted loop playsinline
-    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;opacity:0.6;"
+    style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;"
   >
     <source src="https://acxfzdtzxaahsqnlxdgw.supabase.co/storage/v1/object/public/Imagens/Video%20Project%203.mp4" type="video/mp4">
   </video>
-  <!-- GRADIENT OVERLAY -->
-  <div style="position:absolute;inset:0;background:linear-gradient(to right, rgba(250,249,247,0.97) 0%, rgba(250,249,247,0.85) 35%, rgba(250,249,247,0.3) 55%, transparent 70%);z-index:1;"></div>
-  <div class="topo-pattern" style="z-index:2;">
-    <svg viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice" fill="none" stroke="white" stroke-width="1">
-      <ellipse cx="700" cy="400" rx="600" ry="300"/>
-      <ellipse cx="700" cy="400" rx="500" ry="240"/>
-      <ellipse cx="700" cy="400" rx="400" ry="180"/>
-      <ellipse cx="700" cy="400" rx="300" ry="120"/>
-      <ellipse cx="700" cy="400" rx="200" ry="70"/>
-      <ellipse cx="200" cy="150" rx="350" ry="180"/>
-      <ellipse cx="200" cy="150" rx="280" ry="130"/>
-      <ellipse cx="200" cy="150" rx="210" ry="90"/>
-      <ellipse cx="1100" cy="650" rx="380" ry="200"/>
-      <ellipse cx="1100" cy="650" rx="290" ry="140"/>
-      <ellipse cx="1100" cy="650" rx="200" ry="90"/>
-    </svg>
-  </div>
-
-  <h1 style="position:relative;z-index:3;">Experiências esportivas<br>que <em>marcam.</em></h1>
-
-  <div class="hero-actions" style="position:relative;z-index:3;">
-    <a href="#eventos" class="btn-primary">Ver eventos</a>
-  </div>
-
-  <div class="hero-stats" style="z-index:3;">
-    <div class="stat">
-      <div class="stat-num">+40</div>
-      <div class="stat-label">Eventos realizados</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">+50.000</div>
-      <div class="stat-label">Atletas inscritos</div>
-    </div>
-
-  </div>
 </section>
 
 <!-- EVENTOS -->
