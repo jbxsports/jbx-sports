@@ -372,6 +372,38 @@
 
   .step-panel { display: none; }
   .step-panel.active { display: block; animation: fadeStep 0.25s ease; }
+
+  /* ── PRODUTOS ADICIONAIS (etapa 3) ── */
+  .prod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .prod-card {
+    border: 2px solid rgba(42,37,32,0.1); border-radius: 10px; padding: 12px;
+    position: relative; transition: border-color .2s, background .2s; background: #fff;
+  }
+  .prod-card.has-qtd { border-color: var(--orange); background: rgba(255,117,31,0.05); }
+  .prod-card.esgotado { opacity: .55; }
+  .prod-img {
+    width: 100%; height: 110px; border-radius: 8px; overflow: hidden;
+    background: #f0ede8; position: relative; margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(42,37,32,0.25); font-size: 26px;
+  }
+  .prod-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .prod-nome { font-size: 14px; font-weight: 700; line-height: 1.3; }
+  .prod-preco { font-size: 14px; font-weight: 700; color: var(--orange); margin: 2px 0 10px; }
+  .prod-qtd { display: flex; align-items: center; gap: 10px; }
+  .prod-qtd button {
+    width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(42,37,32,0.2);
+    background: #fff; font-size: 16px; font-weight: 700; cursor: pointer; color: #2a2520;
+    font-family: 'Ubuntu', sans-serif; line-height: 1;
+  }
+  .prod-qtd button:disabled { opacity: .35; cursor: not-allowed; }
+  .prod-qtd .q { min-width: 22px; text-align: center; font-weight: 700; font-size: 15px; }
+  .prod-esgotado-badge {
+    position: absolute; top: 8px; right: 8px; background: #ff4444; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
+    letter-spacing: 1px; text-transform: uppercase; z-index: 1;
+  }
+  @media (max-width: 520px) { .prod-grid { grid-template-columns: 1fr; } }
   @keyframes fadeStep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
   .kit-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -915,8 +947,9 @@
       <div class="step-progress">
         <div class="step-dot active" data-step="1"><span>1</span><label>Kit</label></div>
         <div class="step-dot" data-step="2"><span>2</span><label>Modalidade</label></div>
-        <div class="step-dot" data-step="3"><span>3</span><label>Dados</label></div>
-        <div class="step-dot" data-step="4"><span>4</span><label>Pagamento</label></div>
+        <div class="step-dot" data-step="3" id="step-dot-produtos"><span>3</span><label>Adicionais</label></div>
+        <div class="step-dot" data-step="4"><span>4</span><label>Dados</label></div>
+        <div class="step-dot" data-step="5"><span>5</span><label>Pagamento</label></div>
       </div>
 
       <!-- ETAPA 1: KIT -->
@@ -958,8 +991,15 @@
         </div>
       </div>
 
-      <!-- ETAPA 3: DADOS -->
+      <!-- ETAPA 3: ADICIONAIS -->
       <div class="step-panel" data-panel="3">
+        <div class="form-section-title">Complete seu kit</div>
+        <p style="font-size:13px;color:rgba(42,37,32,0.5);margin:-6px 0 16px;line-height:1.5;">Produtos opcionais para adicionar à sua inscrição. Se não quiser nenhum, é só avançar.</p>
+        <div class="prod-grid" id="produtos-container"></div>
+      </div>
+
+      <!-- ETAPA 4: DADOS -->
+      <div class="step-panel" data-panel="4">
 
       <div class="busca-atleta">
         <div class="busca-atleta-title">Inscrevendo outra pessoa ou já participou antes?</div>
@@ -1086,10 +1126,10 @@
           </select>
         </div>
       </div>
-      </div><!-- /etapa 3 -->
+      </div><!-- /etapa 4 -->
 
-      <!-- ETAPA 4: PAGAMENTO -->
-      <div class="step-panel" data-panel="4">
+      <!-- ETAPA 5: PAGAMENTO -->
+      <div class="step-panel" data-panel="5">
       <div class="form-section-title" style="margin-top:0;">Atletas nesta inscrição</div>
       <div id="lista-atletas"></div>
       <div class="btn-area-atletas" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;">
@@ -1119,7 +1159,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Pagamento 100% seguro via Mercado Pago
       </div>
-      </div><!-- /etapa 4 -->
+      </div><!-- /etapa 5 -->
 
       <!-- NAVEGAÇÃO ENTRE ETAPAS -->
       <div class="step-nav">
@@ -1195,7 +1235,85 @@ let currentCupom = "";
 let currentCupomPct = 0;
 let currentTaxa = 0;
 let cart = [];
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+
+// ── Produtos adicionais (etapa 3) ──
+let produtosEvento = [];    // catálogo do evento (produtos_evento_publicos)
+let currentProdutos = {};   // id -> {id, nome, preco, qtd} do atleta em edição
+
+async function loadProdutosEvento(eventoId) {
+  produtosEvento = [];
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/produtos_evento_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_evento_id: String(eventoId) })
+    });
+    const arr = await res.json();
+    produtosEvento = Array.isArray(arr) ? arr : [];
+  } catch (e) { produtosEvento = []; }
+  renderProdutos();
+  ajustarStepProdutos();
+}
+
+function renderProdutos() {
+  const box = document.getElementById('produtos-container');
+  if (!box) return;
+  if (!produtosEvento.length) { box.innerHTML = ''; return; }
+  box.innerHTML = produtosEvento.map(p => {
+    const sel = currentProdutos[p.id];
+    const qtd = sel ? sel.qtd : 0;
+    const esg = !!p.esgotado;
+    const precoFmt = 'R$ ' + Number(p.preco || 0).toFixed(2).replace('.', ',');
+    const badge = esg ? '<div class="prod-esgotado-badge">Esgotado</div>' : '';
+    const img = p.imagem_url
+      ? '<img src="' + p.imagem_url + '" alt="" onerror="this.style.display=\'none\'">'
+      : '🛍';
+    const controles = esg
+      ? '<div class="prod-qtd" style="color:rgba(42,37,32,0.4);font-size:13px;font-weight:700;">Indisponível</div>'
+      : '<div class="prod-qtd">' +
+          '<button type="button" onclick="mudarQtdProduto(\'' + p.id + '\',-1)"' + (qtd <= 0 ? ' disabled' : '') + '>−</button>' +
+          '<span class="q">' + qtd + '</span>' +
+          '<button type="button" onclick="mudarQtdProduto(\'' + p.id + '\',1)"' + (qtd >= 5 ? ' disabled' : '') + '>+</button>' +
+        '</div>';
+    return '<div class="prod-card' + (qtd > 0 ? ' has-qtd' : '') + (esg ? ' esgotado' : '') + '">' +
+      badge +
+      '<div class="prod-img">' + img + '</div>' +
+      '<div class="prod-nome">' + p.nome + '</div>' +
+      '<div class="prod-preco">' + precoFmt + '</div>' +
+      controles +
+    '</div>';
+  }).join('');
+}
+
+function mudarQtdProduto(id, delta) {
+  const p = produtosEvento.find(x => String(x.id) === String(id));
+  if (!p || p.esgotado) return;
+  const atual = currentProdutos[id] ? currentProdutos[id].qtd : 0;
+  const nova = Math.max(0, Math.min(5, atual + delta));
+  if (nova === 0) delete currentProdutos[id];
+  else currentProdutos[id] = { id: p.id, nome: p.nome, preco: Number(p.preco || 0), qtd: nova };
+  renderProdutos();
+  atualizarResumo();
+}
+
+// total dos adicionais de um item do carrinho
+function prodTotalDe(it) {
+  return (it.produtos || []).reduce((s, p) => s + Number(p.preco || 0) * (p.qtd || 1), 0);
+}
+
+// esconde o dot da etapa 3 quando o evento não tem produtos e renumera os visíveis
+function ajustarStepProdutos() {
+  const dot = document.getElementById('step-dot-produtos');
+  const tem = produtosEvento.length > 0;
+  if (dot) dot.style.display = tem ? '' : 'none';
+  let n = 1;
+  document.querySelectorAll('.step-dot').forEach(d => {
+    if (d.style.display === 'none') return;
+    const s = d.querySelector('span');
+    if (s) s.textContent = n++;
+  });
+}
 
 function openModal(eventoId, title, info) {
   currentEventoId = eventoId || "";
@@ -1215,6 +1333,7 @@ function openModal(eventoId, title, info) {
 
 // Carrega kits e lote ativo do banco; fallback para os kits hardcoded
 async function loadKitsEvento(eventoId) {
+  loadProdutosEvento(eventoId); // produtos adicionais da etapa 3 (não bloqueia)
   try {
     const res = await fetch(`${SB_URL}/rest/v1/rpc/kits_evento_publicos`, {
       method: 'POST',
@@ -1345,6 +1464,7 @@ function resetRegistro() {
   currentKitId = '';
   currentLoteId = '';
   currentLoteNome = '';
+  currentProdutos = {};
   const badge = document.getElementById('lote-badge');
   if (badge) { badge.textContent = ''; badge.classList.remove('show'); }
   // recarrega kits e lote do banco (e modalidades) para o novo atleta
@@ -1374,6 +1494,7 @@ function snapshotAtual() {
     lote_id: currentLoteId,
     lote_nome: currentLoteNome,
     valorBase: Number(currentPrice),
+    produtos: Object.values(currentProdutos).filter(p => p.qtd > 0).map(p => ({ id: p.id, nome: p.nome, preco: Number(p.preco), qtd: p.qtd })),
     modalidade: currentModalidade,
     camisa: val('f-camisa'),
     ref: currentRef,
@@ -1414,7 +1535,8 @@ function cancelarAtleta() {
   const br = document.getElementById('busca-resultado');
   if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
   currentKit = ''; currentKitId = ''; currentRef = ''; currentCpf = ''; currentRotulo = '';
-  showStep(4); // volta ao pagamento com o carrinho intacto
+  currentProdutos = {};
+  showStep(TOTAL_STEPS); // volta ao pagamento com o carrinho intacto
 }
 
 function removerAtleta(idx) {
@@ -1484,10 +1606,18 @@ function showStep(n) {
   if (body) body.scrollTop = 0;
   if (naEtapaFinal) atualizarResumo();
 }
-function prevStep() { if (currentStep > 1) showStep(currentStep - 1); }
+function prevStep() {
+  if (currentStep <= 1) return;
+  let alvo = currentStep - 1;
+  if (alvo === 3 && !produtosEvento.length) alvo = 2; // pula Adicionais se evento não tem produtos
+  showStep(alvo);
+}
 function nextStep() {
-  if (currentStep === 3 && !validarDados()) return; // valida dados antes do pagamento
-  if (currentStep < TOTAL_STEPS) showStep(currentStep + 1);
+  if (currentStep === 4 && !validarDados()) return; // valida dados antes do pagamento
+  if (currentStep >= TOTAL_STEPS) return;
+  let alvo = currentStep + 1;
+  if (alvo === 3 && !produtosEvento.length) alvo = 4; // pula Adicionais se evento não tem produtos
+  showStep(alvo);
 }
 // idade a partir da data de nascimento (yyyy-mm-dd)
 function idadeDe(nascStr) {
@@ -1530,10 +1660,12 @@ function atualizarResumo() {
       const info = document.createElement('div'); info.className = 'atleta-info';
       const t = document.createElement('div'); t.className = 'atleta-titulo'; t.textContent = it.rotulo;
       const sub = document.createElement('div'); sub.className = 'atleta-sub';
-      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '');
+      const prods = (it.produtos || []);
+      const prodsTxt = prods.length ? ' · ' + prods.map(p => (p.qtd > 1 ? p.qtd + '× ' : '') + p.nome).join(', ') : '';
+      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '') + prodsTxt;
       info.appendChild(t); info.appendChild(sub);
       const right = document.createElement('div'); right.className = 'atleta-right';
-      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(it.valorBase);
+      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(it.valorBase + prodTotalDe(it));
       right.appendChild(preco);
       if (naEtapa4) {
         const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'atleta-remover';
@@ -1552,15 +1684,18 @@ function atualizarResumo() {
     });
   }
 
-  // totais
-  let subtotal = 0, totalComDesconto = 0;
+  // totais — descontos (60+/cupom) incidem só sobre a inscrição; produtos adicionais têm preço fixo
+  let subtotal = 0, baseDescontada = 0, produtosTotal = 0;
   itens.forEach(it => {
-    subtotal += it.valorBase;
-    totalComDesconto += it.valorBase * (1 - itemPct(it, pctCup) / 100);
+    const pt = prodTotalDe(it);
+    subtotal += it.valorBase + pt;
+    baseDescontada += it.valorBase * (1 - itemPct(it, pctCup) / 100);
+    produtosTotal += pt;
   });
 
-  // taxa de serviço (incide sobre valor após desconto)
-  const taxaValor = currentTaxa > 0 ? totalComDesconto * (currentTaxa / 100) : 0;
+  // taxa de serviço (incide sobre a inscrição após desconto; não incide sobre adicionais)
+  const taxaValor = currentTaxa > 0 ? baseDescontada * (currentTaxa / 100) : 0;
+  const totalComDesconto = baseDescontada + produtosTotal;
   const total = totalComDesconto + taxaValor;
 
   const elSub = document.getElementById('price-subtotal');
@@ -1842,6 +1977,8 @@ function montarDadosItem(it, pedido) {
     lote_id: it.lote_id || '',    // servidor valida quantidade disponível
     modalidade: it.modalidade,
     valor: it.valorBase,
+    valor_inscricao: it.valorBase, // base da inscrição sem adicionais (fallback do servidor quando não há kit_id/lote_id)
+    produtos: (it.produtos || []).map(p => ({ id: p.id, qtd: p.qtd })), // servidor busca preço autoritativo
     tamanho_camisa: it.camisa,
     forma_pagamento: currentPagamento
   };
@@ -1875,10 +2012,10 @@ async function handlePagamento() {
     const pct = itemPct(it, pctCup);
     const valorComDesconto = it.valorBase * (1 - pct / 100);
     const taxaItem = currentTaxa > 0 ? valorComDesconto * (currentTaxa / 100) : 0;
-    const valorFinal = Number((valorComDesconto + taxaItem).toFixed(2));
+    const valorFinal = Number((valorComDesconto + taxaItem + prodTotalDe(it)).toFixed(2));
     return {
       ...montarDadosItem(it, pedido),
-      valor: valorFinal // valor final pós-desconto e pós-taxa
+      valor: valorFinal // valor final pós-desconto e pós-taxa, com adicionais
     };
   });
 
