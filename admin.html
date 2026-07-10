@@ -698,6 +698,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <div class="form-g"><label>Nome do produto *</label><input id="nprod-nome" placeholder="Ex: Boné JBX"></div>
               <div class="form-g"><label>Preço (R$) *</label><input id="nprod-preco" type="number" step="0.01" min="0" placeholder="39.90"></div>
             </div>
+            <div class="form-g"><label>Descrição breve (opcional)</label><input id="nprod-desc" maxlength="120" placeholder="Ex: Tamanho único, aba curva"></div>
             <div class="form-g">
               <label>Foto do produto</label>
               <div class="kit-upload-area" onclick="document.getElementById('nprod-foto-file').click()" style="cursor:pointer;" title="Clique para escolher uma foto">
@@ -1475,7 +1476,7 @@ function renderProdutosAdmin(prods){
     const btnEsg='<button onclick="toggleProduto(\''+p.id+'\',\'esgotado\','+(!esg)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(esg?'#ff6b6b':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(esg?'rgba(255,107,107,0.15)':'transparent')+';color:'+(esg?'#ff6b6b':'var(--muted)')+';">'+(esg?'🔴 Esgotado':'⚪ Esgotar')+'</button>';
     const btnVis='<button onclick="toggleProduto(\''+p.id+'\',\'visivel\','+(!vis)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(vis?'#22c55e':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(vis?'rgba(34,197,94,0.12)':'transparent')+';color:'+(vis?'#22c55e':'var(--muted)')+';">'+(vis?'🟢 Visível':'⚫ Oculto')+'</button>';
     return '<div class="kit-card-admin">'+thumb+
-      '<div class="kit-info"><div class="kit-nome">'+p.nome+'</div><div class="kit-desc" style="color:var(--orange);font-weight:700;">'+precoFmt+'</div>'+
+      '<div class="kit-info"><div class="kit-nome">'+p.nome+'</div>'+(p.descricao?'<div class="kit-desc">'+p.descricao+'</div>':'')+'<div class="kit-desc" style="color:var(--orange);font-weight:700;">'+precoFmt+'</div>'+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">'+btnEsg+btnVis+'</div></div>'+
       '<div class="kit-actions">'+
       '<button class="btn-sm btn-sm-ghost" onclick=\'editarProduto('+JSON.stringify(p).replace(/'/g,'&#39;')+')\'>✏</button>'+
@@ -1507,6 +1508,7 @@ async function uploadProdutoFoto(input){
 function editarProduto(p){
   document.getElementById('nprod-id').value=p.id;
   document.getElementById('nprod-nome').value=p.nome||'';
+  document.getElementById('nprod-desc').value=p.descricao||'';
   document.getElementById('nprod-preco').value=p.preco||'';
   document.getElementById('nprod-foto').value=p.imagem_url||'';
   document.getElementById('nprod-ordem').value=p.ordem||'0';
@@ -1520,7 +1522,7 @@ function editarProduto(p){
 }
 function cancelarEdicaoProduto(){
   document.getElementById('nprod-id').value='';
-  ['nprod-nome','nprod-preco','nprod-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['nprod-nome','nprod-desc','nprod-preco','nprod-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nprod-ordem').value='0';
   previewProdutoFoto('');
   document.getElementById('prod-upload-status').textContent='';
@@ -1536,7 +1538,7 @@ async function salvarProduto(){
   const preco=parseFloat(get('nprod-preco'));
   if(!(preco>0)){fb.className='form-feedback err';fb.textContent='Informe um preço maior que zero.';return;}
   const editando=!!get('nprod-id');
-  const dados={id:get('nprod-id')||'',evento_id:String(currentEvento.id),nome:get('nprod-nome'),preco:String(preco),imagem_url:get('nprod-foto'),ordem:get('nprod-ordem')||'0'};
+  const dados={id:get('nprod-id')||'',evento_id:String(currentEvento.id),nome:get('nprod-nome'),descricao:get('nprod-desc'),preco:String(preco),imagem_url:get('nprod-foto'),ordem:get('nprod-ordem')||'0'};
   fb.className='form-feedback';fb.textContent='Salvando…';
   try{
     await rpc('admin_salvar_produto',{dados});
