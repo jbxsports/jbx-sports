@@ -426,6 +426,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="dash-actions">
           <h2 style="font-size:16px;font-weight:700;color:var(--muted);">Eventos</h2>
           <div style="display:flex;gap:10px;align-items:center;">
+            <label id="toggle-arquivados-wrap" style="display:none;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;margin-right:2px;">
+              <input type="checkbox" id="chk-arquivados" onchange="loadDashboard()" style="accent-color:var(--orange);width:15px;height:15px;cursor:pointer;">
+              Mostrar arquivados (<span id="arquivados-count">0</span>)
+            </label>
             <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
             <button onclick="abrirConfiguracoes()" style="display:inline-flex;align-items:center;gap:8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.background='#f0ede8'" onmouseout="this.style.background='var(--card)'">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1069,6 +1073,13 @@ function showInner(name){
 async function loadDashboard(){
   try{
     const[stats,evs]=await Promise.all([rpc('admin_stats'),rpc('admin_eventos_stats')]);
+    // mapa de arquivados (RPC leve e separada — não altera admin_eventos_stats)
+    let arqMap = {};
+    try {
+      const arqList = await rpc('admin_eventos_arquivados');
+      (arqList||[]).forEach(a => { arqMap[String(a.id)] = true; });
+    } catch(e) { console.log('arquivados rpc indisponível ainda'); }
+    (evs||[]).forEach(e => { e.arquivado = !!arqMap[String(e.id)]; });
     document.getElementById('g-eventos').textContent=fmt(stats.eventos_count);
     document.getElementById('g-fat').textContent=brl(stats.faturamento_total);
     document.getElementById('g-total').textContent=fmt(stats.inscricoes_total);
@@ -1118,10 +1129,20 @@ async function loadDashboard(){
     renderEventCards(evs||[]);
   }catch(e){console.error(e);}
 }
-function renderEventCards(evs){
+function isArquivado(e){ return e.arquivado===true || e.arquivado==='true'; }
+function renderEventCards(evsRaw){
+  const evs = evsRaw || [];
+  const arquivados = evs.filter(isArquivado);
+  const mostrarArq = document.getElementById('chk-arquivados')?.checked;
+  // toggle só aparece quando existe algum arquivado
+  const wrap = document.getElementById('toggle-arquivados-wrap');
+  if (wrap) wrap.style.display = arquivados.length ? 'inline-flex' : 'none';
+  const cnt = document.getElementById('arquivados-count');
+  if (cnt) cnt.textContent = arquivados.length;
+  const lista = mostrarArq ? evs : evs.filter(e => !isArquivado(e));
   const g=document.getElementById('ev-grid');
-  if(!evs.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
-  g.innerHTML=evs.map(e=>{
+  if(!lista.length){g.innerHTML='<div class="empty-state">Nenhum evento. Clique em "+ Novo Evento".</div>';return;}
+  g.innerHTML=lista.map(e=>{
     const bu=e.banner_url||'';
     const bgHtml=bu
       ? '<div class="ev-card-header-bg" style="background-image:url(\'' + bu + '\');"></div>'
@@ -1132,12 +1153,16 @@ function renderEventCards(evs){
       : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Visível no site';
     const visColor = oculto ? '#dc2626' : '#16a34a';
     const linkEvento = `${window.location.origin.replace('admin.html','')}/index.html#evento-${e.id}`;
+    const arq = isArquivado(e);
+    const btnArquivar = arq
+      ? `<button class="btn-sm" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25);" onclick="toggleArquivarEvento('${e.id}',false,'${e.nome.replace(/'/g,"\\'")}')">♻ Desarquivar</button>`
+      : `<button class="btn-sm" style="background:rgba(107,114,128,.1);color:#6b7280;border:1px solid rgba(107,114,128,.25);" onclick="toggleArquivarEvento('${e.id}',true,'${e.nome.replace(/'/g,"\\'")}')">🗄 Arquivar</button>`;
     return `
-    <div class="ev-card">
+    <div class="ev-card"${arq?' style="opacity:.6;"':''}>
       <div class="ev-card-header">${bgHtml}</div>
       <div style="padding:14px 20px;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;">
-          <div style="font-size:15px;font-weight:700;color:var(--text);">${e.nome}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${arq?'🗄 ':''}${e.nome}</div>
           <span class="tag ${tagClass(e.status)}" style="white-space:nowrap;flex-shrink:0;">${tagLabel(e.status)}</span>
         </div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${e.local||''} ${e.data?'· '+fmtDS(e.data):''} ${e.hora?'· '+e.hora:''}</div>
@@ -1151,13 +1176,25 @@ function renderEventCards(evs){
         <div class="ev-stat"><div class="l">Hoje</div><div class="v">${fmt(e.inscricoes_hoje)}</div></div>
         <div class="ev-stat"><div class="l">Cortesias</div><div class="v" style="color:#8b5cf6;">${fmt(e.cortesias||0)}</div></div>
       </div>
-      <div class="ev-card-footer" style="gap:8px;">
+      <div class="ev-card-footer" style="gap:8px;flex-wrap:wrap;">
         <button class="btn-sm btn-sm-ghost" onclick="loadEventoForm('${e.id}')">✏ Editar</button>
         <button class="btn-sm btn-sm-orange" onclick="abrirEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}','${e.status}','${e.data||''}')">Ver inscritos →</button>
         <button class="btn-sm" style="background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.25);" onclick="compartilharEvento('${e.id}','${e.nome.replace(/'/g,"\\'")}')">🔗 Compartilhar</button>
+        ${btnArquivar}
       </div>
     </div>`;
   }).join('');
+}
+
+async function toggleArquivarEvento(id, arquivar, nome){
+  const msg = arquivar
+    ? `Arquivar "${nome}"?\n\nEle some do painel e do site, mas nada é apagado. Você pode desarquivar quando quiser.`
+    : `Desarquivar "${nome}"? Ele volta a aparecer normalmente no painel.`;
+  if(!confirm(msg)) return;
+  try{
+    await rpc('admin_arquivar_evento',{p_id:id,p_arquivar:arquivar});
+    loadDashboard();
+  }catch(e){alert('Erro: '+e.message);}
 }
 
 /* ── EVENTO FORM ── */
