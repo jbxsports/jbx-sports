@@ -1628,10 +1628,18 @@ async function exportarExcel(){
   try{
     const dados=await rpc('admin_exportar_inscritos',{p_evento_id:currentEvento.id});
     const arr=dados||[];
-    const ws_data=[['Nome','CPF','Nascimento','Gênero','E-mail','Telefone','Camiseta','Kit','Lote','Modalidade','Valor (R$)','Desconto%','Cupom','Pagamento','Status','CEP','Rua','Número','Complemento','Bairro','Cidade','Estado','Emergência Nome','Emergência Tel','Inscrito em','Pedido']];
-    arr.forEach(i=>ws_data.push([i.nome||'',i.cpf||'',i.nascimento?fmtDS(i.nascimento):'',i.genero||'',i.email||'',i.telefone||'',i.tamanho_camisa||'',i.kit||'',i.lote_nome||'',i.modalidade||'',Number(i.valor||0),Number(i.desconto_pct||0),i.cupom||'',i.forma_pagamento||'',i.status||'',i.cep||'',i.rua||'',i.numero||'',i.complemento||'',i.bairro||'',i.cidade||'',i.estado||'',i.emergencia_nome||'',i.emergencia_telefone||'',i.criado_em?fmtData(i.criado_em):'',i.pedido_id||'']));
+    const parseProds=v=>{if(!v)return[];if(Array.isArray(v))return v;try{const a=JSON.parse(v);return Array.isArray(a)?a:[];}catch(e){return[];}};
+    // colunas dinâmicas: uma por produto distinto comprado no evento
+    const prodNomes=[];
+    arr.forEach(i=>parseProds(i.produtos).forEach(p=>{if(p&&p.nome&&!prodNomes.includes(p.nome))prodNomes.push(p.nome);}));
+    const ws_data=[['Nome','CPF','Nascimento','Gênero','E-mail','Telefone','Camiseta','Kit','Lote','Modalidade'].concat(prodNomes.map(n=>'Prod: '+n)).concat(['Adicionais (R$)','Valor (R$)','Desconto%','Cupom','Pagamento','Status','CEP','Rua','Número','Complemento','Bairro','Cidade','Estado','Emergência Nome','Emergência Tel','Inscrito em','Pedido'])];
+    arr.forEach(i=>{
+      const prods=parseProds(i.produtos);
+      const qts=prodNomes.map(n=>{const t=prods.filter(p=>p&&p.nome===n).reduce((s,p)=>s+(Number(p.qtd)||1),0);return t||'';});
+      ws_data.push([i.nome||'',i.cpf||'',i.nascimento?fmtDS(i.nascimento):'',i.genero||'',i.email||'',i.telefone||'',i.tamanho_camisa||'',i.kit||'',i.lote_nome||'',i.modalidade||''].concat(qts).concat([Number(i.valor_produtos||0),Number(i.valor||0),Number(i.desconto_pct||0),i.cupom||'',i.forma_pagamento||'',i.status||'',i.cep||'',i.rua||'',i.numero||'',i.complemento||'',i.bairro||'',i.cidade||'',i.estado||'',i.emergencia_nome||'',i.emergencia_telefone||'',i.criado_em?fmtData(i.criado_em):'',i.pedido_id||'']));
+    });
     const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
-    ws['!cols']=ws_data[0].map((_,i)=>({wch:i===0?30:i===4?28:i===7||i===8||i===9?18:14}));
+    ws['!cols']=ws_data[0].map((h,i)=>({wch:i===0?30:i===4?28:Math.max(14,String(h).length+2)}));
     XLSX.utils.book_append_sheet(wb,ws,'Inscritos');
     const nome=(currentEvento.nome||'evento').replace(/[^a-z0-9]/gi,'_');
     XLSX.writeFile(wb,`inscritos_${nome}_${new Date().toISOString().slice(0,10)}.xlsx`);
