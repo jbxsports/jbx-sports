@@ -373,11 +373,38 @@
   .step-panel { display: none; }
   .step-panel.active { display: block; animation: fadeStep 0.25s ease; }
 
-  /* ── PRODUTOS ADICIONAIS (etapa 3) ── */
-  .prod-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  /* ── PRODUTOS ADICIONAIS (etapa 3) — carrossel horizontal ── */
+  .prod-carousel-wrap { position: relative; }
+  .prod-grid {
+    display: flex; gap: 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 2px 10px;
+    scrollbar-width: thin; scrollbar-color: rgba(255,117,31,0.4) transparent;
+  }
+  .prod-grid::-webkit-scrollbar { height: 6px; }
+  .prod-grid::-webkit-scrollbar-thumb { background: rgba(255,117,31,0.35); border-radius: 3px; }
+  .prod-grid::-webkit-scrollbar-track { background: rgba(42,37,32,0.06); border-radius: 3px; }
   .prod-card {
+    flex: 0 0 200px; scroll-snap-align: start;
     border: 2px solid rgba(42,37,32,0.1); border-radius: 10px; padding: 12px;
     position: relative; transition: border-color .2s, background .2s; background: #fff;
+  }
+  .prod-arrow {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 2;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid rgba(42,37,32,0.15); background: #fff; color: #2a2520;
+    font-size: 20px; font-weight: 700; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12); transition: all .2s;
+    font-family: 'Ubuntu', sans-serif; padding: 0 0 2px;
+  }
+  .prod-arrow:hover { border-color: var(--orange); color: var(--orange); }
+  .prod-arrow-l { left: -10px; }
+  .prod-arrow-r { right: -10px; }
+  @media (max-width: 768px) {
+    .prod-arrow { display: none; } /* mobile: swipe */
+    .prod-card { flex: 0 0 170px; }
   }
   .prod-card.has-qtd { border-color: var(--orange); background: rgba(255,117,31,0.05); }
   .prod-card.esgotado { opacity: .55; }
@@ -403,7 +430,6 @@
     font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;
     letter-spacing: 1px; text-transform: uppercase; z-index: 1;
   }
-  @media (max-width: 520px) { .prod-grid { grid-template-columns: 1fr; } }
   @keyframes fadeStep { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
   .kit-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -995,7 +1021,11 @@
       <div class="step-panel" data-panel="3">
         <div class="form-section-title">Complete seu kit</div>
         <p style="font-size:13px;color:rgba(42,37,32,0.5);margin:-6px 0 16px;line-height:1.5;">Produtos opcionais para adicionar à sua inscrição. Se não quiser nenhum, é só avançar.</p>
-        <div class="prod-grid" id="produtos-container"></div>
+        <div class="prod-carousel-wrap">
+          <button type="button" class="prod-arrow prod-arrow-l" onclick="scrollProdutos(-1)" aria-label="Anterior">‹</button>
+          <div class="prod-grid" id="produtos-container"></div>
+          <button type="button" class="prod-arrow prod-arrow-r" onclick="scrollProdutos(1)" aria-label="Próximo">›</button>
+        </div>
       </div>
 
       <!-- ETAPA 4: DADOS -->
@@ -1293,8 +1323,23 @@ function mudarQtdProduto(id, delta) {
   const nova = Math.max(0, Math.min(5, atual + delta));
   if (nova === 0) delete currentProdutos[id];
   else currentProdutos[id] = { id: p.id, nome: p.nome, preco: Number(p.preco || 0), qtd: nova };
+  const scrollAntes = (document.getElementById('produtos-container') || {}).scrollLeft || 0;
   renderProdutos();
+  const box = document.getElementById('produtos-container');
+  if (box) box.scrollLeft = scrollAntes; // mantém a posição do carrossel ao re-renderizar
   atualizarResumo();
+}
+
+// setas do carrossel de produtos
+function scrollProdutos(dir) {
+  const box = document.getElementById('produtos-container');
+  if (box) box.scrollBy({ left: dir * 220, behavior: 'smooth' });
+}
+function ajustarSetasProdutos() {
+  const box = document.getElementById('produtos-container');
+  if (!box) return;
+  const temOverflow = box.scrollWidth > box.clientWidth + 4;
+  document.querySelectorAll('.prod-arrow').forEach(b => { b.style.display = temOverflow ? '' : 'none'; });
 }
 
 // total dos adicionais de um item do carrinho
@@ -1604,6 +1649,7 @@ function showStep(n) {
 
   const body = document.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
+  if (n === 3) ajustarSetasProdutos(); // só dá para medir overflow com o painel visível
   if (naEtapaFinal) atualizarResumo();
 }
 function prevStep() {
