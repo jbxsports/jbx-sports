@@ -562,15 +562,26 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <input id="ef-banner" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerCard(this.value)">
           </div>
           <div class="form-g" style="margin:0;">
-            <label>Banner da página do evento</label>
+            <label>🖥 Banner da página do evento — Desktop (vertical)</label>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;"><span style="font-size:11px;font-weight:700;color:var(--orange);">📐 800 × 1200 px &nbsp;·&nbsp; proporção 2:3 (retrato) &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span></div>
+            <div class="kit-upload-area" id="banner-pg-area" onclick="document.getElementById('ef-banner-pg-file').click()" style="cursor:pointer;height:220px;position:relative;">
+              <img id="banner-pg-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#111;">
+              <div class="kit-upload-ph" id="banner-pg-ph" style="display:flex;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="6" y="2" width="12" height="20" rx="2"/><circle cx="10" cy="8" r="1.5"/><path d="M18 14l-4-3-6 7"/></svg><span>Banner da página — Desktop</span><span style="font-size:11px;opacity:0.6;">800 × 1200 px — vertical (coluna lateral)</span></div>
+            </div>
+            <input type="file" id="ef-banner-pg-file" accept="image/*" style="display:none;" onchange="uploadBannerPagina(this)">
+            <div class="upload-row" style="margin-top:8px;"><button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-pg-file').click()">📁 Escolher arquivo</button><span id="banner-pg-status" style="font-size:12px;color:var(--muted);"></span></div>
+            <input id="ef-banner-pg" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerPagina(this.value)">
+            <div style="margin-top:16px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">📱 Banner da página do evento — Mobile (paisagem)</label>
             <div style="display:flex;align-items:center;gap:8px;background:rgba(255,117,31,0.07);border:1px solid rgba(255,117,31,0.2);border-radius:6px;padding:7px 12px;margin-bottom:10px;"><span style="font-size:11px;font-weight:700;color:var(--orange);">📐 1200 × 400 px &nbsp;·&nbsp; proporção 3:1 &nbsp;·&nbsp; JPG/PNG &nbsp;·&nbsp; máx. 5MB</span></div>
             <div class="kit-upload-area" id="banner-h-area" onclick="document.getElementById('ef-banner-h-file').click()" style="cursor:pointer;height:110px;position:relative;">
               <img id="banner-h-preview" src="" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
-              <div class="kit-upload-ph" id="banner-h-ph" style="display:flex;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="1.5"/><path d="M22 14l-5-4-4 3-3-2L2 14"/></svg><span>Banner da página</span><span style="font-size:11px;opacity:0.6;">1200 × 400 px — panorâmica</span></div>
+              <div class="kit-upload-ph" id="banner-h-ph" style="display:flex;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="1.5"/><path d="M22 14l-5-4-4 3-3-2L2 14"/></svg><span>Banner da página — Mobile</span><span style="font-size:11px;opacity:0.6;">1200 × 400 px — panorâmica</span></div>
             </div>
             <input type="file" id="ef-banner-h-file" accept="image/*" style="display:none;" onchange="uploadBannerHorizontal(this)">
             <div class="upload-row" style="margin-top:8px;"><button type="button" class="btn-upload" onclick="document.getElementById('ef-banner-h-file').click()">📁 Escolher arquivo</button><span id="banner-h-status" style="font-size:12px;color:var(--muted);"></span></div>
             <input id="ef-banner-h" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewBannerH(this.value)">
+            </div>
             <!-- Banner Mobile -->
             <div style="margin-top:16px;">
               <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">📱 Banner Mobile (card)</label>
@@ -1115,7 +1126,7 @@ async function loadEventoForm(id){
   document.getElementById('ev-form-titulo').textContent=id?'Editar Evento':'Novo Evento';
   document.getElementById('ef-id').value=id||'';
   document.getElementById('ev-form-feedback').textContent='';
-  ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-taxa','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h','ef-banner-mobile'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';}); previewBannerCard('');previewBannerH('');previewBannerMobile('');
+  ['ef-nome','ef-data','ef-hora','ef-local','ef-preco','ef-taxa','ef-distancias','ef-descricao','ef-percurso','ef-percurso-mapa','ef-retirada','ef-regulamento','ef-banner','ef-banner-h','ef-banner-mobile','ef-banner-pg'].forEach(fid=>{const el=document.getElementById(fid);if(el)el.value='';}); previewBannerCard('');previewBannerH('');previewBannerMobile('');previewBannerPagina('');
   document.getElementById('ef-status').value='soon';
   document.getElementById('ef-visivel').value='true';
   if(id){
@@ -1129,6 +1140,12 @@ async function loadEventoForm(id){
         set('ef-retirada',ev.retirada_kit);set('ef-regulamento',ev.regulamento);
         set('ef-banner',ev.banner_url);set('ef-banner-h',ev.banner_horizontal_url);set('ef-banner-mobile',ev.banner_mobile_url||'');
         previewBannerCard(ev.banner_url||'');previewBannerH(ev.banner_horizontal_url||'');previewBannerMobile(ev.banner_mobile_url||'');
+        try{
+          const bpRes=await fetch(`${SB_URL}/rest/v1/rpc/banners_pagina_publicos`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:'{}'});
+          const bpArr=await bpRes.json();
+          const bp=(Array.isArray(bpArr)?bpArr:[]).find(b=>String(b.evento_id)===String(id));
+          set('ef-banner-pg',bp?bp.desktop:'');previewBannerPagina((bp&&bp.desktop)||'');
+        }catch(e){console.error('banner pagina',e);}
         document.getElementById('ef-status').value=ev.status||'soon';
         document.getElementById('ef-visivel').value=(ev.visivel_home===false||ev.visivel_home==='false')?'false':'true';
         currentEvento = { id, nome: ev.nome || '' };
@@ -1155,6 +1172,11 @@ async function salvarEvento(){
   const fb=document.getElementById('ev-form-feedback');fb.style.color='var(--muted)';fb.textContent='Salvando…';
   try{
     const evId=await rpc('admin_salvar_evento',{dados});
+    try{
+      let idFinal=dados.id||'';
+      if(!idFinal&&(typeof evId==='string'||typeof evId==='number'))idFinal=String(evId);
+      if(idFinal) await rpc('admin_salvar_banner_pagina',{p_evento_id:idFinal,p_url:get('ef-banner-pg')});
+    }catch(e){console.error('banner pagina save',e);}
     fb.style.color='#22c55e';fb.textContent='✓ Evento salvo!';
     setTimeout(()=>showInner('dash'),1200);
   }catch(e){fb.style.color='#ff6b6b';fb.textContent='Erro: '+e.message;}
@@ -1321,6 +1343,8 @@ function previewBannerH(url){const img=document.getElementById('banner-h-preview
 async function uploadBannerCard(input){const file=input.files[0];if(!file)return;if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}const st=document.getElementById('banner-card-status');st.textContent='Enviando…';st.style.color='var(--muted)';const ext=file.name.split('.').pop()||'jpg';const nome='banner_card_'+Date.now()+'.'+ext;try{const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;document.getElementById('ef-banner').value=url;previewBannerCard(url);st.textContent='✓ Enviado!';st.style.color='#22c55e';}catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}}
 async function uploadBannerMobile(input){const file=input.files[0];if(!file)return;if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}const st=document.getElementById('banner-mobile-status');st.textContent='Enviando…';st.style.color='var(--muted)';const ext=file.name.split('.').pop()||'jpg';const nome='banner_mobile_'+Date.now()+'.'+ext;try{const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;document.getElementById('ef-banner-mobile').value=url;previewBannerMobile(url);st.textContent='✓ Enviado!';st.style.color='#22c55e';}catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}}
 function previewBannerMobile(url){const img=document.getElementById('banner-mobile-preview');const ph=document.getElementById('banner-mobile-ph');if(url){img.src=url;img.style.display='block';if(ph)ph.style.display='none';}else{img.style.display='none';if(ph)ph.style.display='flex';}}
+function previewBannerPagina(url){const img=document.getElementById('banner-pg-preview'),ph=document.getElementById('banner-pg-ph');if(!img||!ph)return;if(url&&url.startsWith('http')){img.src=url;img.style.display='block';ph.style.display='none';}else{img.src='';img.style.display='none';ph.style.display='flex';}}
+async function uploadBannerPagina(input){const file=input.files[0];if(!file)return;if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}const st=document.getElementById('banner-pg-status');st.textContent='Enviando…';st.style.color='var(--muted)';const ext=file.name.split('.').pop()||'jpg';const nome='banner_pagina_'+Date.now()+'.'+ext;try{const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;document.getElementById('ef-banner-pg').value=url;previewBannerPagina(url);st.textContent='✓ Enviado!';st.style.color='#22c55e';}catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}}
 async function uploadBannerHorizontal(input){const file=input.files[0];if(!file)return;if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}const st=document.getElementById('banner-h-status');st.textContent='Enviando…';st.style.color='var(--muted)';const ext=file.name.split('.').pop()||'jpg';const nome='banner_h_'+Date.now()+'.'+ext;try{const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});if(!r.ok)throw new Error(await r.text());const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;document.getElementById('ef-banner-h').value=url;previewBannerH(url);st.textContent='✓ Enviado!';st.style.color='#22c55e';}catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}}
 
 function editarKit(k){
