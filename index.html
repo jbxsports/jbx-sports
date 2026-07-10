@@ -2051,6 +2051,17 @@ async function carregarEventos() {
     } catch(e) {}
     window._banners = banners;
 
+    // banners da página do evento (desktop vertical / mobile paisagem) — opcional
+    try {
+      const bpRes = await fetch(`${SB_URL}/rest/v1/rpc/banners_pagina_publicos`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      const bpJson = await bpRes.json();
+      window._bannersPagina = Array.isArray(bpJson) ? bpJson : [];
+    } catch(e) { window._bannersPagina = []; }
+
     const grid = document.getElementById('eventos-grid');
     if (!eventos.length) {
       grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;color:rgba(42,37,32,0.4);">Nenhum evento disponível no momento.</div>';
@@ -2108,8 +2119,12 @@ async function abrirEventoPorId(id) {
   const eventos = window._eventos || [];
   const ev = eventos.find(e => String(e.id) === String(id));
   if (!ev) return; // lista ainda não carregou ou id inexistente
+  const bp = (window._bannersPagina || []).find(b => String(b.evento_id) === String(ev.id));
+  const isMobPg = window.matchMedia('(max-width: 900px)').matches;
+  let bannerPagina = null;
+  if (bp) bannerPagina = isMobPg ? (bp.mobile || bp.desktop) : (bp.desktop || bp.mobile);
   const banner = (window._banners || []).find(b => b.evento_id === ev.id);
-  renderEventoBase(ev, banner ? banner.url : null);
+  renderEventoBase(ev, bannerPagina || (banner ? banner.url : null));
   abrirOverlayEvento();
   preencherConteudo(null, true); // estado "carregando"
   try {
