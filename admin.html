@@ -685,6 +685,41 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <button class="btn-save" onclick="salvarLote()">Salvar Lote</button>
             <div class="form-feedback" id="lote-feedback"></div>
           </div>
+
+          <!-- PRODUTOS ADICIONAIS -->
+          <div class="panel" style="grid-column:1/-1;">
+            <h2>🛒 Produtos Adicionais</h2>
+            <p class="hint" style="margin-top:2px;margin-bottom:14px;">Itens extras que o atleta pode adicionar à inscrição (boné, meia, viseira…). Produtos <strong>ocultos</strong> não aparecem no site; <strong>esgotados</strong> aparecem marcados como esgotado e não podem ser selecionados.</p>
+            <div id="produtos-admin-lista"><div class="empty-state">Carregando…</div></div>
+            <hr class="divider">
+            <h3 id="prod-form-titulo">Adicionar Produto</h3>
+            <input type="hidden" id="nprod-id">
+            <div class="form-row2">
+              <div class="form-g"><label>Nome do produto *</label><input id="nprod-nome" placeholder="Ex: Boné JBX"></div>
+              <div class="form-g"><label>Preço (R$) *</label><input id="nprod-preco" type="number" step="0.01" min="0" placeholder="39.90"></div>
+            </div>
+            <div class="form-g">
+              <label>Foto do produto</label>
+              <div class="kit-upload-area" onclick="document.getElementById('nprod-foto-file').click()" style="cursor:pointer;" title="Clique para escolher uma foto">
+                <img id="prod-foto-preview" src="" style="display:none;">
+                <div class="kit-upload-ph" id="prod-upload-ph">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  Clique para escolher uma foto
+                  <span style="font-size:11px;opacity:0.6;">600 × 600 px — quadrado</span>
+                </div>
+              </div>
+              <input type="file" id="nprod-foto-file" accept="image/*" style="display:none;" onchange="uploadProdutoFoto(this)">
+              <div class="upload-row">
+                <button type="button" class="btn-upload" onclick="document.getElementById('nprod-foto-file').click()">📁 Escolher foto</button>
+                <span id="prod-upload-status" style="font-size:12px;color:var(--muted);"></span>
+              </div>
+              <input id="nprod-foto" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewProdutoFoto(this.value)">
+            </div>
+            <div class="form-g"><label>Ordem de exibição</label><input id="nprod-ordem" type="number" value="0" min="0" style="max-width:140px;"></div>
+            <button class="btn-save" id="prod-save-btn" onclick="salvarProduto()">Adicionar Produto</button>
+            <button class="btn-ghost" id="prod-cancel-btn" onclick="cancelarEdicaoProduto()" style="display:none;width:100%;margin-top:8px;">Cancelar edição</button>
+            <div class="form-feedback" id="prod-feedback"></div>
+          </div>
         </div>
       </div>
 
@@ -1225,6 +1260,15 @@ async function loadKitsLotes(){
     renderLotesAdmin(lotes||[]);
     renderNloteKitsPrecos(klKits);
   }catch(e){console.error(e);}
+  // produtos adicionais — independente, não quebra kits/lotes se a RPC ainda não existir
+  try{
+    const prods=await rpc('admin_listar_produtos',{p_evento_id:currentEvento.id});
+    renderProdutosAdmin(prods||[]);
+  }catch(e){
+    const el=document.getElementById('produtos-admin-lista');
+    if(el)el.innerHTML='<div class="empty-state" style="padding:16px;">Rode o SQL dos produtos no Supabase para ativar esta seção.</div>';
+    console.error(e);
+  }
 }
 function renderKitsAdmin(kits){
   const el=document.getElementById('kits-admin-lista');
@@ -1417,6 +1461,103 @@ async function toggleKitLote(kitId, loteId, campo, valor) {
 async function deletarLote(id,nome){
   if(!confirm(`Remover lote "${nome}"?`))return;
   try{await rpc('admin_deletar_lote',{p_id:id});loadKitsLotes();}catch(e){alert('Erro: '+e.message);}
+}
+
+/* ── PRODUTOS ADICIONAIS ── */
+function renderProdutosAdmin(prods){
+  const el=document.getElementById('produtos-admin-lista');
+  if(!el)return;
+  if(!prods.length){el.innerHTML='<div class="empty-state" style="padding:16px;">Nenhum produto ainda. Cadastre o primeiro abaixo.</div>';return;}
+  el.innerHTML=prods.map(p=>{
+    const thumb=p.imagem_url?'<img class="kit-thumb" src="'+p.imagem_url+'" onerror="this.style.display=\'none\'">':'<div class="kit-thumb-placeholder">🧢</div>';
+    const precoFmt='R$ '+Number(p.preco||0).toFixed(2).replace('.',',');
+    const esg=!!p.esgotado, vis=p.visivel!==false;
+    const btnEsg='<button onclick="toggleProduto(\''+p.id+'\',\'esgotado\','+(!esg)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(esg?'#ff6b6b':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(esg?'rgba(255,107,107,0.15)':'transparent')+';color:'+(esg?'#ff6b6b':'var(--muted)')+';">'+(esg?'🔴 Esgotado':'⚪ Esgotar')+'</button>';
+    const btnVis='<button onclick="toggleProduto(\''+p.id+'\',\'visivel\','+(!vis)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(vis?'#22c55e':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(vis?'rgba(34,197,94,0.12)':'transparent')+';color:'+(vis?'#22c55e':'var(--muted)')+';">'+(vis?'🟢 Visível':'⚫ Oculto')+'</button>';
+    return '<div class="kit-card-admin">'+thumb+
+      '<div class="kit-info"><div class="kit-nome">'+p.nome+'</div><div class="kit-desc" style="color:var(--orange);font-weight:700;">'+precoFmt+'</div>'+
+      '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">'+btnEsg+btnVis+'</div></div>'+
+      '<div class="kit-actions">'+
+      '<button class="btn-sm btn-sm-ghost" onclick=\'editarProduto('+JSON.stringify(p).replace(/'/g,'&#39;')+')\'>✏</button>'+
+      '<button class="btn-sm btn-sm-ghost" onclick="deletarProduto(\''+p.id+'\',\''+String(p.nome||'').replace(/'/g,"\\'")+'\')">🗑</button>'+
+      '</div></div>';
+  }).join('');
+}
+function previewProdutoFoto(url){
+  const img=document.getElementById('prod-foto-preview'),ph=document.getElementById('prod-upload-ph');
+  if(!img||!ph)return;
+  if(url&&url.trim()){img.src=url.trim();img.style.display='block';ph.style.display='none';img.onerror=()=>{img.style.display='none';ph.style.display='flex';};}
+  else{img.src='';img.style.display='none';ph.style.display='flex';}
+}
+async function uploadProdutoFoto(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
+  const st=document.getElementById('prod-upload-status');st.textContent='Enviando…';st.style.color='var(--muted)';
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const nome='produto_'+Date.now()+'.'+ext;
+  try{
+    const r=await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});
+    if(!r.ok)throw new Error(await r.text());
+    const url=`${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('nprod-foto').value=url;
+    previewProdutoFoto(url);
+    st.textContent='✓ Foto enviada!';st.style.color='#22c55e';
+  }catch(e){st.textContent='Erro no upload.';st.style.color='#ff6b6b';console.error(e);}
+}
+function editarProduto(p){
+  document.getElementById('nprod-id').value=p.id;
+  document.getElementById('nprod-nome').value=p.nome||'';
+  document.getElementById('nprod-preco').value=p.preco||'';
+  document.getElementById('nprod-foto').value=p.imagem_url||'';
+  document.getElementById('nprod-ordem').value=p.ordem||'0';
+  previewProdutoFoto(p.imagem_url||'');
+  document.getElementById('prod-upload-status').textContent='';
+  document.getElementById('prod-form-titulo').textContent='Editar Produto';
+  document.getElementById('prod-save-btn').textContent='Salvar alterações';
+  document.getElementById('prod-cancel-btn').style.display='';
+  document.getElementById('prod-feedback').textContent='';
+  document.getElementById('nprod-nome').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelarEdicaoProduto(){
+  document.getElementById('nprod-id').value='';
+  ['nprod-nome','nprod-preco','nprod-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('nprod-ordem').value='0';
+  previewProdutoFoto('');
+  document.getElementById('prod-upload-status').textContent='';
+  document.getElementById('prod-form-titulo').textContent='Adicionar Produto';
+  document.getElementById('prod-save-btn').textContent='Adicionar Produto';
+  document.getElementById('prod-cancel-btn').style.display='none';
+  document.getElementById('prod-feedback').textContent='';
+}
+async function salvarProduto(){
+  const get=id=>(document.getElementById(id)?.value||'').trim();
+  const fb=document.getElementById('prod-feedback');
+  if(!get('nprod-nome')){fb.className='form-feedback err';fb.textContent='Nome obrigatório.';return;}
+  const preco=parseFloat(get('nprod-preco'));
+  if(!(preco>0)){fb.className='form-feedback err';fb.textContent='Informe um preço maior que zero.';return;}
+  const editando=!!get('nprod-id');
+  const dados={id:get('nprod-id')||'',evento_id:String(currentEvento.id),nome:get('nprod-nome'),preco:String(preco),imagem_url:get('nprod-foto'),ordem:get('nprod-ordem')||'0'};
+  fb.className='form-feedback';fb.textContent='Salvando…';
+  try{
+    await rpc('admin_salvar_produto',{dados});
+    fb.className='form-feedback ok';fb.textContent=editando?'✓ Produto atualizado!':'✓ Produto adicionado!';
+    cancelarEdicaoProduto();
+    const fi=document.getElementById('nprod-foto-file');if(fi)fi.value='';
+    loadKitsLotes();
+  }catch(e){fb.className='form-feedback err';fb.textContent='Erro: '+e.message;}
+}
+async function deletarProduto(id,nome){
+  if(!confirm(`Remover produto "${nome}"?`))return;
+  try{await rpc('admin_deletar_produto',{p_id:id});loadKitsLotes();}catch(e){alert('Erro: '+e.message);}
+}
+async function toggleProduto(id,campo,valor){
+  try{
+    const params={p_id:id};
+    if(campo==='esgotado')params.p_esgotado=valor;
+    if(campo==='visivel')params.p_visivel=valor;
+    await rpc('admin_atualizar_produto',params);
+    loadKitsLotes();
+  }catch(e){alert('Erro: '+e.message);}
 }
 
 /* ── EVENTO DETALHE ── */
