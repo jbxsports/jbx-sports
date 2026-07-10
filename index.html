@@ -386,7 +386,7 @@
   .prod-grid::-webkit-scrollbar-thumb { background: rgba(255,117,31,0.35); border-radius: 3px; }
   .prod-grid::-webkit-scrollbar-track { background: rgba(42,37,32,0.06); border-radius: 3px; }
   .prod-card {
-    flex: 0 0 200px; scroll-snap-align: start;
+    flex: 0 0 240px; scroll-snap-align: start;
     border: 2px solid rgba(42,37,32,0.1); border-radius: 10px; padding: 12px;
     position: relative; transition: border-color .2s, background .2s; background: #fff;
   }
@@ -404,7 +404,7 @@
   .prod-arrow-r { right: -10px; }
   @media (max-width: 768px) {
     .prod-arrow { display: none; } /* mobile: swipe */
-    .prod-card { flex: 0 0 170px; }
+    .prod-card { flex: 0 0 200px; }
   }
   .prod-card.has-qtd { border-color: var(--orange); background: rgba(255,117,31,0.05); }
   .prod-card.esgotado { opacity: .55; }
@@ -415,8 +415,9 @@
     color: rgba(42,37,32,0.25); font-size: 26px;
   }
   .prod-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .prod-nome { font-size: 14px; font-weight: 700; line-height: 1.3; }
-  .prod-preco { font-size: 14px; font-weight: 700; color: var(--orange); margin: 2px 0 10px; }
+  .prod-nome { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .prod-desc { font-size: 12px; color: rgba(42,37,32,0.55); line-height: 1.45; margin-top: 3px; }
+  .prod-preco { font-size: 15px; font-weight: 700; color: var(--orange); margin: 4px 0 10px; }
   .prod-qtd { display: flex; align-items: center; gap: 10px; }
   .prod-qtd button {
     width: 32px; height: 32px; border-radius: 6px; border: 1px solid rgba(42,37,32,0.2);
@@ -1310,6 +1311,7 @@ function renderProdutos() {
       badge +
       '<div class="prod-img">' + img + '</div>' +
       '<div class="prod-nome">' + p.nome + '</div>' +
+      (p.descricao ? '<div class="prod-desc">' + p.descricao + '</div>' : '') +
       '<div class="prod-preco">' + precoFmt + '</div>' +
       controles +
     '</div>';
@@ -1333,7 +1335,7 @@ function mudarQtdProduto(id, delta) {
 // setas do carrossel de produtos
 function scrollProdutos(dir) {
   const box = document.getElementById('produtos-container');
-  if (box) box.scrollBy({ left: dir * 220, behavior: 'smooth' });
+  if (box) box.scrollBy({ left: dir * 260, behavior: 'smooth' });
 }
 function ajustarSetasProdutos() {
   const box = document.getElementById('produtos-container');
