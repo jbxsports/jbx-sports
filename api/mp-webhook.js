@@ -82,6 +82,25 @@ async function marcarComoPago(pedido, formaPagamento) {
   }
 }
 
+// ── Supabase: baixa de estoque dos produtos adicionais (pagamento aprovado) ──
+async function baixarEstoque(pedido) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/baixar_estoque_pedido`, {
+      method: 'POST',
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({ p_pedido: pedido })
+    });
+    const text = await res.text();
+    console.log('[mp-webhook] baixar_estoque_pedido status:', res.status, text.slice(0,100));
+  } catch(e) {
+    console.error('[mp-webhook] Erro baixar_estoque_pedido:', e.message);
+  }
+}
+
 // ── Supabase: deletar inscrições do pedido (pagamento recusado) ──
 async function deletarInscricoesPedido(pedido) {
   try {
@@ -283,6 +302,9 @@ module.exports = async (req, res) => {
 
   // Marca como pago com forma de pagamento real
   await marcarComoPago(pedido, formaPagamento);
+
+  // Baixa o estoque dos produtos adicionais e auto-esgota os que atingiram o limite
+  await baixarEstoque(pedido);
 
   // Busca dados do evento
   const evento     = await buscarEvento(eventoNome);
