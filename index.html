@@ -1027,6 +1027,7 @@
           <div class="prod-grid" id="produtos-container"></div>
           <button type="button" class="prod-arrow prod-arrow-r" onclick="scrollProdutos(1)" aria-label="Próximo">›</button>
         </div>
+        <div id="prod-scroll-hint" style="display:none;text-align:center;font-size:12px;font-weight:700;color:var(--orange);margin-top:8px;animation:pulse 1.5s infinite;">Deslize para ver todos os produtos →</div>
       </div>
 
       <!-- ETAPA 4: DADOS -->
@@ -1271,6 +1272,7 @@ const TOTAL_STEPS = 5;
 // ── Produtos adicionais (etapa 3) ──
 let produtosEvento = [];    // catálogo do evento (produtos_evento_publicos)
 let currentProdutos = {};   // id -> {id, nome, preco, qtd} do atleta em edição
+let produtosVistos = false; // trava o "Próximo" até rolar o carrossel até o fim
 
 async function loadProdutosEvento(eventoId) {
   produtosEvento = [];
@@ -1284,6 +1286,12 @@ async function loadProdutosEvento(eventoId) {
     produtosEvento = Array.isArray(arr) ? arr : [];
   } catch (e) { produtosEvento = []; }
   renderProdutos();
+  produtosVistos = false;
+  const box = document.getElementById('produtos-container');
+  if (box && !box._hintBound) {
+    box.addEventListener('scroll', () => { checarFimProdutos(); atualizarTravaProximo(); });
+    box._hintBound = true;
+  }
   ajustarStepProdutos();
 }
 
@@ -1342,6 +1350,29 @@ function ajustarSetasProdutos() {
   if (!box) return;
   const temOverflow = box.scrollWidth > box.clientWidth + 4;
   document.querySelectorAll('.prod-arrow').forEach(b => { b.style.display = temOverflow ? '' : 'none'; });
+  // se cabe tudo na tela, não há o que rolar → libera o Próximo
+  if (!temOverflow) produtosVistos = true;
+  checarFimProdutos();
+  atualizarTravaProximo();
+}
+// marca como "visto" quando chega perto do fim do scroll
+function checarFimProdutos() {
+  const box = document.getElementById('produtos-container');
+  if (!box) return;
+  const noFim = box.scrollLeft + box.clientWidth >= box.scrollWidth - 8;
+  if (noFim) produtosVistos = true;
+}
+// habilita/desabilita o botão Próximo e o aviso conforme a etapa e o scroll
+function atualizarTravaProximo() {
+  const hint = document.getElementById('prod-scroll-hint');
+  const btnNext = document.querySelector('.btn-step-next');
+  const naEtapaProdutos = (currentStep === 3 && produtosEvento.length > 0);
+  const travar = naEtapaProdutos && !produtosVistos;
+  if (hint) hint.style.display = travar ? 'block' : 'none';
+  if (btnNext) {
+    btnNext.style.opacity = travar ? '0.5' : '';
+    btnNext.style.cursor = travar ? 'not-allowed' : '';
+  }
 }
 
 // total dos adicionais de um item do carrinho
@@ -1651,7 +1682,8 @@ function showStep(n) {
 
   const body = document.querySelector('.modal-body');
   if (body) body.scrollTop = 0;
-  if (n === 3) ajustarSetasProdutos(); // só dá para medir overflow com o painel visível
+  if (n === 3) ajustarSetasProdutos(); // mede overflow e trava/destrava o Próximo (só visível dá para medir)
+  else atualizarTravaProximo();        // fora da etapa 3, garante o Próximo liberado
   if (naEtapaFinal) atualizarResumo();
 }
 function prevStep() {
@@ -1661,6 +1693,15 @@ function prevStep() {
   showStep(alvo);
 }
 function nextStep() {
+  // trava na etapa de adicionais: obriga ver todos os produtos antes de avançar
+  if (currentStep === 3 && produtosEvento.length && !produtosVistos) {
+    const box = document.getElementById('produtos-container');
+    if (box) {
+      box.scrollBy({ left: box.clientWidth * 0.8, behavior: 'smooth' }); // guia o cliente para o lado
+      setTimeout(() => { checarFimProdutos(); atualizarTravaProximo(); }, 400);
+    }
+    return;
+  }
   if (currentStep === 4 && !validarDados()) return; // valida dados antes do pagamento
   if (currentStep >= TOTAL_STEPS) return;
   let alvo = currentStep + 1;
