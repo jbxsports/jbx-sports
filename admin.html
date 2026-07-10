@@ -716,7 +716,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               </div>
               <input id="nprod-foto" type="text" placeholder="Ou cole uma URL diretamente" style="margin-top:8px;" oninput="previewProdutoFoto(this.value)">
             </div>
-            <div class="form-g"><label>Ordem de exibição</label><input id="nprod-ordem" type="number" value="0" min="0" style="max-width:140px;"></div>
+            <div class="form-row2">
+              <div class="form-g"><label>Ordem de exibição</label><input id="nprod-ordem" type="number" value="0" min="0"></div>
+              <div class="form-g"><label>Estoque (controle interno)</label><input id="nprod-estoque" type="number" min="0" placeholder="Vazio = ilimitado"><span style="font-size:11px;color:var(--muted);display:block;margin-top:4px;">Deixe vazio para não controlar estoque. Baixa quando o pagamento é aprovado; esgota sozinho ao acabar. Não aparece para o cliente.</span></div>
+            </div>
             <button class="btn-save" id="prod-save-btn" onclick="salvarProduto()">Adicionar Produto</button>
             <button class="btn-ghost" id="prod-cancel-btn" onclick="cancelarEdicaoProduto()" style="display:none;width:100%;margin-top:8px;">Cancelar edição</button>
             <div class="form-feedback" id="prod-feedback"></div>
@@ -1473,10 +1476,12 @@ function renderProdutosAdmin(prods){
     const thumb=p.imagem_url?'<img class="kit-thumb" src="'+p.imagem_url+'" onerror="this.style.display=\'none\'">':'<div class="kit-thumb-placeholder">🧢</div>';
     const precoFmt='R$ '+Number(p.preco||0).toFixed(2).replace('.',',');
     const esg=!!p.esgotado, vis=p.visivel!==false;
+    let estoqueTxt='';
+    if(p.estoque!==null&&p.estoque!==undefined){const vend=Number(p.vendidos||0),lim=Number(p.estoque);const rest=Math.max(0,lim-vend);estoqueTxt='<div class="kit-desc" style="font-size:11px;">📦 Estoque: '+vend+'/'+lim+' vendidos · '+rest+' restante'+(rest===1?'':'s')+'</div>';}
     const btnEsg='<button onclick="toggleProduto(\''+p.id+'\',\'esgotado\','+(!esg)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(esg?'#ff6b6b':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(esg?'rgba(255,107,107,0.15)':'transparent')+';color:'+(esg?'#ff6b6b':'var(--muted)')+';">'+(esg?'🔴 Esgotado':'⚪ Esgotar')+'</button>';
     const btnVis='<button onclick="toggleProduto(\''+p.id+'\',\'visivel\','+(!vis)+')" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid '+(vis?'#22c55e':'rgba(42,37,32,0.2)')+';cursor:pointer;background:'+(vis?'rgba(34,197,94,0.12)':'transparent')+';color:'+(vis?'#22c55e':'var(--muted)')+';">'+(vis?'🟢 Visível':'⚫ Oculto')+'</button>';
     return '<div class="kit-card-admin">'+thumb+
-      '<div class="kit-info"><div class="kit-nome">'+p.nome+'</div>'+(p.descricao?'<div class="kit-desc">'+p.descricao+'</div>':'')+'<div class="kit-desc" style="color:var(--orange);font-weight:700;">'+precoFmt+'</div>'+
+      '<div class="kit-info"><div class="kit-nome">'+p.nome+'</div>'+(p.descricao?'<div class="kit-desc">'+p.descricao+'</div>':'')+'<div class="kit-desc" style="color:var(--orange);font-weight:700;">'+precoFmt+'</div>'+estoqueTxt+
       '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">'+btnEsg+btnVis+'</div></div>'+
       '<div class="kit-actions">'+
       '<button class="btn-sm btn-sm-ghost" onclick=\'editarProduto('+JSON.stringify(p).replace(/'/g,'&#39;')+')\'>✏</button>'+
@@ -1512,6 +1517,7 @@ function editarProduto(p){
   document.getElementById('nprod-preco').value=p.preco||'';
   document.getElementById('nprod-foto').value=p.imagem_url||'';
   document.getElementById('nprod-ordem').value=p.ordem||'0';
+  document.getElementById('nprod-estoque').value=(p.estoque===null||p.estoque===undefined)?'':p.estoque;
   previewProdutoFoto(p.imagem_url||'');
   document.getElementById('prod-upload-status').textContent='';
   document.getElementById('prod-form-titulo').textContent='Editar Produto';
@@ -1524,6 +1530,7 @@ function cancelarEdicaoProduto(){
   document.getElementById('nprod-id').value='';
   ['nprod-nome','nprod-desc','nprod-preco','nprod-foto'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('nprod-ordem').value='0';
+  document.getElementById('nprod-estoque').value='';
   previewProdutoFoto('');
   document.getElementById('prod-upload-status').textContent='';
   document.getElementById('prod-form-titulo').textContent='Adicionar Produto';
@@ -1538,7 +1545,7 @@ async function salvarProduto(){
   const preco=parseFloat(get('nprod-preco'));
   if(!(preco>0)){fb.className='form-feedback err';fb.textContent='Informe um preço maior que zero.';return;}
   const editando=!!get('nprod-id');
-  const dados={id:get('nprod-id')||'',evento_id:String(currentEvento.id),nome:get('nprod-nome'),descricao:get('nprod-desc'),preco:String(preco),imagem_url:get('nprod-foto'),ordem:get('nprod-ordem')||'0'};
+  const dados={id:get('nprod-id')||'',evento_id:String(currentEvento.id),nome:get('nprod-nome'),descricao:get('nprod-desc'),preco:String(preco),imagem_url:get('nprod-foto'),ordem:get('nprod-ordem')||'0',estoque:get('nprod-estoque')};
   fb.className='form-feedback';fb.textContent='Salvando…';
   try{
     await rpc('admin_salvar_produto',{dados});
