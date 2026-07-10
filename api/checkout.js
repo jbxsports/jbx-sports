@@ -62,6 +62,8 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
         emergencia_nome:     item.emergencia_nome     || '',
         emergencia_telefone: item.emergencia_telefone || '',
         valor:               item.valor               || 0,
+        valor_inscricao:     item.valor_inscricao     || '',
+        produtos:            Array.isArray(item.produtos) ? item.produtos : [],
       };
 
       const res = await fetch(`${SB_URL}/rest/v1/rpc/criar_inscricao`, {
