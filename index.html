@@ -654,12 +654,18 @@
 
   /* ── LISTA DE ATLETAS (carrinho) ── */
   #lista-atletas { display: flex; flex-direction: column; gap: 8px; }
-  .atleta-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(42,37,32,0.08); border-radius: 10px; padding: 12px 14px; }
+  .atleta-item { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(42,37,32,0.08); border-radius: 10px; padding: 12px 14px; }
   .atleta-info { min-width: 0; }
   .atleta-titulo { font-size: 14px; font-weight: 700; color: #1a1a1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .atleta-sub { font-size: 12px; color: rgba(42,37,32,0.5); margin-top: 2px; }
+  .atleta-detalhe { margin-top: 8px; padding-top: 8px; border-top: 1px dashed rgba(42,37,32,0.12); display: flex; flex-direction: column; gap: 3px; }
+  .atleta-linha { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; color: rgba(42,37,32,0.7); }
+  .atleta-linha span:last-child { font-weight: 600; white-space: nowrap; }
+  .atleta-linha.desc { color: #16a34a; }
+  .atleta-linha.desc span:last-child { color: #16a34a; }
   .atleta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; white-space: nowrap; }
-  .atleta-preco { font-size: 14px; font-weight: 700; color: var(--orange); }
+  .atleta-preco-lbl { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: rgba(42,37,32,0.4); }
+  .atleta-preco { font-size: 15px; font-weight: 700; color: var(--orange); }
   .atleta-remover { background: none; border: none; color: rgba(42,37,32,0.4); font-size: 12px; cursor: pointer; padding: 0; text-decoration: underline; font-family: 'Ubuntu', sans-serif; }
   .atleta-remover:hover { color: #ff6b6b; }
   .atleta-tag { font-size: 11px; color: var(--orange); background: rgba(255,117,31,0.12); border-radius: 6px; padding: 2px 8px; }
@@ -1747,15 +1753,49 @@ function atualizarResumo() {
       const ehAtual = (idx === itens.length - 1);
       const row = document.createElement('div'); row.className = 'atleta-item';
       const info = document.createElement('div'); info.className = 'atleta-info';
+
+      // cabeçalho: nome + kit/modalidade/camisa
       const t = document.createElement('div'); t.className = 'atleta-titulo'; t.textContent = it.rotulo;
       const sub = document.createElement('div'); sub.className = 'atleta-sub';
-      const prods = (it.produtos || []);
-      const prodsTxt = prods.length ? ' · ' + prods.map(p => (p.qtd > 1 ? p.qtd + '× ' : '') + p.nome).join(', ') : '';
-      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '') + prodsTxt;
+      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '');
       info.appendChild(t); info.appendChild(sub);
+
+      // valores por atleta
+      const pct = itemPct(it, pctCup);
+      const inscComDesc = it.valorBase * (1 - pct / 100);
+      const taxaItem = currentTaxa > 0 ? inscComDesc * (currentTaxa / 100) : 0;
+      const prods = (it.produtos || []);
+      const prodTot = prodTotalDe(it);
+      const totalItem = inscComDesc + taxaItem + prodTot;
+
+      // bloco discriminado
+      const det = document.createElement('div'); det.className = 'atleta-detalhe';
+      const linha = (label, valor, opts) => {
+        const l = document.createElement('div'); l.className = 'atleta-linha' + (opts && opts.desc ? ' desc' : '');
+        const a = document.createElement('span'); a.textContent = label;
+        const b = document.createElement('span'); b.textContent = fmt(valor);
+        l.appendChild(a); l.appendChild(b); det.appendChild(l);
+      };
+      // inscrição (com desconto, se houver)
+      if (pct > 0) {
+        linha('Inscrição', it.valorBase);
+        linha('Desconto ' + pct + '%', -(it.valorBase - inscComDesc), { desc: true });
+      } else {
+        linha('Inscrição', it.valorBase);
+      }
+      // adicionais, um por linha
+      prods.forEach(p => {
+        const q = p.qtd > 1 ? (p.qtd + '× ') : '';
+        linha(q + p.nome, Number(p.preco) * (p.qtd || 1));
+      });
+      // taxa sobre tudo (inscrição descontada)
+      if (taxaItem > 0) linha('Taxa de serviço', taxaItem);
+      info.appendChild(det);
+
       const right = document.createElement('div'); right.className = 'atleta-right';
-      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(it.valorBase + prodTotalDe(it));
-      right.appendChild(preco);
+      const precoLbl = document.createElement('div'); precoLbl.className = 'atleta-preco-lbl'; precoLbl.textContent = 'Total';
+      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(totalItem);
+      right.appendChild(precoLbl); right.appendChild(preco);
       if (naEtapa4) {
         const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'atleta-remover';
         rm.textContent = 'remover'; rm.onclick = () => removerAtleta(idx);
