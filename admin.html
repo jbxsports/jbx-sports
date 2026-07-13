@@ -3721,6 +3721,8 @@ function mktAbrirPat(id){
   document.getElementById('mpa-reels').value=p?p.qtd_reels:0;
   document.getElementById('mpa-obs').value=p&&p.obs?p.obs:'';
   document.getElementById('mpa-excluir').style.display=p?'block':'none';
+  mktPerfisPatSel=['jbx'];
+  mktRenderPerfisPat();
   mktRenderSaldo();
   mktRenderDatasPacote();
   document.getElementById('mkt-pat-overlay').classList.add('open');
@@ -3746,6 +3748,19 @@ async function mktExcluirPat(){
   if(!confirm('Excluir patrocinador? Os cards já criados permanecem no calendário (sem vínculo).'))return;
   try{await rpc('mkt_pat_excluir',{p_id:mktPatAtual.id});mktFecharPat();await mktRecarregar();}
   catch(e){alert('Erro: '+e.message);}
+}
+let mktPerfisPatSel=['jbx'];
+function mktRenderPerfisPat(){
+  let h='';
+  MKT_PERFIS.forEach(pf=>{
+    h+='<button class="mkt-chip'+(mktPerfisPatSel.includes(pf.id)?' on':'')+'" onclick="mktTogglePerfilPat(\''+pf.id+'\')">'+pf.label+'</button>';
+  });
+  document.getElementById('mpa-perfis').innerHTML=h;
+}
+function mktTogglePerfilPat(id){
+  if(mktPerfisPatSel.includes(id))mktPerfisPatSel=mktPerfisPatSel.filter(x=>x!==id);
+  else mktPerfisPatSel.push(id);
+  mktRenderPerfisPat();
 }
 function mktPacoteFaltantes(){
   const qs=parseInt(document.getElementById('mpa-stories').value)||0;
@@ -3791,6 +3806,7 @@ async function mktSalvarPat(){
   const rows=Array.from(document.querySelectorAll('#mpa-datas input[type=date]'));
   const semData=rows.filter(r=>!r.value);
   if(semData.length){alert('Preencha a data de todos os conteúdos do pacote ('+semData.length+' sem data).');semData[0].focus();return;}
+  if(rows.length&&!mktPerfisPatSel.length){alert('Selecione ao menos um perfil de destino para os conteúdos.');return;}
   try{
     const patId=await rpc('mkt_pat_salvar',{
       p_id:mktPatAtual?mktPatAtual.id:null,
@@ -3804,7 +3820,7 @@ async function mktSalvarPat(){
       const itens=rows.map(r=>({
         evento_id:evId,patrocinador_id:patId,
         titulo:nome+' — '+r.dataset.label,
-        tipo:'patrocinador',formato:r.dataset.formato,perfis:'jbx',data_post:r.value
+        tipo:'patrocinador',formato:r.dataset.formato,perfis:mktPerfisPatSel.join(','),data_post:r.value
       }));
       await rpc('mkt_posts_gerar',{p_itens:itens});
     }
@@ -4095,6 +4111,7 @@ async function mktSalvarPat(){
       <div class="mkt-fg"><label>Posts</label><input type="number" id="mpa-posts" min="0" value="0" oninput="mktRenderDatasPacote()"></div>
       <div class="mkt-fg"><label>Reels</label><input type="number" id="mpa-reels" min="0" value="0" oninput="mktRenderDatasPacote()"></div>
     </div>
+    <div class="mkt-fg"><label>Perfis de destino *</label><div class="mkt-chips" id="mpa-perfis"></div></div>
     <div class="mkt-fg"><label>Observações do acordo</label><textarea id="mpa-obs" placeholder="Detalhes do combinado, prazos, exigências de marca…"></textarea></div>
     <div id="mpa-datas-wrap" style="display:none;">
       <div class="mkt-pac-hd">Datas de cada conteúdo</div>
