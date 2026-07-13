@@ -34,7 +34,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{background:rgba(42,37,32,.1);color:var(--text);}
 .admin-content{padding:32px;width:100%;box-sizing:border-box;overflow-x:hidden;}
-.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-social.active,#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
+.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--text);}
@@ -370,6 +370,111 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   }
   .cal-check-btn.checked{background:#dcfce7;border-color:#16a34a;color:#16a34a;}
   .cal-check-btn:not(.checked){color:transparent;}
+/* ══ SOCIAL MEDIA — CALENDÁRIO MKT ══ */
+.mkt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.mkt-toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.mkt-btn{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);transition:all .15s;white-space:nowrap;}
+.mkt-btn:hover{border-color:rgba(255,117,31,.5);color:var(--orange);}
+.mkt-btn.primary{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mkt-btn.primary:hover{background:var(--orange-dark);color:#fff;}
+.mkt-btn.sm{padding:6px 12px;font-size:12px;}
+.mkt-views{display:flex;background:#f0ede8;border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;}
+.mkt-view-btn{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border:none;background:none;color:var(--muted);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.mkt-view-btn.active{background:var(--card);color:var(--orange);box-shadow:0 1px 3px rgba(42,37,32,.12);}
+.mkt-filtros{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:16px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+.mkt-filtros select{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:8px 10px;cursor:pointer;max-width:190px;}
+.mkt-filtros select:focus{outline:none;border-color:var(--orange);}
+.mkt-filtros label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.mkt-periodo{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.mkt-periodo .mkt-per-label{font-size:15px;font-weight:700;color:var(--text);min-width:150px;text-align:center;text-transform:capitalize;}
+.mkt-nav-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mkt-nav-btn:hover{color:var(--orange);border-color:rgba(255,117,31,.5);}
+.mkt-legenda{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted);}
+.mkt-leg-item{display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer;}
+.mkt-leg-dot{width:11px;height:11px;border-radius:4px;display:inline-block;}
+/* MÊS */
+.mkt-mes{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+.mkt-mes-head{display:grid;grid-template-columns:repeat(7,1fr);background:#f5f3f0;border-bottom:1px solid var(--border);}
+.mkt-mes-head div{padding:9px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:center;}
+.mkt-mes-grid{display:grid;grid-template-columns:repeat(7,1fr);}
+.mkt-dia{min-height:112px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:6px;cursor:pointer;transition:background .15s;position:relative;}
+.mkt-dia:nth-child(7n){border-right:none;}
+.mkt-dia:hover{background:#fdf7f2;}
+.mkt-dia.fora{background:#faf9f7;opacity:.45;}
+.mkt-dia.hoje{background:rgba(255,117,31,.06);}
+.mkt-dia-num{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:4px;}
+.mkt-dia.hoje .mkt-dia-num{color:var(--orange);}
+.mkt-pill{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#fff;border-radius:5px;padding:2px 6px;margin-bottom:3px;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:transform .1s;}
+.mkt-pill:hover{transform:translateX(2px);}
+.mkt-pill .st-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;border:1px solid rgba(255,255,255,.7);}
+.mkt-pill span{overflow:hidden;text-overflow:ellipsis;}
+.mkt-mais{font-size:10px;font-weight:700;color:var(--orange);padding-left:2px;}
+/* SEMANA */
+.mkt-semana{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:start;}
+.mkt-sem-col{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:220px;}
+.mkt-sem-col.hoje{border-color:rgba(255,117,31,.5);box-shadow:0 0 0 2px rgba(255,117,31,.12);}
+.mkt-sem-hd{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:2px;}
+.mkt-sem-data{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.mkt-sem-col.hoje .mkt-sem-data{color:var(--orange);}
+.mkt-sem-add{width:100%;border:1px dashed rgba(42,37,32,.2);background:none;color:var(--muted);border-radius:8px;padding:5px;font-size:12px;cursor:pointer;margin-top:4px;font-family:'Ubuntu',sans-serif;}
+.mkt-sem-add:hover{color:var(--orange);border-color:rgba(255,117,31,.5);}
+/* CARD */
+.mkt-card{background:#fdfcfb;border:1px solid var(--border);border-left:4px solid #999;border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+.mkt-card:hover{box-shadow:0 3px 10px rgba(42,37,32,.12);transform:translateY(-1px);}
+.mkt-card-top{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
+.mkt-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-radius:4px;padding:2px 6px;}
+.mkt-tag.obrig{background:rgba(42,37,32,.08);color:var(--muted);}
+.mkt-tag.pat{background:rgba(201,162,39,.16);color:#8a6d00;}
+.mkt-tag.outro{background:rgba(46,111,224,.12);color:#2f6fe0;}
+.mkt-perfil-sigla{font-size:9px;font-weight:700;background:#eee9e3;color:var(--muted);border-radius:4px;padding:2px 5px;}
+.mkt-card-titulo{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:5px;}
+.mkt-card-foot{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.mkt-card-status{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--muted);}
+.mkt-card-status .st-dot{width:8px;height:8px;border-radius:50%;}
+.mkt-card-hora{font-size:11px;color:var(--muted);font-weight:600;}
+.mkt-thumb{width:100%;height:74px;object-fit:cover;border-radius:6px;margin-bottom:6px;border:1px solid var(--border);}
+/* PIPELINE */
+.mkt-pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:start;}
+.mkt-pipe-col{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:240px;}
+.mkt-pipe-hd{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid #f0ede8;}
+.mkt-pipe-hd .st-dot{width:9px;height:9px;border-radius:50%;}
+.mkt-pipe-count{margin-left:auto;font-size:11px;background:#f0ede8;color:var(--muted);border-radius:10px;padding:1px 8px;}
+.mkt-pipe-data{font-size:10px;font-weight:700;color:var(--orange);margin-bottom:3px;}
+/* MODAL MKT */
+.mkt-modal{background:var(--card);border-radius:16px;width:94%;max-width:620px;max-height:92vh;overflow-y:auto;padding:26px 28px;box-shadow:0 20px 60px rgba(42,37,32,.3);}
+.mkt-modal h3{font-size:19px;font-weight:700;margin-bottom:18px;color:var(--text);}
+.mkt-fg{margin-bottom:13px;}
+.mkt-fg label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
+.mkt-fg input,.mkt-fg select,.mkt-fg textarea{width:100%;font-family:'Ubuntu',sans-serif;font-size:14px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 12px;}
+.mkt-fg input:focus,.mkt-fg select:focus,.mkt-fg textarea:focus{outline:none;border-color:var(--orange);}
+.mkt-fg textarea{resize:vertical;min-height:76px;}
+.mkt-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mkt-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.mkt-chips{display:flex;gap:7px;flex-wrap:wrap;}
+.mkt-chip{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1.5px solid rgba(42,37,32,.15);background:#f5f3f0;color:var(--muted);border-radius:20px;padding:7px 14px;cursor:pointer;transition:all .15s;}
+.mkt-chip.on{border-color:var(--orange);background:rgba(255,117,31,.1);color:var(--orange);}
+.mkt-cores{display:flex;gap:8px;flex-wrap:wrap;}
+.mkt-cor{width:30px;height:30px;border-radius:8px;cursor:pointer;border:3px solid transparent;transition:transform .1s;}
+.mkt-cor:hover{transform:scale(1.12);}
+.mkt-cor.on{border-color:var(--text);}
+.mkt-st-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.mkt-st-chip{font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:700;border:1.5px solid rgba(42,37,32,.15);background:#f5f3f0;border-radius:20px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:5px;color:var(--muted);}
+.mkt-st-chip .st-dot{width:8px;height:8px;border-radius:50%;}
+.mkt-st-chip.on{background:#fff;border-color:currentColor;}
+.mkt-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.mkt-aprovacao{display:flex;gap:10px;margin-top:14px;}
+.mkt-btn-aprovar{flex:1;font-family:'Ubuntu',sans-serif;font-size:14px;font-weight:700;background:#16a34a;color:#fff;border:none;border-radius:8px;padding:12px;cursor:pointer;}
+.mkt-btn-aprovar:hover{background:#15803d;}
+.mkt-btn-refazer{flex:1;font-family:'Ubuntu',sans-serif;font-size:14px;font-weight:700;background:#fff;color:#9333ea;border:2px solid #9333ea;border-radius:8px;padding:12px;cursor:pointer;}
+.mkt-btn-refazer:hover{background:rgba(147,51,234,.06);}
+.mkt-arte-box{border:2px dashed rgba(42,37,32,.18);border-radius:10px;padding:14px;text-align:center;background:#fbfaf8;}
+.mkt-arte-box img{max-width:100%;max-height:260px;border-radius:8px;margin-bottom:10px;}
+.mkt-saldo{background:#fbf7ee;border:1px solid rgba(201,162,39,.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#6b5500;display:flex;gap:18px;flex-wrap:wrap;}
+.mkt-saldo b{font-size:15px;}
+.mkt-empty{grid-column:1/-1;text-align:center;padding:56px 20px;color:var(--muted);font-size:14px;}
+@media(max-width:1100px){.mkt-semana{grid-template-columns:repeat(2,1fr);}.mkt-pipe{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:640px){.mkt-semana{grid-template-columns:1fr;}.mkt-pipe{grid-template-columns:1fr;}.mkt-dia{min-height:70px;}}
+
 </style>
 </head>
 <body>
@@ -1065,7 +1170,7 @@ function showInner(name){
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='designer'){document.getElementById('nav-designer').classList.add('active');initDesignerFrame();}
-  if(name==='social'){document.getElementById('nav-social').classList.add('active');initSocialFrame();}
+  if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
   if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
 }
@@ -3162,11 +3267,7 @@ function initDesignerFrame(){
 }
 
 
-function initSocialFrame(){
-  const f = document.getElementById('social-frame');
-  if(!f.src || f.src === window.location.href)
-    f.src = 'https://moonlit-otter-2038bf.netlify.app/';
-}
+
 
 function initParceirosFrame(){
   const f = document.getElementById('parceiros-frame');
@@ -3190,6 +3291,495 @@ function calSetYear(year){
   const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active') && b.dataset.view)?.dataset.view || 'completo';
   if(activeView==='completo') calRender();
   else calSetView(activeView);
+}
+
+
+/* ══════════ SOCIAL MEDIA — CALENDÁRIO MKT ══════════ */
+const MKT_PERFIS=[
+ {id:'jbx',label:'@jbx.sports',sigla:'JBX'},
+ {id:'travessia',label:'@travessia',sigla:'TRV'},
+ {id:'trail',label:'@trail',sigla:'TRL'},
+ {id:'reveza',label:'@reveza.run',sigla:'RVZ'},
+ {id:'linkedin',label:'LinkedIn',sigla:'IN'}
+];
+const MKT_STATUS=[
+ {id:'a_criar',label:'A criar',cor:'#dc2626'},
+ {id:'em_criacao',label:'Em criação',cor:'#2563eb'},
+ {id:'aguardando',label:'Aguardando aprovação',cor:'#d97706'},
+ {id:'refazer',label:'Refazer',cor:'#9333ea'},
+ {id:'aprovado',label:'Aprovado',cor:'#16a34a'},
+ {id:'postado',label:'Postado',cor:'#6b7280'}
+];
+const MKT_FORMATOS={story:'📱 Story',post:'🖼️ Post',carrossel:'🧩 Carrossel',reel:'🎬 Reel'};
+const MKT_CORES=['#e0403c','#e07b00','#c9a227','#2e9e44','#0e9f9f','#2f6fe0','#7b4fe0','#d0479e','#7a5c3e','#54606e'];
+const MKT_OBRIG=[
+ {t:'Save the Date',d:-90},{t:'Abertura de inscrições',d:-75},{t:'Virada de Lote 1',d:-45},
+ {t:'Virada de Lote 2',d:-20},{t:'Percurso',d:-15},{t:'Informações gerais',d:-7},
+ {t:'Retirada de Kit',d:-2},{t:'Dia da prova',d:0},{t:'Obrigado',d:1}
+];
+const MKT_DIAS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const MKT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
+let mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
+let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
+let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
+
+function mktInit(){
+  if(mktData){mktRender();return;}
+  mktRecarregar();
+}
+async function mktRecarregar(){
+  if(mktCarregando)return; mktCarregando=true;
+  try{
+    const d=await rpc('mkt_dados');
+    mktData={eventos:d.eventos||[],pats:d.patrocinadores||[],posts:d.posts||[]};
+    mktMontarFiltros(); mktRender();
+  }catch(e){
+    console.error(e);
+    document.getElementById('mkt-conteudo').innerHTML='<div class="mkt-empty">Erro ao carregar. Verifique se o SQL do calendário Mkt foi executado no Supabase.</div>';
+  }
+  mktCarregando=false;
+}
+
+/* ── helpers de data ── */
+function mktISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd;}
+function mktHojeISO(){return mktISO(new Date());}
+function mktAddDias(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return mktISO(d);}
+function mktSegunda(d){const x=new Date(d);const wd=(x.getDay()+6)%7;x.setDate(x.getDate()-wd);return x;}
+function mktFmtCurta(iso){const p=iso.split('-');return p[2]+'/'+p[1];}
+
+/* ── lookups ── */
+function mktEv(id){return (mktData.eventos||[]).find(e=>e.id===id)||null;}
+function mktPat(id){return (mktData.pats||[]).find(p=>p.id===id)||null;}
+function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
+function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
+
+/* ── filtros ── */
+function mktMontarFiltros(){
+  const fe=document.getElementById('mkt-f-evento');
+  let h='<option value="">Todos os eventos</option>';
+  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'">'+e.nome+'</option>';});
+  fe.innerHTML=h; fe.value=mktFiltro.evento;
+  const fp=document.getElementById('mkt-f-pat');
+  let h2='<option value="">Todos os patrocinadores</option>';
+  mktData.pats.forEach(p=>{const e=mktEv(p.evento_id);h2+='<option value="'+p.id+'">'+p.nome+(e?' ('+e.nome+')':'')+'</option>';});
+  fp.innerHTML=h2; fp.value=mktFiltro.pat;
+  const fpe=document.getElementById('mkt-f-perfil');
+  let h3='<option value="">Todos os perfis</option>';
+  MKT_PERFIS.forEach(p=>{h3+='<option value="'+p.id+'">'+p.label+'</option>';});
+  fpe.innerHTML=h3; fpe.value=mktFiltro.perfil;
+  const fs=document.getElementById('mkt-f-status');
+  let h4='<option value="">Todos os status</option>';
+  MKT_STATUS.forEach(s=>{h4+='<option value="'+s.id+'">'+s.label+'</option>';});
+  fs.innerHTML=h4; fs.value=mktFiltro.status;
+}
+function mktFiltroChange(){
+  mktFiltro.evento=document.getElementById('mkt-f-evento').value;
+  mktFiltro.pat=document.getElementById('mkt-f-pat').value;
+  mktFiltro.perfil=document.getElementById('mkt-f-perfil').value;
+  mktFiltro.tipo=document.getElementById('mkt-f-tipo').value;
+  mktFiltro.status=document.getElementById('mkt-f-status').value;
+  mktRender();
+}
+function mktLimparFiltros(){
+  mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
+  ['mkt-f-evento','mkt-f-pat','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
+  mktRender();
+}
+function mktFiltraPorEvento(id){
+  mktFiltro.evento=(mktFiltro.evento===id)?'':id;
+  document.getElementById('mkt-f-evento').value=mktFiltro.evento;
+  mktRender();
+}
+function mktPostsFiltrados(){
+  return (mktData.posts||[]).filter(p=>{
+    if(mktFiltro.evento&&p.evento_id!==mktFiltro.evento)return false;
+    if(mktFiltro.pat&&p.patrocinador_id!==mktFiltro.pat)return false;
+    if(mktFiltro.perfil&&!(p.perfis||'').split(',').includes(mktFiltro.perfil))return false;
+    if(mktFiltro.tipo&&p.tipo!==mktFiltro.tipo)return false;
+    if(mktFiltro.status&&p.status!==mktFiltro.status)return false;
+    return true;
+  });
+}
+
+/* ── views ── */
+function mktSetView(v){
+  mktView=v;
+  ['mes','semana','pipe'].forEach(x=>{document.getElementById('mkt-vbtn-'+x).classList.toggle('active',x===v);});
+  document.getElementById('mkt-periodo-nav').style.display=(v==='pipe')?'none':'flex';
+  mktRender();
+}
+function mktNav(dir){
+  if(mktView==='mes'){mktRef.setDate(1);mktRef.setMonth(mktRef.getMonth()+dir);}
+  else{mktRef.setDate(mktRef.getDate()+dir*7);}
+  mktRender();
+}
+function mktHoje(){mktRef=new Date();mktRender();}
+
+function mktRender(){
+  if(!mktData)return;
+  mktRenderLegenda();
+  if(mktView==='mes')mktRenderMes();
+  else if(mktView==='semana')mktRenderSemana();
+  else mktRenderPipe();
+}
+function mktRenderLegenda(){
+  const el=document.getElementById('mkt-legenda');
+  if(!mktData.eventos.length){el.innerHTML='';return;}
+  let h='';
+  mktData.eventos.forEach(e=>{
+    const on=(mktFiltro.evento===e.id)?'text-decoration:underline;color:var(--text);':'';
+    h+='<div class="mkt-leg-item" style="'+on+'" onclick="mktFiltraPorEvento(\''+e.id+'\')" title="Clique para filtrar">'
+      +'<span class="mkt-leg-dot" style="background:'+e.cor+'"></span>'+e.nome
+      +(e.data_prova?' · '+fmtDS(e.data_prova):'')+'</div>';
+  });
+  el.innerHTML=h;
+}
+
+function mktBadgesHtml(p){
+  let h='';
+  if(p.tipo==='patrocinador'){const pa=mktPat(p.patrocinador_id);h+='<span class="mkt-tag pat">★ '+(pa?pa.nome:'Patroc.')+'</span>';}
+  else if(p.tipo==='obrigatorio'){h+='<span class="mkt-tag obrig">Obrigatório</span>';}
+  else{h+='<span class="mkt-tag outro">Outro</span>';}
+  (p.perfis||'').split(',').forEach(pid=>{
+    const pf=MKT_PERFIS.find(x=>x.id===pid);
+    if(pf)h+='<span class="mkt-perfil-sigla" title="'+pf.label+'">'+pf.sigla+'</span>';
+  });
+  return h;
+}
+function mktCardHtml(p,comData){
+  const st=mktStInfo(p.status), cor=mktCorDe(p);
+  let h='<div class="mkt-card" style="border-left-color:'+cor+'" onclick="mktAbrirPost(\''+p.id+'\',null)">';
+  if(p.arte_url)h+='<img class="mkt-thumb" src="'+p.arte_url+'" loading="lazy">';
+  if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
+  h+='<div class="mkt-card-top">'+mktBadgesHtml(p)+'</div>';
+  h+='<div class="mkt-card-titulo">'+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
+  h+='<div class="mkt-card-foot"><div class="mkt-card-status"><span class="st-dot" style="background:'+st.cor+'"></span>'+st.label+'</div>';
+  if(!comData&&p.hora)h+='<div class="mkt-card-hora">'+p.hora.slice(0,5)+'</div>';
+  h+='</div></div>';
+  return h;
+}
+
+/* MÊS */
+function mktRenderMes(){
+  const y=mktRef.getFullYear(),m=mktRef.getMonth();
+  document.getElementById('mkt-per-label').textContent=MKT_MESES[m]+' '+y;
+  const posts=mktPostsFiltrados();
+  const porDia={};
+  posts.forEach(p=>{(porDia[p.data_post]=porDia[p.data_post]||[]).push(p);});
+  const primeiro=new Date(y,m,1);
+  const ini=mktSegunda(primeiro);
+  const hoje=mktHojeISO();
+  let h='<div class="mkt-mes"><div class="mkt-mes-head">';
+  MKT_DIAS.forEach(d=>{h+='<div>'+d+'</div>';});
+  h+='</div><div class="mkt-mes-grid">';
+  const cur=new Date(ini);
+  for(let i=0;i<42;i++){
+    const iso=mktISO(cur), fora=cur.getMonth()!==m, ehHoje=iso===hoje;
+    h+='<div class="mkt-dia'+(fora?' fora':'')+(ehHoje?' hoje':'')+'" onclick="mktAbrirPost(null,\''+iso+'\')">';
+    h+='<div class="mkt-dia-num">'+cur.getDate()+'</div>';
+    const dp=(porDia[iso]||[]).slice().sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    dp.slice(0,3).forEach(p=>{
+      const st=mktStInfo(p.status);
+      h+='<div class="mkt-pill" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo+'">'
+        +'<span class="st-dot" style="background:'+st.cor+'"></span><span>'+p.titulo+'</span></div>';
+    });
+    if(dp.length>3)h+='<div class="mkt-mais">+'+(dp.length-3)+' mais</div>';
+    h+='</div>';
+    cur.setDate(cur.getDate()+1);
+    if(i>=34&&cur.getMonth()!==m&&(i+1)%7===0)break;
+  }
+  h+='</div></div>';
+  document.getElementById('mkt-conteudo').innerHTML=h;
+}
+
+/* SEMANA */
+function mktRenderSemana(){
+  const ini=mktSegunda(mktRef);
+  const fim=new Date(ini);fim.setDate(fim.getDate()+6);
+  document.getElementById('mkt-per-label').textContent=mktFmtCurta(mktISO(ini))+' – '+mktFmtCurta(mktISO(fim));
+  const posts=mktPostsFiltrados();
+  const hoje=mktHojeISO();
+  let h='<div class="mkt-semana">';
+  const cur=new Date(ini);
+  for(let i=0;i<7;i++){
+    const iso=mktISO(cur);
+    const dp=posts.filter(p=>p.data_post===iso).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    h+='<div class="mkt-sem-col'+(iso===hoje?' hoje':'')+'"><div class="mkt-sem-hd">'+MKT_DIAS[i]+'</div><div class="mkt-sem-data">'+cur.getDate()+'</div>';
+    dp.forEach(p=>{h+=mktCardHtml(p,false);});
+    h+='<button class="mkt-sem-add" onclick="mktAbrirPost(null,\''+iso+'\')">＋</button></div>';
+    cur.setDate(cur.getDate()+1);
+  }
+  h+='</div>';
+  document.getElementById('mkt-conteudo').innerHTML=h;
+}
+
+/* PIPELINE */
+function mktRenderPipe(){
+  const posts=mktPostsFiltrados().slice().sort((a,b)=>a.data_post.localeCompare(b.data_post));
+  let h='<div class="mkt-pipe">';
+  MKT_STATUS.forEach(st=>{
+    const dp=posts.filter(p=>p.status===st.id);
+    h+='<div class="mkt-pipe-col"><div class="mkt-pipe-hd"><span class="st-dot" style="background:'+st.cor+'"></span>'+st.label+'<span class="mkt-pipe-count">'+dp.length+'</span></div>';
+    dp.forEach(p=>{h+=mktCardHtml(p,true);});
+    h+='</div>';
+  });
+  h+='</div>';
+  document.getElementById('mkt-conteudo').innerHTML=h;
+}
+
+/* ── MODAL POST ── */
+function mktSelectEventosHtml(sel){
+  let h='';
+  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nome+'</option>';});
+  return h;
+}
+function mktAbrirPost(id,dataPre){
+  if(!mktData)return;
+  if(!mktData.eventos.length){alert('Cadastre primeiro um Evento Mkt.');mktAbrirEvento(null);return;}
+  mktPostAtual=id?(mktData.posts.find(p=>p.id===id)||null):null;
+  const p=mktPostAtual;
+  document.getElementById('mkt-post-title').textContent=p?'Editar conteúdo':'Novo conteúdo';
+  document.getElementById('mp-evento').innerHTML=mktSelectEventosHtml(p?p.evento_id:(mktFiltro.evento||mktData.eventos[0].id));
+  document.getElementById('mp-tipo').value=p?p.tipo:'obrigatorio';
+  document.getElementById('mp-titulo').value=p?p.titulo:'';
+  document.getElementById('mp-data').value=p?p.data_post:(dataPre||mktHojeISO());
+  document.getElementById('mp-hora').value=p&&p.hora?p.hora.slice(0,5):'';
+  document.getElementById('mp-formato').value=p?p.formato:'post';
+  document.getElementById('mp-briefing').value=p&&p.briefing?p.briefing:'';
+  document.getElementById('mp-comentario').value=p&&p.comentario?p.comentario:'';
+  mktPerfisSel=p?(p.perfis||'jbx').split(',').filter(Boolean):['jbx'];
+  mktStatusSel=p?p.status:'a_criar';
+  mktRenderPerfisChips(); mktRenderStatusChips();
+  mktSyncTipoPat(); mktSyncPatSelect(p?p.patrocinador_id:null);
+  mktRenderArte(p?p.arte_url:null);
+  document.getElementById('mp-arte-status').textContent='';
+  document.getElementById('mp-excluir').style.display=p?'block':'none';
+  document.getElementById('mp-aprovacao').style.display=(p&&p.status==='aguardando')?'flex':'none';
+  document.getElementById('mkt-post-overlay').classList.add('open');
+}
+function mktFecharPost(){document.getElementById('mkt-post-overlay').classList.remove('open');mktPostAtual=null;}
+function mktRenderPerfisChips(){
+  let h='';
+  MKT_PERFIS.forEach(pf=>{
+    h+='<button class="mkt-chip'+(mktPerfisSel.includes(pf.id)?' on':'')+'" onclick="mktTogglePerfil(\''+pf.id+'\')">'+pf.label+'</button>';
+  });
+  document.getElementById('mp-perfis').innerHTML=h;
+}
+function mktTogglePerfil(id){
+  if(mktPerfisSel.includes(id))mktPerfisSel=mktPerfisSel.filter(x=>x!==id);
+  else mktPerfisSel.push(id);
+  mktRenderPerfisChips();
+}
+function mktRenderStatusChips(){
+  let h='';
+  MKT_STATUS.forEach(st=>{
+    const on=mktStatusSel===st.id;
+    h+='<button class="mkt-st-chip'+(on?' on':'')+'" style="'+(on?'color:'+st.cor+';':'')+'" onclick="mktSetStatusChip(\''+st.id+'\')">'
+      +'<span class="st-dot" style="background:'+st.cor+'"></span>'+st.label+'</button>';
+  });
+  document.getElementById('mp-status').innerHTML=h;
+}
+function mktSetStatusChip(id){
+  mktStatusSel=id;mktRenderStatusChips();
+  document.getElementById('mp-aprovacao').style.display=(id==='aguardando'&&mktPostAtual)?'flex':'none';
+}
+function mktSyncTipoPat(){
+  const t=document.getElementById('mp-tipo').value;
+  document.getElementById('mp-pat-wrap').style.display=(t==='patrocinador')?'block':'none';
+}
+function mktSyncPatSelect(selId){
+  const evId=document.getElementById('mp-evento').value;
+  const pats=mktData.pats.filter(p=>p.evento_id===evId);
+  let h='<option value="">— selecione —</option>';
+  pats.forEach(p=>{h+='<option value="'+p.id+'"'+(p.id===selId?' selected':'')+'>'+p.nome+'</option>';});
+  document.getElementById('mp-pat').innerHTML=h;
+}
+function mktRenderArte(url){
+  const pv=document.getElementById('mp-arte-preview');
+  if(url){pv.style.display='block';pv.innerHTML='<img src="'+url+'"><input type="hidden" id="mp-arte-url" value="'+url+'">';}
+  else{pv.style.display='none';pv.innerHTML='<input type="hidden" id="mp-arte-url" value="">';}
+}
+async function mktUploadArte(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>8*1024*1024){alert('Máximo 8MB.');return;}
+  const st=document.getElementById('mp-arte-status');
+  st.textContent='Enviando…';st.style.color='var(--muted)';
+  const ext=file.name.split('.').pop()||'jpg';
+  const nome='mkt_arte_'+Date.now()+'.'+ext;
+  try{
+    const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});
+    if(!r.ok)throw new Error(await r.text());
+    const url=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
+    mktRenderArte(url);
+    if(['a_criar','em_criacao','refazer'].includes(mktStatusSel)){mktStatusSel='aguardando';mktRenderStatusChips();}
+    st.textContent='✓ Arte enviada! Status movido para "Aguardando aprovação".';st.style.color='#16a34a';
+  }catch(e){st.textContent='Erro no upload.';st.style.color='#dc2626';console.error(e);}
+  input.value='';
+}
+async function mktSalvarPost(){
+  const titulo=document.getElementById('mp-titulo').value.trim();
+  const data=document.getElementById('mp-data').value;
+  const evId=document.getElementById('mp-evento').value;
+  if(!titulo||!data||!evId){alert('Preencha evento, título e data.');return;}
+  if(!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
+  const tipo=document.getElementById('mp-tipo').value;
+  const arteEl=document.getElementById('mp-arte-url');
+  try{
+    await rpc('mkt_post_salvar',{
+      p_id:mktPostAtual?mktPostAtual.id:null,
+      p_evento_id:evId,
+      p_patrocinador_id:(tipo==='patrocinador'?(document.getElementById('mp-pat').value||null):null),
+      p_titulo:titulo,
+      p_tipo:tipo,
+      p_formato:document.getElementById('mp-formato').value,
+      p_perfis:mktPerfisSel.join(','),
+      p_data_post:data,
+      p_hora:document.getElementById('mp-hora').value||null,
+      p_briefing:document.getElementById('mp-briefing').value.trim()||null,
+      p_status:mktStatusSel,
+      p_arte_url:(arteEl&&arteEl.value)?arteEl.value:null,
+      p_comentario:document.getElementById('mp-comentario').value.trim()||null
+    });
+    mktFecharPost();
+    await mktRecarregar();
+  }catch(e){alert('Erro ao salvar: '+e.message);}
+}
+async function mktAprovacao(novo){
+  if(!mktPostAtual)return;
+  mktStatusSel=novo;
+  await mktSalvarPost();
+}
+async function mktExcluirPost(){
+  if(!mktPostAtual)return;
+  if(!confirm('Excluir este conteúdo do calendário?'))return;
+  try{await rpc('mkt_post_excluir',{p_id:mktPostAtual.id});mktFecharPost();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
+}
+
+/* ── MODAL EVENTO ── */
+function mktAbrirEvento(id){
+  mktEvAtual=id?mktEv(id):null;
+  const e=mktEvAtual;
+  document.getElementById('mkt-ev-title').textContent=e?'Editar evento (marketing)':'Novo evento (marketing)';
+  document.getElementById('me-nome').value=e?e.nome:'';
+  document.getElementById('me-data').value=e&&e.data_prova?e.data_prova:'';
+  mktCorSel=e?e.cor:MKT_CORES[(mktData&&mktData.eventos.length||0)%MKT_CORES.length];
+  mktRenderCores();
+  document.getElementById('me-obrig-wrap').style.display=e?'none':'block';
+  document.getElementById('me-arquivar').style.display=e?'block':'none';
+  document.getElementById('mkt-ev-overlay').classList.add('open');
+}
+function mktFecharEvento(){document.getElementById('mkt-ev-overlay').classList.remove('open');mktEvAtual=null;}
+function mktRenderCores(){
+  let h='';
+  MKT_CORES.forEach(c=>{h+='<div class="mkt-cor'+(c===mktCorSel?' on':'')+'" style="background:'+c+'" onclick="mktCorSel=\''+c+'\';mktRenderCores();"></div>';});
+  document.getElementById('me-cores').innerHTML=h;
+}
+async function mktSalvarEvento(){
+  const nome=document.getElementById('me-nome').value.trim();
+  if(!nome){alert('Informe o nome do evento.');return;}
+  const dataProva=document.getElementById('me-data').value||null;
+  try{
+    const novoId=await rpc('mkt_evento_salvar',{p_id:mktEvAtual?mktEvAtual.id:null,p_nome:nome,p_cor:mktCorSel,p_data_prova:dataProva});
+    if(!mktEvAtual&&document.getElementById('me-gerar').checked&&dataProva){
+      const hoje=mktHojeISO();
+      const itens=MKT_OBRIG.map(o=>({data:mktAddDias(dataProva,o.d),titulo:o.t+' — '+nome}))
+        .filter(o=>o.data>=hoje)
+        .map(o=>({evento_id:novoId,titulo:o.titulo,tipo:'obrigatorio',formato:'post',perfis:'jbx',data_post:o.data}));
+      if(itens.length)await rpc('mkt_posts_gerar',{p_itens:itens});
+    }
+    mktFecharEvento();
+    await mktRecarregar();
+  }catch(e){alert('Erro ao salvar: '+e.message);}
+}
+async function mktArquivarEvento(){
+  if(!mktEvAtual)return;
+  if(!confirm('Arquivar "'+mktEvAtual.nome+'"? Os conteúdos dele deixam de aparecer no calendário.'))return;
+  try{await rpc('mkt_evento_arquivar',{p_id:mktEvAtual.id});mktFecharEvento();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
+}
+
+/* ── MODAL PATROCINADOR ── */
+function mktAbrirPat(id){
+  if(!mktData)return;
+  if(!mktData.eventos.length){alert('Cadastre primeiro um Evento Mkt.');mktAbrirEvento(null);return;}
+  mktPatAtual=id?mktPat(id):null;
+  const p=mktPatAtual;
+  document.getElementById('mkt-pat-title').textContent=p?'Editar patrocinador':'Novo patrocinador';
+  document.getElementById('mpa-evento').innerHTML=mktSelectEventosHtml(p?p.evento_id:(mktFiltro.evento||mktData.eventos[0].id));
+  document.getElementById('mpa-nome').value=p?p.nome:'';
+  document.getElementById('mpa-stories').value=p?p.qtd_stories:0;
+  document.getElementById('mpa-posts').value=p?p.qtd_posts:0;
+  document.getElementById('mpa-reels').value=p?p.qtd_reels:0;
+  document.getElementById('mpa-obs').value=p&&p.obs?p.obs:'';
+  document.getElementById('mpa-excluir').style.display=p?'block':'none';
+  document.getElementById('mpa-gerar-wrap').style.display=p?'block':'none';
+  mktRenderSaldo();
+  document.getElementById('mkt-pat-overlay').classList.add('open');
+}
+function mktFecharPat(){document.getElementById('mkt-pat-overlay').classList.remove('open');mktPatAtual=null;}
+function mktSaldoPat(pat){
+  const posts=mktData.posts.filter(p=>p.patrocinador_id===pat.id);
+  const cont=f=>posts.filter(p=>p.formato===f).length;
+  return {stories:cont('story'),posts:cont('post')+cont('carrossel'),reels:cont('reel')};
+}
+function mktRenderSaldo(){
+  const el=document.getElementById('mkt-pat-saldo');
+  if(!mktPatAtual){el.style.display='none';return;}
+  const s=mktSaldoPat(mktPatAtual), p=mktPatAtual;
+  el.style.display='flex';
+  el.innerHTML='<div>Stories: <b>'+s.stories+' / '+p.qtd_stories+'</b></div>'
+    +'<div>Posts: <b>'+s.posts+' / '+p.qtd_posts+'</b></div>'
+    +'<div>Reels: <b>'+s.reels+' / '+p.qtd_reels+'</b></div>'
+    +'<div style="color:var(--muted);">programados / contratados</div>';
+}
+async function mktSalvarPat(){
+  const nome=document.getElementById('mpa-nome').value.trim();
+  const evId=document.getElementById('mpa-evento').value;
+  if(!nome||!evId){alert('Preencha evento e nome do patrocinador.');return;}
+  try{
+    await rpc('mkt_pat_salvar',{
+      p_id:mktPatAtual?mktPatAtual.id:null,
+      p_evento_id:evId,p_nome:nome,
+      p_stories:parseInt(document.getElementById('mpa-stories').value)||0,
+      p_posts:parseInt(document.getElementById('mpa-posts').value)||0,
+      p_reels:parseInt(document.getElementById('mpa-reels').value)||0,
+      p_obs:document.getElementById('mpa-obs').value.trim()||null
+    });
+    mktFecharPat();
+    await mktRecarregar();
+  }catch(e){alert('Erro ao salvar: '+e.message);}
+}
+async function mktExcluirPat(){
+  if(!mktPatAtual)return;
+  if(!confirm('Excluir patrocinador? Os cards já criados permanecem no calendário (sem vínculo).'))return;
+  try{await rpc('mkt_pat_excluir',{p_id:mktPatAtual.id});mktFecharPat();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
+}
+async function mktGerarPacote(){
+  if(!mktPatAtual)return;
+  const p=mktPatAtual, ev=mktEv(p.evento_id);
+  const s=mktSaldoPat(p);
+  const falta={story:Math.max(0,p.qtd_stories-s.stories),post:Math.max(0,p.qtd_posts-s.posts),reel:Math.max(0,p.qtd_reels-s.reels)};
+  const total=falta.story+falta.post+falta.reel;
+  if(!total){alert('O pacote já está todo programado.');return;}
+  const hoje=mktHojeISO();
+  const fim=(ev&&ev.data_prova&&ev.data_prova>hoje)?ev.data_prova:mktAddDias(hoje,90);
+  const dIni=new Date(hoje+'T12:00:00'), dFim=new Date(fim+'T12:00:00');
+  const span=Math.max(1,Math.round((dFim-dIni)/86400000));
+  const itens=[];let idx=0;
+  ['story','post','reel'].forEach(f=>{
+    for(let i=0;i<falta[f];i++){
+      idx++;
+      const offset=Math.max(3,Math.round(span*idx/(total+1)));
+      itens.push({evento_id:p.evento_id,patrocinador_id:p.id,titulo:p.nome+' — '+(f==='story'?'Story':f==='post'?'Post':'Reel')+' '+(i+1),tipo:'patrocinador',formato:f,perfis:'jbx',data_post:mktAddDias(hoje,Math.min(offset,span))});
+    }
+  });
+  if(!confirm('Gerar '+total+' card(s) distribuído(s) até '+fmtDS(fim)+'?'))return;
+  try{await rpc('mkt_posts_gerar',{p_itens:itens});mktFecharPat();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
 }
 
 </script>
@@ -3336,25 +3926,156 @@ function calSetYear(year){
         <iframe id="designer-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
       </div>
 
-      <!-- TELA: SOCIAL MEDIA -->
-      <div class="inner-screen" id="screen-social" style="padding:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
-            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">CENTRAL DE CONTEÚDO 2026</span>
-            <span style="font-size:11px;color:var(--muted);">— ao vivo</span>
+      <!-- TELA: SOCIAL MEDIA — CALENDÁRIO MKT -->
+      <div class="inner-screen" id="screen-social">
+        <div class="page-hd" style="margin-bottom:16px;">
+          <h1>Calendário de Marketing</h1>
+        </div>
+
+        <div class="mkt-toolbar">
+          <div class="mkt-toolbar-left">
+            <button class="mkt-btn primary" onclick="mktAbrirPost(null,null)">＋ Novo conteúdo</button>
+            <button class="mkt-btn" onclick="mktAbrirPat(null)">＋ Patrocinador</button>
+            <button class="mkt-btn" onclick="mktAbrirEvento(null)">＋ Evento Mkt</button>
           </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="document.getElementById('social-frame').src=document.getElementById('social-frame').src"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
-              ⟳ Atualizar</button>
-            <a href="https://moonlit-otter-2038bf.netlify.app/" target="_blank"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
-              ↗ Abrir</a>
+          <div class="mkt-views">
+            <button class="mkt-view-btn active" id="mkt-vbtn-mes" onclick="mktSetView('mes')">Mês</button>
+            <button class="mkt-view-btn" id="mkt-vbtn-semana" onclick="mktSetView('semana')">Semana</button>
+            <button class="mkt-view-btn" id="mkt-vbtn-pipe" onclick="mktSetView('pipe')">Pipeline</button>
           </div>
         </div>
-        <iframe id="social-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
+
+        <div class="mkt-filtros">
+          <label>Filtros</label>
+          <select id="mkt-f-evento" onchange="mktFiltroChange()"><option value="">Todos os eventos</option></select>
+          <select id="mkt-f-pat" onchange="mktFiltroChange()"><option value="">Todos os patrocinadores</option></select>
+          <select id="mkt-f-perfil" onchange="mktFiltroChange()"><option value="">Todos os perfis</option></select>
+          <select id="mkt-f-tipo" onchange="mktFiltroChange()">
+            <option value="">Todos os tipos</option>
+            <option value="obrigatorio">Obrigatório</option>
+            <option value="patrocinador">Patrocinador</option>
+            <option value="outro">Outro</option>
+          </select>
+          <select id="mkt-f-status" onchange="mktFiltroChange()"><option value="">Todos os status</option></select>
+          <button class="mkt-btn sm" onclick="mktLimparFiltros()">Limpar</button>
+          <div class="mkt-periodo" id="mkt-periodo-nav">
+            <button class="mkt-nav-btn" onclick="mktNav(-1)">‹</button>
+            <div class="mkt-per-label" id="mkt-per-label">—</div>
+            <button class="mkt-nav-btn" onclick="mktNav(1)">›</button>
+            <button class="mkt-btn sm" onclick="mktHoje()">Hoje</button>
+          </div>
+        </div>
+
+        <div class="mkt-legenda" id="mkt-legenda"></div>
+        <div id="mkt-conteudo"><div class="mkt-empty">Carregando calendário…</div></div>
       </div>
+
+<!-- MODAL: POST MKT -->
+<div class="modal-overlay2" id="mkt-post-overlay" onclick="if(event.target===this)mktFecharPost()">
+  <div class="mkt-modal">
+    <h3 id="mkt-post-title">Novo conteúdo</h3>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Evento *</label><select id="mp-evento" onchange="mktSyncPatSelect()"></select></div>
+      <div class="mkt-fg"><label>Tipo *</label>
+        <select id="mp-tipo" onchange="mktSyncTipoPat()">
+          <option value="obrigatorio">Obrigatório</option>
+          <option value="patrocinador">Patrocinador</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="mkt-fg" id="mp-pat-wrap" style="display:none;"><label>Patrocinador</label><select id="mp-pat"></select></div>
+    <div class="mkt-fg"><label>Título *</label><input type="text" id="mp-titulo" placeholder="Ex: Save the Date — Night Run"></div>
+    <div class="mkt-row3">
+      <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data"></div>
+      <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora"></div>
+      <div class="mkt-fg"><label>Formato *</label>
+        <select id="mp-formato">
+          <option value="story">📱 Story</option>
+          <option value="post" selected>🖼️ Post</option>
+          <option value="carrossel">🧩 Carrossel</option>
+          <option value="reel">🎬 Reel</option>
+        </select>
+      </div>
+    </div>
+    <div class="mkt-fg"><label>Perfis de destino *</label><div class="mkt-chips" id="mp-perfis"></div></div>
+    <div class="mkt-fg"><label>Briefing / orientações para o designer</label><textarea id="mp-briefing" placeholder="Referências, textos, logos, cores, formato de entrega…"></textarea></div>
+
+    <div class="mkt-fg"><label>Arte</label>
+      <div class="mkt-arte-box" id="mp-arte-box">
+        <div id="mp-arte-preview" style="display:none;"></div>
+        <input type="file" id="mp-arte-file" accept="image/*" style="display:none;" onchange="mktUploadArte(this)">
+        <button class="mkt-btn sm" onclick="document.getElementById('mp-arte-file').click()">⬆ Subir arte</button>
+        <div id="mp-arte-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      </div>
+    </div>
+
+    <div class="mkt-fg"><label>Status</label><div class="mkt-st-chips" id="mp-status"></div></div>
+    <div class="mkt-fg"><label>Comentário (aprovação / motivo do refazer)</label><textarea id="mp-comentario" style="min-height:52px;" placeholder="Ex: trocar a cor do fundo, logo maior…"></textarea></div>
+
+    <div class="mkt-aprovacao" id="mp-aprovacao" style="display:none;">
+      <button class="mkt-btn-aprovar" onclick="mktAprovacao('aprovado')">✓ Aprovar arte</button>
+      <button class="mkt-btn-refazer" onclick="mktAprovacao('refazer')">↺ Refazer</button>
+    </div>
+
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" id="mp-excluir" style="margin-right:auto;color:#dc2626;" onclick="mktExcluirPost()">Excluir</button>
+      <button class="mkt-btn" onclick="mktFecharPost()">Cancelar</button>
+      <button class="mkt-btn primary" onclick="mktSalvarPost()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EVENTO MKT -->
+<div class="modal-overlay2" id="mkt-ev-overlay" onclick="if(event.target===this)mktFecharEvento()">
+  <div class="mkt-modal" style="max-width:520px;">
+    <h3 id="mkt-ev-title">Novo evento (marketing)</h3>
+    <div class="mkt-fg"><label>Nome do evento *</label><input type="text" id="me-nome" placeholder="Ex: JBX Night Run 2026"></div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Data da prova</label><input type="date" id="me-data"></div>
+      <div class="mkt-fg"><label>Cor *</label><div class="mkt-cores" id="me-cores"></div></div>
+    </div>
+    <div class="mkt-fg" id="me-obrig-wrap">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:13px;">
+        <input type="checkbox" id="me-gerar" checked style="width:auto;">
+        Gerar conteúdos obrigatórios automaticamente (Save the Date, Viradas de Lote, Percurso, Retirada de Kit, Obrigado…) com datas relativas à prova
+      </label>
+    </div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" id="me-arquivar" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktArquivarEvento()">Arquivar</button>
+      <button class="mkt-btn" onclick="mktFecharEvento()">Cancelar</button>
+      <button class="mkt-btn primary" onclick="mktSalvarEvento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PATROCINADOR MKT -->
+<div class="modal-overlay2" id="mkt-pat-overlay" onclick="if(event.target===this)mktFecharPat()">
+  <div class="mkt-modal" style="max-width:560px;">
+    <h3 id="mkt-pat-title">Novo patrocinador</h3>
+    <div id="mkt-pat-saldo" class="mkt-saldo" style="display:none;"></div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Evento *</label><select id="mpa-evento"></select></div>
+      <div class="mkt-fg"><label>Nome do patrocinador *</label><input type="text" id="mpa-nome" placeholder="Ex: Savegnago"></div>
+    </div>
+    <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Pacote contratado</label>
+    <div class="mkt-row3">
+      <div class="mkt-fg"><label>Stories</label><input type="number" id="mpa-stories" min="0" value="0"></div>
+      <div class="mkt-fg"><label>Posts</label><input type="number" id="mpa-posts" min="0" value="0"></div>
+      <div class="mkt-fg"><label>Reels</label><input type="number" id="mpa-reels" min="0" value="0"></div>
+    </div>
+    <div class="mkt-fg"><label>Observações do acordo</label><textarea id="mpa-obs" placeholder="Detalhes do combinado, prazos, exigências de marca…"></textarea></div>
+    <div class="mkt-fg" id="mpa-gerar-wrap" style="display:none;">
+      <button class="mkt-btn" style="width:100%;" onclick="mktGerarPacote()">⚡ Gerar cards restantes do pacote no calendário</button>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Distribui as entregas que faltam entre hoje e a data da prova. Depois é só ajustar as datas.</div>
+    </div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" id="mpa-excluir" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktExcluirPat()">Excluir</button>
+      <button class="mkt-btn" onclick="mktFecharPat()">Cancelar</button>
+      <button class="mkt-btn primary" onclick="mktSalvarPat()">Salvar</button>
+    </div>
+  </div>
+</div>
 
       <!-- TELA: PATROCINADORES (PLANILHA) -->
       <div class="inner-screen" id="screen-parceiros" style="padding:0;">
