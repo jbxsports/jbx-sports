@@ -475,6 +475,12 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 @media(max-width:1100px){.mkt-semana{grid-template-columns:repeat(2,1fr);}.mkt-pipe{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:640px){.mkt-semana{grid-template-columns:1fr;}.mkt-pipe{grid-template-columns:1fr;}.mkt-dia{min-height:70px;}}
 
+.mkt-pac-row{display:grid;grid-template-columns:1fr 160px;gap:8px;align-items:center;margin-bottom:6px;}
+.mkt-pac-row .lb{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;}
+.mkt-pac-row input[type=date]{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:8px 10px;width:100%;}
+.mkt-pac-row input[type=date]:focus{outline:none;border-color:var(--orange);}
+.mkt-pac-hd{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:6px 0 8px;}
+.mkt-pac-box{background:#fbfaf8;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;max-height:280px;overflow-y:auto;}
 </style>
 </head>
 <body>
@@ -3715,8 +3721,8 @@ function mktAbrirPat(id){
   document.getElementById('mpa-reels').value=p?p.qtd_reels:0;
   document.getElementById('mpa-obs').value=p&&p.obs?p.obs:'';
   document.getElementById('mpa-excluir').style.display=p?'block':'none';
-  document.getElementById('mpa-gerar-wrap').style.display=p?'block':'none';
   mktRenderSaldo();
+  mktRenderDatasPacote();
   document.getElementById('mkt-pat-overlay').classList.add('open');
 }
 function mktFecharPat(){document.getElementById('mkt-pat-overlay').classList.remove('open');mktPatAtual=null;}
@@ -3735,12 +3741,58 @@ function mktRenderSaldo(){
     +'<div>Reels: <b>'+s.reels+' / '+p.qtd_reels+'</b></div>'
     +'<div style="color:var(--muted);">programados / contratados</div>';
 }
+async function mktExcluirPat(){
+  if(!mktPatAtual)return;
+  if(!confirm('Excluir patrocinador? Os cards já criados permanecem no calendário (sem vínculo).'))return;
+  try{await rpc('mkt_pat_excluir',{p_id:mktPatAtual.id});mktFecharPat();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
+}
+function mktPacoteFaltantes(){
+  const qs=parseInt(document.getElementById('mpa-stories').value)||0;
+  const qp=parseInt(document.getElementById('mpa-posts').value)||0;
+  const qr=parseInt(document.getElementById('mpa-reels').value)||0;
+  let js=0,jp=0,jr=0;
+  if(mktPatAtual){const s=mktSaldoPat(mktPatAtual);js=s.stories;jp=s.posts;jr=s.reels;}
+  const itens=[];
+  for(let i=0;i<Math.max(0,qs-js);i++)itens.push({formato:'story',label:'Story '+(js+i+1)});
+  for(let i=0;i<Math.max(0,qp-jp);i++)itens.push({formato:'post',label:'Post '+(jp+i+1)});
+  for(let i=0;i<Math.max(0,qr-jr);i++)itens.push({formato:'reel',label:'Reel '+(jr+i+1)});
+  return itens;
+}
+function mktRenderDatasPacote(){
+  const wrap=document.getElementById('mpa-datas-wrap');
+  const box=document.getElementById('mpa-datas');
+  if(!wrap||!box)return;
+  const prev={};
+  box.querySelectorAll('input[type=date]').forEach(inp=>{prev[inp.id]=inp.value;});
+  const itens=mktPacoteFaltantes();
+  if(!itens.length){wrap.style.display='none';box.innerHTML='';return;}
+  wrap.style.display='block';
+  const evId=document.getElementById('mpa-evento').value;
+  const ev=mktEv(evId);
+  const hoje=mktHojeISO();
+  const fim=(ev&&ev.data_prova&&ev.data_prova>hoje)?ev.data_prova:mktAddDias(hoje,90);
+  const span=Math.max(1,Math.round((new Date(fim+'T12:00:00')-new Date(hoje+'T12:00:00'))/86400000));
+  let h='';
+  itens.forEach((it,i)=>{
+    const off=Math.max(2,Math.round(span*(i+1)/(itens.length+1)));
+    const sugerida=mktAddDias(hoje,Math.min(off,span));
+    const id='mpa-dt-'+i;
+    const val=prev[id]||sugerida;
+    h+='<div class="mkt-pac-row"><div class="lb">'+(MKT_FORMATOS[it.formato]||it.formato)+' — '+it.label+'</div>'
+      +'<input type="date" id="'+id+'" data-formato="'+it.formato+'" data-label="'+it.label+'" value="'+val+'"></div>';
+  });
+  box.innerHTML=h;
+}
 async function mktSalvarPat(){
   const nome=document.getElementById('mpa-nome').value.trim();
   const evId=document.getElementById('mpa-evento').value;
   if(!nome||!evId){alert('Preencha evento e nome do patrocinador.');return;}
+  const rows=Array.from(document.querySelectorAll('#mpa-datas input[type=date]'));
+  const semData=rows.filter(r=>!r.value);
+  if(semData.length){alert('Preencha a data de todos os conteúdos do pacote ('+semData.length+' sem data).');semData[0].focus();return;}
   try{
-    await rpc('mkt_pat_salvar',{
+    const patId=await rpc('mkt_pat_salvar',{
       p_id:mktPatAtual?mktPatAtual.id:null,
       p_evento_id:evId,p_nome:nome,
       p_stories:parseInt(document.getElementById('mpa-stories').value)||0,
@@ -3748,38 +3800,17 @@ async function mktSalvarPat(){
       p_reels:parseInt(document.getElementById('mpa-reels').value)||0,
       p_obs:document.getElementById('mpa-obs').value.trim()||null
     });
+    if(rows.length){
+      const itens=rows.map(r=>({
+        evento_id:evId,patrocinador_id:patId,
+        titulo:nome+' — '+r.dataset.label,
+        tipo:'patrocinador',formato:r.dataset.formato,perfis:'jbx',data_post:r.value
+      }));
+      await rpc('mkt_posts_gerar',{p_itens:itens});
+    }
     mktFecharPat();
     await mktRecarregar();
   }catch(e){alert('Erro ao salvar: '+e.message);}
-}
-async function mktExcluirPat(){
-  if(!mktPatAtual)return;
-  if(!confirm('Excluir patrocinador? Os cards já criados permanecem no calendário (sem vínculo).'))return;
-  try{await rpc('mkt_pat_excluir',{p_id:mktPatAtual.id});mktFecharPat();await mktRecarregar();}
-  catch(e){alert('Erro: '+e.message);}
-}
-async function mktGerarPacote(){
-  if(!mktPatAtual)return;
-  const p=mktPatAtual, ev=mktEv(p.evento_id);
-  const s=mktSaldoPat(p);
-  const falta={story:Math.max(0,p.qtd_stories-s.stories),post:Math.max(0,p.qtd_posts-s.posts),reel:Math.max(0,p.qtd_reels-s.reels)};
-  const total=falta.story+falta.post+falta.reel;
-  if(!total){alert('O pacote já está todo programado.');return;}
-  const hoje=mktHojeISO();
-  const fim=(ev&&ev.data_prova&&ev.data_prova>hoje)?ev.data_prova:mktAddDias(hoje,90);
-  const dIni=new Date(hoje+'T12:00:00'), dFim=new Date(fim+'T12:00:00');
-  const span=Math.max(1,Math.round((dFim-dIni)/86400000));
-  const itens=[];let idx=0;
-  ['story','post','reel'].forEach(f=>{
-    for(let i=0;i<falta[f];i++){
-      idx++;
-      const offset=Math.max(3,Math.round(span*idx/(total+1)));
-      itens.push({evento_id:p.evento_id,patrocinador_id:p.id,titulo:p.nome+' — '+(f==='story'?'Story':f==='post'?'Post':'Reel')+' '+(i+1),tipo:'patrocinador',formato:f,perfis:'jbx',data_post:mktAddDias(hoje,Math.min(offset,span))});
-    }
-  });
-  if(!confirm('Gerar '+total+' card(s) distribuído(s) até '+fmtDS(fim)+'?'))return;
-  try{await rpc('mkt_posts_gerar',{p_itens:itens});mktFecharPat();await mktRecarregar();}
-  catch(e){alert('Erro: '+e.message);}
 }
 
 </script>
@@ -4055,19 +4086,20 @@ async function mktGerarPacote(){
     <h3 id="mkt-pat-title">Novo patrocinador</h3>
     <div id="mkt-pat-saldo" class="mkt-saldo" style="display:none;"></div>
     <div class="mkt-row2">
-      <div class="mkt-fg"><label>Evento *</label><select id="mpa-evento"></select></div>
+      <div class="mkt-fg"><label>Evento *</label><select id="mpa-evento" onchange="mktRenderDatasPacote()"></select></div>
       <div class="mkt-fg"><label>Nome do patrocinador *</label><input type="text" id="mpa-nome" placeholder="Ex: Savegnago"></div>
     </div>
     <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Pacote contratado</label>
     <div class="mkt-row3">
-      <div class="mkt-fg"><label>Stories</label><input type="number" id="mpa-stories" min="0" value="0"></div>
-      <div class="mkt-fg"><label>Posts</label><input type="number" id="mpa-posts" min="0" value="0"></div>
-      <div class="mkt-fg"><label>Reels</label><input type="number" id="mpa-reels" min="0" value="0"></div>
+      <div class="mkt-fg"><label>Stories</label><input type="number" id="mpa-stories" min="0" value="0" oninput="mktRenderDatasPacote()"></div>
+      <div class="mkt-fg"><label>Posts</label><input type="number" id="mpa-posts" min="0" value="0" oninput="mktRenderDatasPacote()"></div>
+      <div class="mkt-fg"><label>Reels</label><input type="number" id="mpa-reels" min="0" value="0" oninput="mktRenderDatasPacote()"></div>
     </div>
     <div class="mkt-fg"><label>Observações do acordo</label><textarea id="mpa-obs" placeholder="Detalhes do combinado, prazos, exigências de marca…"></textarea></div>
-    <div class="mkt-fg" id="mpa-gerar-wrap" style="display:none;">
-      <button class="mkt-btn" style="width:100%;" onclick="mktGerarPacote()">⚡ Gerar cards restantes do pacote no calendário</button>
-      <div style="font-size:12px;color:var(--muted);margin-top:6px;">Distribui as entregas que faltam entre hoje e a data da prova. Depois é só ajustar as datas.</div>
+    <div id="mpa-datas-wrap" style="display:none;">
+      <div class="mkt-pac-hd">Datas de cada conteúdo</div>
+      <div class="mkt-pac-box" id="mpa-datas"></div>
+      <div style="font-size:12px;color:var(--muted);margin:-6px 0 14px;">Ao salvar, cada conteúdo entra no calendário como <b style="color:#dc2626;">A criar</b>. As datas vêm pré-distribuídas até a prova — é só ajustar.</div>
     </div>
     <div class="mkt-modal-actions">
       <button class="mkt-btn" id="mpa-excluir" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktExcluirPat()">Excluir</button>
