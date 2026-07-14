@@ -519,6 +519,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mtl-vazio{padding:60px 20px;text-align:center;color:var(--mtl-muted);font-size:14px;}
 @media(prefers-reduced-motion:reduce){.mtl-hoje::after{animation:none;}}
 @media(max-width:900px){.mtl{--mtl-lb:120px;}.mtl-lane-nome{font-size:11px;}.mtl-lane-sub{display:none;}}
+.mkt-ob-row{display:grid;grid-template-columns:22px 1fr 150px;gap:8px;align-items:center;margin-bottom:6px;}
+.mkt-ob-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
+.mkt-ob-row input[type=text],.mkt-ob-row input[type=date]{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:8px 10px;width:100%;}
+.mkt-ob-row input:focus{outline:none;border-color:var(--orange);}
+.mkt-ob-row.off input[type=text],.mkt-ob-row.off input[type=date]{opacity:.4;}
 </style>
 </head>
 <body>
@@ -3786,6 +3791,14 @@ async function mktExcluirPost(){
 }
 
 /* ── MODAL EVENTO ── */
+let mktObrigRows=[];
+function mktObrigSugerida(off){
+  const dp=document.getElementById('me-data').value;
+  if(!dp||off===null)return '';
+  const hoje=mktHojeISO();
+  const d=mktAddDias(dp,off);
+  return d<hoje?hoje:d;
+}
 function mktAbrirEvento(id){
   mktEvAtual=id?mktEv(id):null;
   const e=mktEvAtual;
@@ -3794,28 +3807,50 @@ function mktAbrirEvento(id){
   document.getElementById('me-data').value=e&&e.data_prova?e.data_prova:'';
   mktCorSel=e?e.cor:MKT_CORES[(mktData&&mktData.eventos.length||0)%MKT_CORES.length];
   mktRenderCores();
+  mktObrigRows=e?[]:MKT_OBRIG.map(o=>({titulo:o.t,off:o.d,on:true,data:''}));
   document.getElementById('me-obrig-wrap').style.display=e?'none':'block';
+  mktRenderObrig();
   document.getElementById('me-arquivar').style.display=e?'block':'none';
   document.getElementById('mkt-ev-overlay').classList.add('open');
 }
-function mktFecharEvento(){document.getElementById('mkt-ev-overlay').classList.remove('open');mktEvAtual=null;}
-function mktRenderCores(){
+function mktRenderObrig(){
+  const box=document.getElementById('me-obrig-list');
+  if(!box)return;
   let h='';
-  MKT_CORES.forEach(c=>{h+='<div class="mkt-cor'+(c===mktCorSel?' on':'')+'" style="background:'+c+'" onclick="mktCorSel=\''+c+'\';mktRenderCores();"></div>';});
-  document.getElementById('me-cores').innerHTML=h;
+  mktObrigRows.forEach((r,i)=>{
+    h+='<div class="mkt-ob-row'+(r.on?'':' off')+'">'
+      +'<input type="checkbox" '+(r.on?'checked':'')+' onchange="mktObrigRows['+i+'].on=this.checked;mktRenderObrig();">'
+      +'<input type="text" value="'+r.titulo.replace(/"/g,'&quot;')+'" placeholder="Nome do conteúdo" oninput="mktObrigRows['+i+'].titulo=this.value;">'
+      +'<input type="date" value="'+r.data+'" onchange="mktObrigRows['+i+'].data=this.value;">'
+      +'</div>';
+  });
+  box.innerHTML=h;
+}
+function mktObrigDataProva(){
+  mktObrigRows.forEach(r=>{if(r.off!==null)r.data=mktObrigSugerida(r.off);});
+  mktRenderObrig();
+}
+function mktAddObrig(){
+  mktObrigRows.push({titulo:'',off:null,on:true,data:''});
+  mktRenderObrig();
+  const inputs=document.querySelectorAll('#me-obrig-list .mkt-ob-row input[type=text]');
+  if(inputs.length)inputs[inputs.length-1].focus();
 }
 async function mktSalvarEvento(){
   const nome=document.getElementById('me-nome').value.trim();
   if(!nome){alert('Informe o nome do evento.');return;}
   const dataProva=document.getElementById('me-data').value||null;
+  let marcados=[];
+  if(!mktEvAtual){
+    marcados=mktObrigRows.filter(r=>r.on&&r.titulo.trim());
+    const semData=marcados.filter(r=>!r.data);
+    if(semData.length){alert('Defina a data dos conteúdos marcados ('+semData.length+' sem data) ou desmarque-os.');return;}
+  }
   try{
     const novoId=await rpc('mkt_evento_salvar',{p_id:mktEvAtual?mktEvAtual.id:null,p_nome:nome,p_cor:mktCorSel,p_data_prova:dataProva});
-    if(!mktEvAtual&&document.getElementById('me-gerar').checked&&dataProva){
-      const hoje=mktHojeISO();
-      const itens=MKT_OBRIG.map(o=>({data:mktAddDias(dataProva,o.d),titulo:o.t+' — '+nome}))
-        .filter(o=>o.data>=hoje)
-        .map(o=>({evento_id:novoId,titulo:o.titulo,tipo:'obrigatorio',formato:'post',perfis:'jbx',data_post:o.data}));
-      if(itens.length)await rpc('mkt_posts_gerar',{p_itens:itens});
+    if(!mktEvAtual&&marcados.length){
+      const itens=marcados.map(r=>({evento_id:novoId,titulo:r.titulo.trim()+' — '+nome,tipo:'obrigatorio',formato:'post',perfis:'jbx',data_post:r.data}));
+      await rpc('mkt_posts_gerar',{p_itens:itens});
     }
     mktFecharEvento();
     await mktRecarregar();
@@ -4201,14 +4236,14 @@ async function mktSalvarPat(){
     <h3 id="mkt-ev-title">Novo evento (marketing)</h3>
     <div class="mkt-fg"><label>Nome do evento *</label><input type="text" id="me-nome" placeholder="Ex: JBX Night Run 2026"></div>
     <div class="mkt-row2">
-      <div class="mkt-fg"><label>Data da prova</label><input type="date" id="me-data"></div>
+      <div class="mkt-fg"><label>Data da prova</label><input type="date" id="me-data" onchange="mktObrigDataProva()"></div>
       <div class="mkt-fg"><label>Cor *</label><div class="mkt-cores" id="me-cores"></div></div>
     </div>
-    <div class="mkt-fg" id="me-obrig-wrap">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:13px;">
-        <input type="checkbox" id="me-gerar" checked style="width:auto;">
-        Gerar conteúdos obrigatórios automaticamente (Save the Date, Viradas de Lote, Percurso, Retirada de Kit, Obrigado…) com datas relativas à prova
-      </label>
+    <div id="me-obrig-wrap">
+      <div class="mkt-pac-hd">Conteúdos obrigatórios — marque os que quer e defina a data de cada um</div>
+      <div class="mkt-pac-box" id="me-obrig-list"></div>
+      <button class="mkt-btn sm" style="margin:-4px 0 14px;" onclick="mktAddObrig()">＋ Adicionar outro conteúdo</button>
+      <div style="font-size:12px;color:var(--muted);margin:0 0 14px;">Ao informar a data da prova, as datas são sugeridas automaticamente (Save the Date 90 dias antes, Retirada de Kit 2 dias antes…). Cada item marcado entra no calendário como <b style="color:#dc2626;">A criar</b>.</div>
     </div>
     <div class="mkt-modal-actions">
       <button class="mkt-btn" id="me-arquivar" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktArquivarEvento()">Arquivar</button>
