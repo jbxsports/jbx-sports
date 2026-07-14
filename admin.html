@@ -3482,7 +3482,8 @@ function mktRenderLegenda(){
     const on=(mktFiltro.evento===e.id)?'text-decoration:underline;color:var(--text);':'';
     h+='<div class="mkt-leg-item" style="'+on+'" onclick="mktFiltraPorEvento(\''+e.id+'\')" title="Clique para filtrar">'
       +'<span class="mkt-leg-dot" style="background:'+e.cor+'"></span>'+e.nome
-      +(e.data_prova?' · '+fmtDS(e.data_prova):'')+'</div>';
+      +(e.data_prova?' · '+fmtDS(e.data_prova):'')
+      +'<span onclick="event.stopPropagation();mktAbrirEvento(\''+e.id+'\')" title="Editar / excluir evento" style="margin-left:2px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);background:var(--card);">✎</span></div>';
   });
   el.innerHTML=h;
 }
@@ -3811,6 +3812,7 @@ function mktAbrirEvento(id){
   document.getElementById('me-obrig-wrap').style.display=e?'none':'block';
   mktRenderObrig();
   document.getElementById('me-arquivar').style.display=e?'block':'none';
+  document.getElementById('me-excluir').style.display=e?'block':'none';
   document.getElementById('mkt-ev-overlay').classList.add('open');
 }
 function mktRenderObrig(){
@@ -3855,6 +3857,14 @@ async function mktSalvarEvento(){
     mktFecharEvento();
     await mktRecarregar();
   }catch(e){alert('Erro ao salvar: '+e.message);}
+}
+async function mktExcluirEvento(){
+  if(!mktEvAtual)return;
+  const n=mktData.posts.filter(p=>p.evento_id===mktEvAtual.id).length;
+  if(!confirm('Excluir DEFINITIVAMENTE "'+mktEvAtual.nome+'"?\n\nIsso apaga o evento, '+n+' conteúdo(s) e os patrocinadores vinculados. Não dá para desfazer.'))return;
+  if(!confirm('Tem certeza? Esta ação é permanente.'))return;
+  try{await rpc('mkt_evento_excluir',{p_id:mktEvAtual.id});mktFecharEvento();await mktRecarregar();}
+  catch(e){alert('Erro: '+e.message);}
 }
 async function mktArquivarEvento(){
   if(!mktEvAtual)return;
@@ -4246,7 +4256,8 @@ async function mktSalvarPat(){
       <div style="font-size:12px;color:var(--muted);margin:0 0 14px;">Ao informar a data da prova, as datas são sugeridas automaticamente (Save the Date 90 dias antes, Retirada de Kit 2 dias antes…). Cada item marcado entra no calendário como <b style="color:#dc2626;">A criar</b>.</div>
     </div>
     <div class="mkt-modal-actions">
-      <button class="mkt-btn" id="me-arquivar" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktArquivarEvento()">Arquivar</button>
+      <button class="mkt-btn" id="me-excluir" style="margin-right:auto;color:#dc2626;display:none;" onclick="mktExcluirEvento()">Excluir</button>
+      <button class="mkt-btn" id="me-arquivar" style="display:none;" onclick="mktArquivarEvento()">Arquivar</button>
       <button class="mkt-btn" onclick="mktFecharEvento()">Cancelar</button>
       <button class="mkt-btn primary" onclick="mktSalvarEvento()">Salvar</button>
     </div>
