@@ -3815,6 +3815,12 @@ function mktAbrirEvento(id){
   document.getElementById('me-excluir').style.display=e?'block':'none';
   document.getElementById('mkt-ev-overlay').classList.add('open');
 }
+function mktFecharEvento(){document.getElementById('mkt-ev-overlay').classList.remove('open');mktEvAtual=null;}
+function mktRenderCores(){
+  let h='';
+  MKT_CORES.forEach(c=>{h+='<div class="mkt-cor'+(c===mktCorSel?' on':'')+'" style="background:'+c+'" onclick="mktCorSel=\''+c+'\';mktRenderCores();"></div>';});
+  document.getElementById('me-cores').innerHTML=h;
+}
 function mktRenderObrig(){
   const box=document.getElementById('me-obrig-list');
   if(!box)return;
