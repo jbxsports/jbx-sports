@@ -3212,4 +3212,442 @@ function calBuildLista(){
     const confVal = e.confianca!=null ? e.confianca : null;
     const confTxt = confVal!=null ? '<span class="cal-conf-pill '+calConfCls(confVal)+'">'+confVal+'%</span>' : '—';
     const statusVal = calStatusGet(eKey,'status', e.status||'');
-    const statusInput = '<input type="text" class="cal-status-input" value="'+sta
+    const statusInput = '<input type="text" class="cal-status-input" value="'+statusVal.replace(/"/g,'&quot;')+'" '
+      +'placeholder="Escrever…" onchange="calStatusChangeText(this,\''+eKey+'\',\'status\')" onclick="event.stopPropagation()">';
+    const alvVal=calStatusGet(eKey,'alvara','nao'),alvCls=calStatusCls(alvVal,'alvara');
+    const perVal=calStatusGet(eKey,'percurso','nao'),perCls=calStatusCls(perVal,'percurso');
+    const alvSel='<select class="cal-status-sel '+alvCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'alvara\')" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
+      +'<option value="abrir"'+(alvVal==='abrir'?' selected':'')+'>ABRIR</option>'
+      +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
+      +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
+      +'</select>';
+    const perSel='<select class="cal-status-sel '+perCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'percurso\')" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(perVal==='nao'?' selected':'')+'>Não definido</option>'
+      +'<option value="ok"'+(perVal==='ok'?' selected':'')+'>Definido</option>'
+      +'</select>';
+    const idvVal=calStatusGet(eKey,'idvisual',false);
+    const idvBtn='<button class="cal-check-btn'+(idvVal?' checked':'')+'" '
+      +'onclick="calIdVisualToggle(this,\''+eKey+'\')" '
+      +'title="ID. Visual">'+(idvVal?'✓':'')+'</button>';
+    return '<tr'+trStyle+'><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td>'
+      +'<td class="col-conf">'+confTxt+'</td>'
+      +'<td class="col-statustxt">'+statusInput+'</td>'
+      +'<td class="col-status">'+alvSel+'</td>'
+      +'<td>'+pill+'</td><td>'+pub+'</td>'
+      +'<td>'+(e.horario||'—')+'</td>'
+      +'<td class="col-check">'+idvBtn+'</td>'
+      +'<td class="col-status">'+perSel+'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ── Lista 100% editável (modo Supabase) ──
+function calBuildListaDB(){
+  const ord=[..._filtrarOrdenado()];
+  const rows=ord.map(e=>{
+    const id=calEsc(e.id);
+    const trStyle=e.realizado?' style="opacity:.55;"':'';
+    const multiDia = e.fim && e.fim!==e.inicio;
+    const dataInp='<input type="date" class="cal-edit-date" value="'+calEsc(e.inicio)+'" onchange="calEdit(\''+id+'\',\'inicio\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<input type="date" class="cal-edit-date" value="'+calEsc(e.fim||e.inicio)+'" title="Data final (eventos de vários dias)" onchange="calEdit(\''+id+'\',\'fim\',this.value,this)" onclick="event.stopPropagation()" style="margin-top:3px;'+(multiDia?'':'opacity:.45;')+'">';
+    const evInp='<input type="text" class="cal-edit-input" style="min-width:150px;font-weight:600;" value="'+calEsc(e.evento)+'" onchange="calEdit(\''+id+'\',\'evento\',this.value)" onclick="event.stopPropagation()">';
+    const cidInp='<input type="text" class="cal-edit-input" style="min-width:110px;" value="'+calEsc(e.cidade)+'" onchange="calEdit(\''+id+'\',\'cidade\',this.value)" onclick="event.stopPropagation()">';
+    const confInp='<span style="display:inline-flex;align-items:center;gap:2px;"><input type="number" min="0" max="100" step="5" class="cal-edit-num" value="'+(e.confianca==null?'':calEsc(e.confianca))+'" placeholder="—" onchange="calEdit(\''+id+'\',\'confianca\',this.value,this)" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--muted);">%</span></span>';
+    const statusInp='<input type="text" class="cal-status-input" value="'+calEsc(e.status)+'" placeholder="Escrever…" onchange="calEdit(\''+id+'\',\'status\',this.value)" onclick="event.stopPropagation()">';
+    const alvVal=e.alvara||'nao';
+    const alvSel='<select class="cal-status-sel '+calStatusCls(alvVal,'alvara')+'" onchange="calEdit(\''+id+'\',\'alvara\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
+      +'<option value="abrir"'+(alvVal==='abrir'?' selected':'')+'>ABRIR</option>'
+      +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
+      +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
+      +'</select>';
+    const tipoSel='<select class="cal-edit-sel" onchange="calEdit(\''+id+'\',\'tipo\',this.value)" onclick="event.stopPropagation()">'
+      +(e.tipo==='especial'?['corrida','beach','especial','hyrox']:['corrida','beach','hyrox']).map(t=>'<option value="'+t+'"'+((e.tipo||'corrida')===t?' selected':'')+'>'+({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[t])+'</option>').join('')
+      +'</select>';
+    const pubInp='<input type="number" min="0" class="cal-edit-num" style="width:64px;" value="'+calEsc(e.publico||0)+'" onchange="calEdit(\''+id+'\',\'publico\',this.value)" onclick="event.stopPropagation()">';
+    const larInp='<input type="text" class="cal-edit-input" style="width:48px;text-align:center;" value="'+calEsc(e.horario||'')+'" placeholder="—" onchange="calEdit(\''+id+'\',\'horario\',this.value)" onclick="event.stopPropagation()">';
+    const idvBtn='<button class="cal-check-btn'+(e.idvisual?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'idvisual\',this)" title="ID. Visual">'+(e.idvisual?'✓':'')+'</button>';
+    const perVal=e.percurso||'nao';
+    const perSel='<select class="cal-status-sel '+calStatusCls(perVal,'percurso')+'" onchange="calEdit(\''+id+'\',\'percurso\',this.value,this)" onclick="event.stopPropagation()">'
+      +'<option value="nao"'+(perVal==='nao'?' selected':'')+'>Não definido</option>'
+      +'<option value="ok"'+(perVal==='ok'?' selected':'')+'>Definido</option>'
+      +'</select>';
+    const realBtn='<button class="cal-check-btn'+(e.realizado?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'realizado\',this)" title="Marcar como realizado">'+(e.realizado?'✓':'')+'</button>';
+    const delBtn='<button class="cal-del-btn" onclick="calExcluirEvento(\''+id+'\')" title="Excluir evento">🗑</button>';
+    return '<tr'+trStyle+'>'
+      +'<td style="min-width:118px;">'+dataInp+'</td>'
+      +'<td class="cal-col-evt">'+evInp+'</td>'
+      +'<td>'+cidInp+'</td>'
+      +'<td class="col-conf">'+confInp+'</td>'
+      +'<td class="col-statustxt">'+statusInp+'</td>'
+      +'<td class="col-status">'+alvSel+'</td>'
+      +'<td>'+tipoSel+'</td>'
+      +'<td>'+pubInp+'</td>'
+      +'<td>'+larInp+'</td>'
+      +'<td class="col-check">'+idvBtn+'</td>'
+      +'<td class="col-status">'+perSel+'</td>'
+      +'<td class="col-check">'+realBtn+'</td>'
+      +'<td>'+delBtn+'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
+    +'<button onclick="calAdicionarEvento()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Adicionar evento</button></div>'
+    +'<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+function _filtrarOrdenado(){ return [...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio)); }
+
+/* ── EXCEL: Calendário (formato Lista) ── */
+const CAL_ALVARA_LABEL={nao:'Não iniciou',abrir:'ABRIR',andamento:'Entrada',ok:'Finalizado'};
+const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
+function exportarCalendarioExcel(){
+  try{
+    const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const ws_data=[['Data','Evento','Cidade','Confiança','Status','Alvará','Tipo','Público','Largada','ID. Visual','Percurso/Arena']];
+    ord.forEach(e=>{
+      const [anoFull,mi,di]=e.inicio.split("-");
+      const ano=anoFull.slice(2);
+      const mesAbrev=CAL_MESES_ABREV[parseInt(mi,10)-1];
+      const datafmt=e.historico ? mesAbrev+"/"+anoFull
+        : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
+      const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo]||e.tipo||'');
+      const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
+      const confVal=e.confianca!=null?e.confianca+'%':'—';
+      const statusVal=_calDB ? (e.status||'') : calStatusGet(eKey,'status', e.status||'');
+      const alvVal=_calDB ? (e.alvara||'nao') : calStatusGet(eKey,'alvara','nao');
+      const perVal=_calDB ? (e.percurso||'nao') : calStatusGet(eKey,'percurso','nao');
+      const idvVal=_calDB ? !!e.idvisual : calStatusGet(eKey,'idvisual',false);
+      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,statusVal,CAL_ALVARA_LABEL[alvVal]||alvVal,tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal]);
+    });
+    const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols']=ws_data[0].map((_,i)=>({wch:i===1?30:i===2?18:i===4?28:14}));
+    XLSX.utils.book_append_sheet(wb,ws,'Calendário');
+    const anoLabel=_calYear==='hist'?'ate2025':(_calYear===0?'todos':_calYear);
+    XLSX.writeFile(wb,`calendario_${anoLabel}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }catch(e){alert('Erro ao exportar: '+e.message);}
+}
+
+function calBuildResumido(){
+  const isHist = _calYear==='hist';
+  const anos = isHist ? [2020,2021,2022,2023,2024,2025] : (_calYear===0 ? [2026,2027] : [_calYear]);
+  let html='';
+  anos.forEach(year=>{
+    if(isHist||_calYear===0) html+='<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:8px 0 4px;border-bottom:1px solid var(--border);margin-bottom:4px;">'+year+'</div>';
+    html+='<div class="cal-resumido-grid">';
+  for(let m=0;m<12;m++){
+    const prefix=year+"-"+String(m+1).padStart(2,"0");
+    const firstDay=new Date(year,m,1).getDay();
+    const daysInMonth=new Date(year,m+1,0).getDate();
+    const dotDays={};
+    calFiltrarEventos().forEach(e=>{
+      calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
+        if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)] = e.realizado ? '#c8c4be' : CAL_DOTCOLOR[e.tipo];
+      });
+    });
+    let t='<table class="cal-res"><thead><tr>';
+    CAL_DS.forEach(d=>t+='<th>'+d+'</th>');
+    t+='</tr></thead><tbody><tr>';
+    for(let i=0;i<firstDay;i++) t+='<td></td>';
+    let col=firstDay;
+    for(let day=1;day<=daysInMonth;day++){
+      if(col===7){t+='</tr><tr>';col=0;}
+      const dc=dotDays[day];
+      if(dc) t+='<td class="cal-res-dot"><span class="crday" style="background:'+dc+';box-shadow:0 0 0 2px '+dc+'22;">'+day+'</span></td>';
+      else t+='<td><span class="crday">'+day+'</span></td>';
+      col++;
+    }
+    while(col<7){t+='<td></td>';col++;}
+    t+='</tr></tbody></table>';
+    html+='<div class="cal-resumido-card"><h4>'+CAL_MESES[m]+'</h4>'+t+'</div>';
+  }
+    html+='</div>';
+  }); // forEach ano
+  return html;
+}
+
+// ── Filtra eventos pelo ano selecionado (usada por stats e builds) ──
+function calFiltrarEventos(){
+  if(_calYear==='hist') return _calDados.filter(e=>e.historico);
+  if(_calYear===0)      return _calDados.filter(e=>!e.historico); // Todos = 2026+2027
+  return _calDados.filter(e=>!e.historico && e.inicio.startsWith(String(_calYear)));
+}
+
+// ── Atualiza os 3 cards de estatísticas no topo ──
+function calUpdateStats(){
+  const evs = calFiltrarEventos();
+  document.getElementById('cal-stat-total').textContent = evs.length;
+  document.getElementById('cal-stat-cidades').textContent = new Set(evs.map(e=>e.cidade)).size;
+  document.getElementById('cal-stat-publico').textContent = evs.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+}
+
+function calSetView(view){
+  document.querySelectorAll('.cal-view-btn[data-view]').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
+  ['lista','resumido','completo'].forEach(v=>{
+    document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
+  });
+  document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
+  if(view==='lista' && (!_calBuilt.lista || _calBuilt.listaAno!==_calYear)){
+    document.getElementById('cal-pane-lista').innerHTML=calBuildLista();
+    _calBuilt.lista=true; _calBuilt.listaAno=_calYear;
+  }
+  if(view==='resumido' && (!_calBuilt.resumido || _calBuilt.resumidoAno!==_calYear)){
+    document.getElementById('cal-pane-resumido').innerHTML=calBuildResumido();
+    _calBuilt.resumido=true; _calBuilt.resumidoAno=_calYear;
+  }
+  calUpdateStats(); // atualiza stats em qualquer view
+}
+
+function calRender(){
+  if(_calBuilt.completo && _calBuilt.ano===_calYear) return;
+  document.getElementById('cal-grid').innerHTML = calBuildCompleto();
+  calUpdateStats();
+  _calBuilt.completo = true;
+  _calBuilt.ano = _calYear;
+}
+
+
+function initDesignerFrame(){
+  const f = document.getElementById('designer-frame');
+  if(!f.src || f.src === window.location.href)
+    f.src = 'https://infinitystamp.github.io/JBX-HUB-CRIATIVO/';
+}
+
+
+
+
+function initParceirosFrame(){
+  const f = document.getElementById('parceiros-frame');
+  if(!f.src || f.src === window.location.href)
+    f.src = 'https://docs.google.com/spreadsheets/d/1xTlq5HxRtazGwpHldfDK1mItTCzc9Mv-/edit?usp=sharing';
+}
+
+function initPatSegFrame(){
+  const f = document.getElementById('patseg-frame');
+  if(!f.src || f.src === window.location.href)
+    f.src = 'https://docs.google.com/spreadsheets/d/11XHi7jHRxYCqwUttc6M4A3lRF-JBRbKY/edit?usp=sharing';
+}
+
+
+function calSetYear(year){
+  _calYear = year;
+  _calBuilt = {};
+  document.querySelectorAll('.cal-year-btn').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.year===String(year)));
+  const tituloMap = {0:'2026–2027', hist:'Histórico 2020–2025'};
+  document.getElementById('cal-titulo-ano').textContent = tituloMap[year] ?? year;
+  const activeView = [...document.querySelectorAll('.cal-view-btn')].find(b=>b.classList.contains('cal-view-active') && b.dataset.view)?.dataset.view || 'completo';
+  if(activeView==='completo') calRender();
+  else calSetView(activeView);
+}
+
+
+
+/* ══ USUÁRIOS ══ */
+let usrLista=[], usrAtual=null;
+function usrFmtData(ts){
+  if(!ts)return '—';
+  const d=new Date(ts);
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+async function usrListar(){
+  const el=document.getElementById('usr-lista');
+  try{
+    usrLista=await rpc('admin_usuarios_listar',{p_token:admToken})||[];
+    if(!usrLista.length){el.innerHTML='<div class="empty-state">Nenhum usuário.</div>';return;}
+    let h='<table class="usr-table"><tr><th>Nome</th><th>Email</th><th>Acesso</th><th>Status</th><th>Último acesso</th><th></th></tr>';
+    usrLista.forEach(u=>{
+      const abas=u.master?'<span class="usr-badge master">★ Master — tudo</span>'
+        :'<span class="usr-abas-mini">'+(u.abas||'').split(',').filter(Boolean).map(a=>{const x=ADM_ABAS.find(b=>b.id===a);return x?x.label:a;}).join(', ')+'</span>';
+      h+='<tr><td style="font-weight:700;">'+u.nome+'</td><td>'+u.email+'</td><td>'+abas+'</td>'
+        +'<td><span class="usr-badge '+(u.ativo?'ativo">Ativo':'inativo">Inativo')+'</span></td>'
+        +'<td style="font-size:13px;color:var(--muted);">'+usrFmtData(u.ultimo_acesso)+'</td>'
+        +'<td><button class="mkt-btn sm" onclick="usrAbrir(\''+u.id+'\')">Editar</button></td></tr>';
+    });
+    h+='</table>';
+    el.innerHTML=h;
+  }catch(e){el.innerHTML='<div class="empty-state">Erro: '+e.message+'</div>';}
+}
+function usrAbrir(id){
+  usrAtual=id?usrLista.find(u=>u.id===id):null;
+  const u=usrAtual;
+  document.getElementById('usr-title').textContent=u?'Editar usuário':'Novo usuário';
+  document.getElementById('u-nome').value=u?u.nome:'';
+  document.getElementById('u-email').value=u?u.email:'';
+  document.getElementById('u-senha').value='';
+  document.getElementById('u-senha-dica').textContent=u?'(deixe em branco para manter a atual)':'*';
+  document.getElementById('u-master').checked=u?u.master:false;
+  document.getElementById('u-ativo').checked=u?u.ativo:true;
+  const sel=u?(u.abas||'').split(','):['dash'];
+  let h='';
+  ADM_ABAS.forEach(a=>{
+    h+='<label><input type="checkbox" value="'+a.id+'" '+(sel.includes(a.id)?'checked':'')+'>'+a.label+'</label>';
+  });
+  document.getElementById('u-abas').innerHTML=h;
+  document.getElementById('usr-overlay').classList.add('open');
+}
+function usrFechar(){document.getElementById('usr-overlay').classList.remove('open');usrAtual=null;}
+async function usrSalvar(){
+  const nome=document.getElementById('u-nome').value.trim();
+  const email=document.getElementById('u-email').value.trim();
+  const senha=document.getElementById('u-senha').value;
+  if(!nome||!email){alert('Preencha nome e email.');return;}
+  if(!usrAtual&&senha.length<6){alert('Senha obrigatória (mínimo 6 caracteres).');return;}
+  if(senha&&senha.length<6){alert('A senha precisa ter no mínimo 6 caracteres.');return;}
+  const abas=Array.from(document.querySelectorAll('#u-abas input:checked')).map(i=>i.value);
+  if(!abas.length&&!document.getElementById('u-master').checked){alert('Marque ao menos uma aba.');return;}
+  try{
+    await rpc('admin_usuario_salvar',{
+      p_token:admToken,
+      p_id:usrAtual?usrAtual.id:null,
+      p_nome:nome,p_email:email,
+      p_senha:senha||null,
+      p_abas:abas.join(','),
+      p_master:document.getElementById('u-master').checked,
+      p_ativo:document.getElementById('u-ativo').checked
+    });
+    usrFechar();
+    usrListar();
+  }catch(e){alert('Erro: '+e.message);}
+}
+
+/* ══════════ SOCIAL MEDIA — CALENDÁRIO MKT ══════════ */
+const MKT_PERFIS=[
+ {id:'jbx',label:'@jbx.sports',sigla:'JBX'},
+ {id:'travessia',label:'@travessia',sigla:'TRV'},
+ {id:'trail',label:'@trail',sigla:'TRL'},
+ {id:'reveza',label:'@reveza.run',sigla:'RVZ'},
+ {id:'linkedin',label:'LinkedIn',sigla:'IN'}
+];
+const MKT_STATUS=[
+ {id:'a_criar',label:'A criar',cor:'#dc2626'},
+ {id:'em_criacao',label:'Em criação',cor:'#2563eb'},
+ {id:'aguardando',label:'Aguardando aprovação',cor:'#d97706'},
+ {id:'refazer',label:'Refazer',cor:'#9333ea'},
+ {id:'aprovado',label:'Aprovado',cor:'#16a34a'},
+ {id:'postado',label:'Postado',cor:'#6b7280'}
+];
+const MKT_FORMATOS={story:'📱 Story',post:'🖼️ Post',carrossel:'🧩 Carrossel',reel:'🎬 Reel'};
+const MKT_CORES=['#e0403c','#e07b00','#c9a227','#2e9e44','#0e9f9f','#2f6fe0','#7b4fe0','#d0479e','#7a5c3e','#54606e'];
+const MKT_OBRIG=[
+ {t:'Save the Date',d:-90},{t:'Abertura de inscrições',d:-75},{t:'Virada de Lote 1',d:-45},
+ {t:'Virada de Lote 2',d:-20},{t:'Percurso',d:-15},{t:'Informações gerais',d:-7},
+ {t:'Retirada de Kit',d:-2},{t:'Dia da prova',d:0},{t:'Obrigado',d:1}
+];
+const MKT_DIAS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const MKT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
+let mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
+let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
+let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
+
+function mktInit(){
+  if(mktData){mktRender();return;}
+  mktRecarregar();
+}
+async function mktRecarregar(){
+  if(mktCarregando)return; mktCarregando=true;
+  try{
+    const d=await rpc('mkt_dados');
+    mktData={eventos:d.eventos||[],pats:d.patrocinadores||[],posts:d.posts||[]};
+    mktMontarFiltros(); mktRender();
+  }catch(e){
+    console.error(e);
+    document.getElementById('mkt-conteudo').innerHTML='<div class="mkt-empty">Erro ao carregar. Verifique se o SQL do calendário Mkt foi executado no Supabase.</div>';
+  }
+  mktCarregando=false;
+}
+
+/* ── helpers de data ── */
+function mktISO(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd;}
+function mktHojeISO(){return mktISO(new Date());}
+function mktAddDias(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return mktISO(d);}
+function mktSegunda(d){const x=new Date(d);const wd=(x.getDay()+6)%7;x.setDate(x.getDate()-wd);return x;}
+function mktFmtCurta(iso){const p=iso.split('-');return p[2]+'/'+p[1];}
+
+/* ── lookups ── */
+function mktEv(id){return (mktData.eventos||[]).find(e=>e.id===id)||null;}
+function mktPat(id){return (mktData.pats||[]).find(p=>p.id===id)||null;}
+function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
+function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
+
+/* ── filtros ── */
+function mktMontarFiltros(){
+  const fe=document.getElementById('mkt-f-evento');
+  let h='<option value="">Todos os eventos</option>';
+  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'">'+e.nome+'</option>';});
+  fe.innerHTML=h; fe.value=mktFiltro.evento;
+  const fp=document.getElementById('mkt-f-pat');
+  let h2='<option value="">Todos os patrocinadores</option>';
+  mktData.pats.forEach(p=>{const e=mktEv(p.evento_id);h2+='<option value="'+p.id+'">'+p.nome+(e?' ('+e.nome+')':'')+'</option>';});
+  fp.innerHTML=h2; fp.value=mktFiltro.pat;
+  const fpe=document.getElementById('mkt-f-perfil');
+  let h3='<option value="">Todos os perfis</option>';
+  MKT_PERFIS.forEach(p=>{h3+='<option value="'+p.id+'">'+p.label+'</option>';});
+  fpe.innerHTML=h3; fpe.value=mktFiltro.perfil;
+  const fs=document.getElementById('mkt-f-status');
+  let h4='<option value="">Todos os status</option>';
+  MKT_STATUS.forEach(s=>{h4+='<option value="'+s.id+'">'+s.label+'</option>';});
+  fs.innerHTML=h4; fs.value=mktFiltro.status;
+}
+function mktFiltroChange(){
+  mktFiltro.evento=document.getElementById('mkt-f-evento').value;
+  mktFiltro.pat=document.getElementById('mkt-f-pat').value;
+  mktFiltro.perfil=document.getElementById('mkt-f-perfil').value;
+  mktFiltro.tipo=document.getElementById('mkt-f-tipo').value;
+  mktFiltro.status=document.getElementById('mkt-f-status').value;
+  mktRender();
+}
+function mktLimparFiltros(){
+  mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
+  ['mkt-f-evento','mkt-f-pat','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
+  mktRender();
+}
+function mktFiltraPorEvento(id){
+  mktFiltro.evento=(mktFiltro.evento===id)?'':id;
+  document.getElementById('mkt-f-evento').value=mktFiltro.evento;
+  mktRender();
+}
+function mktPostsFiltrados(){
+  return (mktData.posts||[]).filter(p=>{
+    if(mktFiltro.evento&&p.evento_id!==mktFiltro.evento)return false;
+    if(mktFiltro.pat&&p.patrocinador_id!==mktFiltro.pat)return false;
+    if(mktFiltro.perfil&&!(p.perfis||'').split(',').includes(mktFiltro.perfil))return false;
+    if(mktFiltro.tipo&&p.tipo!==mktFiltro.tipo)return false;
+    if(mktFiltro.status&&p.status!==mktFiltro.status)return false;
+    return true;
+  });
+}
+
+/* ── views ── */
+function mktSetView(v){
+  mktView=v;
+  ['mes','semana','pipe','tempo'].forEach(x=>{document.getElementById('mkt-vbtn-'+x).classList.toggle('active',x===v);});
+  document.getElementById('mkt-periodo-nav').style.display=(v==='pipe')?'none':'flex';
+  mktRender();
+}
+function mktNav(dir){
+  if(mktView==='mes'){mktRef.setDate(1);mktRef.setMonth(mktRef.getMonth()+dir);}
+  else{mktRef.setDate(mktRef.getDate()+dir*7);}
+  mktRender();
+}
+function mktHoje(){mktRef=new Date();mktRender();}
+
+function mktRender(){
+  if(!mktData)return;
+  mktRenderLegenda();
+  if(mktView==='mes')mktRenderMes();
+  else if(mktView==='semana')mktRenderSemana();
+  else if(mktView==='tempo')mktRenderTempo();
+  else mktRenderPipe();
+}
+function mktRenderLegenda(){
+  const el=document.getElementById('mkt-legenda');
+  if(!mktData.eventos.length){el.innerHTML='';return;}
+  let h='';
+  mktData.eventos.forEach(e=>{
+    const on=(mktFiltro.evento===e.id)?'text-decoration:underline;color:var(--text);':'';
+    h+='<div class="mkt-leg-item" style="'+on+'" onclick="mktFiltraPorEvento(\''+e.id+'\')" title="Clique para filtrar">'
+      +'<span class="mkt-leg-dot" style="background:'+e.cor+'"></span>'+e.nome
+      +(e.data_prova?' · '+fmtDS(e.data_prova):'')
+      +'<span onclick="event.stopPropagation(
