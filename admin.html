@@ -419,6 +419,32 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-sem-col.hoje .mkt-sem-data{color:var(--orange);}
 .mkt-sem-add{width:100%;border:1px dashed rgba(42,37,32,.2);background:none;color:var(--muted);border-radius:8px;padding:5px;font-size:12px;cursor:pointer;margin-top:4px;font-family:'Ubuntu',sans-serif;}
 .mkt-sem-add:hover{color:var(--orange);border-color:rgba(255,117,31,.5);}
+/* SEMANA — grade de horas */
+.mkt-semg{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+.mkt-semg-head{display:grid;grid-template-columns:56px repeat(7,1fr);background:#f5f3f0;border-bottom:1px solid var(--border);}
+.mkt-semg-head .hd{padding:8px 6px;text-align:center;border-left:1px solid var(--border);}
+.mkt-semg-head .hd:first-child{border-left:none;}
+.mkt-semg-head .hd .dn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+.mkt-semg-head .hd .dd{font-size:16px;font-weight:700;color:var(--text);}
+.mkt-semg-head .hd.hoje .dd{color:var(--orange);}
+.mkt-semg-allday{display:grid;grid-template-columns:56px repeat(7,1fr);border-bottom:2px solid var(--border);min-height:36px;}
+.mkt-semg-allday .lb{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;}
+.mkt-semg-allday .ad-col{border-left:1px solid var(--border);padding:3px;cursor:pointer;}
+.mkt-semg-allday .ad-col .mkt-card{margin-bottom:3px;padding:4px 7px;}
+.mkt-semg-body{display:grid;grid-template-columns:56px repeat(7,1fr);max-height:640px;overflow-y:auto;}
+.mkt-semg-hours .hr{height:48px;font-size:10px;color:var(--muted);text-align:right;padding-right:6px;transform:translateY(-6px);font-weight:600;}
+.mkt-semg-col{position:relative;border-left:1px solid var(--border);background-image:linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:100% 48px;cursor:pointer;}
+.mkt-semg-col.hoje{background-color:rgba(255,117,31,.04);}
+.mkt-semg-card{position:absolute;background:#fdfcfb;border:1px solid var(--border);border-left:3px solid #999;border-radius:7px;padding:3px 6px;cursor:grab;overflow:hidden;box-shadow:0 1px 3px rgba(42,37,32,.12);z-index:2;}
+.mkt-semg-card:hover{box-shadow:0 4px 12px rgba(42,37,32,.22);z-index:5;}
+.mkt-semg-card:active{cursor:grabbing;}
+.mkt-semg-card .h{font-size:9px;font-weight:700;color:var(--orange);}
+.mkt-semg-card .t{font-size:10.5px;font-weight:700;color:var(--text);line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.mkt-semg-card .st-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:3px;}
+.mkt-drag-ind{position:absolute;left:0;right:0;height:0;border-top:2px dashed var(--orange);z-index:9;pointer-events:none;display:none;}
+.mkt-drag-ind span{position:absolute;top:-9px;left:2px;background:var(--orange);color:#fff;font-size:9px;font-weight:700;border-radius:4px;padding:1px 5px;}
+.mkt-dragging{opacity:.45;}
+.mkt-drop-ok{outline:2px dashed rgba(255,117,31,.6);outline-offset:-2px;}
 /* CARD */
 .mkt-card{background:#fdfcfb;border:1px solid var(--border);border-left:4px solid #999;border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
 .mkt-card:hover{box-shadow:0 3px 10px rgba(42,37,32,.12);transform:translateY(-1px);}
@@ -3631,7 +3657,7 @@ function mktRenderLegenda(){
 
 function mktBadgesHtml(p){
   let h='';
-  if(p.tipo==='patrocinador'){const pa=mktPat(p.patrocinador_id);h+='<span class="mkt-tag pat">★ '+(pa?pa.nome:'Patroc.')+'</span>';}
+  if(p.tipo==='patrocinador'){const pa=mktPat(p.patrocinador_id);h+='<span class="mkt-tag pat"'+(pa?' style="cursor:pointer;" title="Editar patrocinador / adicionar conteúdos" onclick="event.stopPropagation();mktAbrirPat(\''+pa.id+'\')"':'')+'>★ '+(pa?pa.nome:'Patroc.')+'</span>';}
   else if(p.tipo==='obrigatorio'){h+='<span class="mkt-tag obrig">Obrigatório</span>';}
   else{h+='<span class="mkt-tag outro">Outro</span>';}
   (p.perfis||'').split(',').forEach(pid=>{
@@ -3640,9 +3666,10 @@ function mktBadgesHtml(p){
   });
   return h;
 }
-function mktCardHtml(p,comData){
+function mktCardHtml(p,comData,drag){
   const st=mktStInfo(p.status), cor=mktCorDe(p);
-  let h='<div class="mkt-card" style="border-left-color:'+cor+'" onclick="mktAbrirPost(\''+p.id+'\',null)">';
+  const dragAttr=drag?' draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)"':'';
+  let h='<div class="mkt-card"'+dragAttr+' style="border-left-color:'+cor+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)">';
   if(p.arte_url)h+='<img class="mkt-thumb" src="'+p.arte_url+'" loading="lazy">';
   if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
   h+='<div class="mkt-card-top">'+mktBadgesHtml(p)+'</div>';
@@ -3669,12 +3696,12 @@ function mktRenderMes(){
   const cur=new Date(ini);
   for(let i=0;i<42;i++){
     const iso=mktISO(cur), fora=cur.getMonth()!==m, ehHoje=iso===hoje;
-    h+='<div class="mkt-dia'+(fora?' fora':'')+(ehHoje?' hoje':'')+'" onclick="mktAbrirPost(null,\''+iso+'\')">';
+    h+='<div class="mkt-dia'+(fora?' fora':'')+(ehHoje?' hoje':'')+'" onclick="mktAbrirPost(null,\''+iso+'\')" ondragover="mktDragOverDia(event,this)" ondragleave="this.classList.remove(\'mkt-drop-ok\')" ondrop="mktDropMes(event,this,\''+iso+'\')">';
     h+='<div class="mkt-dia-num">'+cur.getDate()+'</div>';
     const dp=(porDia[iso]||[]).slice().sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
     dp.slice(0,3).forEach(p=>{
       const st=mktStInfo(p.status);
-      h+='<div class="mkt-pill" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo+'">'
+      h+='<div class="mkt-pill" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo+'">'
         +'<span class="st-dot" style="background:'+st.cor+'"></span><span>'+p.titulo+'</span></div>';
     });
     if(dp.length>3)h+='<div class="mkt-mais">+'+(dp.length-3)+' mais</div>';
@@ -3686,25 +3713,141 @@ function mktRenderMes(){
   document.getElementById('mkt-conteudo').innerHTML=h;
 }
 
-/* SEMANA */
+/* SEMANA — grade de horas (estilo Google Calendar) */
+const MKT_H_INI=5, MKT_H_FIM=24, MKT_PXH=48;
+function mktHoraMin(hhmm){const p=hhmm.split(':');return parseInt(p[0])*60+(parseInt(p[1])||0);}
+function mktMinHHMM(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 function mktRenderSemana(){
   const ini=mktSegunda(mktRef);
   const fim=new Date(ini);fim.setDate(fim.getDate()+6);
   document.getElementById('mkt-per-label').textContent=mktFmtCurta(mktISO(ini))+' – '+mktFmtCurta(mktISO(fim));
   const posts=mktPostsFiltrados();
   const hoje=mktHojeISO();
-  let h='<div class="mkt-semana">';
+  const altura=(MKT_H_FIM-MKT_H_INI)*MKT_PXH;
+  const dias=[];
+  let h='<div class="mkt-semg"><div class="mkt-semg-head"><div class="hd"></div>';
   const cur=new Date(ini);
   for(let i=0;i<7;i++){
-    const iso=mktISO(cur);
-    const dp=posts.filter(p=>p.data_post===iso).sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
-    h+='<div class="mkt-sem-col'+(iso===hoje?' hoje':'')+'"><div class="mkt-sem-hd">'+MKT_DIAS[i]+'</div><div class="mkt-sem-data">'+cur.getDate()+'</div>';
-    dp.forEach(p=>{h+=mktCardHtml(p,false);});
-    h+='<button class="mkt-sem-add" onclick="mktAbrirPost(null,\''+iso+'\')">＋</button></div>';
+    const iso=mktISO(cur);dias.push(iso);
+    h+='<div class="hd'+(iso===hoje?' hoje':'')+'"><div class="dn">'+MKT_DIAS[i]+'</div><div class="dd">'+cur.getDate()+'</div></div>';
     cur.setDate(cur.getDate()+1);
   }
   h+='</div>';
+  /* linha "sem hora" */
+  h+='<div class="mkt-semg-allday"><div class="lb">Sem hora</div>';
+  dias.forEach(iso=>{
+    const dp=posts.filter(p=>p.data_post===iso&&!p.hora);
+    h+='<div class="ad-col" ondragover="mktDragOverDia(event,this)" ondragleave="this.classList.remove(\'mkt-drop-ok\')" ondrop="mktDropDia(event,this,\''+iso+'\',null)" onclick="mktAbrirPost(null,\''+iso+'\')">';
+    dp.forEach(p=>{h+=mktCardHtml(p,false,true);});
+    h+='</div>';
+  });
+  h+='</div>';
+  /* corpo com grade de horas */
+  h+='<div class="mkt-semg-body" id="mkt-semg-body"><div class="mkt-semg-hours">';
+  for(let hr=MKT_H_INI;hr<MKT_H_FIM;hr++){h+='<div class="hr">'+String(hr).padStart(2,'0')+':00</div>';}
+  h+='</div>';
+  dias.forEach(iso=>{
+    const dp=posts.filter(p=>p.data_post===iso&&p.hora).slice().sort((a,b)=>a.hora.localeCompare(b.hora));
+    const fimLane=[];
+    dp.forEach(p=>{
+      const min=mktHoraMin(p.hora);
+      let l=0;while(l<fimLane.length&&min<fimLane[l])l++;
+      p._lane=l;fimLane[l]=min+58;
+    });
+    const maxL=Math.max(1,fimLane.length);
+    h+='<div class="mkt-semg-col'+(iso===hoje?' hoje':'')+'" style="height:'+altura+'px;" data-iso="'+iso+'" ondragover="mktDragOverHora(event,this)" ondragleave="mktDragLeaveHora(this)" ondrop="mktDropHora(event,this)" onclick="mktClickHora(event,this)">';
+    h+='<div class="mkt-drag-ind"><span></span></div>';
+    dp.forEach(p=>{
+      const min=mktHoraMin(p.hora);
+      if(min<MKT_H_INI*60||min>=MKT_H_FIM*60)return;
+      const top=(min-MKT_H_INI*60)/60*MKT_PXH;
+      const st=mktStInfo(p.status), cor=mktCorDe(p);
+      const w=100/maxL, lft=p._lane*w;
+      h+='<div class="mkt-semg-card" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;border-left-color:'+cor+';left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo.replace(/"/g,'&quot;')+'">'
+        +'<div class="h">'+p.hora.slice(0,5)+'</div>'
+        +'<div class="t"><span class="st-dot" style="background:'+st.cor+'"></span>'+p.titulo+'</div></div>';
+    });
+    h+='</div>';
+  });
+  h+='</div></div>';
   document.getElementById('mkt-conteudo').innerHTML=h;
+  const body=document.getElementById('mkt-semg-body');
+  if(body)body.scrollTop=Math.max(0,(7-MKT_H_INI)*MKT_PXH-8);
+}
+/* ── DRAG & DROP (semana + mês) ── */
+let mktDragId=null;
+function mktYparaMin(ev,col){
+  const r=col.getBoundingClientRect();
+  let min=MKT_H_INI*60+((ev.clientY-r.top)/MKT_PXH)*60;
+  min=Math.round(min/15)*15;
+  return Math.max(MKT_H_INI*60,Math.min(MKT_H_FIM*60-15,min));
+}
+function mktDragStart(ev,id){
+  mktDragId=id;
+  ev.dataTransfer.effectAllowed='move';
+  try{ev.dataTransfer.setData('text/plain',id);}catch(e){}
+  ev.target.classList.add('mkt-dragging');
+}
+function mktDragEnd(ev){
+  ev.target.classList.remove('mkt-dragging');
+  document.querySelectorAll('.mkt-drop-ok').forEach(el=>el.classList.remove('mkt-drop-ok'));
+  document.querySelectorAll('.mkt-drag-ind').forEach(el=>el.style.display='none');
+}
+function mktDragOverDia(ev,el){if(!mktDragId)return;ev.preventDefault();ev.dataTransfer.dropEffect='move';el.classList.add('mkt-drop-ok');}
+function mktDropDia(ev,el,iso,hora){
+  ev.preventDefault();el.classList.remove('mkt-drop-ok');
+  if(!mktDragId)return;
+  mktMoverPost(mktDragId,iso,hora);mktDragId=null;
+}
+function mktDropMes(ev,el,iso){
+  ev.preventDefault();el.classList.remove('mkt-drop-ok');
+  if(!mktDragId)return;
+  const p=mktData.posts.find(x=>x.id===mktDragId);
+  mktMoverPost(mktDragId,iso,(p&&p.hora)?p.hora.slice(0,5):null);mktDragId=null;
+}
+function mktDragOverHora(ev,col){
+  if(!mktDragId)return;
+  ev.preventDefault();ev.dataTransfer.dropEffect='move';
+  const ind=col.querySelector('.mkt-drag-ind');
+  const min=mktYparaMin(ev,col);
+  ind.style.display='block';
+  ind.style.top=((min-MKT_H_INI*60)/60*MKT_PXH)+'px';
+  ind.querySelector('span').textContent=mktMinHHMM(min);
+}
+function mktDragLeaveHora(col){const ind=col.querySelector('.mkt-drag-ind');if(ind)ind.style.display='none';}
+function mktDropHora(ev,col){
+  ev.preventDefault();
+  const ind=col.querySelector('.mkt-drag-ind');if(ind)ind.style.display='none';
+  if(!mktDragId)return;
+  const min=mktYparaMin(ev,col);
+  mktMoverPost(mktDragId,col.dataset.iso,mktMinHHMM(min));mktDragId=null;
+}
+function mktClickHora(ev,col){
+  if(ev.target!==col)return;
+  const min=mktYparaMin(ev,col);
+  mktAbrirPost(null,col.dataset.iso);
+  const hEl=document.getElementById('mp-hora');
+  if(hEl)hEl.value=mktMinHHMM(min);
+}
+async function mktMoverPost(id,novaData,novaHora){
+  const p=mktData.posts.find(x=>x.id===id);
+  if(!p||!novaData)return;
+  const antData=p.data_post, antHora=p.hora;
+  p.data_post=novaData; p.hora=novaHora;
+  mktRender();
+  try{
+    await rpc('mkt_post_salvar',{
+      p_id:p.id,p_evento_id:p.evento_id,
+      p_patrocinador_id:p.patrocinador_id||null,
+      p_titulo:p.titulo,p_tipo:p.tipo,p_formato:p.formato,
+      p_perfis:p.perfis,p_data_post:novaData,p_hora:novaHora||null,
+      p_briefing:p.briefing||null,p_status:p.status,
+      p_arte_url:p.arte_url||null,p_comentario:p.comentario||null
+    });
+  }catch(e){
+    p.data_post=antData;p.hora=antHora;mktRender();
+    alert('Erro ao mover: '+e.message);
+  }
 }
 
 /* PIPELINE */
@@ -4037,6 +4180,7 @@ function mktAbrirPat(id){
   mktPerfisPatSel=['jbx'];
   mktRenderPerfisPat();
   mktRenderSaldo();
+  mktRenderPatExistentes();
   mktRenderDatasPacote();
   document.getElementById('mkt-pat-overlay').classList.add('open');
 }
@@ -4055,6 +4199,29 @@ function mktRenderSaldo(){
     +'<div>Posts: <b>'+s.posts+' / '+p.qtd_posts+'</b></div>'
     +'<div>Reels: <b>'+s.reels+' / '+p.qtd_reels+'</b></div>'
     +'<div style="color:var(--muted);">programados / contratados</div>';
+}
+function mktEditarPatSel(){
+  const id=document.getElementById('mkt-f-pat').value;
+  if(!id){alert('Selecione um patrocinador no filtro ao lado para editar.\n\nDica: voc\u00ea tamb\u00e9m pode clicar na tag \u2605 de qualquer card do patrocinador.');return;}
+  mktAbrirPat(id);
+}
+function mktRenderPatExistentes(){
+  const wrap=document.getElementById('mpa-exist-wrap');
+  const box=document.getElementById('mpa-existentes');
+  if(!wrap||!box)return;
+  if(!mktPatAtual){wrap.style.display='none';box.innerHTML='';return;}
+  const dp=mktData.posts.filter(p=>p.patrocinador_id===mktPatAtual.id).slice()
+    .sort((a,b)=>a.data_post.localeCompare(b.data_post)||(a.hora||'').localeCompare(b.hora||''));
+  if(!dp.length){wrap.style.display='none';box.innerHTML='';return;}
+  wrap.style.display='block';
+  let h='';
+  dp.forEach(p=>{
+    const st=mktStInfo(p.status);
+    h+='<div class="mkt-pac-row" style="grid-template-columns:1fr auto;cursor:pointer;" onclick="mktFecharPat();mktAbrirPost(\''+p.id+'\',null)" title="Abrir este conte\u00fado">'
+      +'<div class="lb"><span style="width:8px;height:8px;border-radius:50%;display:inline-block;background:'+st.cor+';flex-shrink:0;"></span>'+(MKT_FORMATOS[p.formato]||p.formato)+' \u2014 '+p.titulo+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:var(--muted);">'+fmtDS(p.data_post)+(p.hora?' '+p.hora.slice(0,5):'')+'</div></div>';
+  });
+  box.innerHTML=h;
 }
 async function mktExcluirPat(){
   if(!mktPatAtual)return;
@@ -4310,6 +4477,7 @@ async function mktSalvarPat(){
           <label>Filtros</label>
           <select id="mkt-f-evento" onchange="mktFiltroChange()"><option value="">Todos os eventos</option></select>
           <select id="mkt-f-pat" onchange="mktFiltroChange()"><option value="">Todos os patrocinadores</option></select>
+          <button class="mkt-btn sm" onclick="mktEditarPatSel()" title="Editar o patrocinador selecionado no filtro (adicionar conteúdos)">✎ Pat.</button>
           <select id="mkt-f-perfil" onchange="mktFiltroChange()"><option value="">Todos os perfis</option></select>
           <select id="mkt-f-tipo" onchange="mktFiltroChange()">
             <option value="">Todos os tipos</option>
@@ -4466,6 +4634,11 @@ async function mktSalvarPat(){
     </div>
     <div class="mkt-fg"><label>Perfis de destino *</label><div class="mkt-chips" id="mpa-perfis"></div></div>
     <div class="mkt-fg"><label>Observações do acordo</label><textarea id="mpa-obs" placeholder="Detalhes do combinado, prazos, exigências de marca…"></textarea></div>
+    <div id="mpa-exist-wrap" style="display:none;">
+      <div class="mkt-pac-hd">Conteúdos já programados (clique para abrir)</div>
+      <div class="mkt-pac-box" id="mpa-existentes"></div>
+      <div style="font-size:12px;color:var(--muted);margin:-6px 0 14px;">Para adicionar novos conteúdos, <b>aumente as quantidades do pacote acima</b> — os campos de data dos novos itens aparecem logo abaixo.</div>
+    </div>
     <div id="mpa-datas-wrap" style="display:none;">
       <div class="mkt-pac-hd">Datas de cada conteúdo</div>
       <div class="mkt-pac-box" id="mpa-datas"></div>
