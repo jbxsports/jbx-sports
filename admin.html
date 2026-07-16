@@ -291,13 +291,14 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 
   /* Lista */
   table.cal-lista{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  table.cal-lista th{text-align:left;font-size:10px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 14px;border-bottom:1px solid var(--border);}
-  table.cal-lista td{padding:11px 14px;font-size:12px;color:var(--muted);border-bottom:0.5px solid var(--border);}
+  table.cal-lista th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 14px;border-bottom:1px solid var(--border);}
+  table.cal-lista td{padding:11px 14px;font-size:13.5px;color:#555;border-bottom:0.5px solid var(--border);}
+  table.cal-lista tbody tr:nth-child(even) td{background:#faf7f3;}
   table.cal-lista tr:last-child td{border-bottom:none;}
   table.cal-lista td.cal-col-evt{color:var(--text);font-weight:500;}
   .cal-tipo-pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
 
-  .cal-alv-emp{display:block;width:104px;margin-top:3px;font-family:'Ubuntu',sans-serif;font-size:10px;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 5px;}
+  .cal-alv-emp{display:block;width:116px;margin-top:3px;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:500;color:#555;background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 5px;}
   .cal-alv-emp:hover{border-color:var(--border);background:#faf9f7;}
   .cal-alv-emp:focus{outline:none;border-color:var(--orange);background:#fff;color:var(--text);}
   .cal-alv-emp::placeholder{color:#c9c4bc;}
@@ -339,8 +340,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4;}}
   /* ── Status selects (lista do calendário) ── */
   .cal-status-sel{
-    border:none;border-radius:5px;padding:3px 8px;
-    font-size:10px;font-weight:700;cursor:pointer;
+    border:none;border-radius:5px;padding:4px 8px;
+    font-size:11.5px;font-weight:700;cursor:pointer;
     font-family:'Ubuntu',sans-serif;outline:none;
     width:100%;
   }
@@ -362,7 +363,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   /* Status (texto livre) */
   .cal-status-input{
     border:1px solid var(--border);border-radius:5px;padding:4px 8px;
-    font-size:11px;font-family:'Ubuntu',sans-serif;outline:none;
+    font-size:13px;font-family:'Ubuntu',sans-serif;outline:none;
     width:100%;background:#faf9f7;color:var(--text);
   }
   .cal-status-input:focus{border-color:var(--orange);background:#fff;}
@@ -371,11 +372,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   /* Campos editáveis (modo Supabase) */
   .cal-edit-input,.cal-edit-num,.cal-edit-date,.cal-edit-sel{
     border:1px solid transparent;border-radius:5px;padding:4px 6px;
-    font-size:11px;font-family:'Ubuntu',sans-serif;outline:none;
+    font-size:13px;font-family:'Ubuntu',sans-serif;outline:none;
     background:transparent;color:var(--text);width:100%;
   }
-  .cal-edit-num{width:52px;text-align:center;}
-  .cal-edit-date{width:112px;font-size:10px;display:block;}
+  .cal-edit-num{width:56px;text-align:center;}
+  .cal-edit-date{width:124px;font-size:12px;display:block;}
   .cal-edit-sel{cursor:pointer;width:auto;}
   .cal-edit-input:hover,.cal-edit-num:hover,.cal-edit-date:hover,.cal-edit-sel:hover{border-color:var(--border);background:#faf9f7;}
   .cal-edit-input:focus,.cal-edit-num:focus,.cal-edit-date:focus,.cal-edit-sel:focus{border-color:var(--orange);background:#fff;}
