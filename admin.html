@@ -3393,7 +3393,7 @@ async function calPrazosInit(){
     pane.innerHTML='<div class="empty-state">Carregando prazos…</div>';
     try{
       const [ass,st]=await Promise.all([rpc('admin_prazos_assuntos_listar'),rpc('admin_prazos_listar')]);
-      _przAssuntos=(ass||[]).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+      _przAssuntos=ass||[];
       _przStatus={};
       (st||[]).forEach(r=>{_przStatus[r.calendario_id+'|'+r.assunto_id]=r;});
       _przCarregado=true;
@@ -3418,6 +3418,7 @@ function przFmt(d){
 }
 
 function calBuildPrazos(){
+  _przAssuntos.sort((a,b)=>(b.dias_antes||0)-(a.dias_antes||0)); // mais longe do evento primeiro
   const evs=_filtrarOrdenado().filter(e=>!e.realizado||_calYear==='hist');
   const hoje=przHoje();
   const ths=_przAssuntos.map(a=>{
