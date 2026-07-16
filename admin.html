@@ -297,6 +297,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   table.cal-lista td.cal-col-evt{color:var(--text);font-weight:500;}
   .cal-tipo-pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
 
+  .cal-alv-emp{display:block;width:104px;margin-top:3px;font-family:'Ubuntu',sans-serif;font-size:10px;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 5px;}
+  .cal-alv-emp:hover{border-color:var(--border);background:#faf9f7;}
+  .cal-alv-emp:focus{outline:none;border-color:var(--orange);background:#fff;color:var(--text);}
+  .cal-alv-emp::placeholder{color:#c9c4bc;}
+
   /* Prazos */
   table.cal-prazos th{vertical-align:bottom;}
   .prz-cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:88px;}
@@ -2946,6 +2951,10 @@ async function calInitCalendario(){
     if(Array.isArray(rows) && rows.length){
       _calDados = rows.map(r=>({...r, publico: r.publico||0, inicio:String(r.inicio).slice(0,10), fim:String(r.fim||r.inicio).slice(0,10)}));
       _calDB = true;
+      try{ // empresa do alvará (RPC separada; se a migração ainda não rodou, segue sem)
+        const emps = await rpc('admin_calendario_alvara_listar');
+        if(Array.isArray(emps)) emps.forEach(x=>{ const ev=_calDados.find(d=>String(d.id)===String(x.id)); if(ev) ev.alvara_empresa=x.alvara_empresa; });
+      }catch(_e){}
       await calMigrarLocalStorage();
       _calBuilt = {};
       calRefreshCurrentView();
@@ -3019,6 +3028,14 @@ function calToggleCampo(id, campo, btn){
     document.getElementById('cal-pane-lista').innerHTML = calBuildLista();
     _calBuilt.lista=true; _calBuilt.listaAno=_calYear;
   }
+}
+
+async function calAlvaraEmpresa(id, valor){
+  const ev = _calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  ev.alvara_empresa = valor.trim();
+  calSalvandoUI(1);
+  try{ await rpc('admin_calendario_alvara_salvar',{p_id:ev.id, p_valor:ev.alvara_empresa||null}); calSalvandoUI(2); }
+  catch(e){ calSalvandoUI(3); console.error(e); }
 }
 
 async function calPersistir(ev){
@@ -3277,7 +3294,8 @@ function calBuildListaDB(){
       +'<option value="abrir"'+(alvVal==='abrir'?' selected':'')+'>ABRIR</option>'
       +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
       +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
-      +'</select>';
+      +'</select>'
+      +'<input type="text" class="cal-alv-emp" value="'+calEsc(e.alvara_empresa||'')+'" placeholder="Empresa / CNPJ" title="Em qual CNPJ o alvará está alocado" onchange="calAlvaraEmpresa(\''+id+'\',this.value)" onclick="event.stopPropagation()">';
     const tipoSel='<select class="cal-edit-sel" onchange="calEdit(\''+id+'\',\'tipo\',this.value)" onclick="event.stopPropagation()">'
       +(e.tipo==='especial'?['corrida','beach','especial','hyrox']:['corrida','beach','hyrox']).map(t=>'<option value="'+t+'"'+((e.tipo||'corrida')===t?' selected':'')+'>'+({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[t])+'</option>').join('')
       +'</select>';
@@ -3319,7 +3337,7 @@ const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
 function exportarCalendarioExcel(){
   try{
     const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
-    const ws_data=[['Data','Evento','Cidade','Confiança','Status','Alvará','Tipo','Público','Largada','ID. Visual','Percurso/Arena']];
+    const ws_data=[['Data','Evento','Cidade','Confiança','Status','Alvará','Alvará (empresa)','Tipo','Público','Largada','ID. Visual','Percurso/Arena']];
     ord.forEach(e=>{
       const [anoFull,mi,di]=e.inicio.split("-");
       const ano=anoFull.slice(2);
@@ -3333,7 +3351,7 @@ function exportarCalendarioExcel(){
       const alvVal=_calDB ? (e.alvara||'nao') : calStatusGet(eKey,'alvara','nao');
       const perVal=_calDB ? (e.percurso||'nao') : calStatusGet(eKey,'percurso','nao');
       const idvVal=_calDB ? !!e.idvisual : calStatusGet(eKey,'idvisual',false);
-      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,statusVal,CAL_ALVARA_LABEL[alvVal]||alvVal,tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal]);
+      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,statusVal,CAL_ALVARA_LABEL[alvVal]||alvVal,e.alvara_empresa||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal]);
     });
     const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
     ws['!cols']=ws_data[0].map((_,i)=>({wch:i===1?30:i===2?18:i===4?28:14}));
