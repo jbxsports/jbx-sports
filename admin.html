@@ -297,6 +297,21 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   table.cal-lista td.cal-col-evt{color:var(--text);font-weight:500;}
   .cal-tipo-pill{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
 
+  /* Prazos */
+  table.cal-prazos th{vertical-align:bottom;}
+  .prz-cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:88px;}
+  .prz-data{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;}
+  .prz-linha2{display:flex;align-items:center;gap:5px;}
+  .prz-dias{width:44px;text-align:center;font-family:'Ubuntu',sans-serif;font-size:11px;color:var(--muted);background:transparent;border:1px solid transparent;border-radius:5px;padding:2px 2px;}
+  .prz-dias:hover{border-color:var(--border);background:#faf9f7;}
+  .prz-dias:focus{outline:none;border-color:var(--orange);background:#fff;}
+  td.prz-ok{background:rgba(22,163,74,.07);}
+  td.prz-late{background:rgba(220,38,38,.10);}
+  td.prz-soon{background:rgba(255,117,31,.10);}
+  .prz-head-dias{font-size:9px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0;}
+  .prz-head-del{background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);opacity:.5;padding:0 2px;}
+  .prz-head-del:hover{opacity:1;color:#dc2626;}
+
   /* Resumido */
   .cal-resumido-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
   @media(max-width:1000px){.cal-resumido-grid{grid-template-columns:repeat(2,1fr);}}
@@ -3367,6 +3382,138 @@ function calBuildResumido(){
 }
 
 // ── Filtra eventos pelo ano selecionado (usada por stats e builds) ──
+
+/* ══ PRAZOS (vista do calendário) ══ */
+let _przAssuntos=[], _przStatus={}, _przCarregado=false;
+
+async function calPrazosInit(){
+  const pane=document.getElementById('cal-pane-prazos');
+  if(!_calDB){ pane.innerHTML='<div class="empty-state">A vista Prazos precisa do calendário no Supabase (rode a migração do calendário primeiro).</div>'; return; }
+  if(!_przCarregado){
+    pane.innerHTML='<div class="empty-state">Carregando prazos…</div>';
+    try{
+      const [ass,st]=await Promise.all([rpc('admin_prazos_assuntos_listar'),rpc('admin_prazos_listar')]);
+      _przAssuntos=(ass||[]).sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+      _przStatus={};
+      (st||[]).forEach(r=>{_przStatus[r.calendario_id+'|'+r.assunto_id]=r;});
+      _przCarregado=true;
+    }catch(e){
+      pane.innerHTML='<div class="empty-state">Rode a migração SQL dos prazos no Supabase para ativar esta vista.</div>';
+      return;
+    }
+  }
+  pane.innerHTML=calBuildPrazos();
+  _calBuilt.prazos=true; _calBuilt.prazosAno=_calYear;
+}
+
+function przHoje(){ const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function przData(inicio,dias){
+  const p=String(inicio).split('-').map(Number);
+  const d=new Date(p[0],p[1]-1,p[2]);
+  d.setDate(d.getDate()-dias);
+  return d;
+}
+function przFmt(d){
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()).slice(2);
+}
+
+function calBuildPrazos(){
+  const evs=_filtrarOrdenado().filter(e=>!e.realizado||_calYear==='hist');
+  const hoje=przHoje();
+  const ths=_przAssuntos.map(a=>{
+    const id=calEsc(a.id);
+    return '<th style="min-width:100px;">'+calEsc(a.nome)
+      +' <button class="prz-head-del" onclick="przExcluirAssunto(\''+id+'\')" title="Excluir assunto">✕</button>'
+      +'<div class="prz-head-dias">padrão <input type="number" min="0" class="prz-dias" value="'+calEsc(a.dias_antes)+'" onchange="przEditarAssuntoDias(\''+id+'\',this.value)"> dias antes</div></th>';
+  }).join('');
+  const rows=evs.map(e=>{
+    const evId=calEsc(e.id);
+    const tds=_przAssuntos.map(a=>{
+      const st=_przStatus[e.id+'|'+a.id]||{};
+      const dias=(st.dias_antes==null||st.dias_antes==='')?a.dias_antes:st.dias_antes;
+      const feito=!!st.feito;
+      const dt=przData(e.inicio,dias);
+      let cls='';
+      if(feito) cls='prz-ok';
+      else if(dt<hoje) cls='prz-late';
+      else if((dt-hoje)/86400000<=7) cls='prz-soon';
+      return '<td class="'+cls+'"><div class="prz-cell">'
+        +'<span class="prz-data">'+przFmt(dt)+'</span>'
+        +'<span class="prz-linha2">'
+        +'<button class="cal-check-btn'+(feito?' checked':'')+'" onclick="przToggleFeito(\''+evId+'\',\''+calEsc(a.id)+'\')" title="Marcar como feito">'+(feito?'✓':'')+'</button>'
+        +'<input type="number" min="0" class="prz-dias" value="'+calEsc(dias)+'" title="Dias antes do evento (só para este evento)" onchange="przEditarDias(\''+evId+'\',\''+calEsc(a.id)+'\',this.value)">'
+        +'<span style="font-size:9px;color:var(--muted);">d</span>'
+        +'</span></div></td>';
+    }).join('');
+    return '<tr'+(e.realizado?' style="opacity:.55;"':'')+'>'
+      +'<td class="cal-col-evt" style="min-width:150px;">'+calEsc(e.evento)+'<div style="font-size:10px;color:var(--muted);font-weight:400;">'+fmtDS(e.inicio)+' · '+calEsc(e.cidade)+'</div></td>'
+      +tds+'</tr>';
+  }).join('');
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap;">'
+    +'<div style="font-size:11px;color:var(--muted);"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(220,38,38,.25);margin-right:4px;"></span>Atrasado&nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(255,117,31,.3);margin-right:4px;"></span>Próximos 7 dias&nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(22,163,74,.25);margin-right:4px;"></span>Feito</div>'
+    +'<button onclick="przAdicionarAssunto()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Assunto</button></div>'
+    +'<div style="overflow-x:auto;"><table class="cal-lista cal-prazos"><thead><tr><th>Evento</th>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function przRefresh(){ document.getElementById('cal-pane-prazos').innerHTML=calBuildPrazos(); }
+
+async function przToggleFeito(evId,assId){
+  const k=evId+'|'+assId;
+  const st=_przStatus[k]||(_przStatus[k]={calendario_id:evId,assunto_id:assId,dias_antes:null,feito:false});
+  st.feito=!st.feito;
+  przRefresh();
+  calSalvandoUI(1);
+  try{ await rpc('admin_prazos_salvar',{p_calendario_id:evId,p_assunto_id:assId,p_dias_antes:st.dias_antes,p_feito:st.feito}); calSalvandoUI(2); }
+  catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
+async function przEditarDias(evId,assId,valor){
+  const k=evId+'|'+assId;
+  const ass=_przAssuntos.find(a=>String(a.id)===String(assId));
+  let dias=valor===''?null:Math.max(0,parseInt(valor,10)||0);
+  if(ass && dias===ass.dias_antes) dias=null; // igual ao padrão = sem override
+  const st=_przStatus[k]||(_przStatus[k]={calendario_id:evId,assunto_id:assId,dias_antes:null,feito:false});
+  st.dias_antes=dias;
+  przRefresh();
+  calSalvandoUI(1);
+  try{ await rpc('admin_prazos_salvar',{p_calendario_id:evId,p_assunto_id:assId,p_dias_antes:st.dias_antes,p_feito:st.feito}); calSalvandoUI(2); }
+  catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
+async function przAdicionarAssunto(){
+  const nome=(prompt('Nome do assunto:')||'').trim();
+  if(!nome) return;
+  const dias=parseInt(prompt('Quantos dias antes do evento?','30'),10);
+  if(isNaN(dias)||dias<0) return;
+  calSalvandoUI(1);
+  try{
+    const id=await rpc('admin_prazos_assunto_salvar',{dados:{nome:nome,dias_antes:dias,ordem:_przAssuntos.length+1}});
+    _przAssuntos.push({id:id,nome:nome,dias_antes:dias,ordem:_przAssuntos.length+1});
+    przRefresh(); calSalvandoUI(2);
+  }catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
+async function przEditarAssuntoDias(assId,valor){
+  const ass=_przAssuntos.find(a=>String(a.id)===String(assId)); if(!ass) return;
+  ass.dias_antes=Math.max(0,parseInt(valor,10)||0);
+  przRefresh();
+  calSalvandoUI(1);
+  try{ await rpc('admin_prazos_assunto_salvar',{dados:{id:ass.id,nome:ass.nome,dias_antes:ass.dias_antes,ordem:ass.ordem}}); calSalvandoUI(2); }
+  catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
+async function przExcluirAssunto(assId){
+  const ass=_przAssuntos.find(a=>String(a.id)===String(assId)); if(!ass) return;
+  if(!confirm('Excluir o assunto "'+ass.nome+'"? Os prazos marcados dele serão apagados.')) return;
+  calSalvandoUI(1);
+  try{
+    await rpc('admin_prazos_assunto_excluir',{p_id:ass.id});
+    _przAssuntos=_przAssuntos.filter(a=>String(a.id)!==String(assId));
+    Object.keys(_przStatus).forEach(k=>{ if(k.endsWith('|'+assId)) delete _przStatus[k]; });
+    przRefresh(); calSalvandoUI(2);
+  }catch(e){ calSalvandoUI(3); console.error(e); }
+}
+
 function calFiltrarEventos(){
   if(_calYear==='hist') return _calDados.filter(e=>e.historico);
   if(_calYear===0)      return _calDados.filter(e=>!e.historico); // Todos = 2026+2027
@@ -3383,7 +3530,7 @@ function calUpdateStats(){
 
 function calSetView(view){
   document.querySelectorAll('.cal-view-btn[data-view]').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
-  ['lista','resumido','completo'].forEach(v=>{
+  ['lista','resumido','prazos','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
   document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
@@ -3395,6 +3542,7 @@ function calSetView(view){
     document.getElementById('cal-pane-resumido').innerHTML=calBuildResumido();
     _calBuilt.resumido=true; _calBuilt.resumidoAno=_calYear;
   }
+  if(view==='prazos'){ calPrazosInit(); } // sempre reconstruir (barato; mantém em sincronia com edições de datas)
   calUpdateStats(); // atualiza stats em qualquer view
 }
 
@@ -4419,12 +4567,14 @@ async function mktSalvarPat(){
           <span style="width:1px;background:var(--border);margin:0 4px;"></span>
           <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
+          <button class="cal-view-btn" data-view="prazos" onclick="calSetView('prazos')">Prazos</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
           <span id="cal-save-ind" style="align-self:center;font-size:11px;font-weight:600;margin-left:auto;"></span>
           <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
         </div>
         <div id="cal-pane-lista" style="display:none;"></div>
         <div id="cal-pane-resumido" style="display:none;"></div>
+        <div id="cal-pane-prazos" style="display:none;"></div>
         <div id="cal-pane-completo">
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
         </div>
