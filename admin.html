@@ -3786,6 +3786,99 @@ function mktFmtCurta(iso){const p=iso.split('-');return p[2]+'/'+p[1];}
 /* ── lookups ── */
 function mktEv(id){return (mktData.eventos||[]).find(e=>e.id===id)||null;}
 function mktPat(id){return (mktData.pats||[]).find(p=>p.id===id)||null;}
+
+/* ── EXPORTAR CONTEÚDOS EM EXCEL ── */
+const MKT_TIPOS_LABEL={obrigatorio:'Obrigatório',patrocinador:'Patrocinador',avulso:'Avulso'};
+function mktAbrirXls(){
+  if(!mktData)return;
+  let hEv='<option value="">Todos os eventos</option>';
+  (mktData.eventos||[]).forEach(e=>{hEv+='<option value="'+e.id+'">'+e.nome+'</option>';});
+  document.getElementById('mx-evento').innerHTML=hEv;
+  if(mktFiltro.evento)document.getElementById('mx-evento').value=mktFiltro.evento;
+  mktXlsSyncPats();
+  let hPf='<option value="">Todos os perfis</option>';
+  MKT_PERFIS.forEach(pf=>{hPf+='<option value="'+pf.id+'">'+pf.label+'</option>';});
+  document.getElementById('mx-perfil').innerHTML=hPf;
+  let hFm='<option value="">Todos os formatos</option>';
+  Object.keys(MKT_FORMATOS).forEach(f=>{hFm+='<option value="'+f+'">'+MKT_FORMATOS[f]+'</option>';});
+  document.getElementById('mx-formato').innerHTML=hFm;
+  let hSt='<option value="">Todos os status</option>';
+  MKT_STATUS.forEach(st=>{hSt+='<option value="'+st.id+'">'+st.label+'</option>';});
+  document.getElementById('mx-status').innerHTML=hSt;
+  ['mx-de','mx-ate'].forEach(i=>document.getElementById(i).value='');
+  ['mx-evento','mx-pat','mx-de','mx-ate','mx-perfil','mx-formato','mx-status'].forEach(i=>{
+    document.getElementById(i).onchange=mktXlsContar;
+  });
+  document.getElementById('mx-evento').onchange=function(){mktXlsSyncPats();mktXlsContar();};
+  mktXlsContar();
+  document.getElementById('mkt-xls-overlay').classList.add('open');
+}
+function mktFecharXls(){document.getElementById('mkt-xls-overlay').classList.remove('open');}
+function mktXlsSyncPats(){
+  const evId=document.getElementById('mx-evento').value;
+  let h='<option value="">Todos os patrocinadores</option>';
+  (mktData.pats||[]).filter(p=>!evId||p.evento_id===evId).forEach(p=>{
+    h+='<option value="'+p.id+'">'+p.nome+'</option>';
+  });
+  document.getElementById('mx-pat').innerHTML=h;
+}
+function mktXlsFiltrar(){
+  const evId=document.getElementById('mx-evento').value;
+  const patId=document.getElementById('mx-pat').value;
+  const de=document.getElementById('mx-de').value;
+  const ate=document.getElementById('mx-ate').value;
+  const perfil=document.getElementById('mx-perfil').value;
+  const formato=document.getElementById('mx-formato').value;
+  const status=document.getElementById('mx-status').value;
+  return (mktData.posts||[])
+    .filter(p=>!evId||p.evento_id===evId)
+    .filter(p=>!patId||p.patrocinador_id===patId)
+    .filter(p=>!de||(p.data_post&&p.data_post>=de))
+    .filter(p=>!ate||(p.data_post&&p.data_post<=ate))
+    .filter(p=>!perfil||(p.perfis||'').split(',').includes(perfil))
+    .filter(p=>!formato||p.formato===formato)
+    .filter(p=>!status||p.status===status)
+    .sort((a,b)=>{
+      if((a.data_post||'')!==(b.data_post||''))return (a.data_post||'')<(b.data_post||'')?-1:1;
+      return (a.hora||'').localeCompare(b.hora||'');
+    });
+}
+function mktXlsContar(){
+  document.getElementById('mx-contagem').textContent=mktXlsFiltrar().length+' conteúdo(s) serão exportados.';
+}
+function mktBaixarXls(){
+  const posts=mktXlsFiltrar();
+  if(!posts.length){alert('Nenhum conteúdo com esses filtros.');return;}
+  const linhas=[['Data','Hora','Título','Tipo','Formato','Evento','Patrocinador','Instagram','Status','Qtd. artes','Link(s) da arte','Briefing']];
+  posts.forEach(p=>{
+    const ev=mktEv(p.evento_id), pat=mktPat(p.patrocinador_id);
+    const perfisLbl=(p.perfis||'').split(',').filter(Boolean)
+      .map(id=>{const pf=MKT_PERFIS.find(x=>x.id===id);return pf?pf.label:id;}).join(', ');
+    const artes=mktArtes(p);
+    linhas.push([
+      p.data_post?p.data_post.split('-').reverse().join('/'):'',
+      p.hora?String(p.hora).slice(0,5):'',
+      p.titulo||'',
+      MKT_TIPOS_LABEL[p.tipo]||p.tipo||'',
+      (MKT_FORMATOS[p.formato]||p.formato||'').replace(/^[^ ]+ /,''),
+      ev?ev.nome:'',
+      pat?pat.nome:'',
+      perfisLbl,
+      mktStInfo(p.status).label,
+      artes.length,
+      artes.join(' | '),
+      p.briefing||''
+    ]);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols']=[{wch:10},{wch:6},{wch:38},{wch:13},{wch:11},{wch:22},{wch:20},{wch:28},{wch:20},{wch:9},{wch:45},{wch:50}];
+  XLSX.utils.book_append_sheet(wb,ws,'Conteúdos');
+  const evId=document.getElementById('mx-evento').value;
+  const evNome=evId&&mktEv(evId)?mktEv(evId).nome.toLowerCase().replace(/[^a-z0-9]+/g,'_'):'todos';
+  XLSX.writeFile(wb,'conteudos_'+evNome+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  mktFecharXls();
+}
 function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
 function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
 function mktArtes(p){return (p&&p.arte_url?String(p.arte_url).split('|'):[]).filter(Boolean);}
@@ -4830,6 +4923,7 @@ async function mktSalvarPat(){
             <button class="mkt-btn primary" onclick="mktAbrirPost(null,null)">＋ Novo conteúdo</button>
             <button class="mkt-btn" onclick="mktAbrirPat(null)">＋ Patrocinador</button>
             <button class="mkt-btn" onclick="mktAbrirEvento(null)">＋ Evento Mkt</button>
+            <button class="mkt-btn" onclick="mktAbrirXls()" title="Baixar conteúdos em Excel">⬇ Excel</button>
           </div>
           <div class="mkt-feed-btns" id="mkt-feed-btns" title="Projeção do feed do Instagram"></div>
           <div class="mkt-views">
@@ -4956,6 +5050,30 @@ async function mktSalvarPat(){
       <button class="mkt-btn" id="mp-excluir" style="margin-right:auto;color:#dc2626;" onclick="mktExcluirPost()">Excluir</button>
       <button class="mkt-btn" onclick="mktFecharPost()">Cancelar</button>
       <button class="mkt-btn primary" onclick="mktSalvarPost()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EXPORTAR EXCEL -->
+<div class="modal-overlay2" id="mkt-xls-overlay" onclick="if(event.target===this)mktFecharXls()">
+  <div class="mkt-modal" style="max-width:480px;">
+    <h3>Baixar conteúdos em Excel</h3>
+    <div style="font-size:12.5px;color:var(--muted);margin:-6px 0 14px;">Filtre o que quer exportar. Deixe em "Todos" para não filtrar.</div>
+    <div class="mkt-fg"><label>Evento</label><select id="mx-evento" onchange="mktXlsSyncPats()"></select></div>
+    <div class="mkt-fg"><label>Patrocinador</label><select id="mx-pat"></select></div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Período — de</label><input type="date" id="mx-de"></div>
+      <div class="mkt-fg"><label>Período — até</label><input type="date" id="mx-ate"></div>
+    </div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Perfil (@)</label><select id="mx-perfil"></select></div>
+      <div class="mkt-fg"><label>Formato</label><select id="mx-formato"></select></div>
+    </div>
+    <div class="mkt-fg"><label>Status</label><select id="mx-status"></select></div>
+    <div id="mx-contagem" style="font-size:12.5px;color:var(--muted);margin-bottom:4px;"></div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" onclick="mktFecharXls()">Cancelar</button>
+      <button class="mkt-btn primary" onclick="mktBaixarXls()">⬇ Baixar Excel</button>
     </div>
   </div>
 </div>
