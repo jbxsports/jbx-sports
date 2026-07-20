@@ -35,7 +35,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{background:rgba(42,37,32,.1);color:var(--text);}
 .admin-content{padding:32px;width:100%;box-sizing:border-box;overflow-x:clip;}
-.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-designer.active,#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
+.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--text);}
@@ -517,6 +517,14 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-btn-refazer:hover{background:rgba(147,51,234,.06);}
 .mkt-arte-box{border:2px dashed rgba(42,37,32,.18);border-radius:10px;padding:14px;text-align:center;background:#fbfaf8;}
 .mkt-arte-box img{max-width:100%;max-height:260px;border-radius:8px;margin-bottom:10px;}
+.mkt-artes-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:10px;}
+.mkt-arte-item{position:relative;width:110px;}
+.mkt-arte-item img{width:110px;height:110px;object-fit:cover;border-radius:8px;display:block;border:1px solid var(--border);margin-bottom:0;}
+.mkt-arte-item .capa-tag{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.65);color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;letter-spacing:.5px;}
+.mkt-arte-item .acts{display:flex;gap:4px;margin-top:4px;}
+.mkt-arte-item .acts button{flex:1;font-size:11px;padding:3px 2px;border:1px solid var(--border);background:var(--card);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700;color:var(--muted);transition:all .15s;}
+.mkt-arte-item .acts button:hover{color:var(--text);border-color:#aaa;}
+.mkt-arte-item .acts button.del:hover{color:#dc2626;border-color:#dc2626;}
 
 /* ── PROJEÇÃO DE FEED (INSTAGRAM) ── */
 .mkt-feed-btns{display:flex;gap:6px;align-items:center;margin-right:10px;}
@@ -646,7 +654,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
-        <button class="nav-btn" id="nav-designer" onclick="showInner('designer')">Designer</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-parceiros" onclick="showInner('parceiros')">Patrocinadores</button>
         <button class="nav-btn" id="nav-patseg" onclick="showInner('patseg')">Pat. Segmentos</button>
@@ -1294,7 +1301,7 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 /* ── AUTH ── */
 const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
- {id:'calendario',label:'Calendário'},{id:'designer',label:'Designer'},{id:'social',label:'Social Media'},
+ {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'}
 ];
 let admUser=null, admToken=null;
@@ -1371,7 +1378,6 @@ function showInner(name){
   if(name==='config'){loadConfiguracoes();}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
-  if(name==='designer'){document.getElementById('nav-designer').classList.add('active');initDesignerFrame();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
   if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
@@ -3610,11 +3616,6 @@ function calRender(){
 }
 
 
-function initDesignerFrame(){
-  const f = document.getElementById('designer-frame');
-  if(!f.src || f.src === window.location.href)
-    f.src = 'https://infinitystamp.github.io/JBX-HUB-CRIATIVO/';
-}
 
 
 
@@ -3773,6 +3774,8 @@ function mktEv(id){return (mktData.eventos||[]).find(e=>e.id===id)||null;}
 function mktPat(id){return (mktData.pats||[]).find(p=>p.id===id)||null;}
 function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
 function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
+function mktArtes(p){return (p&&p.arte_url?String(p.arte_url).split('|'):[]).filter(Boolean);}
+function mktArteCapa(p){const a=mktArtes(p);return a.length?a[0]:null;}
 
 /* ── PROJEÇÃO DE FEED (INSTAGRAM) ── */
 const IG_SVG_REEL='<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
@@ -3796,9 +3799,10 @@ function mktFeedCellHtml(p){
   if(p.formato==='reel')ico='<span class="fmt-ico">'+IG_SVG_REEL+'</span>';
   else if(p.formato==='carrossel')ico='<span class="fmt-ico">'+IG_SVG_CARR+'</span>';
   const abrir=' onclick="mktFecharFeed();mktAbrirPost(\''+p.id+'\',null)"';
-  if(p.arte_url){
+  const capa=mktArteCapa(p);
+  if(capa){
     return '<div class="ig-cell"'+abrir+' title="'+dt+' — '+(p.titulo||'').replace(/"/g,'&quot;')+'">'
-      +'<img src="'+p.arte_url+'" loading="lazy">'+ico
+      +'<img src="'+capa+'" loading="lazy">'+ico
       +'<div class="data-tag">'+dt+'</div></div>';
   }
   const st=mktStInfo(p.status);
@@ -3822,7 +3826,7 @@ function mktAbrirFeed(pid){
     });
   document.getElementById('ig-handle').textContent=pf.label;
   document.getElementById('ig-avatar-sigla').textContent=pf.sigla;
-  const comArte=posts.filter(p=>p.arte_url).length;
+  const comArte=posts.filter(p=>mktArtes(p).length).length;
   document.getElementById('ig-n-posts').textContent=posts.length;
   document.getElementById('ig-n-prontas').textContent=comArte;
   document.getElementById('ig-n-pend').textContent=posts.length-comArte;
@@ -3935,7 +3939,8 @@ function mktCardHtml(p,comData,drag){
   const st=mktStInfo(p.status), cor=mktCorDe(p);
   const dragAttr=drag?' draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)"':'';
   let h='<div class="mkt-card"'+dragAttr+' style="border-left-color:'+cor+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)">';
-  if(p.arte_url)h+='<img class="mkt-thumb" src="'+p.arte_url+'" loading="lazy">';
+  const capaTh=mktArteCapa(p);
+  if(capaTh)h+='<img class="mkt-thumb" src="'+capaTh+'" loading="lazy">';
   if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
   h+='<div class="mkt-card-top">'+mktBadgesHtml(p)+'</div>';
   h+='<div class="mkt-card-titulo">'+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
@@ -4278,25 +4283,91 @@ function mktSyncPatSelect(selId){
   pats.forEach(p=>{h+='<option value="'+p.id+'"'+(p.id===selId?' selected':'')+'>'+p.nome+'</option>';});
   document.getElementById('mp-pat').innerHTML=h;
 }
-function mktRenderArte(url){
+let mktArtesSel=[], mktArteSubstIdx=null;
+function mktRenderArte(urlString){
+  mktArtesSel=(urlString?String(urlString).split('|'):[]).filter(Boolean);
+  mktArteSubstIdx=null;
+  mktDesenharArtes();
+}
+function mktSyncArteBox(){
+  const fmt=document.getElementById('mp-formato').value;
+  const btn=document.getElementById('mp-arte-btn');
+  const inp=document.getElementById('mp-arte-file');
+  if(!btn||!inp)return;
+  if(fmt==='carrossel'){inp.multiple=true;btn.textContent=mktArtesSel.length?'⬆ Adicionar mais artes':'⬆ Subir artes (pode selecionar várias)';}
+  else{inp.multiple=false;btn.textContent=mktArtesSel.length?'↻ Substituir arte':'⬆ Subir arte';}
+  if(fmt!=='carrossel'&&mktArtesSel.length>1){/* trocou de carrossel p/ formato simples: mantém só a capa */mktArtesSel=[mktArtesSel[0]];}
   const pv=document.getElementById('mp-arte-preview');
-  if(url){pv.style.display='block';pv.innerHTML='<img src="'+url+'"><input type="hidden" id="mp-arte-url" value="'+url+'">';}
-  else{pv.style.display='none';pv.innerHTML='<input type="hidden" id="mp-arte-url" value="">';}
+  if(pv&&pv.style.display==='block')mktDesenharArtesGrid();
+}
+function mktDesenharArtes(){
+  const pv=document.getElementById('mp-arte-preview');
+  if(!mktArtesSel.length){pv.style.display='none';pv.innerHTML='';mktSyncArteBox();return;}
+  pv.style.display='block';
+  mktDesenharArtesGrid();
+  mktSyncArteBox();
+}
+function mktDesenharArtesGrid(){
+  const pv=document.getElementById('mp-arte-preview');
+  const fmt=document.getElementById('mp-formato').value;
+  const carr=fmt==='carrossel';
+  let h='<div class="mkt-artes-grid">';
+  mktArtesSel.forEach((u,i)=>{
+    h+='<div class="mkt-arte-item">'
+      +(carr&&i===0?'<span class="capa-tag">CAPA</span>':'')
+      +'<img src="'+u+'">'
+      +'<div class="acts">'
+      +'<button onclick="mktEscolherArte('+i+')" title="Substituir esta arte">↻</button>'
+      +(carr&&i>0?'<button onclick="mktMoverArte('+i+',-1)" title="Mover para a esquerda">←</button>':'')
+      +(carr&&i<mktArtesSel.length-1?'<button onclick="mktMoverArte('+i+',1)" title="Mover para a direita">→</button>':'')
+      +'<button class="del" onclick="mktRemoverArte('+i+')" title="Remover">✕</button>'
+      +'</div></div>';
+  });
+  h+='</div>';
+  if(carr)h+='<div style="font-size:11px;color:var(--muted);">A primeira imagem é a capa do carrossel. Use ← → para reordenar.</div>';
+  pv.innerHTML=h;
+}
+function mktEscolherArte(idx){
+  mktArteSubstIdx=idx;
+  const inp=document.getElementById('mp-arte-file');
+  inp.multiple=(idx===null&&document.getElementById('mp-formato').value==='carrossel');
+  inp.click();
+}
+function mktMoverArte(i,dir){
+  const j=i+dir;if(j<0||j>=mktArtesSel.length)return;
+  const t=mktArtesSel[i];mktArtesSel[i]=mktArtesSel[j];mktArtesSel[j]=t;
+  mktDesenharArtes();
+}
+function mktRemoverArte(i){
+  if(!confirm('Remover esta arte?'))return;
+  mktArtesSel.splice(i,1);mktDesenharArtes();
 }
 async function mktUploadArte(input){
-  const file=input.files[0];if(!file)return;
-  if(file.size>20*1024*1024){alert('Máximo 20MB.');return;}
+  const files=Array.from(input.files||[]);if(!files.length)return;
+  for(const f of files){
+    if(f.size>20*1024*1024){alert('Máximo 20MB por arquivo ("'+f.name+'" excedeu).');input.value='';mktArteSubstIdx=null;return;}
+  }
   const st=document.getElementById('mp-arte-status');
-  st.textContent='Enviando…';st.style.color='var(--muted)';
-  const ext=file.name.split('.').pop()||'jpg';
-  const nome='mkt_arte_'+Date.now()+'.'+ext;
+  st.style.color='var(--muted)';
+  const fmt=document.getElementById('mp-formato').value;
+  const subst=mktArteSubstIdx;mktArteSubstIdx=null;
+  const urls=[];
   try{
-    const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});
-    if(!r.ok)throw new Error(await r.text());
-    const url=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
-    mktRenderArte(url);
+    for(let i=0;i<files.length;i++){
+      st.textContent='Enviando '+(i+1)+' de '+files.length+'…';
+      const file=files[i];
+      const ext=file.name.split('.').pop()||'jpg';
+      const nome='mkt_arte_'+Date.now()+'_'+i+'.'+ext;
+      const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},body:file});
+      if(!r.ok)throw new Error(await r.text());
+      urls.push(SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome);
+    }
+    if(subst!==null&&subst>=0&&subst<mktArtesSel.length){mktArtesSel[subst]=urls[0];}
+    else if(fmt==='carrossel'){mktArtesSel=mktArtesSel.concat(urls);}
+    else{mktArtesSel=[urls[0]];}
+    mktDesenharArtes();
     if(['a_criar','em_criacao','refazer'].includes(mktStatusSel)){mktStatusSel='aguardando';mktRenderStatusChips();}
-    st.textContent='✓ Arte enviada! Status movido para "Aguardando aprovação".';st.style.color='#16a34a';
+    st.textContent='✓ '+(urls.length>1?urls.length+' artes enviadas!':(subst!==null?'Arte substituída!':'Arte enviada!'))+' Status: "Aguardando aprovação".';st.style.color='#16a34a';
   }catch(e){st.textContent='Erro no upload.';st.style.color='#dc2626';console.error(e);}
   input.value='';
 }
@@ -4307,7 +4378,6 @@ async function mktSalvarPost(){
   if(!titulo||!data||!evId){alert('Preencha evento, título e data.');return;}
   if(!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
   const tipo=document.getElementById('mp-tipo').value;
-  const arteEl=document.getElementById('mp-arte-url');
   try{
     await rpc('mkt_post_salvar',{
       p_id:mktPostAtual?mktPostAtual.id:null,
@@ -4321,7 +4391,7 @@ async function mktSalvarPost(){
       p_hora:document.getElementById('mp-hora').value||null,
       p_briefing:document.getElementById('mp-briefing').value.trim()||null,
       p_status:mktStatusSel,
-      p_arte_url:(arteEl&&arteEl.value)?arteEl.value:null,
+      p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
       p_comentario:document.getElementById('mp-comentario').value.trim()||null
     });
     mktFecharPost();
@@ -4700,25 +4770,6 @@ async function mktSalvarPat(){
         </div>
       </div>
 
-      <!-- TELA: DESIGNER -->
-      <div class="inner-screen" id="screen-designer" style="padding:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
-            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">JBX HUB CRIATIVO</span>
-            <span style="font-size:11px;color:var(--muted);">— ao vivo</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="document.getElementById('designer-frame').src=document.getElementById('designer-frame').src"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
-              ⟳ Atualizar</button>
-            <a href="https://infinitystamp.github.io/JBX-HUB-CRIATIVO/" target="_blank"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
-              ↗ Abrir</a>
-          </div>
-        </div>
-        <iframe id="designer-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
-      </div>
 
       <!-- TELA: SOCIAL MEDIA — CALENDÁRIO MKT -->
       <div class="inner-screen" id="screen-social">
@@ -4825,7 +4876,7 @@ async function mktSalvarPat(){
       <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data"></div>
       <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora"></div>
       <div class="mkt-fg"><label>Formato *</label>
-        <select id="mp-formato">
+        <select id="mp-formato" onchange="mktSyncArteBox()">
           <option value="story">📱 Story</option>
           <option value="post" selected>🖼️ Post</option>
           <option value="carrossel">🧩 Carrossel</option>
@@ -4840,7 +4891,7 @@ async function mktSalvarPat(){
       <div class="mkt-arte-box" id="mp-arte-box">
         <div id="mp-arte-preview" style="display:none;"></div>
         <input type="file" id="mp-arte-file" accept="image/*" style="display:none;" onchange="mktUploadArte(this)">
-        <button class="mkt-btn sm" onclick="document.getElementById('mp-arte-file').click()">⬆ Subir arte</button>
+        <button class="mkt-btn sm" id="mp-arte-btn" onclick="mktEscolherArte(null)">⬆ Subir arte</button>
         <div id="mp-arte-status" style="font-size:12px;color:var(--muted);margin-top:8px;"></div>
       </div>
     </div>
