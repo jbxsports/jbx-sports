@@ -609,6 +609,12 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mtl-vazio{padding:60px 20px;text-align:center;color:var(--mtl-muted);font-size:14px;}
 @media(prefers-reduced-motion:reduce){.mtl-hoje::after{animation:none;}}
 @media(max-width:900px){.mtl{--mtl-lb:120px;}.mtl-lane-nome{font-size:11px;}.mtl-lane-sub{display:none;}}
+/* Toda impressão do admin sai em paisagem por padrão (inclusive Ctrl+P) */
+@media print{
+  @page{size:A4 landscape;margin:8mm;}
+  body{background:#fff!important;}
+  *{box-shadow:none!important;text-shadow:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 .mkt-ob-row{display:grid;grid-template-columns:22px 1fr 150px;gap:8px;align-items:center;margin-bottom:6px;}
 .mkt-ob-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--orange);cursor:pointer;}
 .mkt-ob-row input[type=text],.mkt-ob-row input[type=date]{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:8px 10px;width:100%;}
