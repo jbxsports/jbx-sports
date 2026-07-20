@@ -3744,6 +3744,14 @@ let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
 let mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
 let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
 let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
+let mktPerfisEvSel=['jbx'];
+let mktPerfisPadrao={eventos:{},pats:{}};
+function mktPerfisDe(evId,patId){
+  let v=null;
+  if(patId&&mktPerfisPadrao.pats[patId])v=mktPerfisPadrao.pats[patId];
+  else if(evId&&mktPerfisPadrao.eventos[evId])v=mktPerfisPadrao.eventos[evId];
+  return (v||'jbx').split(',').filter(Boolean);
+}
 
 function mktInit(){
   if(mktData){mktRender();return;}
@@ -3754,6 +3762,12 @@ async function mktRecarregar(){
   try{
     const d=await rpc('mkt_dados');
     mktData={eventos:d.eventos||[],pats:d.patrocinadores||[],posts:d.posts||[]};
+    try{
+      const pp=await rpc('mkt_perfis_padrao');
+      mktPerfisPadrao={eventos:{},pats:{}};
+      (pp&&pp.eventos||[]).forEach(x=>{if(x.perfis)mktPerfisPadrao.eventos[x.id]=x.perfis;});
+      (pp&&pp.pats||[]).forEach(x=>{if(x.perfis)mktPerfisPadrao.pats[x.id]=x.perfis;});
+    }catch(e){console.warn('mkt_perfis_padrao indisponível (rode a migration).');}
     mktMontarFiltros(); mktMontarFeedBtns(); mktRender();
   }catch(e){
     console.error(e);
@@ -4232,11 +4246,11 @@ function mktAbrirPost(id,dataPre){
   document.getElementById('mp-tipo').value=p?p.tipo:'obrigatorio';
   document.getElementById('mp-titulo').value=p?p.titulo:'';
   document.getElementById('mp-data').value=p?p.data_post:(dataPre||mktHojeISO());
-  document.getElementById('mp-hora').value=p&&p.hora?p.hora.slice(0,5):'';
+  document.getElementById('mp-hora').value=p&&p.hora?p.hora.slice(0,5):'12:00';
   document.getElementById('mp-formato').value=p?p.formato:'post';
   document.getElementById('mp-briefing').value=p&&p.briefing?p.briefing:'';
   document.getElementById('mp-comentario').value=p&&p.comentario?p.comentario:'';
-  mktPerfisSel=p?(p.perfis||'jbx').split(',').filter(Boolean):['jbx'];
+  mktPerfisSel=p?(p.perfis||'jbx').split(',').filter(Boolean):mktPerfisDe(document.getElementById('mp-evento').value,null);
   mktStatusSel=p?p.status:'a_criar';
   mktRenderPerfisChips(); mktRenderStatusChips();
   mktSyncTipoPat(); mktSyncPatSelect(p?p.patrocinador_id:null);
@@ -4271,6 +4285,17 @@ function mktRenderStatusChips(){
 function mktSetStatusChip(id){
   mktStatusSel=id;mktRenderStatusChips();
   document.getElementById('mp-aprovacao').style.display=(id==='aguardando'&&mktPostAtual)?'flex':'none';
+}
+function mktPostEventoChange(){
+  if(mktPostAtual)return;
+  mktPerfisSel=mktPerfisDe(document.getElementById('mp-evento').value,null);
+  mktRenderPerfisChips();
+}
+function mktPostPatChange(){
+  if(mktPostAtual)return;
+  const patId=document.getElementById('mp-pat').value;
+  mktPerfisSel=mktPerfisDe(document.getElementById('mp-evento').value,patId||null);
+  mktRenderPerfisChips();
 }
 function mktSyncTipoPat(){
   const t=document.getElementById('mp-tipo').value;
@@ -4388,7 +4413,7 @@ async function mktSalvarPost(){
       p_formato:document.getElementById('mp-formato').value,
       p_perfis:mktPerfisSel.join(','),
       p_data_post:data,
-      p_hora:document.getElementById('mp-hora').value||null,
+      p_hora:document.getElementById('mp-hora').value||'12:00',
       p_briefing:document.getElementById('mp-briefing').value.trim()||null,
       p_status:mktStatusSel,
       p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
@@ -4427,6 +4452,8 @@ function mktAbrirEvento(id){
   document.getElementById('me-data').value=e&&e.data_prova?e.data_prova:'';
   mktCorSel=e?e.cor:MKT_CORES[(mktData&&mktData.eventos.length||0)%MKT_CORES.length];
   mktRenderCores();
+  mktPerfisEvSel=e?mktPerfisDe(e.id,null):['jbx'];
+  mktRenderPerfisEv();
   mktObrigRows=e?[]:MKT_OBRIG.map(o=>({titulo:o.t,off:o.d,on:true,data:''}));
   document.getElementById('me-obrig-wrap').style.display=e?'none':'block';
   mktRenderObrig();
@@ -4466,6 +4493,7 @@ function mktAddObrig(){
 async function mktSalvarEvento(){
   const nome=document.getElementById('me-nome').value.trim();
   if(!nome){alert('Informe o nome do evento.');return;}
+  if(!mktPerfisEvSel.length){alert('Selecione ao menos um @ padrão para os conteúdos.');return;}
   const dataProva=document.getElementById('me-data').value||null;
   let marcados=[];
   if(!mktEvAtual){
@@ -4475,8 +4503,9 @@ async function mktSalvarEvento(){
   }
   try{
     const novoId=await rpc('mkt_evento_salvar',{p_id:mktEvAtual?mktEvAtual.id:null,p_nome:nome,p_cor:mktCorSel,p_data_prova:dataProva});
+    try{await rpc('mkt_perfis_padrao_salvar',{p_tipo:'evento',p_id:String(novoId),p_perfis:mktPerfisEvSel.join(',')});}catch(e){console.warn('perfis padrão não salvos (rode a migration).');}
     if(!mktEvAtual&&marcados.length){
-      const itens=marcados.map(r=>({evento_id:novoId,titulo:r.titulo.trim()+' — '+nome,tipo:'obrigatorio',formato:'post',perfis:'jbx',data_post:r.data}));
+      const itens=marcados.map(r=>({evento_id:novoId,titulo:r.titulo.trim()+' — '+nome,tipo:'obrigatorio',formato:'post',perfis:mktPerfisEvSel.join(','),data_post:r.data,hora:'12:00'}));
       await rpc('mkt_posts_gerar',{p_itens:itens});
     }
     mktFecharEvento();
@@ -4512,7 +4541,8 @@ function mktAbrirPat(id){
   document.getElementById('mpa-reels').value=p?p.qtd_reels:0;
   document.getElementById('mpa-obs').value=p&&p.obs?p.obs:'';
   document.getElementById('mpa-excluir').style.display=p?'block':'none';
-  mktPerfisPatSel=['jbx'];
+  const evIniPat=p?p.evento_id:(mktFiltro.evento||mktData.eventos[0].id);
+  mktPerfisPatSel=p?mktPerfisDe(p.evento_id,p.id):mktPerfisDe(evIniPat,null);
   mktRenderPerfisPat();
   mktRenderSaldo();
   mktRenderPatExistentes();
@@ -4565,6 +4595,23 @@ async function mktExcluirPat(){
   catch(e){alert('Erro: '+e.message);}
 }
 let mktPerfisPatSel=['jbx'];
+function mktRenderPerfisEv(){
+  let h='';
+  MKT_PERFIS.forEach(pf=>{
+    h+='<button class="mkt-chip'+(mktPerfisEvSel.includes(pf.id)?' on':'')+'" onclick="mktTogglePerfilEv(\''+pf.id+'\')">'+pf.label+'</button>';
+  });
+  document.getElementById('me-perfis').innerHTML=h;
+}
+function mktTogglePerfilEv(id){
+  if(mktPerfisEvSel.includes(id))mktPerfisEvSel=mktPerfisEvSel.filter(x=>x!==id);
+  else mktPerfisEvSel.push(id);
+  mktRenderPerfisEv();
+}
+function mktPatEventoChange(){
+  if(mktPatAtual)return;
+  mktPerfisPatSel=mktPerfisDe(document.getElementById('mpa-evento').value,null);
+  mktRenderPerfisPat();
+}
 function mktRenderPerfisPat(){
   let h='';
   MKT_PERFIS.forEach(pf=>{
@@ -4631,11 +4678,12 @@ async function mktSalvarPat(){
       p_reels:parseInt(document.getElementById('mpa-reels').value)||0,
       p_obs:document.getElementById('mpa-obs').value.trim()||null
     });
+    try{await rpc('mkt_perfis_padrao_salvar',{p_tipo:'pat',p_id:String(patId),p_perfis:mktPerfisPatSel.join(',')});}catch(e){console.warn('perfis padrão não salvos (rode a migration).');}
     if(rows.length){
       const itens=rows.map(r=>({
         evento_id:evId,patrocinador_id:patId,
         titulo:nome+' — '+r.dataset.label,
-        tipo:'patrocinador',formato:r.dataset.formato,perfis:mktPerfisPatSel.join(','),data_post:r.value
+        tipo:'patrocinador',formato:r.dataset.formato,perfis:mktPerfisPatSel.join(','),data_post:r.value,hora:'12:00'
       }));
       await rpc('mkt_posts_gerar',{p_itens:itens});
     }
@@ -4861,7 +4909,7 @@ async function mktSalvarPat(){
   <div class="mkt-modal">
     <h3 id="mkt-post-title">Novo conteúdo</h3>
     <div class="mkt-row2">
-      <div class="mkt-fg"><label>Evento *</label><select id="mp-evento" onchange="mktSyncPatSelect()"></select></div>
+      <div class="mkt-fg"><label>Evento *</label><select id="mp-evento" onchange="mktSyncPatSelect();mktPostEventoChange()"></select></div>
       <div class="mkt-fg"><label>Tipo *</label>
         <select id="mp-tipo" onchange="mktSyncTipoPat()">
           <option value="obrigatorio">Obrigatório</option>
@@ -4870,7 +4918,7 @@ async function mktSalvarPat(){
         </select>
       </div>
     </div>
-    <div class="mkt-fg" id="mp-pat-wrap" style="display:none;"><label>Patrocinador</label><select id="mp-pat"></select></div>
+    <div class="mkt-fg" id="mp-pat-wrap" style="display:none;"><label>Patrocinador</label><select id="mp-pat" onchange="mktPostPatChange()"></select></div>
     <div class="mkt-fg"><label>Título *</label><input type="text" id="mp-titulo" placeholder="Ex: Save the Date — Night Run"></div>
     <div class="mkt-row3">
       <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data"></div>
@@ -4921,6 +4969,9 @@ async function mktSalvarPat(){
       <div class="mkt-fg"><label>Data da prova</label><input type="date" id="me-data" onchange="mktObrigDataProva()"></div>
       <div class="mkt-fg"><label>Cor *</label><div class="mkt-cores" id="me-cores"></div></div>
     </div>
+    <div class="mkt-fg"><label>@ padrão dos conteúdos deste evento *</label><div class="mkt-chips" id="me-perfis"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Todo conteúdo criado para este evento já sai com esses perfis selecionados.</div>
+    </div>
     <div id="me-obrig-wrap">
       <div class="mkt-pac-hd">Conteúdos obrigatórios — marque os que quer e defina a data de cada um</div>
       <div class="mkt-pac-box" id="me-obrig-list"></div>
@@ -4966,7 +5017,7 @@ async function mktSalvarPat(){
     <h3 id="mkt-pat-title">Novo patrocinador</h3>
     <div id="mkt-pat-saldo" class="mkt-saldo" style="display:none;"></div>
     <div class="mkt-row2">
-      <div class="mkt-fg"><label>Evento *</label><select id="mpa-evento" onchange="mktRenderDatasPacote()"></select></div>
+      <div class="mkt-fg"><label>Evento *</label><select id="mpa-evento" onchange="mktRenderDatasPacote();mktPatEventoChange()"></select></div>
       <div class="mkt-fg"><label>Nome do patrocinador *</label><input type="text" id="mpa-nome" placeholder="Ex: Savegnago"></div>
     </div>
     <label style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;">Pacote contratado</label>
