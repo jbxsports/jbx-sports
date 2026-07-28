@@ -318,6 +318,35 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .prz-head-del{background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);opacity:.5;padding:0 2px;}
   .prz-head-del:hover{opacity:1;color:#dc2626;}
 
+  /* Tarefas */
+  .tz-toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .tz-input{flex:1;max-width:360px;min-width:220px;font-family:'Ubuntu',sans-serif;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);}
+  .tz-input:focus{outline:none;border-color:var(--orange);}
+  .tz-btn-add{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:8px 16px;cursor:pointer;}
+  .tz-btn-add:hover{background:var(--orange-dark);}
+  .tz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;align-items:start;}
+  .tz-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+  .tz-card-hd{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .tz-card-hd h4{font-size:13px;font-weight:700;flex:1;cursor:pointer;}
+  .tz-count{font-size:11px;color:var(--muted);white-space:nowrap;}
+  .tz-del-grupo{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);opacity:.5;padding:2px 4px;}
+  .tz-del-grupo:hover{opacity:1;color:#dc2626;}
+  .tz-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed rgba(42,37,32,0.07);}
+  .tz-item:last-of-type{border-bottom:none;}
+  .tz-item input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;flex:none;}
+  .tz-desc{flex:1;font-size:13px;line-height:1.35;cursor:pointer;}
+  .tz-done .tz-desc{text-decoration:line-through;color:var(--muted);}
+  .tz-resp{font-family:'Ubuntu',sans-serif;font-size:10px;font-weight:700;border:none;border-radius:20px;padding:3px 8px;cursor:pointer;color:#fff;appearance:none;-webkit-appearance:none;text-align:center;flex:none;}
+  .tz-resp option{color:var(--text);background:#fff;font-weight:400;}
+  .tz-del-item{background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);opacity:.4;flex:none;padding:2px 4px;}
+  .tz-del-item:hover{opacity:1;color:#dc2626;}
+  .tz-add-row{display:flex;gap:6px;margin-top:10px;}
+  .tz-add-row input{flex:1;min-width:0;font-family:'Ubuntu',sans-serif;font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:#faf9f7;color:var(--text);}
+  .tz-add-row input:focus{outline:none;border-color:var(--orange);background:#fff;}
+  .tz-add-row select{font-family:'Ubuntu',sans-serif;font-size:11px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);padding:0 6px;}
+  .tz-add-row button{font-family:'Ubuntu',sans-serif;font-size:14px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:none;border-radius:7px;padding:0 12px;cursor:pointer;}
+  .tz-add-row button:hover{background:rgba(255,117,31,.2);}
+
   /* Resumido */
   .cal-resumido-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
   @media(max-width:1000px){.cal-resumido-grid{grid-template-columns:repeat(2,1fr);}}
@@ -3524,6 +3553,153 @@ function calBuildPrazos(){
 
 function przRefresh(){ document.getElementById('cal-pane-prazos').innerHTML=calBuildPrazos(); }
 
+// ── TAREFAS (checklist com responsável) ──
+let _tzData=[];
+const TZ_RESP=['Stephano','Monique','Gui','Equipe'];
+const TZ_CORES={'Stephano':'#ff751f','Monique':'#c026d3','Gui':'#2563eb','Equipe':'#16a34a'};
+
+function tzEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+async function calTarefasInit(){
+  const pane=document.getElementById('cal-pane-tarefas');
+  pane.innerHTML='<div class="empty-state">Carregando tarefas…</div>';
+  try{
+    _tzData=await rpc('admin_tarefas_listar')||[];
+    tzRender();
+  }catch(e){
+    console.error(e);
+    pane.innerHTML='<div class="empty-state">Erro ao carregar tarefas. Confira se a migração 01_tarefas_calendario.sql foi executada no Supabase.</div>';
+  }
+}
+
+function tzRespSelect(gid,tid,atual){
+  const cor=atual?(TZ_CORES[atual]||'#7a7068'):'#b8b2aa';
+  let s='<select class="tz-resp" style="background:'+cor+';" onchange="tzSetResp(\''+gid+'\',\''+tid+'\',this.value)">';
+  s+='<option value=""'+(atual?'':' selected')+'>—</option>';
+  for(const r of TZ_RESP){ s+='<option value="'+r+'"'+(atual===r?' selected':'')+'>'+r+'</option>'; }
+  s+='</select>';
+  return s;
+}
+
+function tzRender(){
+  const pane=document.getElementById('cal-pane-tarefas');
+  let html='<div class="tz-toolbar">';
+  html+='<input id="tz-novo-grupo" class="tz-input" placeholder="Novo grupo (ex: 16/08 Aero Franca)" onkeydown="if(event.key===\'Enter\')tzAddGrupo()">';
+  html+='<button class="tz-btn-add" onclick="tzAddGrupo()">＋ Grupo</button>';
+  html+='</div>';
+  if(!_tzData.length){
+    html+='<div class="empty-state">Nenhum grupo de tarefas. Crie o primeiro acima.</div>';
+    pane.innerHTML=html; return;
+  }
+  html+='<div class="tz-grid">';
+  const grupos=[..._tzData].sort((a,b)=>(a.ordem||0)-(b.ordem||0));
+  for(const g of grupos){
+    const tarefas=[...(g.tarefas||[])].sort((a,b)=>(a.concluida-b.concluida)||((a.ordem||0)-(b.ordem||0)));
+    const feitas=tarefas.filter(t=>t.concluida).length;
+    html+='<div class="tz-card">';
+    html+='<div class="tz-card-hd">';
+    html+='<h4 ondblclick="tzRenameGrupo(\''+g.id+'\')" title="Duplo clique para renomear">'+tzEsc(g.titulo)+'</h4>';
+    html+='<span class="tz-count">'+feitas+'/'+tarefas.length+'</span>';
+    html+='<button class="tz-del-grupo" onclick="tzDelGrupo(\''+g.id+'\')" title="Excluir grupo">✕</button>';
+    html+='</div>';
+    for(const t of tarefas){
+      html+='<div class="tz-item'+(t.concluida?' tz-done':'')+'">';
+      html+='<input type="checkbox"'+(t.concluida?' checked':'')+' onchange="tzToggle(\''+t.id+'\')">';
+      html+='<span class="tz-desc" ondblclick="tzEditItem(\''+g.id+'\',\''+t.id+'\')" title="Duplo clique para editar">'+tzEsc(t.descricao)+'</span>';
+      html+=tzRespSelect(g.id,t.id,t.responsavel);
+      html+='<button class="tz-del-item" onclick="tzDelItem(\''+g.id+'\',\''+t.id+'\')" title="Excluir tarefa">✕</button>';
+      html+='</div>';
+    }
+    html+='<div class="tz-add-row">';
+    html+='<input id="tz-novo-'+g.id+'" placeholder="Nova tarefa…" onkeydown="if(event.key===\'Enter\')tzAddItem(\''+g.id+'\')">';
+    let selNovo='<select id="tz-resp-novo-'+g.id+'"><option value="">—</option>';
+    for(const r of TZ_RESP){ selNovo+='<option value="'+r+'">'+r+'</option>'; }
+    selNovo+='</select>';
+    html+=selNovo;
+    html+='<button onclick="tzAddItem(\''+g.id+'\')" title="Adicionar">＋</button>';
+    html+='</div>';
+    html+='</div>';
+  }
+  html+='</div>';
+  pane.innerHTML=html;
+}
+
+async function tzAddGrupo(){
+  const inp=document.getElementById('tz-novo-grupo');
+  const v=inp.value.trim(); if(!v)return;
+  const ordem=(_tzData.length?Math.max(..._tzData.map(g=>g.ordem||0)):0)+1;
+  try{ await rpc('admin_tarefas_grupo_salvar',{p_id:null,p_titulo:v,p_ordem:ordem}); await calTarefasInit(); }
+  catch(e){ console.error(e); alert('Erro ao criar grupo.'); }
+}
+
+async function tzRenameGrupo(gid){
+  const g=_tzData.find(x=>x.id===gid); if(!g)return;
+  const v=prompt('Título do grupo:',g.titulo);
+  if(v===null||!v.trim())return;
+  try{ await rpc('admin_tarefas_grupo_salvar',{p_id:gid,p_titulo:v.trim(),p_ordem:g.ordem||0}); g.titulo=v.trim(); tzRender(); }
+  catch(e){ console.error(e); alert('Erro ao renomear grupo.'); }
+}
+
+async function tzDelGrupo(gid){
+  const g=_tzData.find(x=>x.id===gid); if(!g)return;
+  if(!confirm('Excluir o grupo "'+g.titulo+'" e todas as suas tarefas?'))return;
+  try{ await rpc('admin_tarefas_grupo_excluir',{p_id:gid}); _tzData=_tzData.filter(x=>x.id!==gid); tzRender(); }
+  catch(e){ console.error(e); alert('Erro ao excluir grupo.'); }
+}
+
+async function tzAddItem(gid){
+  const inp=document.getElementById('tz-novo-'+gid);
+  const sel=document.getElementById('tz-resp-novo-'+gid);
+  const v=inp.value.trim(); if(!v)return;
+  const g=_tzData.find(x=>x.id===gid); if(!g)return;
+  const ordem=((g.tarefas&&g.tarefas.length)?Math.max(...g.tarefas.map(t=>t.ordem||0)):0)+1;
+  try{
+    await rpc('admin_tarefas_salvar',{p_id:null,p_grupo_id:gid,p_descricao:v,p_responsavel:sel.value||null,p_ordem:ordem});
+    await calTarefasInit();
+  }catch(e){ console.error(e); alert('Erro ao adicionar tarefa.'); }
+}
+
+async function tzEditItem(gid,tid){
+  const g=_tzData.find(x=>x.id===gid); if(!g)return;
+  const t=(g.tarefas||[]).find(x=>x.id===tid); if(!t)return;
+  const v=prompt('Editar tarefa:',t.descricao);
+  if(v===null||!v.trim())return;
+  try{
+    await rpc('admin_tarefas_salvar',{p_id:tid,p_grupo_id:gid,p_descricao:v.trim(),p_responsavel:t.responsavel||null,p_ordem:t.ordem||0});
+    t.descricao=v.trim(); tzRender();
+  }catch(e){ console.error(e); alert('Erro ao editar tarefa.'); }
+}
+
+async function tzSetResp(gid,tid,val){
+  const g=_tzData.find(x=>x.id===gid); if(!g)return;
+  const t=(g.tarefas||[]).find(x=>x.id===tid); if(!t)return;
+  try{
+    await rpc('admin_tarefas_salvar',{p_id:tid,p_grupo_id:gid,p_descricao:t.descricao,p_responsavel:val||null,p_ordem:t.ordem||0});
+    t.responsavel=val||null; tzRender();
+  }catch(e){ console.error(e); alert('Erro ao definir responsável.'); }
+}
+
+async function tzToggle(tid){
+  try{
+    const nova=await rpc('admin_tarefas_toggle',{p_id:tid});
+    for(const g of _tzData){
+      const t=(g.tarefas||[]).find(x=>x.id===tid);
+      if(t){ t.concluida=nova; break; }
+    }
+    tzRender();
+  }catch(e){ console.error(e); alert('Erro ao atualizar tarefa.'); }
+}
+
+async function tzDelItem(gid,tid){
+  if(!confirm('Excluir esta tarefa?'))return;
+  try{
+    await rpc('admin_tarefas_excluir',{p_id:tid});
+    const g=_tzData.find(x=>x.id===gid);
+    if(g) g.tarefas=(g.tarefas||[]).filter(t=>t.id!==tid);
+    tzRender();
+  }catch(e){ console.error(e); alert('Erro ao excluir tarefa.'); }
+}
+
 async function przToggleFeito(evId,assId){
   const k=evId+'|'+assId;
   const st=_przStatus[k]||(_przStatus[k]={calendario_id:evId,assunto_id:assId,dias_antes:null,feito:false});
@@ -3597,7 +3773,7 @@ function calUpdateStats(){
 
 function calSetView(view){
   document.querySelectorAll('.cal-view-btn[data-view]').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
-  ['lista','resumido','prazos','completo'].forEach(v=>{
+  ['lista','resumido','prazos','tarefas','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
   document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
@@ -3610,6 +3786,7 @@ function calSetView(view){
     _calBuilt.resumido=true; _calBuilt.resumidoAno=_calYear;
   }
   if(view==='prazos'){ calPrazosInit(); } // sempre reconstruir (barato; mantém em sincronia com edições de datas)
+  if(view==='tarefas'){ calTarefasInit(); }
   calUpdateStats(); // atualiza stats em qualquer view
 }
 
@@ -4983,6 +5160,7 @@ async function mktSalvarPat(){
           <button class="cal-view-btn" data-view="lista" onclick="calSetView('lista')">Lista</button>
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
           <button class="cal-view-btn" data-view="prazos" onclick="calSetView('prazos')">Prazos</button>
+          <button class="cal-view-btn" data-view="tarefas" onclick="calSetView('tarefas')">Tarefas</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
           <span id="cal-save-ind" style="align-self:center;font-size:11px;font-weight:600;margin-left:auto;"></span>
           <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
@@ -4990,6 +5168,7 @@ async function mktSalvarPat(){
         <div id="cal-pane-lista" style="display:none;"></div>
         <div id="cal-pane-resumido" style="display:none;"></div>
         <div id="cal-pane-prazos" style="display:none;"></div>
+        <div id="cal-pane-tarefas" style="display:none;"></div>
         <div id="cal-pane-completo">
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
         </div>
