@@ -1216,9 +1216,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="panel" style="max-width:680px;margin-top:24px;">
           <h2>🖼 Banners do Carrossel — Home</h2>
           <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
-            Imagens do banner principal da home, trocando automaticamente a cada 5 segundos.<br>
-            <b>Desktop:</b> 1920×810px (obrigatória) · <b>Mobile:</b> 1080×1750px (opcional — se não enviar, usa a desktop).
-            Use as setas ↑↓ para mudar a ordem.
+            Imagens <b>ou vídeos</b> do banner principal da home. Imagens ficam 5 segundos; vídeos tocam até o fim (mudos, em loop).<br>
+            <b>Desktop:</b> 1920×810px (obrigatória) · <b>Mobile:</b> 1080×1750px (opcional — se não enviar, usa a desktop).<br>
+            <b>Vídeo:</b> MP4 (H.264) ou WebM, até 150MB. Use as setas ↑↓ para mudar a ordem.
           </p>
           <div id="cfg-banners-list"></div>
           <button type="button" class="btn-ghost" onclick="cfgAddBanner()" style="width:100%;margin-bottom:8px;border:1px dashed var(--orange);color:var(--orange);">➕ Adicionar banner</button>
@@ -2858,14 +2858,39 @@ async function salvarConfiguracoes() {
 }
 
 /* ── BANNERS DO CARROSSEL (home) ── */
+const CFG_VIDEO_RX = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+function cfgEhVideo(url){ return CFG_VIDEO_RX.test(String(url||'')); }
+
+/* upload com barra de progresso (necessário para vídeos grandes) */
+function uploadStorageProgresso(file, nome, onProgresso) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', SB_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + nome);
+    xhr.setRequestHeader('apikey', SB_KEY);
+    xhr.setRequestHeader('Authorization', 'Bearer ' + SB_KEY);
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+    xhr.setRequestHeader('x-upsert', 'true');
+    xhr.upload.onprogress = e => { if (e.lengthComputable && onProgresso) onProgresso(Math.round(e.loaded / e.total * 100)); };
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(xhr.responseText || ('HTTP ' + xhr.status)));
+    xhr.onerror = () => reject(new Error('Falha de rede durante o upload.'));
+    xhr.send(file);
+  });
+}
+
 function renderCfgBanners() {
   const list = document.getElementById('cfg-banners-list');
   list.innerHTML = cfgBanners.map((b, i) => {
+    const estiloD = 'width:200px;aspect-ratio:1920/810;object-fit:cover;border-radius:8px;background:#f0ede8;display:block;';
     const prevD = b.desktop
-      ? `<img src="${b.desktop.replace(/"/g,'&quot;')}" style="width:200px;aspect-ratio:1920/810;object-fit:cover;border-radius:8px;background:#f0ede8;display:block;">`
+      ? (cfgEhVideo(b.desktop)
+          ? '<video src="' + b.desktop.replace(/"/g,'&quot;') + '" muted loop autoplay playsinline style="' + estiloD + '"></video>'
+          : '<img src="' + b.desktop.replace(/"/g,'&quot;') + '" style="' + estiloD + '">')
       : `<div style="width:200px;aspect-ratio:1920/810;border-radius:8px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:22px;">🖼</div>`;
+    const estiloM = 'width:52px;aspect-ratio:1080/1750;object-fit:cover;border-radius:6px;background:#f0ede8;display:block;';
     const prevM = b.mobile
-      ? `<img src="${b.mobile.replace(/"/g,'&quot;')}" style="width:52px;aspect-ratio:1080/1750;object-fit:cover;border-radius:6px;background:#f0ede8;display:block;">`
+      ? (cfgEhVideo(b.mobile)
+          ? '<video src="' + b.mobile.replace(/"/g,'&quot;') + '" muted loop autoplay playsinline style="' + estiloM + '"></video>'
+          : '<img src="' + b.mobile.replace(/"/g,'&quot;') + '" style="' + estiloM + '">')
       : `<div style="width:52px;aspect-ratio:1080/1750;border-radius:6px;background:#f0ede8;display:flex;align-items:center;justify-content:center;font-size:14px;">📱</div>`;
     return `<div class="form-g" style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -2881,15 +2906,16 @@ function renderCfgBanners() {
           ${prevD}
           <div class="upload-row" style="margin-top:6px;">
             <button type="button" class="btn-upload" onclick="document.getElementById('cfg-bfile-d-${i}').click()">🖥 ${b.desktop?'Trocar desktop':'Enviar desktop'}</button>
+            <span style="font-size:10px;color:var(--muted);display:block;margin-top:3px;">imagem ou vídeo</span>
           </div>
-          <input type="file" id="cfg-bfile-d-${i}" accept="image/*" style="display:none;" onchange="uploadBannerHome(${i},'desktop',this)">
+          <input type="file" id="cfg-bfile-d-${i}" accept="image/*,video/mp4,video/webm,video/quicktime" style="display:none;" onchange="uploadBannerHome(${i},'desktop',this)">
         </div>
         <div>
           ${prevM}
           <div class="upload-row" style="margin-top:6px;">
             <button type="button" class="btn-upload" onclick="document.getElementById('cfg-bfile-m-${i}').click()">📱 ${b.mobile?'Trocar':'Mobile'}</button>
           </div>
-          <input type="file" id="cfg-bfile-m-${i}" accept="image/*" style="display:none;" onchange="uploadBannerHome(${i},'mobile',this)">
+          <input type="file" id="cfg-bfile-m-${i}" accept="image/*,video/mp4,video/webm,video/quicktime" style="display:none;" onchange="uploadBannerHome(${i},'mobile',this)">
         </div>
         <span id="cfg-bstatus-${i}" style="font-size:12px;color:var(--muted);align-self:center;flex:1;"></span>
       </div>
@@ -2920,25 +2946,31 @@ function cfgMoveBanner(i, dir) {
 async function uploadBannerHome(i, tipo, input) {
   const file = input.files[0];
   if (!file) return;
-  if (file.size > 10 * 1024 * 1024) { alert('Máximo 10MB por imagem.'); input.value=''; return; }
+  const ehVideo = (file.type || '').startsWith('video/') || cfgEhVideo(file.name);
+  const limite = ehVideo ? 150 : 10;
+  if (file.size > limite * 1024 * 1024) {
+    alert(ehVideo ? 'Máximo 150MB por vídeo.' : 'Máximo 10MB por imagem.');
+    input.value = ''; return;
+  }
   const st = document.getElementById('cfg-bstatus-'+i);
-  if (st) { st.textContent = 'Enviando…'; st.style.color = 'var(--muted)'; }
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const setStatus = (txt, cor) => {
+    const el = document.getElementById('cfg-bstatus-'+i);
+    if (el) { el.textContent = txt; el.style.color = cor || 'var(--muted)'; }
+  };
+  const mb = (file.size / 1048576).toFixed(1);
+  setStatus('Enviando… 0% (' + mb + 'MB)');
+  const ext = (file.name.split('.').pop() || (ehVideo ? 'mp4' : 'jpg')).toLowerCase();
   const nome = 'banner_home_' + Date.now() + '_' + i + '_' + tipo + '.' + ext;
   try {
-    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true' },
-      body: file
-    });
-    if (!r.ok) throw new Error(await r.text());
+    await uploadStorageProgresso(file, nome, p => setStatus('Enviando… ' + p + '% (' + mb + 'MB)'));
     cfgBanners[i][tipo] = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
     renderCfgBanners();
-    const st2 = document.getElementById('cfg-bstatus-'+i);
-    if (st2) { st2.textContent = '✓ Imagem enviada! Clique em Salvar configurações.'; st2.style.color = '#22c55e'; }
+    setStatus(ehVideo ? '✓ Vídeo enviado! Clique em Salvar configurações.' : '✓ Imagem enviada! Clique em Salvar configurações.', '#22c55e');
   } catch(e) {
-    const st2 = document.getElementById('cfg-bstatus-'+i);
-    if (st2) { st2.textContent = 'Erro no upload.'; st2.style.color = '#ff6b6b'; }
+    const msg = String(e && e.message || '');
+    setStatus(/exceeded|maximum|size/i.test(msg)
+      ? 'Arquivo maior que o limite do Storage. Aumente o limite em Supabase → Storage → Settings.'
+      : 'Erro no upload.', '#ff6b6b');
     console.error(e);
   }
   input.value = '';
