@@ -89,6 +89,7 @@
     opacity: 0; transition: opacity 1s ease;
   }
   .hero-slide.ativo { opacity: 1; }
+  .hero-slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
   #hero-dots {
     position: absolute; bottom: 16px; left: 0; right: 0;
     display: flex; justify-content: center; gap: 8px; z-index: 2;
@@ -2701,10 +2702,13 @@ function reelsScroll(dir) {
   inner.scrollBy({ left: dir * passo, behavior: 'smooth' });
 }
 
-// ── CARROSSEL DE BANNERS DO HERO ──────────────────
+// ── CARROSSEL DE BANNERS DO HERO (imagens + vídeos) ──────────────────
+const HERO_VIDEO_RX = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+function heroEhVideo(url) { return HERO_VIDEO_RX.test(String(url || '')); }
+
 function renderHeroBanners(dados) {
   const banners = Array.isArray(dados.banners) ? dados.banners.filter(b => b && b.desktop) : [];
-  if (!banners.length) return; // sem banners → mantém o vídeo
+  if (!banners.length) return; // sem banners → mantém o vídeo padrão
   const hero = document.getElementById('hero');
   if (!hero || document.getElementById('hero-slides')) return;
 
@@ -2712,31 +2716,86 @@ function renderHeroBanners(dados) {
   if (vid) { try { vid.pause(); } catch(e){} vid.style.display = 'none'; }
 
   const isMob = window.innerWidth <= 768;
-  const urlDe = b => ((isMob && b.mobile) ? b.mobile : b.desktop).replace(/'/g, "%27");
+  const urlDe = b => String((isMob && b.mobile) ? b.mobile : b.desktop).replace(/'/g, '%27');
 
   const slides = document.createElement('div');
   slides.id = 'hero-slides';
   slides.style.cssText = 'position:absolute;inset:0;z-index:0;';
-  slides.innerHTML = banners.map((b, i) =>
-    `<div class="hero-slide${i===0?' ativo':''}" style="background-image:url('${urlDe(b)}')"></div>`
-  ).join('') + (banners.length > 1
-    ? `<div id="hero-dots">${banners.map((_, i) => `<span class="hero-dot${i===0?' ativo':''}"></span>`).join('')}</div>`
-    : '');
+
+  let htmlSlides = '';
+  for (let i = 0; i < banners.length; i++) {
+    const url = urlDe(banners[i]);
+    const cls = 'hero-slide' + (i === 0 ? ' ativo' : '');
+    if (heroEhVideo(url)) {
+      htmlSlides += '<div class="' + cls + '" data-tipo="video">'
+        + '<video src="' + url + '" muted loop playsinline preload="auto"></video>'
+        + '</div>';
+    } else {
+      htmlSlides += '<div class="' + cls + '" data-tipo="img" style="background-image:url(\'' + url + '\')"></div>';
+    }
+  }
+  let htmlDots = '';
+  if (banners.length > 1) {
+    htmlDots = '<div id="hero-dots">';
+    for (let i = 0; i < banners.length; i++) htmlDots += '<span class="hero-dot' + (i === 0 ? ' ativo' : '') + '"></span>';
+    htmlDots += '</div>';
+  }
+  slides.innerHTML = htmlSlides + htmlDots;
   hero.appendChild(slides);
 
-  // pré-carrega as próximas imagens
-  banners.slice(1).forEach(b => { const img = new Image(); img.src = (isMob && b.mobile) ? b.mobile : b.desktop; });
+  // pré-carrega as próximas imagens (vídeos já usam preload="auto")
+  banners.slice(1).forEach(b => {
+    const u = (isMob && b.mobile) ? b.mobile : b.desktop;
+    if (!heroEhVideo(u)) { const img = new Image(); img.src = u; }
+  });
 
-  if (banners.length > 1) {
-    let idx = 0;
-    setInterval(() => {
-      const sl = slides.querySelectorAll('.hero-slide');
-      const dots = slides.querySelectorAll('.hero-dot');
-      sl[idx].classList.remove('ativo'); if (dots[idx]) dots[idx].classList.remove('ativo');
-      idx = (idx + 1) % sl.length;
-      sl[idx].classList.add('ativo'); if (dots[idx]) dots[idx].classList.add('ativo');
-    }, 5000);
+  const sl = slides.querySelectorAll('.hero-slide');
+  const dots = slides.querySelectorAll('.hero-dot');
+
+  // toca o vídeo do slide ativo e pausa os demais
+  function tocar(i) {
+    for (let j = 0; j < sl.length; j++) {
+      const v = sl[j].querySelector('video');
+      if (!v) continue;
+      if (j === i) { try { v.currentTime = 0; v.play().catch(() => {}); } catch(e){} }
+      else { try { v.pause(); } catch(e){} }
+    }
   }
+
+  // imagem = 5s · vídeo = duração real (mín. 3s, fallback 8s enquanto não carrega)
+  function duracao(i) {
+    const v = sl[i].querySelector('video');
+    if (!v) return 5000;
+    const d = v.duration;
+    return (isFinite(d) && d > 0) ? Math.max(3000, Math.round(d * 1000)) : 8000;
+  }
+
+  tocar(0);
+  if (sl.length < 2) return;
+
+  let idx = 0, timer = null;
+
+  function agendar() {
+    clearTimeout(timer);
+    const v = sl[idx].querySelector('video');
+    if (v && !(isFinite(v.duration) && v.duration > 0)) {
+      const alvo = idx;
+      v.addEventListener('loadedmetadata', function () {
+        if (alvo === idx) { clearTimeout(timer); timer = setTimeout(avancar, duracao(idx)); }
+      }, { once: true });
+    }
+    timer = setTimeout(avancar, duracao(idx));
+  }
+
+  function avancar() {
+    sl[idx].classList.remove('ativo'); if (dots[idx]) dots[idx].classList.remove('ativo');
+    idx = (idx + 1) % sl.length;
+    sl[idx].classList.add('ativo'); if (dots[idx]) dots[idx].classList.add('ativo');
+    tocar(idx);
+    agendar();
+  }
+
+  agendar();
 }
 
 function reelToggleSom(card) {
