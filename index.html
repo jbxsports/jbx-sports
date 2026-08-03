@@ -937,7 +937,10 @@
       <span class="event-badge badge-soon" id="ed-status">Em breve</span>
       <h1 class="ed-title" id="ed-nome" style="margin-top:12px;">Evento</h1>
       <div class="ed-meta" id="ed-meta"></div>
-      <div id="ed-countdown" style="margin-top:16px;margin-bottom:4px;"></div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:16px;margin-bottom:4px;">
+        <div id="ed-countdown"></div>
+        <div id="ed-views" style="display:none;"></div>
+      </div>
       <button class="ed-inscrever" id="ed-inscrever" style="margin-top:20px;width:100%;">Inscreva-se →</button>
       <div class="ed-tabs" style="margin-top:28px;">
         <button class="ed-tab active" data-tab="info" onclick="edTab('info')">Informações</button>
@@ -2408,6 +2411,8 @@ async function abrirEventoPorId(id) {
   }
   // Carrega patrocinadores
   carregarPatrocinadores(String(ev.id));
+  // Contador de visualizações
+  registrarView(String(ev.id));
 }
 
 function renderEventoBase(ev, bannerUrl) {
@@ -2496,6 +2501,46 @@ function preencherConteudo(det, loading) {
     if (loading) { rk.innerHTML = ''; rk.textContent = 'Carregando…'; rk.classList.add('ed-empty'); }
     else montarRetirada(det || {});
   }
+}
+
+// ── CONTADOR DE VISUALIZAÇÕES (real) ──
+const VIEWS_MINIMO = 100;                 // só exibe o badge a partir deste total
+const VIEWS_JANELA = 12 * 60 * 60 * 1000; // mesma pessoa só conta 1x a cada 12h
+
+async function registrarView(eventoId) {
+  const el = document.getElementById('ed-views');
+  if (!el || !eventoId) return;
+  el.style.display = 'none';
+  el.innerHTML = '';
+
+  // Dedupe local: evita que F5 / reabrir a página infle o número
+  let contar = true;
+  try {
+    const chave = 'jbx_view_' + eventoId;
+    const ultimo = parseInt(localStorage.getItem(chave) || '0', 10);
+    if (Date.now() - ultimo < VIEWS_JANELA) contar = false;
+    else localStorage.setItem(chave, String(Date.now()));
+  } catch (e) { /* navegador sem localStorage: conta normalmente */ }
+
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/evento_view`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: String(eventoId), p_contar: contar })
+    });
+    const bruto = await r.json();
+    const n = parseInt(bruto, 10) || 0;
+    if (n < VIEWS_MINIMO) return;
+
+    el.innerHTML = `
+      <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(42,37,32,0.04);border:1px solid rgba(42,37,32,0.1);border-radius:12px;padding:12px 18px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <div style="font-size:13px;color:rgba(42,37,32,0.6);font-weight:500;line-height:1.35;">
+          <strong style="color:rgba(42,37,32,0.85);font-size:15px;">${n.toLocaleString('pt-BR')}</strong> pessoas<br>já viram este evento
+        </div>
+      </div>`;
+    el.style.display = 'block';
+  } catch (e) { /* falha silenciosa: o badge simplesmente não aparece */ }
 }
 
 // Link do termo (PDF) hospedado no repositório
