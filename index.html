@@ -2468,8 +2468,7 @@ function renderEventoBase(ev, bannerUrl) {
 
 function preencherConteudo(det, loading) {
   const campos = [
-    ['ed-info', 'descricao', 'Informações do evento em breve.'],
-    ['ed-regulamento', 'regulamento', 'Regulamento em breve.']
+    ['ed-info', 'descricao', 'Informações do evento em breve.']
   ];
   campos.forEach(([elId, key, vazio]) => {
     const el = document.getElementById(elId);
@@ -2485,6 +2484,12 @@ function preencherConteudo(det, loading) {
     if (loading) { pc.innerHTML = ''; pc.textContent = 'Carregando…'; pc.classList.add('ed-empty'); }
     else montarPercurso(det || {});
   }
+  // Regulamento: texto opcional + botão do PDF
+  const rg = document.getElementById('ed-regulamento');
+  if (rg) {
+    if (loading) { rg.innerHTML = ''; rg.textContent = 'Carregando…'; rg.classList.add('ed-empty'); }
+    else montarRegulamento(det || {});
+  }
   // Retirada de kit: texto + botão do termo (PDF)
   const rk = document.getElementById('ed-retirada');
   if (rk) {
@@ -2495,6 +2500,37 @@ function preencherConteudo(det, loading) {
 
 // Link do termo (PDF) hospedado no repositório
 const TERMO_URL = 'https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/termo-retirada-terceiros.pdf';
+function montarRegulamento(det) {
+  const el = document.getElementById('ed-regulamento');
+  el.innerHTML = '';
+  el.classList.remove('ed-empty');
+  const txt = det && det.regulamento ? String(det.regulamento).trim() : '';
+  const pdf = det && det.regulamento_pdf ? String(det.regulamento_pdf).trim() : '';
+
+  if (txt) {
+    const p = document.createElement('div');
+    p.className = 'ed-retirada-texto';
+    p.textContent = txt;
+    el.appendChild(p);
+  } else if (!pdf) {
+    const p = document.createElement('div');
+    p.textContent = 'Regulamento em breve.';
+    el.appendChild(p);
+    el.classList.add('ed-empty');
+    return;
+  }
+
+  if (pdf) {
+    const a = document.createElement('a');
+    a.className = 'btn-termo';
+    a.href = pdf;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> BAIXAR REGULAMENTO (PDF)';
+    el.appendChild(a);
+  }
+}
+
 function montarRetirada(det) {
   const el = document.getElementById('ed-retirada');
   el.innerHTML = '';
