@@ -82,6 +82,10 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
       if (!res.ok) {
         let msg = text;
         try { msg = JSON.parse(text).message || JSON.parse(text).error || text; } catch(e){}
+        // violação do índice único ux_inscricao_cpf_evento
+        if (/23505|ux_inscricao_cpf_evento|duplicate key/i.test(text)) {
+          msg = 'Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.';
+        }
         resultados.push({ ok: false, erro: msg });
         continue;
       }
@@ -92,6 +96,51 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
     }
   }
   return resultados;
+}
+
+// 1 CPF por evento: consulta a RPC cpf_ja_inscrito antes de gravar qualquer coisa.
+// Retorna null se estiver liberado, ou a mensagem de erro.
+async function validarCpfUnico(itens) {
+  const vistos = new Set();
+  for (const item of itens) {
+    const cpf = (item.cpf || '').replace(/\D/g, '');
+    const ref = item.ref || '';
+    if (!item.evento_id) continue;
+    if (cpf.length !== 11 && !ref) continue;
+
+    const chave = `${item.evento_id}|${cpf.length === 11 ? cpf : 'ref:' + ref}`;
+    if (vistos.has(chave)) {
+      return 'Há dois atletas com o mesmo CPF neste pedido. Cada atleta pode se inscrever uma única vez no evento.';
+    }
+    vistos.add(chave);
+
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/rpc/cpf_ja_inscrito`, {
+        method: 'POST',
+        headers: {
+          'apikey':        SB_SERVICE_KEY,
+          'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+          'Content-Type':  'application/json'
+        },
+        body: JSON.stringify({
+          p_evento_id: item.evento_id,
+          p_cpf: cpf.length === 11 ? cpf : null,
+          p_ref: ref || null
+        })
+      });
+      const txt = await r.text();
+      if (!r.ok) {
+        console.error('[checkout] cpf_ja_inscrito status:', r.status, txt);
+        continue; // o índice único no banco ainda protege
+      }
+      if (txt.trim() === 'true') {
+        return 'Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.';
+      }
+    } catch (e) {
+      console.error('[checkout] cpf_ja_inscrito erro:', e.message);
+    }
+  }
+  return null;
 }
 
 // Valida se o pedido é realmente gratuito, consultando o preço publicado do kit.
@@ -153,6 +202,13 @@ module.exports = async (req, res) => {
 
   if (!itens || !itens.length) {
     return res.status(400).json({ error: 'Nenhum item no pedido.' });
+  }
+
+  // 1 CPF por evento — barra antes de gravar qualquer inscrição
+  const erroCpf = await validarCpfUnico(itens);
+  if (erroCpf) {
+    console.warn('[checkout] duplicidade de CPF:', erroCpf);
+    return res.status(409).json({ error: erroCpf });
   }
 
   // Cria inscrições no Supabase
