@@ -94,6 +94,52 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
   return resultados;
 }
 
+// Valida se o pedido é realmente gratuito, consultando o preço publicado do kit.
+// Retorna null se estiver tudo certo, ou a mensagem de erro.
+async function validarPedidoGratuito(itens) {
+  const cache = {};
+  for (const item of itens) {
+    if (Number(item.valor || 0) > 0.009) return 'Valor inválido.';
+    if (Array.isArray(item.produtos) && item.produtos.length) {
+      return 'Produtos adicionais não são permitidos em inscrição gratuita.';
+    }
+    const evId = item.evento_id;
+    if (!evId) return 'Evento não identificado.';
+
+    if (!cache[evId]) {
+      try {
+        const r = await fetch(`${SB_URL}/rest/v1/rpc/kits_evento_publicos`, {
+          method: 'POST',
+          headers: {
+            'apikey':        SB_SERVICE_KEY,
+            'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+            'Content-Type':  'application/json'
+          },
+          body: JSON.stringify({ p_evento_id: evId })
+        });
+        if (!r.ok) {
+          console.error('[checkout] kits_evento_publicos status:', r.status, await r.text());
+          return 'Não foi possível validar o kit gratuito.';
+        }
+        cache[evId] = await r.json();
+      } catch (e) {
+        console.error('[checkout] kits_evento_publicos erro:', e.message);
+        return 'Não foi possível validar o kit gratuito.';
+      }
+    }
+
+    const kits = (cache[evId] && Array.isArray(cache[evId].kits)) ? cache[evId].kits : [];
+    if (!kits.length) return 'Nenhum kit disponível para este evento.';
+
+    const kitEscolhido = item.kit_id
+      ? kits.find(k => String(k.id) === String(item.kit_id))
+      : null;
+    if (!kitEscolhido) return 'Kit não localizado para este evento.';
+    if (Number(kitEscolhido.preco || 0) > 0.009) return 'Valor inválido.';
+  }
+  return null;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -122,27 +168,12 @@ module.exports = async (req, res) => {
   // O Mercado Pago não aceita preferência com valor zero. Neste caso confirmamos
   // o pedido direto pela RPC confirmar_pagamento (mesma usada pelo webhook).
   if (totalCents <= 0) {
-    // Conferência autoritativa: o valor gravado pelo banco (criar_inscricao valida
-    // o preço pelo kit/lote) precisa ser 0. Impede forjar valor 0 no navegador.
-    let somaDB = null;
-    try {
-      const rv = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido=eq.${encodeURIComponent(pedido)}&select=valor`, {
-        headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
-      });
-      const linhas = await rv.json();
-      if (Array.isArray(linhas) && linhas.length) {
-        somaDB = linhas.reduce((acc, l) => acc + Number(l.valor || 0), 0);
-      }
-      console.log('[checkout] gratuito — soma no banco:', somaDB, '| linhas:', Array.isArray(linhas) ? linhas.length : 0);
-    } catch (e) {
-      console.error('[checkout] gratuito — erro ao validar valor:', e.message);
-    }
-
-    if (somaDB === null) {
-      return res.status(400).json({ error: 'Não foi possível validar a inscrição gratuita (pedido não localizado).' });
-    }
-    if (somaDB > 0.009) {
-      return res.status(400).json({ error: 'Valor inválido.' });
+    // Conferência autoritativa do preço: confere o kit escolhido contra o preço
+    // publicado pela RPC kits_evento_publicos. Impede forjar valor 0 num evento pago.
+    const erroGratuito = await validarPedidoGratuito(itens);
+    if (erroGratuito) {
+      console.warn('[checkout] gratuito recusado:', erroGratuito);
+      return res.status(400).json({ error: erroGratuito });
     }
 
     try {
