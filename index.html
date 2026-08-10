@@ -1215,7 +1215,7 @@
         <!-- preenchido dinamicamente por atualizarResumo() -->
       </div>
 
-      <div class="form-section-title" style="margin-top:24px;">Cupom de desconto</div>
+      <div class="form-section-title" id="sec-cupom-title" style="margin-top:24px;">Cupom de desconto</div>
       <div class="cupom-box">
         <div class="cupom-row">
           <input type="text" id="f-cupom" placeholder="Tem um cupom? Digite aqui">
@@ -1495,7 +1495,7 @@ async function loadKitsEvento(eventoId) {
       container.innerHTML = kits.map((k, i) => {
         const esgotado = k.esgotado || (k.quantidade_limite && k.quantidade_vendida >= k.quantidade_limite);
         const preco = Number(k.preco || 0);
-        const precoFmt = 'R$ ' + preco.toFixed(2).replace('.', ',');
+        const precoFmt = preco > 0 ? ('R$ ' + preco.toFixed(2).replace('.', ',')) : 'Grátis';
         return `<div class="kit-option${i === 0 && !esgotado ? ' selected' : ''}${esgotado ? ' disabled' : ''}"
           onclick="${esgotado ? '' : `selectKit(this,${preco},'${k.nome.replace(/'/g,"\\'")}','${k.id}','${k.lote_id||''}','${(k.lote_nome||'').replace(/'/g,"\\'")}' )`}"
           style="position:relative;${esgotado ? 'opacity:.6;cursor:not-allowed;' : 'cursor:pointer;'}">
@@ -1863,7 +1863,7 @@ function atualizarResumo() {
 
       const right = document.createElement('div'); right.className = 'atleta-right';
       const precoLbl = document.createElement('div'); precoLbl.className = 'atleta-preco-lbl'; precoLbl.textContent = 'Total';
-      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = fmt(totalItem);
+      const preco = document.createElement('div'); preco.className = 'atleta-preco'; preco.textContent = totalItem > 0.005 ? fmt(totalItem) : 'Grátis';
       right.appendChild(precoLbl); right.appendChild(preco);
       if (naEtapa4) {
         const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'atleta-remover';
@@ -1924,7 +1924,8 @@ function atualizarResumo() {
       rowTaxa.style.display = 'none';
     }
   }
-  if (elTotal) elTotal.textContent = fmt(total);
+  if (elTotal) elTotal.textContent = total > 0.005 ? fmt(total) : 'Grátis';
+  aplicarModoGratuito(total);
   // botão "+ Inscrever outro atleta" na etapa 4
   const btnArea = document.querySelector('.btn-area-atletas');
   if (btnArea) {
@@ -1936,6 +1937,22 @@ function atualizarResumo() {
     btnAdd.onclick = adicionarOutroAtleta;
     btnArea.appendChild(btnAdd);
   }
+}
+
+// ── Modo gratuito: quando o total do pedido é R$ 0,00 ──
+// Esconde cupom e selo de pagamento e troca o texto do botão.
+function aplicarModoGratuito(total) {
+  const gratis = !(total > 0.005);
+  const btn = document.querySelector('.btn-pagar');
+  if (btn && !btn.disabled) {
+    btn.textContent = gratis ? '✅ Confirmar inscrição gratuita' : '🔒 Finalizar inscrição';
+  }
+  const badge = document.querySelector('.stripe-badge');
+  if (badge) badge.style.display = gratis ? 'none' : '';
+  const cupomBox = document.querySelector('.cupom-box');
+  if (cupomBox) cupomBox.style.display = gratis ? 'none' : '';
+  const cupomTit = document.getElementById('sec-cupom-title');
+  if (cupomTit) cupomTit.style.display = gratis ? 'none' : '';
 }
 
 // Imagem do kit: tenta nomes alternativos antes de mostrar o placeholder
@@ -2217,6 +2234,11 @@ async function handlePagamento() {
     };
   });
 
+  // pedido sem valor (evento gratuito): o servidor confirma direto, sem Mercado Pago
+  const totalPedido = itensPayload.reduce((acc, it) => acc + Number(it.valor || 0), 0);
+  const ehGratuito = totalPedido <= 0.005;
+  if (ehGratuito) btn.textContent = '⏳ Confirmando inscrição...';
+
   try {
     const res = await fetch('/api/checkout', {
       method: 'POST',
@@ -2225,7 +2247,7 @@ async function handlePagamento() {
         itens: itensPayload,
         pedido,
         cupom: currentCupom,
-        forma_pagamento: currentPagamento,
+        forma_pagamento: ehGratuito ? 'gratuito' : currentPagamento,
         evento_nome: currentEvento
       })
     });
