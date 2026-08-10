@@ -1772,7 +1772,7 @@ function renderNloteKitsPrecos(kits){
     <div class="kit-preco-inputs">
       <div class="kit-label">${k.nome}</div>
       <div class="form-row2">
-        <div class="form-g" style="margin:0;"><label>Preço (R$) *</label><input type="number" step="0.01" id="np-preco-${k.id}" placeholder="99.90"></div>
+        <div class="form-g" style="margin:0;"><label>Preço (R$) * <span style="font-weight:400;color:var(--muted);">— 0 = grátis</span></label><input type="number" step="0.01" min="0" id="np-preco-${k.id}" placeholder="99.90 (ou 0)"></div>
         <div class="form-g" style="margin:0;"><label>Vagas no lote</label><input type="number" id="np-qtd-${k.id}" placeholder="Ilimitado"></div>
       </div>
     </div>`).join('');
@@ -1796,7 +1796,7 @@ function renderLotesAdmin(lotes){
         ${(l.kit_precos||[]).map(kp=>`
           <div class="lote-preco-item">
             <div class="kit-n">${kp.kit_nome}</div>
-            <div class="preco-v">${brl(kp.preco)}</div>
+            <div class="preco-v">${Number(kp.preco||0)>0?brl(kp.preco):'Grátis'}</div>
             <div class="qtd-v">${kp.quantidade_vendida||0}${kp.quantidade_limite?' / '+kp.quantidade_limite+' vagas':' vagas ilimitadas'}</div>
             <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
               <button onclick="toggleKitLote('${kp.kit_id}','${l.id}','esgotado',${!kp.esgotado})" style="font-size:11px;padding:4px 10px;border-radius:4px;border:1px solid ${kp.esgotado?'#ff6b6b':'rgba(255,255,255,0.2)'};cursor:pointer;background:${kp.esgotado?'rgba(255,107,107,0.2)':'transparent'};color:${kp.esgotado?'#ff6b6b':'var(--muted)'};">${kp.esgotado?'🔴 Esgotado':'⚪ Esgotar'}</button>
@@ -1814,7 +1814,7 @@ function editarLote(l){
   (l.kit_precos||[]).forEach(kp=>{
     const pi=document.getElementById('np-preco-'+kp.kit_id);
     const qi=document.getElementById('np-qtd-'+kp.kit_id);
-    if(pi)pi.value=kp.preco||'';
+    if(pi)pi.value=(kp.preco===null||kp.preco===undefined||kp.preco==='')?'':kp.preco;
     if(qi)qi.value=kp.quantidade_limite||'';
   });
   document.getElementById('nlote-nome').scrollIntoView({behavior:'smooth',block:'center'});
@@ -1958,7 +1958,8 @@ async function deletarKit(id,nome){
 async function salvarLote(){
   const get=id=>(document.getElementById(id)?.value||'').trim();
   if(!get('nlote-nome')){const fb=document.getElementById('lote-feedback');fb.className='form-feedback err';fb.textContent='Nome do lote obrigatório.';return;}
-  const precos=klKits.map(k=>({kit_id:k.id,preco:document.getElementById('np-preco-'+k.id)?.value||'0',quantidade_limite:document.getElementById('np-qtd-'+k.id)?.value||''})).filter(p=>parseFloat(p.preco)>0);
+  // preço em branco = kit não vendido neste lote; preço 0 = kit gratuito (válido)
+  const precos=klKits.map(k=>({kit_id:k.id,preco:(document.getElementById('np-preco-'+k.id)?.value||'').trim(),quantidade_limite:document.getElementById('np-qtd-'+k.id)?.value||''})).filter(p=>p.preco!==''&&!isNaN(parseFloat(p.preco))&&parseFloat(p.preco)>=0);
   const dados={id:get('nlote-id')||'',evento_id:currentEvento.id,nome:get('nlote-nome'),data_inicio:get('nlote-inicio')||null,data_fim:get('nlote-fim')||null,ordem:'0',precos};
   const fb=document.getElementById('lote-feedback');fb.className='form-feedback';fb.textContent='Salvando…';
   try{
