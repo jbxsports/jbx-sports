@@ -316,14 +316,50 @@
   .form-group select option { background: #f5f3f0; }
   .form-group input::placeholder { color: rgba(42,37,32,0.25); }
 
-  .category-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .category-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   .cat-option {
-    border: 2px solid rgba(42,37,32,0.08); border-radius: 8px;
-    padding: 10px 8px; text-align: center; cursor: pointer; transition: all 0.2s;
+    position: relative; background: #fff;
+    border: 2px solid rgba(42,37,32,0.10); border-radius: 14px;
+    padding: 24px 12px 20px; text-align: center; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    min-height: 140px;
+    transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s, background 0.18s;
   }
-  .cat-option.selected { border-color: var(--orange); background: rgba(255,117,31,0.1); }
-  .cat-option .cat-dist { font-size: 18px; font-weight: 700; color: var(--orange); }
+  .cat-option:hover { border-color: rgba(255,117,31,0.45); transform: translateY(-3px); box-shadow: 0 12px 26px rgba(42,37,32,0.10); }
+  .cat-option .cat-ico {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,117,31,0.10); color: var(--orange);
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+  }
+  .cat-option .cat-ico svg { width: 26px; height: 26px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .cat-option .cat-dist { font-size: 18px; font-weight: 700; color: #2a2520; line-height: 1.25; }
   .cat-option .cat-price { font-size: 12px; color: rgba(42,37,32,0.5); margin-top: 2px; }
+  .cat-option .cat-check {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid rgba(42,37,32,0.15); background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .cat-option .cat-check svg { width: 12px; height: 12px; stroke: #fff; stroke-width: 3.2; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity 0.2s; }
+  .cat-option.selected {
+    border-color: var(--orange);
+    background: linear-gradient(180deg, rgba(255,117,31,0.10) 0%, rgba(255,117,31,0.04) 100%);
+    box-shadow: 0 10px 24px rgba(255,117,31,0.18);
+  }
+  .cat-option.selected .cat-ico { background: var(--orange); color: #fff; transform: scale(1.06); }
+  .cat-option.selected .cat-dist { color: var(--orange); }
+  .cat-option.selected .cat-check { background: var(--orange); border-color: var(--orange); }
+  .cat-option.selected .cat-check svg { opacity: 1; }
+  @media (max-width: 560px) {
+    .category-options { grid-template-columns: 1fr 1fr !important; }
+    .category-options.cols-1 { grid-template-columns: 1fr !important; }
+    .cat-option { min-height: 124px; padding: 18px 10px 16px; }
+    .cat-option .cat-ico { width: 44px; height: 44px; }
+    .cat-option .cat-ico svg { width: 22px; height: 22px; }
+    .cat-option .cat-dist { font-size: 16px; }
+  }
 
   .order-summary {
     background: rgba(255,117,31,0.08); border: 1px solid rgba(255,117,31,0.2);
@@ -1020,6 +1056,7 @@
       <!-- ETAPA 2: MODALIDADE -->
       <div class="step-panel" data-panel="2">
         <div class="form-section-title">Escolha a modalidade</div>
+        <p style="font-size:13px;color:rgba(42,37,32,0.5);margin:-6px 0 16px;line-height:1.5;">Selecione o percurso que você vai fazer neste evento.</p>
         <!-- preenchido por renderModalidades() com base em ev.distancias do banco -->
         <div class="category-options" id="cat-options" style="grid-template-columns:repeat(3,1fr);">
           <div style="grid-column:1/-1;text-align:center;padding:24px;color:rgba(42,37,32,0.4);font-size:14px;">
@@ -1497,6 +1534,26 @@ async function loadKitsEvento(eventoId) {
   }
 }
 
+// ── Ícone da modalidade, escolhido pelo nome ──
+function iconeModalidade(nome) {
+  const n = (nome || '').toLowerCase();
+  const svg = (paths) => `<svg viewBox="0 0 24 24">${paths}</svg>`;
+  if (/caminhad|walk/.test(n))
+    return svg('<circle cx="13" cy="4" r="1.8"/><path d="M11.5 21l1.5-6-2.5-3 1-4 3 2 2.2 1.6"/><path d="M13 15l3 6"/><path d="M11.5 8L8 10"/>');
+  if (/trail|montanha|cross/.test(n))
+    return svg('<path d="M2 20l6.5-10 4 6 2.5-3.5L21 20z"/><circle cx="7" cy="5.5" r="2"/>');
+  if (/bike|ciclis|pedal|mtb/.test(n))
+    return svg('<circle cx="6" cy="17" r="3.4"/><circle cx="18" cy="17" r="3.4"/><path d="M6 17l4.5-8H15l3 8"/><path d="M9.5 9H14"/>');
+  if (/nata|swim|travessia|aqua/.test(n))
+    return svg('<path d="M2 18c2 0 2-1.4 4-1.4S8 18 10 18s2-1.4 4-1.4S16 18 18 18s2-1.4 4-1.4"/><circle cx="16.5" cy="6.5" r="1.8"/><path d="M5 12.5l5.5-3 4 2.2"/>');
+  if (/beach|tenis|tênis/.test(n))
+    return svg('<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6c3 2.4 3 10.4 0 12.8M18.4 5.6c-3 2.4-3 10.4 0 12.8"/>');
+  if (/reveza|revezamento|equipe|dupla/.test(n))
+    return svg('<circle cx="8" cy="6" r="2.2"/><circle cx="16" cy="6" r="2.2"/><path d="M3.5 20v-2.5A3.5 3.5 0 0 1 7 14h2a3.5 3.5 0 0 1 3.5 3.5V20"/><path d="M14 14h3a3.5 3.5 0 0 1 3.5 3.5V20"/>');
+  // padrão: corrida
+  return svg('<circle cx="16.5" cy="4.5" r="1.9"/><path d="M8.5 21l2.3-5.6-3-2.6.9-4.6 3.6-1.6 2.4 3.1 3 1.2"/><path d="M14.7 13.3l2.6 3.1.9 4.6"/><path d="M8.7 10.7L5.5 12"/>');
+}
+
 // ── Renderiza as opções de modalidade a partir do campo "distancias" do evento ──
 // distancias é uma string separada por vírgula: "Corrida 4KM, Corrida 8KM, Caminhada 4KM"
 // Fallback hardcoded caso o evento não tenha o campo preenchido.
@@ -1511,10 +1568,18 @@ function renderModalidades(distanciasStr) {
   const container = document.getElementById('cat-options');
   if (!container) return;
   container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  container.innerHTML = lista.map((d, i) => `
-    <div class="cat-option${i === 0 ? ' selected' : ''}" onclick="selectCat(this,'${d.replace(/'/g,"\\'")}')">
-      <div class="cat-dist" style="font-size:${d.length > 12 ? '12px' : '14px'};">${d}</div>
-    </div>`).join('');
+  container.classList.toggle('cols-1', cols === 1);
+  const check = '<div class="cat-check"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>';
+  container.innerHTML = lista.map((d, i) => {
+    const nomeEsc = d.replace(/'/g, "\\'");
+    const fs = d.length > 18 ? '14px' : d.length > 12 ? '16px' : '18px';
+    return `
+    <div class="cat-option${i === 0 ? ' selected' : ''}" onclick="selectCat(this,'${nomeEsc}')">
+      ${check}
+      <div class="cat-ico">${iconeModalidade(d)}</div>
+      <div class="cat-dist" style="font-size:${fs};">${d}</div>
+    </div>`;
+  }).join('');
 
   // garante que currentModalidade reflete o primeiro item
   currentModalidade = lista[0] || 'Corrida 4KM';
