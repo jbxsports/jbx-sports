@@ -117,8 +117,60 @@ module.exports = async (req, res) => {
   }
 
   const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
+
+  // ── INSCRIÇÃO GRATUITA (total R$ 0,00) ──
+  // O Mercado Pago não aceita preferência com valor zero. Neste caso confirmamos
+  // o pedido direto pela RPC confirmar_pagamento (mesma usada pelo webhook).
   if (totalCents <= 0) {
-    return res.status(400).json({ error: 'Valor inválido.' });
+    // Conferência autoritativa: o valor gravado pelo banco (criar_inscricao valida
+    // o preço pelo kit/lote) precisa ser 0. Impede forjar valor 0 no navegador.
+    let somaDB = null;
+    try {
+      const rv = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido=eq.${encodeURIComponent(pedido)}&select=valor`, {
+        headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
+      });
+      const linhas = await rv.json();
+      if (Array.isArray(linhas) && linhas.length) {
+        somaDB = linhas.reduce((acc, l) => acc + Number(l.valor || 0), 0);
+      }
+      console.log('[checkout] gratuito — soma no banco:', somaDB, '| linhas:', Array.isArray(linhas) ? linhas.length : 0);
+    } catch (e) {
+      console.error('[checkout] gratuito — erro ao validar valor:', e.message);
+    }
+
+    if (somaDB === null) {
+      return res.status(400).json({ error: 'Não foi possível validar a inscrição gratuita (pedido não localizado).' });
+    }
+    if (somaDB > 0.009) {
+      return res.status(400).json({ error: 'Valor inválido.' });
+    }
+
+    try {
+      const rc = await fetch(`${SB_URL}/rest/v1/rpc/confirmar_pagamento`, {
+        method: 'POST',
+        headers: {
+          'apikey':        SB_SERVICE_KEY,
+          'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+          'Content-Type':  'application/json'
+        },
+        body: JSON.stringify({ p_pedido: pedido, p_forma_pagamento: 'gratuito' })
+      });
+      const tc = await rc.text();
+      console.log('[checkout] gratuito — confirmar_pagamento:', rc.status, tc);
+      if (!rc.ok) {
+        let msg = tc;
+        try { msg = JSON.parse(tc).message || JSON.parse(tc).error || tc; } catch (e) {}
+        return res.status(400).json({ error: msg || 'Erro ao confirmar inscrição gratuita.' });
+      }
+    } catch (e) {
+      console.error('[checkout] gratuito — erro confirmar_pagamento:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+
+    return res.status(200).json({
+      url: `${SITE_URL}/atleta.html?pedido=${pedido}&status=gratuito`,
+      gratuito: true
+    });
   }
 
   // Monta metadados dos atletas (para o webhook usar)
