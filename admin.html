@@ -96,6 +96,16 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .form-feedback{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
 .form-feedback.ok{color:#16a34a;}.form-feedback.err{color:#dc2626;}
 .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.ig-subtabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:2px;}
+.ig-sub{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.ig-sub:hover{color:var(--text);}
+.ig-sub.active{color:var(--orange);border-bottom-color:var(--orange);}
+.wpp-btn{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;text-decoration:none;transition:filter .2s;}
+.wpp-btn:hover{filter:brightness(.92);}
+.wpp-off{background:#e5e1db;color:var(--muted);cursor:not-allowed;}
+.tipo-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.tipo-carrinho{background:rgba(255,117,31,.14);color:#c2410c;}
+.tipo-cadastro{background:rgba(42,37,32,.08);color:var(--muted);}
 .ig-filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
 .ig-btn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .ig-btn:hover{border-color:var(--orange);color:var(--orange);}
@@ -754,10 +764,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <button class="ig-btn" onclick="igRecarregar()">↻ Atualizar</button>
             <button class="ig-btn" onclick="igToggleColunas()">☰ Colunas</button>
             <button class="ig-btn ig-btn-xls" onclick="igExportar(false)">⤓ Exportar Excel</button>
-            <button class="ig-btn" onclick="igExportar(true)">⤓ Exportar completo</button>
+            <button class="ig-btn" id="ig-btn-completo" onclick="igExportar(true)">⤓ Exportar completo</button>
           </div>
         </div>
 
+        <div class="ig-subtabs">
+          <button class="ig-sub active" id="ig-sub-inscricoes" onclick="igSubTab('inscricoes')">Inscrições</button>
+          <button class="ig-sub" id="ig-sub-cadastros" onclick="igSubTab('cadastros')">Cadastros</button>
+          <button class="ig-sub" id="ig-sub-leads" onclick="igSubTab('leads')">Sem compra</button>
+        </div>
+
+        <div id="ig-view-inscricoes">
         <!-- SELETOR DE COLUNAS -->
         <div class="panel" id="ig-colunas-box" style="display:none;margin-bottom:16px;">
           <h3 style="margin-bottom:12px;">Colunas exibidas</h3>
@@ -816,6 +833,108 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           </table>
         </div>
         <div id="ig-rodape" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+        </div><!-- /view inscricoes -->
+
+        <!-- VIEW: CADASTROS -->
+        <div id="ig-view-cadastros" style="display:none;">
+          <div class="panel" style="margin-bottom:18px;">
+            <div class="ig-filtros">
+              <div class="form-g" style="margin:0;grid-column:span 2;">
+                <label>Busca livre</label>
+                <input type="text" id="cad-f-busca" placeholder="Nome, CPF, e-mail ou telefone" oninput="cadAplicar()">
+              </div>
+              <div class="form-g" style="margin:0;">
+                <label>Situação</label>
+                <select id="cad-f-situacao" onchange="cadAplicar()">
+                  <option value="">Todos os cadastros</option>
+                  <option value="comprou">Já comprou (tem inscrição paga)</option>
+                  <option value="sem">Nunca comprou</option>
+                  <option value="pendente">Tem inscrição pendente</option>
+                  <option value="sem_inscricao">Sem nenhuma inscrição</option>
+                </select>
+              </div>
+              <div class="form-g" style="margin:0;"><label>UF</label><select id="cad-f-estado" onchange="cadAplicar()"></select></div>
+              <div class="form-g" style="margin:0;"><label>Cidade</label><select id="cad-f-cidade" onchange="cadAplicar()"></select></div>
+              <div class="form-g" style="margin:0;"><label>Cadastrado de</label><input type="date" id="cad-f-de" onchange="cadAplicar()"></div>
+              <div class="form-g" style="margin:0;"><label>Cadastrado até</label><input type="date" id="cad-f-ate" onchange="cadAplicar()"></div>
+              <div class="form-g" style="margin:0;">
+                <label>Ordenar por</label>
+                <select id="cad-f-ordem" onchange="cadAplicar()">
+                  <option value="criado_desc">Cadastro — mais recente</option>
+                  <option value="criado_asc">Cadastro — mais antigo</option>
+                  <option value="nome_asc">Nome (A-Z)</option>
+                  <option value="inscricoes_desc">Mais inscrições</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr>
+                <th style="width:64px;"></th><th>Nome</th><th>CPF</th><th>E-mail</th><th>Telefone</th>
+                <th>Cidade / UF</th><th>Inscrições</th><th>Última inscrição</th><th>Cadastrado em</th>
+              </tr></thead>
+              <tbody id="cad-tbody"><tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="cad-rodape" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+        </div>
+
+        <!-- VIEW: SEM COMPRA -->
+        <div id="ig-view-leads" style="display:none;">
+          <div class="panel" style="margin-bottom:16px;">
+            <h3 style="margin-bottom:10px;">Mensagem do WhatsApp</h3>
+            <textarea id="lead-msg" rows="4" style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'Ubuntu',sans-serif;line-height:1.6;resize:vertical;" oninput="leadSalvarMsg()"></textarea>
+            <div class="hint">Marcadores disponíveis: <b>{primeiro}</b> (primeiro nome), <b>{nome}</b> (nome completo), <b>{evento}</b> (evento da inscrição pendente). O texto fica salvo neste navegador.</div>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+              <button class="ig-btn" onclick="leadMsgPadrao('carrinho')">Modelo: carrinho abandonado</button>
+              <button class="ig-btn" onclick="leadMsgPadrao('cadastro')">Modelo: só cadastro</button>
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:18px;">
+            <div class="ig-filtros">
+              <div class="form-g" style="margin:0;grid-column:span 2;">
+                <label>Busca livre</label>
+                <input type="text" id="lead-f-busca" placeholder="Nome, CPF, e-mail ou telefone" oninput="leadAplicar()">
+              </div>
+              <div class="form-g" style="margin:0;">
+                <label>Tipo</label>
+                <select id="lead-f-tipo" onchange="leadAplicar()">
+                  <option value="">Todos sem compra</option>
+                  <option value="carrinho">Carrinho abandonado (inscrição pendente)</option>
+                  <option value="cadastro">Só cadastro (nunca iniciou inscrição)</option>
+                </select>
+              </div>
+              <div class="form-g" style="margin:0;"><label>Evento pendente</label><select id="lead-f-evento" onchange="leadAplicar()"></select></div>
+              <div class="form-g" style="margin:0;">
+                <label>Com telefone</label>
+                <select id="lead-f-tel" onchange="leadAplicar()">
+                  <option value="1">Somente com telefone</option>
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="form-g" style="margin:0;">
+                <label>Ordenar por</label>
+                <select id="lead-f-ordem" onchange="leadAplicar()">
+                  <option value="ref_desc">Mais recente</option>
+                  <option value="ref_asc">Mais antigo</option>
+                  <option value="nome_asc">Nome (A-Z)</option>
+                  <option value="valor_desc">Maior valor pendente</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr>
+                <th style="width:120px;">WhatsApp</th><th>Nome</th><th>Telefone</th><th>E-mail</th>
+                <th>Tipo</th><th>Evento pendente</th><th>Valor</th><th>Última atividade</th>
+              </tr></thead>
+              <tbody id="lead-tbody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="lead-rodape" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
+        </div>
       </div>
 
       <!-- TELA 2: CUPONS -->
@@ -2318,7 +2437,11 @@ async function igInit(){
   if(!igCarregado) await igCarregar();
   else igAplicar();
 }
-async function igRecarregar(){ igCarregado = false; await igCarregar(); }
+async function igRecarregar(){
+  if(igSub === 'cadastros'){ cadCarregado = false; await cadCarregar(); return; }
+  if(igSub === 'leads'){ leadCarregado = false; await leadCarregar(); return; }
+  igCarregado = false; await igCarregar();
+}
 
 async function igCarregar(){
   const tb = document.getElementById('ig-tbody');
@@ -2536,7 +2659,44 @@ function igValorExcel(i, col){
   if(col.k === 'desconto_pct') return Number(v||0);
   return v === null || v === undefined ? '' : String(v);
 }
+function igExportarPlanilha(linhas, prefixo){
+  try{
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws['!cols'] = linhas[0].map(h=>({wch: Math.max(14, String(h).length + 4)}));
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+    XLSX.writeFile(wb, prefixo + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  }catch(e){ alert('Erro ao exportar: ' + e.message); }
+}
+function cadExportar(){
+  if(!cadFiltrados.length){ alert('Nenhum cadastro para exportar com os filtros atuais.'); return; }
+  const linhas = [['Nome','CPF','E-mail','Telefone','Gênero','Nascimento','Cidade','UF','Inscrições','Pagas','Pendentes','Última inscrição','Último evento','Cadastrado em']];
+  cadFiltrados.forEach(c=>linhas.push([
+    c.nome||'', c.cpf||'', c.email||'', c.telefone||'', c.genero||'',
+    c.nascimento ? fmtDS(igDataISO(c.nascimento)) : '',
+    c.cidade||'', c.estado||'',
+    Number(c.inscricoes_total||0), Number(c.inscricoes_pagas||0), Number(c.inscricoes_pendentes||0),
+    c.ultima_inscricao ? fmtData(c.ultima_inscricao) : '', c.ultimo_evento||'',
+    c.criado_em ? fmtData(c.criado_em) : ''
+  ]));
+  igExportarPlanilha(linhas, 'cadastros');
+}
+function leadExportar(){
+  if(!leadFiltrados.length){ alert('Nenhum registro para exportar com os filtros atuais.'); return; }
+  const linhas = [['Nome','CPF','Telefone','WhatsApp (link)','E-mail','Tipo','Evento pendente','Valor pendente','Cidade','UF','Última atividade','Tem conta']];
+  leadFiltrados.forEach(l=>linhas.push([
+    l.nome||'', l.cpf||'', l.telefone||'', wppLink(l), l.email||'',
+    l.tipo === 'carrinho' ? 'Carrinho abandonado' : 'Só cadastro',
+    l.evento_pendente||'', Number(l.valor_pendente||0),
+    l.cidade||'', l.estado||'',
+    l.referencia ? fmtData(l.referencia) : '',
+    l.tem_conta ? 'Sim' : 'Não'
+  ]));
+  igExportarPlanilha(linhas, 'sem_compra');
+}
 function igExportar(todasColunas){
+  if(igSub === 'cadastros'){ cadExportar(); return; }
+  if(igSub === 'leads'){ leadExportar(); return; }
   const cols = todasColunas ? IG_COLS.slice() : IG_COLS.filter(c=>igColsSel.indexOf(c.k) > -1);
   if(!cols.length){ alert('Selecione ao menos uma coluna.'); return; }
   if(!igFiltrados.length){ alert('Nenhuma inscrição para exportar com os filtros atuais.'); return; }
@@ -2553,7 +2713,249 @@ function igExportar(todasColunas){
   }catch(e){ alert('Erro ao exportar: ' + e.message); }
 }
 
+/* ── SUB-ABAS: CADASTROS E SEM COMPRA ── */
+let igSub = 'inscricoes';
+let cadTodos = [], cadFiltrados = [], cadCarregado = false;
+let leadTodos = [], leadFiltrados = [], leadCarregado = false;
+
+const LEAD_MSGS = {
+  carrinho: 'Oi {primeiro}, tudo bem? Aqui é da JBX Sports 🙂\n\nVi que você começou a inscrição no {evento} mas o pagamento não chegou a ser concluído. Deu algum problema na hora de finalizar?\n\nSe quiser, eu te ajudo a concluir por aqui mesmo. É rapidinho!',
+  cadastro: 'Oi {primeiro}, tudo bem? Aqui é da JBX Sports 🙂\n\nVi que você criou sua conta no nosso site mas ainda não se inscreveu em nenhuma prova. Posso te contar quais eventos estão com inscrição aberta?\n\nQualquer dúvida sobre percurso, kit ou valores é só me chamar por aqui!'
+};
+
+function igSubTab(nome){
+  igSub = nome;
+  ['inscricoes','cadastros','leads'].forEach(n=>{
+    const v = document.getElementById('ig-view-' + n);
+    const b = document.getElementById('ig-sub-' + n);
+    if(v) v.style.display = (n === nome) ? '' : 'none';
+    if(b) b.classList.toggle('active', n === nome);
+  });
+  const btnCols = document.querySelector('#screen-inscritos .page-hd .ig-btn[onclick="igToggleColunas()"]');
+  if(btnCols) btnCols.style.display = (nome === 'inscricoes') ? '' : 'none';
+  const boxCols = document.getElementById('ig-colunas-box');
+  if(boxCols && nome !== 'inscricoes') boxCols.style.display = 'none';
+  const btnComp = document.getElementById('ig-btn-completo');
+  if(btnComp) btnComp.style.display = (nome === 'inscricoes') ? '' : 'none';
+
+  if(nome === 'cadastros'){ if(!cadCarregado) cadCarregar(); else cadAplicar(); }
+  if(nome === 'leads'){ leadCarregarMsg(); if(!leadCarregado) leadCarregar(); else leadAplicar(); }
+  if(nome === 'inscricoes') igRenderTabela();
+}
+
+function igResumoTopo(txt){
+  const el = document.getElementById('ig-resumo');
+  if(el) el.textContent = txt;
+}
+
+/* ── telefone / whatsapp ── */
+function wppNumero(tel){
+  let d = String(tel || '').replace(/\D/g, '');
+  if(!d) return '';
+  if(d.length > 13) d = d.slice(-13);
+  if(d.length === 10 || d.length === 11) d = '55' + d;
+  if(d.length < 12) return '';
+  return d;
+}
+function wppLink(pessoa){
+  const num = wppNumero(pessoa.telefone);
+  if(!num) return '';
+  const nomeCompleto = (pessoa.nome || '').trim();
+  const primeiro = nomeCompleto.split(' ')[0] || 'atleta';
+  const modelo = (document.getElementById('lead-msg') || {}).value || LEAD_MSGS.carrinho;
+  const texto = modelo
+    .split('{primeiro}').join(primeiro)
+    .split('{nome}').join(nomeCompleto)
+    .split('{evento}').join(pessoa.evento_pendente || pessoa.ultimo_evento || 'nossos eventos');
+  return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
+}
+function wppBotao(pessoa, rotulo){
+  const link = wppLink(pessoa);
+  if(!link) return '<span class="wpp-btn wpp-off" title="Sem telefone">sem tel.</span>';
+  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener">💬 ' + (rotulo || 'Chamar') + '</a>';
+}
+
+/* ── CADASTROS ── */
+async function cadCarregar(){
+  const tb = document.getElementById('cad-tbody');
+  if(tb) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr>';
+  try{
+    const dados = await rpc('admin_cadastros_geral');
+    cadTodos = dados || [];
+    cadCarregado = true;
+    igOpcoesDe('cad-f-estado', cadTodos, 'estado', 'Todas');
+    igOpcoesDe('cad-f-cidade', cadTodos, 'cidade', 'Todas');
+    cadAplicar();
+  }catch(e){
+    if(tb) tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:#dc2626;">Erro ao carregar: ' + (e.message||'') + '</td></tr>';
+  }
+}
+function igOpcoesDe(selId, arr, campo, rotulo){
+  const set = new Set();
+  (arr||[]).forEach(i=>{ const v = (i[campo]||'').toString().trim(); if(v) set.add(v); });
+  igOpcoes(selId, Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-BR')), rotulo);
+}
+function cadAplicar(){
+  const val = id => { const el = document.getElementById(id); return el ? (el.value||'').trim() : ''; };
+  const busca = val('cad-f-busca').toLowerCase();
+  const sit = val('cad-f-situacao'), uf = val('cad-f-estado'), cid = val('cad-f-cidade');
+  const de = val('cad-f-de'), ate = val('cad-f-ate'), ordem = val('cad-f-ordem') || 'criado_desc';
+
+  let arr = (cadTodos||[]).filter(c=>{
+    const pagas = Number(c.inscricoes_pagas||0), pend = Number(c.inscricoes_pendentes||0), tot = Number(c.inscricoes_total||0);
+    if(sit === 'comprou' && pagas === 0) return false;
+    if(sit === 'sem' && pagas > 0) return false;
+    if(sit === 'pendente' && pend === 0) return false;
+    if(sit === 'sem_inscricao' && tot > 0) return false;
+    if(uf && (c.estado||'') !== uf) return false;
+    if(cid && (c.cidade||'') !== cid) return false;
+    const d = igDataISO(c.criado_em);
+    if(de && (!d || d < de)) return false;
+    if(ate && (!d || d > ate)) return false;
+    if(busca){
+      const alvo = ((c.nome||'') + ' ' + (c.cpf||'') + ' ' + (c.email||'') + ' ' + (c.telefone||'')).toLowerCase();
+      if(alvo.indexOf(busca) === -1) return false;
+    }
+    return true;
+  });
+
+  if(ordem === 'criado_desc') arr.sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  else if(ordem === 'criado_asc') arr.sort((a,b)=>String(a.criado_em||'').localeCompare(String(b.criado_em||'')));
+  else if(ordem === 'nome_asc') arr.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+  else if(ordem === 'inscricoes_desc') arr.sort((a,b)=>Number(b.inscricoes_total||0)-Number(a.inscricoes_total||0));
+
+  cadFiltrados = arr;
+  cadRender();
+}
+function cadRender(){
+  const tb = document.getElementById('cad-tbody');
+  const rod = document.getElementById('cad-rodape');
+  if(!tb) return;
+  igResumoTopo(fmt(cadFiltrados.length) + ' cadastro(s) · ' + fmt(cadTodos.length) + ' no total');
+  if(!cadFiltrados.length){
+    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--muted);">Nenhum cadastro com esses filtros.</td></tr>';
+    if(rod) rod.textContent = '';
+    return;
+  }
+  const visiveis = cadFiltrados.slice(0, IG_LIMITE_TELA);
+  tb.innerHTML = visiveis.map(c=>{
+    const pagas = Number(c.inscricoes_pagas||0), pend = Number(c.inscricoes_pendentes||0);
+    let insc = fmt(Number(c.inscricoes_total||0)) + ' total';
+    if(pagas) insc += ' · ' + fmt(pagas) + ' paga(s)';
+    if(pend) insc += ' · ' + fmt(pend) + ' pendente(s)';
+    const local = ((c.cidade||'—') + (c.estado ? ' / ' + c.estado : ''));
+    const ult = c.ultima_inscricao ? (fmtData(c.ultima_inscricao) + (c.ultimo_evento ? ' — ' + c.ultimo_evento : '')) : '—';
+    return '<tr>' +
+      '<td>' + wppBotao(c, '') + '</td>' +
+      '<td style="font-weight:600;">' + (c.nome||'—') + '</td>' +
+      '<td style="font-size:12px;color:var(--muted);">' + (c.cpf||'—') + '</td>' +
+      '<td>' + (c.email||'—') + '</td>' +
+      '<td>' + (c.telefone||'—') + '</td>' +
+      '<td>' + local + '</td>' +
+      '<td style="font-size:12px;">' + insc + '</td>' +
+      '<td style="font-size:12px;color:var(--muted);">' + ult + '</td>' +
+      '<td style="font-size:12px;color:var(--muted);">' + (c.criado_em ? fmtData(c.criado_em) : '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  if(rod) rod.textContent = cadFiltrados.length > IG_LIMITE_TELA
+    ? 'Mostrando os ' + IG_LIMITE_TELA + ' primeiros de ' + fmt(cadFiltrados.length) + '. A exportação leva todos.'
+    : '';
+}
+
+/* ── SEM COMPRA ── */
+function leadCarregarMsg(){
+  const el = document.getElementById('lead-msg');
+  if(!el) return;
+  if(el.value) return;
+  let salvo = null;
+  try{ salvo = localStorage.getItem('jbx_lead_msg'); }catch(e){}
+  el.value = salvo || LEAD_MSGS.carrinho;
+}
+function leadSalvarMsg(){
+  const el = document.getElementById('lead-msg');
+  if(!el) return;
+  try{ localStorage.setItem('jbx_lead_msg', el.value); }catch(e){}
+  leadRender();
+}
+function leadMsgPadrao(tipo){
+  const el = document.getElementById('lead-msg');
+  if(!el) return;
+  el.value = LEAD_MSGS[tipo] || LEAD_MSGS.carrinho;
+  leadSalvarMsg();
+}
+async function leadCarregar(){
+  const tb = document.getElementById('lead-tbody');
+  if(tb) tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr>';
+  try{
+    const dados = await rpc('admin_leads_sem_compra');
+    leadTodos = dados || [];
+    leadCarregado = true;
+    igOpcoesDe('lead-f-evento', leadTodos, 'evento_pendente', 'Todos');
+    leadAplicar();
+  }catch(e){
+    if(tb) tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#dc2626;">Erro ao carregar: ' + (e.message||'') + '</td></tr>';
+  }
+}
+function leadAplicar(){
+  const val = id => { const el = document.getElementById(id); return el ? (el.value||'').trim() : ''; };
+  const busca = val('lead-f-busca').toLowerCase();
+  const tipo = val('lead-f-tipo'), ev = val('lead-f-evento');
+  const soTel = val('lead-f-tel') === '1';
+  const ordem = val('lead-f-ordem') || 'ref_desc';
+
+  let arr = (leadTodos||[]).filter(l=>{
+    if(tipo && (l.tipo||'') !== tipo) return false;
+    if(ev && (l.evento_pendente||'') !== ev) return false;
+    if(soTel && !wppNumero(l.telefone)) return false;
+    if(busca){
+      const alvo = ((l.nome||'') + ' ' + (l.cpf||'') + ' ' + (l.email||'') + ' ' + (l.telefone||'')).toLowerCase();
+      if(alvo.indexOf(busca) === -1) return false;
+    }
+    return true;
+  });
+
+  if(ordem === 'ref_desc') arr.sort((a,b)=>String(b.referencia||'').localeCompare(String(a.referencia||'')));
+  else if(ordem === 'ref_asc') arr.sort((a,b)=>String(a.referencia||'').localeCompare(String(b.referencia||'')));
+  else if(ordem === 'nome_asc') arr.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
+  else if(ordem === 'valor_desc') arr.sort((a,b)=>Number(b.valor_pendente||0)-Number(a.valor_pendente||0));
+
+  leadFiltrados = arr;
+  leadRender();
+}
+function leadRender(){
+  const tb = document.getElementById('lead-tbody');
+  const rod = document.getElementById('lead-rodape');
+  if(!tb) return;
+  const carrinhos = leadFiltrados.filter(l=>l.tipo === 'carrinho').length;
+  igResumoTopo(fmt(leadFiltrados.length) + ' sem compra · ' + fmt(carrinhos) + ' carrinho(s) abandonado(s)');
+  if(!leadFiltrados.length){
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);">Ninguém nessa situação com os filtros atuais.</td></tr>';
+    if(rod) rod.textContent = '';
+    return;
+  }
+  const visiveis = leadFiltrados.slice(0, IG_LIMITE_TELA);
+  tb.innerHTML = visiveis.map(l=>{
+    const pill = l.tipo === 'carrinho'
+      ? '<span class="tipo-pill tipo-carrinho">carrinho abandonado</span>'
+      : '<span class="tipo-pill tipo-cadastro">só cadastro</span>';
+    return '<tr>' +
+      '<td>' + wppBotao(l, 'Chamar') + '</td>' +
+      '<td style="font-weight:600;">' + (l.nome||'—') + '</td>' +
+      '<td>' + (l.telefone||'—') + '</td>' +
+      '<td>' + (l.email||'—') + '</td>' +
+      '<td>' + pill + '</td>' +
+      '<td>' + (l.evento_pendente||'—') + '</td>' +
+      '<td style="color:var(--orange);font-weight:700;">' + (l.valor_pendente ? brl(l.valor_pendente) : '—') + '</td>' +
+      '<td style="font-size:12px;color:var(--muted);">' + (l.referencia ? fmtData(l.referencia) : '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  if(rod) rod.textContent = leadFiltrados.length > IG_LIMITE_TELA
+    ? 'Mostrando os ' + IG_LIMITE_TELA + ' primeiros de ' + fmt(leadFiltrados.length) + '. A exportação leva todos.'
+    : '';
+}
+
 /* ── DRAWER INSCRITO ── */
+
 
 function editarInscrito(i){
   editingId=i.id;
