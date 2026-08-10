@@ -96,6 +96,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .form-feedback{font-size:12px;text-align:center;margin-top:8px;min-height:16px;}
 .form-feedback.ok{color:#16a34a;}.form-feedback.err{color:#dc2626;}
 .hint{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;}
+.ig-filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+.ig-btn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
+.ig-btn:hover{border-color:var(--orange);color:var(--orange);}
+.ig-btn-xls{background:var(--orange);color:#fff;border-color:var(--orange);}
+.ig-btn-xls:hover{background:var(--orange-dark);color:#fff;border-color:var(--orange-dark);}
+.ig-cols-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 14px;}
+.ig-cols-grid label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;padding:3px 0;}
+.ig-cols-grid input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
+.ig-chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none;}
+.ig-chk input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
+#ig-tabela td{white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis;}
 /* TABLES */
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}
 .data-table th{text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:8px 12px;border-bottom:1px solid var(--border);background:#f5f3f0;}
@@ -685,6 +696,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
     <header class="admin-header">
       <nav class="admin-nav">
         <button class="nav-btn active" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
+        <button class="nav-btn" id="nav-inscritos" onclick="showInner('inscritos')">Inscritos</button>
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
@@ -730,6 +742,80 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           </div>
         </div>
         <div class="eventos-grid-admin" id="ev-grid"><div class="empty-state">Carregando…</div></div>
+      </div>
+
+
+      <!-- TELA: INSCRITOS (TODOS OS EVENTOS) -->
+      <div class="inner-screen" id="screen-inscritos">
+        <div class="page-hd">
+          <h1>Inscritos — todos os eventos</h1>
+          <span id="ig-resumo" style="font-size:13px;color:var(--muted);margin-left:6px;">—</span>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="ig-btn" onclick="igRecarregar()">↻ Atualizar</button>
+            <button class="ig-btn" onclick="igToggleColunas()">☰ Colunas</button>
+            <button class="ig-btn ig-btn-xls" onclick="igExportar(false)">⤓ Exportar Excel</button>
+            <button class="ig-btn" onclick="igExportar(true)">⤓ Exportar completo</button>
+          </div>
+        </div>
+
+        <!-- SELETOR DE COLUNAS -->
+        <div class="panel" id="ig-colunas-box" style="display:none;margin-bottom:16px;">
+          <h3 style="margin-bottom:12px;">Colunas exibidas</h3>
+          <div id="ig-colunas-lista" class="ig-cols-grid"></div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+            <button class="ig-btn" onclick="igColsTodas(true)">Marcar todas</button>
+            <button class="ig-btn" onclick="igColsTodas(false)">Desmarcar todas</button>
+            <button class="ig-btn" onclick="igColsPadrao()">Restaurar padrão</button>
+          </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div class="panel" style="margin-bottom:18px;">
+          <div class="ig-filtros">
+            <div class="form-g" style="margin:0;grid-column:span 2;">
+              <label>Busca livre</label>
+              <input type="text" id="ig-f-busca" placeholder="Nome, CPF, e-mail ou telefone" oninput="igAplicar()">
+            </div>
+            <div class="form-g" style="margin:0;"><label>Evento</label><select id="ig-f-evento" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Status</label><select id="ig-f-status" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Gênero</label><select id="ig-f-genero" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Kit</label><select id="ig-f-kit" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Modalidade</label><select id="ig-f-modalidade" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Camiseta</label><select id="ig-f-camisa" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Cidade</label><select id="ig-f-cidade" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>UF</label><select id="ig-f-estado" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Pagamento</label><select id="ig-f-pagamento" onchange="igAplicar()"></select></div>
+            <div class="form-g" style="margin:0;"><label>Inscrito de</label><input type="date" id="ig-f-de" onchange="igAplicar()"></div>
+            <div class="form-g" style="margin:0;"><label>Inscrito até</label><input type="date" id="ig-f-ate" onchange="igAplicar()"></div>
+            <div class="form-g" style="margin:0;"><label>Evento de</label><input type="date" id="ig-f-evde" onchange="igAplicar()"></div>
+            <div class="form-g" style="margin:0;"><label>Evento até</label><input type="date" id="ig-f-evate" onchange="igAplicar()"></div>
+            <div class="form-g" style="margin:0;">
+              <label>Ordenar por</label>
+              <select id="ig-f-ordem" onchange="igAplicar()">
+                <option value="criado_desc">Inscrição — mais recente</option>
+                <option value="criado_asc">Inscrição — mais antiga</option>
+                <option value="evdata_asc">Data do evento — crescente</option>
+                <option value="evdata_desc">Data do evento — decrescente</option>
+                <option value="nome_asc">Nome (A-Z)</option>
+                <option value="evento_asc">Evento (A-Z)</option>
+                <option value="valor_desc">Valor — maior primeiro</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap;">
+            <label class="ig-chk"><input type="checkbox" id="ig-f-canceladas" onchange="igAplicar()"> Incluir canceladas</label>
+            <button class="ig-btn" onclick="igLimparFiltros()">Limpar filtros</button>
+          </div>
+        </div>
+
+        <!-- TABELA -->
+        <div class="table-wrap">
+          <table class="data-table" id="ig-tabela">
+            <thead><tr id="ig-thead"></tr></thead>
+            <tbody id="ig-tbody"><tr><td style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="ig-rodape" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>
       </div>
 
       <!-- TELA 2: CUPONS -->
@@ -1349,7 +1435,7 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 
 /* ── AUTH ── */
 const ADM_ABAS=[
- {id:'dash',label:'Dashboard'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
+ {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'}
 ];
@@ -1422,6 +1508,7 @@ function showInner(name){
   // Scroll para o topo sempre que trocar de tela
   window.scrollTo(0,0);
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
+  if(name==='inscritos'){document.getElementById('nav-inscritos').classList.add('active');igInit();}
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
@@ -2173,7 +2260,301 @@ async function exportarExcel(){
   }catch(e){alert('Erro ao exportar: '+e.message);}
 }
 
+/* ── INSCRITOS GERAL (todos os eventos) ── */
+const IG_COLS = [
+  {k:'evento',              l:'Evento'},
+  {k:'evento_data',         l:'Data do evento', f:'data'},
+  {k:'nome',                l:'Nome'},
+  {k:'cpf',                 l:'CPF'},
+  {k:'email',               l:'E-mail'},
+  {k:'telefone',            l:'Telefone'},
+  {k:'genero',              l:'Gênero'},
+  {k:'nascimento',          l:'Nascimento', f:'data'},
+  {k:'idade',               l:'Idade'},
+  {k:'kit',                 l:'Kit'},
+  {k:'lote_nome',           l:'Lote'},
+  {k:'modalidade',          l:'Modalidade'},
+  {k:'tamanho_camisa',      l:'Camiseta'},
+  {k:'valor',               l:'Valor', f:'brl'},
+  {k:'valor_produtos',      l:'Adicionais (R$)', f:'brl'},
+  {k:'produtos_txt',        l:'Produtos'},
+  {k:'desconto_pct',        l:'Desconto %'},
+  {k:'cupom',               l:'Cupom'},
+  {k:'forma_pagamento',     l:'Pagamento'},
+  {k:'status',              l:'Status', f:'status'},
+  {k:'cep',                 l:'CEP'},
+  {k:'rua',                 l:'Rua'},
+  {k:'numero',              l:'Número'},
+  {k:'complemento',         l:'Complemento'},
+  {k:'bairro',              l:'Bairro'},
+  {k:'cidade',              l:'Cidade'},
+  {k:'estado',              l:'UF'},
+  {k:'emergencia_nome',     l:'Emergência (nome)'},
+  {k:'emergencia_telefone', l:'Emergência (tel)'},
+  {k:'criado_em',           l:'Inscrito em', f:'datahora'},
+  {k:'evento_local',        l:'Local do evento'},
+  {k:'pedido_id',           l:'Pedido'}
+];
+const IG_COLS_PADRAO = ['evento','evento_data','nome','cpf','email','telefone','genero','kit','modalidade','tamanho_camisa','valor','status','criado_em'];
+const IG_LIMITE_TELA = 500;
+
+let igTodos = [], igFiltrados = [], igColsSel = IG_COLS_PADRAO.slice(), igCarregado = false;
+
+function igLerColsSalvas(){
+  try{
+    const raw = localStorage.getItem('jbx_ig_cols');
+    if(!raw) return null;
+    const arr = JSON.parse(raw);
+    if(Array.isArray(arr) && arr.length) return arr.filter(k=>IG_COLS.some(c=>c.k===k));
+  }catch(e){}
+  return null;
+}
+function igSalvarCols(){ try{localStorage.setItem('jbx_ig_cols', JSON.stringify(igColsSel));}catch(e){} }
+
+async function igInit(){
+  const salvas = igLerColsSalvas();
+  if(salvas) igColsSel = salvas;
+  igRenderColunasBox();
+  if(!igCarregado) await igCarregar();
+  else igAplicar();
+}
+async function igRecarregar(){ igCarregado = false; await igCarregar(); }
+
+async function igCarregar(){
+  const tb = document.getElementById('ig-tbody');
+  if(tb) tb.innerHTML = '<tr><td style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr>';
+  try{
+    const dados = await rpc('admin_inscritos_geral');
+    igTodos = (dados||[]).map(i=>{
+      const o = Object.assign({}, i);
+      o.idade = igIdade(o.nascimento);
+      o.produtos_txt = igProdutosTxt(o.produtos);
+      return o;
+    });
+    igCarregado = true;
+    igMontarFiltros();
+    igAplicar();
+  }catch(e){
+    if(tb) tb.innerHTML = '<tr><td style="text-align:center;padding:32px;color:#dc2626;">Erro ao carregar: ' + (e.message||'') + '</td></tr>';
+  }
+}
+
+function igIdade(nasc){
+  if(!nasc) return '';
+  const d = new Date(String(nasc) + 'T12:00:00');
+  if(isNaN(d)) return '';
+  const hoje = new Date();
+  let a = hoje.getFullYear() - d.getFullYear();
+  const m = hoje.getMonth() - d.getMonth();
+  if(m < 0 || (m === 0 && hoje.getDate() < d.getDate())) a--;
+  return a >= 0 && a < 130 ? a : '';
+}
+function igProdutosTxt(v){
+  let arr = v;
+  if(!arr) return '';
+  if(typeof arr === 'string'){ try{ arr = JSON.parse(arr); }catch(e){ return ''; } }
+  if(!Array.isArray(arr)) return '';
+  return arr.map(p=>{
+    const q = Number(p && p.qtd) || 1;
+    const n = (p && p.nome) || '';
+    return (q > 1 ? q + '× ' : '') + n;
+  }).filter(Boolean).join(', ');
+}
+
+function igOpcoes(sel, valores, rotuloTodos){
+  const el = document.getElementById(sel);
+  if(!el) return;
+  const atual = el.value;
+  let html = '<option value="">' + rotuloTodos + '</option>';
+  valores.forEach(v=>{ html += '<option value="' + String(v).replace(/"/g,'&quot;') + '">' + v + '</option>'; });
+  el.innerHTML = html;
+  if(atual && valores.indexOf(atual) > -1) el.value = atual;
+}
+function igDistintos(campo){
+  const set = new Set();
+  igTodos.forEach(i=>{ const v = (i[campo]||'').toString().trim(); if(v) set.add(v); });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function igMontarFiltros(){
+  const evs = [];
+  igTodos.forEach(i=>{ const n=(i.evento||'').trim(); if(n && evs.indexOf(n)===-1) evs.push(n); });
+  evs.sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  igOpcoes('ig-f-evento', evs, 'Todos os eventos');
+  igOpcoes('ig-f-status', igDistintos('status'), 'Todos os status');
+  igOpcoes('ig-f-genero', igDistintos('genero'), 'Todos');
+  igOpcoes('ig-f-kit', igDistintos('kit'), 'Todos');
+  igOpcoes('ig-f-modalidade', igDistintos('modalidade'), 'Todas');
+  igOpcoes('ig-f-camisa', igDistintos('tamanho_camisa'), 'Todas');
+  igOpcoes('ig-f-cidade', igDistintos('cidade'), 'Todas');
+  igOpcoes('ig-f-estado', igDistintos('estado'), 'Todas');
+  igOpcoes('ig-f-pagamento', igDistintos('forma_pagamento'), 'Todas');
+}
+function igLimparFiltros(){
+  ['ig-f-busca','ig-f-de','ig-f-ate','ig-f-evde','ig-f-evate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['ig-f-evento','ig-f-status','ig-f-genero','ig-f-kit','ig-f-modalidade','ig-f-camisa','ig-f-cidade','ig-f-estado','ig-f-pagamento'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const ord=document.getElementById('ig-f-ordem'); if(ord) ord.value='criado_desc';
+  const can=document.getElementById('ig-f-canceladas'); if(can) can.checked=false;
+  igAplicar();
+}
+
+function igDataISO(v){ return v ? String(v).slice(0,10) : ''; }
+
+function igAplicar(){
+  const val = id => { const el = document.getElementById(id); return el ? (el.value||'').trim() : ''; };
+  const busca = val('ig-f-busca').toLowerCase();
+  const fEvento = val('ig-f-evento'), fStatus = val('ig-f-status'), fGenero = val('ig-f-genero');
+  const fKit = val('ig-f-kit'), fMod = val('ig-f-modalidade'), fCam = val('ig-f-camisa');
+  const fCidade = val('ig-f-cidade'), fEstado = val('ig-f-estado'), fPag = val('ig-f-pagamento');
+  const de = val('ig-f-de'), ate = val('ig-f-ate'), evde = val('ig-f-evde'), evate = val('ig-f-evate');
+  const incluirCanc = !!(document.getElementById('ig-f-canceladas') || {}).checked;
+  const ordem = val('ig-f-ordem') || 'criado_desc';
+
+  let arr = igTodos.filter(i=>{
+    const st = (i.status||'pendente').toLowerCase();
+    if(!incluirCanc && (st === 'cancelada' || st === 'cancelado')) return false;
+    if(fEvento && (i.evento||'') !== fEvento) return false;
+    if(fStatus && (i.status||'') !== fStatus) return false;
+    if(fGenero && (i.genero||'') !== fGenero) return false;
+    if(fKit && (i.kit||'') !== fKit) return false;
+    if(fMod && (i.modalidade||'') !== fMod) return false;
+    if(fCam && (i.tamanho_camisa||'') !== fCam) return false;
+    if(fCidade && (i.cidade||'') !== fCidade) return false;
+    if(fEstado && (i.estado||'') !== fEstado) return false;
+    if(fPag && (i.forma_pagamento||'') !== fPag) return false;
+    const dIns = igDataISO(i.criado_em);
+    if(de && (!dIns || dIns < de)) return false;
+    if(ate && (!dIns || dIns > ate)) return false;
+    const dEv = igDataISO(i.evento_data);
+    if(evde && (!dEv || dEv < evde)) return false;
+    if(evate && (!dEv || dEv > evate)) return false;
+    if(busca){
+      const alvo = ((i.nome||'') + ' ' + (i.cpf||'') + ' ' + (i.email||'') + ' ' + (i.telefone||'')).toLowerCase();
+      if(alvo.indexOf(busca) === -1) return false;
+    }
+    return true;
+  });
+
+  const txt = (a,b) => String(a||'').localeCompare(String(b||''),'pt-BR');
+  if(ordem === 'criado_desc') arr.sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  else if(ordem === 'criado_asc') arr.sort((a,b)=>String(a.criado_em||'').localeCompare(String(b.criado_em||'')));
+  else if(ordem === 'evdata_asc') arr.sort((a,b)=>String(a.evento_data||'9999').localeCompare(String(b.evento_data||'9999')));
+  else if(ordem === 'evdata_desc') arr.sort((a,b)=>String(b.evento_data||'').localeCompare(String(a.evento_data||'')));
+  else if(ordem === 'nome_asc') arr.sort((a,b)=>txt(a.nome,b.nome));
+  else if(ordem === 'evento_asc') arr.sort((a,b)=>txt(a.evento,b.evento) || String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  else if(ordem === 'valor_desc') arr.sort((a,b)=>Number(b.valor||0)-Number(a.valor||0));
+
+  igFiltrados = arr;
+  igRenderTabela();
+}
+
+function igCelula(i, col){
+  const v = i[col.k];
+  if(col.f === 'brl') return brl(v);
+  if(col.f === 'data') return v ? fmtDS(igDataISO(v)) : '—';
+  if(col.f === 'datahora') return v ? fmtData(v) : '—';
+  if(col.f === 'status'){
+    const st = v || 'pendente';
+    return '<span class="status-pill status-' + st + '">' + st + '</span>';
+  }
+  if(v === null || v === undefined || v === '') return '—';
+  return String(v);
+}
+
+function igRenderTabela(){
+  const cols = IG_COLS.filter(c=>igColsSel.indexOf(c.k) > -1);
+  const th = document.getElementById('ig-thead');
+  const tb = document.getElementById('ig-tbody');
+  const resumo = document.getElementById('ig-resumo');
+  const rodape = document.getElementById('ig-rodape');
+  if(!th || !tb) return;
+
+  th.innerHTML = cols.map(c=>'<th>' + c.l + '</th>').join('') || '<th>—</th>';
+
+  const totalValor = igFiltrados.reduce((a,i)=>a + Number(i.valor||0), 0);
+  if(resumo) resumo.textContent = fmt(igFiltrados.length) + ' inscrição(ões) · ' + brl(totalValor) + ' · ' + fmt(igTodos.length) + ' no total';
+
+  if(!cols.length){
+    tb.innerHTML = '<tr><td style="text-align:center;padding:32px;color:var(--muted);">Selecione ao menos uma coluna.</td></tr>';
+    if(rodape) rodape.textContent = '';
+    return;
+  }
+  if(!igFiltrados.length){
+    tb.innerHTML = '<tr><td colspan="' + cols.length + '" style="text-align:center;padding:32px;color:var(--muted);">Nenhuma inscrição com esses filtros.</td></tr>';
+    if(rodape) rodape.textContent = '';
+    return;
+  }
+
+  const visiveis = igFiltrados.slice(0, IG_LIMITE_TELA);
+  tb.innerHTML = visiveis.map(i=>{
+    const tds = cols.map(c=>'<td>' + igCelula(i, c) + '</td>').join('');
+    return '<tr>' + tds + '</tr>';
+  }).join('');
+
+  if(rodape){
+    rodape.textContent = igFiltrados.length > IG_LIMITE_TELA
+      ? 'Mostrando as ' + IG_LIMITE_TELA + ' primeiras de ' + fmt(igFiltrados.length) + '. A exportação leva todas.'
+      : '';
+  }
+}
+
+/* ── seletor de colunas ── */
+function igToggleColunas(){
+  const box = document.getElementById('ig-colunas-box');
+  if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+function igRenderColunasBox(){
+  const el = document.getElementById('ig-colunas-lista');
+  if(!el) return;
+  el.innerHTML = IG_COLS.map(c=>{
+    const chk = igColsSel.indexOf(c.k) > -1 ? ' checked' : '';
+    return '<label><input type="checkbox" value="' + c.k + '" onchange="igColToggle(this)"' + chk + '>' + c.l + '</label>';
+  }).join('');
+}
+function igColToggle(el){
+  const k = el.value;
+  if(el.checked){ if(igColsSel.indexOf(k) === -1) igColsSel.push(k); }
+  else { igColsSel = igColsSel.filter(x=>x !== k); }
+  igColsSel = IG_COLS.filter(c=>igColsSel.indexOf(c.k) > -1).map(c=>c.k);
+  igSalvarCols();
+  igRenderTabela();
+}
+function igColsTodas(marcar){
+  igColsSel = marcar ? IG_COLS.map(c=>c.k) : [];
+  igSalvarCols(); igRenderColunasBox(); igRenderTabela();
+}
+function igColsPadrao(){
+  igColsSel = IG_COLS_PADRAO.slice();
+  igSalvarCols(); igRenderColunasBox(); igRenderTabela();
+}
+
+/* ── exportação ── */
+function igValorExcel(i, col){
+  const v = i[col.k];
+  if(col.f === 'brl') return Number(v||0);
+  if(col.f === 'data') return v ? fmtDS(igDataISO(v)) : '';
+  if(col.f === 'datahora') return v ? fmtData(v) : '';
+  if(col.k === 'desconto_pct') return Number(v||0);
+  return v === null || v === undefined ? '' : String(v);
+}
+function igExportar(todasColunas){
+  const cols = todasColunas ? IG_COLS.slice() : IG_COLS.filter(c=>igColsSel.indexOf(c.k) > -1);
+  if(!cols.length){ alert('Selecione ao menos uma coluna.'); return; }
+  if(!igFiltrados.length){ alert('Nenhuma inscrição para exportar com os filtros atuais.'); return; }
+  try{
+    const linhas = [cols.map(c=>c.l)];
+    igFiltrados.forEach(i=>linhas.push(cols.map(c=>igValorExcel(i, c))));
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(linhas);
+    ws['!cols'] = cols.map(c=>({wch: Math.max(14, c.l.length + 4)}));
+    XLSX.utils.book_append_sheet(wb, ws, 'Inscritos');
+    const ev = (document.getElementById('ig-f-evento') || {}).value || 'todos_eventos';
+    const nome = String(ev).replace(/[^a-z0-9]/gi,'_').slice(0,40) || 'todos_eventos';
+    XLSX.writeFile(wb, 'inscritos_' + nome + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  }catch(e){ alert('Erro ao exportar: ' + e.message); }
+}
+
 /* ── DRAWER INSCRITO ── */
+
 function editarInscrito(i){
   editingId=i.id;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||'';};
