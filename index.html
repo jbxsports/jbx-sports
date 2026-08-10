@@ -2046,6 +2046,14 @@ async function buscarAtletaPorCpf() {
       return;
     }
 
+    // 1 CPF por evento: nem oferece o cadastro se já houver inscrição
+    if (duplicadoNoCarrinho(cpf, achou.ref) || await cpfJaInscrito(cpf, achou.ref)) {
+      _achadoAtleta = null;
+      res.className = 'busca-resultado br-erro';
+      res.textContent = 'Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.';
+      return;
+    }
+
     // rotulo vem do servidor se a RPC retornar (ex: "Stephano Bachim"); mascara para exibição
     // se a RPC atual não retornar rotulo, mostra confirmação genérica
     const nomeCompleto = achou.rotulo || '';
@@ -2133,6 +2141,60 @@ function corrigirCpf() {
   if (el) { el.value = ''; el.focus(); }
 }
 
+// ── BLOQUEIO DE INSCRIÇÃO DUPLICADA (1 CPF por evento) ──
+let _cpfDuplicado = false;
+
+// Consulta o banco: este CPF (ou ref) já tem inscrição não cancelada neste evento?
+async function cpfJaInscrito(cpf, ref) {
+  const cpfLimpo = (cpf || '').replace(/\D/g, '');
+  if (!currentEventoId) return false;
+  if (cpfLimpo.length !== 11 && !ref) return false;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/cpf_ja_inscrito`, {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        p_evento_id: currentEventoId,
+        p_cpf: cpfLimpo.length === 11 ? cpfLimpo : null,
+        p_ref: ref || null
+      })
+    });
+    if (!r.ok) return false;
+    const dado = await r.json();
+    return dado === true || (Array.isArray(dado) && dado[0] === true);
+  } catch (e) { return false; }
+}
+
+// Mostra/limpa o aviso de CPF já inscrito no campo da etapa de dados
+function avisoCpfDuplicado(mostrar) {
+  _cpfDuplicado = !!mostrar;
+  const av = document.getElementById('cpf-aviso');
+  if (!av) return;
+  if (mostrar) {
+    av.className = 'cpf-aviso show';
+    av.style.color = '#c0392b';
+    av.style.background = 'rgba(255,107,107,0.10)';
+    av.style.borderColor = 'rgba(255,107,107,0.35)';
+    av.textContent = '⚠ Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.';
+  } else if (av.textContent.indexOf('já possui inscrição') > -1) {
+    av.className = 'cpf-aviso';
+    av.style.color = ''; av.style.background = ''; av.style.borderColor = '';
+    av.textContent = '';
+  }
+}
+
+// Já existe alguém com este CPF/ref no carrinho desta mesma compra?
+function duplicadoNoCarrinho(cpf, ref, ignorarIdx) {
+  const cpfLimpo = (cpf || '').replace(/\D/g, '');
+  return cart.some((it, idx) => {
+    if (idx === ignorarIdx) return false;
+    const c = ((it.cpf || (it.dados && it.dados.cpf) || '') + '').replace(/\D/g, '');
+    if (cpfLimpo.length === 11 && c === cpfLimpo) return true;
+    if (ref && it.ref && it.ref === ref) return true;
+    return false;
+  });
+}
+
 // ── DETECÇÃO DE CPF JÁ CADASTRADO (bloqueia e usa o cadastro existente) ──
 let _cpfRef = '';
 async function checarCpf() {
@@ -2141,7 +2203,13 @@ async function checarCpf() {
   if (!el) return;
   const cpf = (el.value || '').replace(/\D/g, '');
   _cpfRef = '';
-  if (cpf.length !== 11) return;
+  if (cpf.length !== 11) { avisoCpfDuplicado(false); return; }
+
+  // 1 CPF por evento: se já houver inscrição, avisa e bloqueia o avanço
+  if (duplicadoNoCarrinho(cpf, '')) { avisoCpfDuplicado(true); return; }
+  if (await cpfJaInscrito(cpf, '')) { avisoCpfDuplicado(true); return; }
+  avisoCpfDuplicado(false);
+
   try {
     const r = await fetch(`${SB_URL}/rest/v1/rpc/buscar_por_cpf`, {
       method: 'POST',
@@ -2168,6 +2236,11 @@ function validarDados() {
   // A camiseta é sempre obrigatória (escolhida a cada inscrição)
   const cam = document.getElementById('f-camisa');
   if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
+  // 1 CPF por evento
+  if (_cpfDuplicado) {
+    alert('Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.');
+    return false;
+  }
   // Com cadastro protegido, o resto vem do servidor
   if (currentRef) return true;
   const obrigatorios = ['f-nome','f-cpf','f-nasc','f-genero','f-email','f-tel','f-cep','f-rua','f-num','f-bairro','f-cidade','f-estado','f-emerg-nome','f-emerg-tel'];
@@ -2213,6 +2286,24 @@ async function handlePagamento() {
     itens = cart.concat([snapshotAtual()]);
   }
   if (!itens.length) return;
+
+  // ── 1 CPF por evento: checagem final antes de enviar ──
+  const vistos = new Set();
+  for (const it of itens) {
+    const cpfIt = ((it.cpf || (it.dados && it.dados.cpf) || '') + '').replace(/\D/g, '');
+    const chave = cpfIt.length === 11 ? cpfIt : (it.ref ? 'ref:' + it.ref : '');
+    if (chave) {
+      if (vistos.has(chave)) {
+        alert('Há dois atletas com o mesmo CPF nesta inscrição. Cada atleta pode se inscrever uma única vez no evento.');
+        return;
+      }
+      vistos.add(chave);
+    }
+    if (await cpfJaInscrito(cpfIt, it.ref || '')) {
+      alert('O CPF de "' + (it.rotulo || 'atleta') + '" já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.');
+      return;
+    }
+  }
 
   const btn = document.querySelector('.btn-pagar');
   const textoOriginal = btn.textContent;
