@@ -243,7 +243,7 @@
     display: inline-flex; align-items: center; gap: 16px;
     background: linear-gradient(135deg, rgba(255,117,31,0.12), rgba(255,117,31,0.04));
     border: 1.5px solid rgba(255,117,31,0.3);
-    border-radius: 14px; padding: 14px 20px; margin-top: 16px;
+    border-radius: 14px; padding: 14px 20px;
   }
   .ed-data-box .cal {
     background: var(--orange); color: #fff; border-radius: 10px;
@@ -1015,10 +1015,12 @@
     <div class="ed-col-info">
       <span class="event-badge badge-soon" id="ed-status">Em breve</span>
       <h1 class="ed-title" id="ed-nome" style="margin-top:12px;">Evento</h1>
-      <div id="ed-data-box"></div>
-      <div class="ed-meta" id="ed-meta"></div>
-      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:16px;margin-bottom:4px;">
+      <div style="display:flex;align-items:stretch;flex-wrap:wrap;gap:12px;margin-top:16px;">
+        <div id="ed-data-box"></div>
         <div id="ed-countdown"></div>
+      </div>
+      <div class="ed-meta" id="ed-meta"></div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:10px;margin-bottom:4px;">
         <div id="ed-views" style="display:none;"></div>
       </div>
       <button class="ed-inscrever" id="ed-inscrever" style="margin-top:20px;width:100%;">Inscreva-se →</button>
@@ -2715,7 +2717,7 @@ function renderEventoBase(ev, bannerUrl) {
     const diff = Math.round((dataEv - hoje) / 86400000);
     if (diff > 0) {
       cdEl.innerHTML = `
-        <div style="display:inline-flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,117,31,0.1),rgba(255,117,31,0.05));border:1px solid rgba(255,117,31,0.25);border-radius:12px;padding:12px 20px;">
+        <div style="display:flex;height:100%;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,117,31,0.1),rgba(255,117,31,0.05));border:1.5px solid rgba(255,117,31,0.3);border-radius:14px;padding:12px 20px;">
           <div style="text-align:center;">
             <div style="font-size:36px;font-weight:700;color:var(--orange);line-height:1;">${diff}</div>
             <div style="font-size:11px;font-weight:600;color:rgba(42,37,32,0.5);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;">${diff === 1 ? 'dia' : 'dias'}</div>
