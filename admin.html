@@ -1915,7 +1915,7 @@ function abrirKitsLotesById(id,nome){
 }
 
 function compartilharEvento(id, nome) {
-  const url = 'https://jbx-sports.vercel.app/#evento-' + id;
+  const url = window.location.origin + '/#evento-' + id;
   navigator.clipboard.writeText(url).then(() => {
     const btn = event.target;
     const orig = btn.textContent;
@@ -1923,7 +1923,7 @@ function compartilharEvento(id, nome) {
     btn.style.background = 'rgba(34,197,94,.25)';
     setTimeout(() => { btn.textContent = orig; btn.style.background = 'rgba(34,197,94,.1)'; }, 2000);
   }).catch(() => {
-    prompt('Copie o link do evento:', 'https://jbx-sports.vercel.app/#evento-' + id);
+    prompt('Copie o link do evento:', window.location.origin + '/#evento-' + id);
   });
 }
 
