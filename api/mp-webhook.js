@@ -12,7 +12,7 @@ const ZAPI_URL          = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token
 
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-const SITE_URL       = process.env.SITE_URL || 'https://jbx-sports.vercel.app';
+const SITE_URL       = process.env.SITE_URL || 'https://jbxsports.com.br';
 
 // ── WhatsApp ──
 async function enviarWhatsApp(telefone, mensagem) {
