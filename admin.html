@@ -100,6 +100,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ig-sub{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .ig-sub:hover{color:var(--text);}
 .ig-sub.active{color:var(--orange);border-bottom-color:var(--orange);}
+.ig-btn-disparo{background:#25d366;color:#fff;border-color:#25d366;}
+.ig-btn-disparo:hover{filter:brightness(.92);color:#fff;border-color:#25d366;}
+.disp-chk{accent-color:var(--orange);width:16px;height:16px;cursor:pointer;}
+#ig-tabela tr.linha-sel{background:rgba(255,117,31,.07);}
+.disp-hist{width:100%;border-collapse:collapse;font-size:13px;}
+.disp-hist th{text-align:left;padding:8px 10px;color:var(--muted);font-size:11px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.disp-hist td{padding:8px 10px;border-bottom:1px solid var(--border);}
 .wpp-btn{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;text-decoration:none;transition:filter .2s;}
 .wpp-btn:hover{filter:brightness(.92);}
 .wpp-off{background:#e5e1db;color:var(--muted);cursor:not-allowed;}
@@ -763,6 +770,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
             <button class="ig-btn" onclick="igRecarregar()">↻ Atualizar</button>
             <button class="ig-btn" id="ig-btn-msg" onclick="igToggleMsg()">💬 Mensagem</button>
+            <button class="ig-btn ig-btn-disparo" id="ig-btn-disparo" onclick="dispAbrir()">📣 Disparo em massa</button>
             <button class="ig-btn" onclick="igToggleColunas()">☰ Colunas</button>
             <button class="ig-btn ig-btn-xls" onclick="igExportar(false)">⤓ Exportar Excel</button>
             <button class="ig-btn" id="ig-btn-completo" onclick="igExportar(true)">⤓ Exportar completo</button>
@@ -792,6 +800,61 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <h3 style="margin-bottom:10px;">Mensagem do WhatsApp</h3>
           <textarea id="ig-msg" rows="3" style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'Ubuntu',sans-serif;line-height:1.6;resize:vertical;" oninput="igSalvarMsg()"></textarea>
           <div class="hint">Marcadores: <b>{primeiro}</b>, <b>{nome}</b>, <b>{evento}</b>, <b>{modalidade}</b>, <b>{kit}</b>. O texto fica salvo neste navegador.</div>
+        </div>
+
+        <!-- DISPARO EM MASSA -->
+        <div class="panel" id="disp-box" style="display:none;margin-bottom:16px;border:2px solid var(--orange);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+            <h3 style="margin:0;">📣 Disparo em massa</h3>
+            <span id="disp-contagem" style="font-size:13px;color:var(--muted);">nenhum selecionado</span>
+            <button class="ig-btn" style="margin-left:auto;" onclick="dispFechar()">✕ Fechar</button>
+          </div>
+
+          <div class="ig-filtros" style="margin-bottom:12px;">
+            <div class="form-g" style="margin:0;">
+              <label>Nome do disparo (só para seu controle)</label>
+              <input type="text" id="disp-nome" placeholder="Ex.: Aviso retirada de kit">
+            </div>
+            <div class="form-g" style="margin:0;">
+              <label>Quando enviar</label>
+              <select id="disp-quando" onchange="dispToggleData()">
+                <option value="agora">Enviar agora</option>
+                <option value="agendar">Agendar data e hora</option>
+              </select>
+            </div>
+            <div class="form-g" style="margin:0;" id="disp-data-wrap" hidden>
+              <label>Data e hora</label>
+              <input type="datetime-local" id="disp-data">
+            </div>
+            <div class="form-g" style="margin:0;">
+              <label>Intervalo entre mensagens</label>
+              <select id="disp-intervalo" onchange="dispPreview()">
+                <option value="30">30 segundos (recomendado)</option>
+                <option value="45">45 segundos</option>
+                <option value="60">1 minuto (mais seguro)</option>
+                <option value="20">20 segundos</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-g" style="margin:0 0 6px;">
+            <label>Mensagem</label>
+            <textarea id="disp-msg" rows="6" style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'Ubuntu',sans-serif;line-height:1.6;resize:vertical;" oninput="dispPreview()" placeholder="Oi {primeiro}, tudo bem?"></textarea>
+            <div class="hint">Marcadores: <b>{primeiro}</b>, <b>{nome}</b>, <b>{evento}</b>, <b>{modalidade}</b>, <b>{kit}</b>, <b>{camiseta}</b>, <b>{data_evento}</b>. Use *asteriscos* para negrito no WhatsApp.</div>
+          </div>
+
+          <div id="disp-preview" style="background:#e9f7ef;border:1px solid rgba(37,211,102,.35);border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.6;white-space:pre-wrap;margin:12px 0;color:#14532d;"></div>
+
+          <div id="disp-aviso" style="font-size:13px;color:var(--muted);margin-bottom:12px;"></div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <button class="ig-btn ig-btn-xls" id="disp-enviar" onclick="dispEnviar()">📣 Agendar disparo</button>
+            <button class="ig-btn" onclick="dispSelecionarFiltrados()">Selecionar todos os filtrados</button>
+            <button class="ig-btn" onclick="dispLimparSelecao()">Limpar seleção</button>
+            <button class="ig-btn" style="margin-left:auto;" onclick="dispHistorico()">🕘 Ver disparos anteriores</button>
+          </div>
+
+          <div id="disp-historico" style="margin-top:16px;"></div>
         </div>
 
         <!-- FILTROS -->
@@ -2620,7 +2683,10 @@ function igRenderTabela(){
   const rodape = document.getElementById('ig-rodape');
   if(!th || !tb) return;
 
-  th.innerHTML = cols.map(c=>'<th>' + c.l + '</th>').join('') || '<th>—</th>';
+  const colSel = dispAtivo
+    ? '<th style="width:38px;"><input type="checkbox" class="disp-chk" id="disp-todos" onchange="dispMarcarTodos(this)"></th>'
+    : '';
+  th.innerHTML = colSel + (cols.map(c=>'<th>' + c.l + '</th>').join('') || '<th>—</th>');
 
   const totalValor = igFiltrados.reduce((a,i)=>a + Number(i.valor||0), 0);
   if(resumo) resumo.textContent = fmt(igFiltrados.length) + ' inscrição(ões) · ' + brl(totalValor) + ' · ' + fmt(igTodos.length) + ' no total';
@@ -2631,7 +2697,7 @@ function igRenderTabela(){
     return;
   }
   if(!igFiltrados.length){
-    tb.innerHTML = '<tr><td colspan="' + cols.length + '" style="text-align:center;padding:32px;color:var(--muted);">Nenhuma inscrição com esses filtros.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="' + (cols.length + (dispAtivo ? 1 : 0)) + '" style="text-align:center;padding:32px;color:var(--muted);">Nenhuma inscrição com esses filtros.</td></tr>';
     if(rodape) rodape.textContent = '';
     return;
   }
@@ -2639,8 +2705,15 @@ function igRenderTabela(){
   const visiveis = igFiltrados.slice(0, IG_LIMITE_TELA);
   tb.innerHTML = visiveis.map(i=>{
     const tds = cols.map(c=>'<td>' + igCelula(i, c) + '</td>').join('');
-    return '<tr>' + tds + '</tr>';
+    if(!dispAtivo) return '<tr>' + tds + '</tr>';
+    const marcado = dispSel.has(i.id) ? ' checked' : '';
+    const semTel = !wppNumero(i.telefone);
+    const cel = semTel
+      ? '<td title="Sem telefone">—</td>'
+      : '<td><input type="checkbox" class="disp-chk" value="' + i.id + '" onchange="dispToggle(this)"' + marcado + '></td>';
+    return '<tr class="' + (marcado ? 'linha-sel' : '') + '">' + cel + tds + '</tr>';
   }).join('');
+  dispAtualizarContagem();
 
   if(rodape){
     rodape.textContent = igFiltrados.length > IG_LIMITE_TELA
@@ -2743,7 +2816,220 @@ function igExportar(todasColunas){
   }catch(e){ alert('Erro ao exportar: ' + e.message); }
 }
 
+/* ── DISPARO EM MASSA DE WHATSAPP ── */
+let dispAtivo = false;
+let dispSel = new Set();
+
+function dispAbrir(){
+  dispAtivo = true;
+  const box = document.getElementById('disp-box');
+  if(box) box.style.display = 'block';
+  const msg = document.getElementById('disp-msg');
+  if(msg && !msg.value){
+    try{ msg.value = localStorage.getItem('jbx_disp_msg') || ''; }catch(e){}
+  }
+  igRenderTabela();
+  dispPreview();
+  if(box) box.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function dispFechar(){
+  dispAtivo = false;
+  const box = document.getElementById('disp-box');
+  if(box) box.style.display = 'none';
+  igRenderTabela();
+}
+function dispToggleData(){
+  const sel = document.getElementById('disp-quando');
+  const wrap = document.getElementById('disp-data-wrap');
+  if(!sel || !wrap) return;
+  wrap.hidden = sel.value !== 'agendar';
+  if(sel.value === 'agendar'){
+    const inp = document.getElementById('disp-data');
+    if(inp && !inp.value){
+      const d = new Date(Date.now() + 3600000);
+      d.setSeconds(0,0);
+      const pad = n => String(n).padStart(2,'0');
+      inp.value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+  }
+  dispPreview();
+}
+function dispToggle(el){
+  if(el.checked) dispSel.add(el.value); else dispSel.delete(el.value);
+  const tr = el.closest('tr');
+  if(tr) tr.classList.toggle('linha-sel', el.checked);
+  dispAtualizarContagem();
+}
+function dispMarcarTodos(el){
+  document.querySelectorAll('#ig-tbody input.disp-chk').forEach(c=>{
+    c.checked = el.checked;
+    if(el.checked) dispSel.add(c.value); else dispSel.delete(c.value);
+    const tr = c.closest('tr');
+    if(tr) tr.classList.toggle('linha-sel', el.checked);
+  });
+  dispAtualizarContagem();
+}
+function dispSelecionarFiltrados(){
+  let semTel = 0;
+  igFiltrados.forEach(i=>{
+    if(wppNumero(i.telefone)) dispSel.add(i.id); else semTel++;
+  });
+  igRenderTabela();
+  if(semTel) alert(semTel + ' pessoa(s) ficaram de fora por não ter telefone válido.');
+}
+function dispLimparSelecao(){
+  dispSel.clear();
+  igRenderTabela();
+}
+function dispSelecionados(){
+  return igTodos.filter(i=>dispSel.has(i.id) && wppNumero(i.telefone));
+}
+function dispAtualizarContagem(){
+  const el = document.getElementById('disp-contagem');
+  const n = dispSelecionados().length;
+  if(el) el.textContent = n ? (n + ' selecionado(s)') : 'nenhum selecionado';
+  dispPreview();
+}
+
+function dispPersonalizar(modelo, i){
+  const nomeCompleto = (i.nome || '').trim();
+  const primeiro = nomeCompleto.split(' ')[0] || 'atleta';
+  return String(modelo || '')
+    .split('{primeiro}').join(primeiro)
+    .split('{nome}').join(nomeCompleto)
+    .split('{evento}').join(i.evento || '')
+    .split('{modalidade}').join(i.modalidade || '')
+    .split('{kit}').join(i.kit || '')
+    .split('{camiseta}').join(i.tamanho_camisa || '')
+    .split('{data_evento}').join(i.evento_data ? fmtDS(igDataISO(i.evento_data)) : '');
+}
+
+function dispPreview(){
+  const modelo = (document.getElementById('disp-msg') || {}).value || '';
+  try{ localStorage.setItem('jbx_disp_msg', modelo); }catch(e){}
+
+  const sel = dispSelecionados();
+  const prev = document.getElementById('disp-preview');
+  const aviso = document.getElementById('disp-aviso');
+  const btn = document.getElementById('disp-enviar');
+
+  if(prev){
+    if(!modelo.trim()) prev.textContent = 'Escreva a mensagem para ver a prévia.';
+    else if(!sel.length) prev.textContent = dispPersonalizar(modelo, {nome:'Maria Silva', evento:'Nome do Evento', modalidade:'5km', kit:'Starter', tamanho_camisa:'M'});
+    else prev.textContent = 'Prévia para ' + (sel[0].nome || '') + ':\n\n' + dispPersonalizar(modelo, sel[0]);
+  }
+
+  const intervalo = Number((document.getElementById('disp-intervalo') || {}).value || 30);
+  if(aviso){
+    if(!sel.length){ aviso.textContent = 'Marque as pessoas na tabela abaixo.'; }
+    else {
+      const minutos = Math.ceil((sel.length - 1) * intervalo / 60);
+      aviso.innerHTML = '⏱ ' + sel.length + ' mensagem(ns), uma a cada ' + intervalo + 's — leva cerca de <b>'
+        + (minutos < 1 ? 'menos de 1 minuto' : minutos + ' minuto(s)') + '</b> para terminar.'
+        + (sel.length > 30 ? ' <span style="color:#c2410c;">Acima de 30 contatos aumenta o risco de bloqueio do número.</span>' : '');
+    }
+  }
+  if(btn){
+    const quando = (document.getElementById('disp-quando') || {}).value;
+    btn.textContent = quando === 'agora' ? '📣 Iniciar disparo' : '📣 Agendar disparo';
+    btn.disabled = !sel.length || !modelo.trim();
+    btn.style.opacity = btn.disabled ? '0.5' : '';
+  }
+}
+
+async function dispEnviar(){
+  const modelo = (document.getElementById('disp-msg') || {}).value || '';
+  const sel = dispSelecionados();
+  if(!sel.length || !modelo.trim()) return;
+
+  const quando = (document.getElementById('disp-quando') || {}).value;
+  const intervalo = Number((document.getElementById('disp-intervalo') || {}).value || 30);
+  let agendado = null;
+  if(quando === 'agendar'){
+    const v = (document.getElementById('disp-data') || {}).value;
+    if(!v){ alert('Escolha a data e a hora do envio.'); return; }
+    if(new Date(v) < new Date()){ alert('A data escolhida já passou.'); return; }
+    agendado = new Date(v).toISOString();
+  }
+
+  const nomeLote = (document.getElementById('disp-nome') || {}).value.trim() || 'Disparo';
+  const minutos = Math.ceil((sel.length - 1) * intervalo / 60);
+  const qdTxt = quando === 'agora'
+    ? 'começando agora'
+    : 'começando em ' + new Date(agendado).toLocaleString('pt-BR');
+  if(!confirm('Enviar para ' + sel.length + ' pessoa(s), ' + qdTxt + '?\n\nO envio leva cerca de ' + (minutos < 1 ? '1' : minutos) + ' minuto(s).')) return;
+
+  const btn = document.getElementById('disp-enviar');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Enviando para a fila...'; }
+
+  try{
+    const mensagens = sel.map(i=>({
+      telefone: wppNumero(i.telefone),
+      nome: i.nome || '',
+      mensagem: dispPersonalizar(modelo, i)
+    }));
+    const r = await rpc('admin_disparo_criar', { dados: {
+      lote_nome: nomeLote,
+      agendado_para: agendado,
+      segundos_entre: intervalo,
+      mensagens: mensagens
+    }});
+    const total = (r && r.total) || mensagens.length;
+    alert('✅ Disparo criado para ' + total + ' pessoa(s).\n\nAs mensagens saem sozinhas, uma a cada ' + intervalo + 's. Você pode fechar o painel.');
+    dispLimparSelecao();
+    dispHistorico();
+  }catch(e){
+    alert('Erro ao criar o disparo: ' + (e.message || e));
+  }finally{
+    if(btn){ btn.disabled = false; }
+    dispPreview();
+  }
+}
+
+async function dispHistorico(){
+  const el = document.getElementById('disp-historico');
+  if(!el) return;
+  el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">Carregando…</div>';
+  try{
+    const lista = await rpc('admin_disparos_listar');
+    if(!lista || !lista.length){
+      el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">Nenhum disparo feito ainda.</div>';
+      return;
+    }
+    const linhas = lista.map(d=>{
+      const pend = Number(d.pendentes||0);
+      const cancelar = pend > 0
+        ? '<button class="ig-btn" style="padding:4px 10px;font-size:12px;" onclick="dispCancelar(\'' + d.lote_id + '\')">Cancelar restantes</button>'
+        : '';
+      let sit = fmt(Number(d.enviados||0)) + ' enviada(s)';
+      if(pend) sit += ' · ' + fmt(pend) + ' na fila';
+      if(Number(d.erros||0)) sit += ' · <span style="color:#dc2626;">' + fmt(d.erros) + ' erro(s)</span>';
+      if(Number(d.cancelados||0)) sit += ' · ' + fmt(d.cancelados) + ' cancelada(s)';
+      return '<tr>' +
+        '<td style="font-weight:600;">' + (d.lote_nome||'—') + '</td>' +
+        '<td>' + fmt(Number(d.total||0)) + '</td>' +
+        '<td style="font-size:12px;">' + sit + '</td>' +
+        '<td style="font-size:12px;color:var(--muted);">' + (d.inicio ? fmtData(d.inicio) : '—') + '</td>' +
+        '<td>' + cancelar + '</td>' +
+      '</tr>';
+    }).join('');
+    el.innerHTML = '<table class="disp-hist"><thead><tr><th>Disparo</th><th>Total</th><th>Situação</th><th>Início</th><th></th></tr></thead><tbody>' + linhas + '</tbody></table>';
+  }catch(e){
+    el.innerHTML = '<div style="color:#dc2626;font-size:13px;padding:8px 0;">Erro ao carregar: ' + (e.message||'') + '</div>';
+  }
+}
+
+async function dispCancelar(loteId){
+  if(!confirm('Cancelar as mensagens que ainda não saíram deste disparo?')) return;
+  try{
+    const n = await rpc('admin_disparo_cancelar', { p_lote_id: loteId });
+    alert(fmt(Number(n)||0) + ' mensagem(ns) cancelada(s).');
+    dispHistorico();
+  }catch(e){ alert('Erro ao cancelar: ' + (e.message||e)); }
+}
+
 /* ── SUB-ABAS: CADASTROS E SEM COMPRA ── */
+
 let igSub = 'inscricoes';
 let cadTodos = [], cadFiltrados = [], cadCarregado = false;
 let leadTodos = [], leadFiltrados = [], leadCarregado = false;
@@ -2769,6 +3055,9 @@ function igSubTab(nome){
   if(btnComp) btnComp.style.display = (nome === 'inscricoes') ? '' : 'none';
   const btnMsg = document.getElementById('ig-btn-msg');
   if(btnMsg) btnMsg.style.display = (nome === 'inscricoes') ? '' : 'none';
+  const btnDisp = document.getElementById('ig-btn-disparo');
+  if(btnDisp) btnDisp.style.display = (nome === 'inscricoes') ? '' : 'none';
+  if(nome !== 'inscricoes' && dispAtivo) dispFechar();
   const boxMsg = document.getElementById('ig-msg-box');
   if(boxMsg && nome !== 'inscricoes') boxMsg.style.display = 'none';
 
