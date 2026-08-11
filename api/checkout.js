@@ -98,6 +98,124 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
   return resultados;
 }
 
+// ══════════════════════════════════════════════════════════════
+// NOTIFICAÇÕES DA INSCRIÇÃO GRATUITA
+// O fluxo pago é notificado pelo api/mp-webhook.js. Como a inscrição
+// gratuita não passa pelo Mercado Pago, o aviso sai daqui.
+// ══════════════════════════════════════════════════════════════
+const ZAPI_INSTANCE     = '3F457758AC68513DE147E6B1C9468980';
+const ZAPI_TOKEN        = 'CD007B54BA8BD1111B802279';
+const ZAPI_CLIENT_TOKEN = 'Fbe7af069c70a4f1281ad63eee20c5cbeS';
+const ZAPI_URL          = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
+
+async function enviarWhatsApp(telefone, mensagem) {
+  try {
+    let digits = String(telefone || '').replace(/[^0-9]/g, '');
+    if (!digits) return;
+    if (digits.startsWith('55') && digits.length > 11) digits = digits.slice(2);
+    if (digits.length === 10) digits = digits.slice(0, 2) + '9' + digits.slice(2);
+    const numero = '55' + digits;
+    const res = await fetch(ZAPI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Client-Token': ZAPI_CLIENT_TOKEN },
+      body: JSON.stringify({ phone: numero, message: mensagem })
+    });
+    const respText = await res.text();
+    console.log('[checkout] WhatsApp gratuito para', numero.slice(0,6) + '****', '| status:', res.status, '| resp:', respText.slice(0,120));
+  } catch (e) {
+    console.error('[checkout] Erro Z-API:', e.message);
+  }
+}
+
+async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
+  if (!email) return;
+  try {
+    const r = await fetch(`${SITE_URL}/api/enviar-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tipo: 'confirmacao_inscricao', email, nome, item, data_evento: dataEvento })
+    });
+    console.log('[checkout] E-mail gratuito status:', r.status, 'para', email.slice(0,4) + '***');
+  } catch (e) {
+    console.error('[checkout] Erro e-mail confirmação:', e.message);
+  }
+}
+
+async function buscarEvento(eventoNome) {
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/rpc/eventos_publicos`, {
+      method: 'POST',
+      headers: { 'apikey': SB_SERVICE_KEY, 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const eventos = await res.json();
+    if (!Array.isArray(eventos)) return null;
+    return eventos.find(e => e.nome === eventoNome) || null;
+  } catch (e) { return null; }
+}
+
+function formatarDataEvento(dataStr, hora) {
+  if (!dataStr) return '—';
+  const d = new Date(dataStr + 'T12:00:00');
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}${hora ? ' · ' + hora : ''}`;
+}
+
+function montarMensagemGratuita(item, dataEvento) {
+  const primeiroNome = (item.nome || 'Atleta').split(' ')[0];
+  return (
+    `🎽 *Inscrição confirmada, ${primeiroNome}!*\n\n` +
+    `Sua inscrição na *JBX Sports* foi confirmada com sucesso. ✅\n\n` +
+    `📋 *Detalhes da inscrição:*\n` +
+    `• Evento: *${item.evento || '—'}*\n` +
+    `• Data: *${dataEvento}*\n` +
+    `• Modalidade: *${item.modalidade || '—'}*\n` +
+    `• Kit: *${item.kit || '—'}*\n` +
+    `• Camiseta: *${item.camisa || '—'}*\n` +
+    `• Inscrição: *Gratuita*\n\n` +
+    `📍 Fique de olho nas nossas redes para informações sobre retirada de kit e concentração.\n\n` +
+    `📸 *@jbx.sports*\n\n` +
+    `Boa corrida! Vamos juntos! 🧡🏁`
+  );
+}
+
+// Notifica todos os atletas de um pedido gratuito (WhatsApp + e-mail)
+async function notificarGratuitos(itens, eventoNome) {
+  const evento     = await buscarEvento(eventoNome);
+  const dataEvento = evento ? formatarDataEvento(evento.data, evento.hora) : '—';
+
+  for (const it of itens) {
+    let nome     = it.nome     || '';
+    let telefone = it.telefone || '';
+    let email    = it.email    || '';
+
+    // fluxo do cadastro protegido: o item vem sem os dados pessoais
+    if (it.cpf && (!telefone || !email || !nome)) {
+      const dadosBanco = await buscarDadosAtleta(it.cpf);
+      if (dadosBanco) {
+        nome     = nome     || dadosBanco.nome     || '';
+        telefone = telefone || dadosBanco.telefone || '';
+        email    = email    || dadosBanco.email    || '';
+      }
+    }
+
+    const item = {
+      nome,
+      evento:         eventoNome || '',
+      kit:            it.kit            || '',
+      modalidade:     it.modalidade     || '',
+      camisa:         it.tamanho_camisa || '',
+      tamanho_camisa: it.tamanho_camisa || '',
+      valor:          0,
+    };
+
+    console.log('[checkout] notificando gratuito —', nome, '| tel:', telefone ? 'sim' : 'não', '| email:', email ? 'sim' : 'não');
+
+    if (telefone) await enviarWhatsApp(telefone, montarMensagemGratuita(item, dataEvento));
+    if (email)    await enviarEmailConfirmacao(email, nome, item, dataEvento);
+  }
+}
+
 // 1 CPF por evento: consulta a RPC cpf_ja_inscrito antes de gravar qualquer coisa.
 // Retorna null se estiver liberado, ou a mensagem de erro.
 async function validarCpfUnico(itens) {
@@ -252,6 +370,13 @@ module.exports = async (req, res) => {
     } catch (e) {
       console.error('[checkout] gratuito — erro confirmar_pagamento:', e.message);
       return res.status(500).json({ error: e.message });
+    }
+
+    // avisa cada atleta (WhatsApp + e-mail) — o fluxo pago faz isso no webhook
+    try {
+      await notificarGratuitos(itens, evento_nome);
+    } catch (e) {
+      console.error('[checkout] gratuito — erro ao notificar:', e.message);
     }
 
     return res.status(200).json({
