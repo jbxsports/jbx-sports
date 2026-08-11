@@ -577,7 +577,7 @@
   /* Layout 3 colunas */
   .ed-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 0.85fr;
     min-height: calc(100vh - 64px);
   }
 
@@ -618,17 +618,37 @@
   }
 
   .ed-wrap { display: none; } /* desativado — substituído pelo novo layout */
-  .sponsors-cat { margin-bottom: 24px; }
-  .sponsors-cat-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(42,37,32,0.3); margin-bottom: 12px; text-align: center; }
-  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; align-items: center; }
-  .sponsor-logo { display: inline-flex; align-items: center; justify-content: center; transition: opacity 0.2s; border-radius: 8px; background: transparent; padding: 4px; }
-  .sponsor-logo:hover { opacity: 0.75; }
-  .sponsor-logo img { display: block; object-fit: contain; }
-  .sponsor-master   .sponsor-logo img { width: 160px; height: 64px; }
-  .sponsor-parceiro .sponsor-logo img { width: 130px; height: 52px; }
-  .sponsor-ouro     .sponsor-logo img { width: 100px; height: 40px; }
-  .sponsor-prata    .sponsor-logo img { width: 80px;  height: 32px; }
-  .sponsor-bronze   .sponsor-logo img { width: 64px;  height: 26px; }
+  .sponsors-cat { margin-bottom: 30px; }
+  .sponsors-cat-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(42,37,32,0.42); margin-bottom: 14px; text-align: center;
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+  }
+  .sponsors-cat-label::before, .sponsors-cat-label::after {
+    content: ''; height: 1px; flex: 1; max-width: 46px; background: rgba(42,37,32,0.12);
+  }
+  .sponsors-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; align-items: stretch; }
+  .sponsor-logo {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; border: 1px solid rgba(42,37,32,0.08); border-radius: 12px;
+    padding: 14px 18px; box-shadow: 0 2px 8px rgba(42,37,32,0.05);
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .sponsor-logo:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(42,37,32,0.12); border-color: rgba(255,117,31,0.35); }
+  .sponsor-logo img { display: block; object-fit: contain; width: 100%; height: 100%; }
+  /* Master e Parceiro ocupam a linha inteira; os demais dividem em dois */
+  .sponsor-master   .sponsor-logo { width: 100%; }
+  .sponsor-parceiro .sponsor-logo { width: 100%; }
+  .sponsor-master   .sponsor-logo img { height: 96px; }
+  .sponsor-parceiro .sponsor-logo img { height: 80px; }
+  .sponsor-ouro     .sponsor-logo img { width: 150px; height: 68px; }
+  .sponsor-prata    .sponsor-logo img { width: 132px; height: 58px; }
+  .sponsor-bronze   .sponsor-logo img { width: 116px; height: 50px; }
+  @media (max-width: 900px) {
+    .sponsor-ouro   .sponsor-logo img { width: 130px; height: 58px; }
+    .sponsor-prata  .sponsor-logo img { width: 118px; height: 52px; }
+    .sponsor-bronze .sponsor-logo img { width: 104px; height: 46px; }
+  }
   @media (max-width: 900px) {
     .ed-layout { grid-template-columns: 1fr; }
     .ed-col-banner {
@@ -1041,7 +1061,7 @@
     <!-- COLUNA 3: PATROCINADORES -->
     <div class="ed-col-sponsors">
       <div id="ed-sponsors-box" style="display:none;">
-        <div class="sponsors-title" style="font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(42,37,32,0.35);margin-bottom:20px;">Patrocinadores</div>
+        <div class="sponsors-title" style="font-size:13px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(42,37,32,0.5);margin-bottom:24px;">Patrocinadores</div>
         <div id="ed-sponsors-content"></div>
       </div>
       <div id="ed-sponsors-empty" style="color:rgba(42,37,32,0.12);font-size:13px;text-align:center;padding-top:40px;"></div>
