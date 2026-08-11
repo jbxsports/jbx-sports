@@ -1078,8 +1078,8 @@ function imprimirInscricao(id) {
   const data       = card.dataset.data       || '—';
   const canvas     = document.getElementById('qr-' + id);
   const qrBase64   = canvas ? canvas.toDataURL('image/png') : null;
-  const statusCor   = { confirmado: '#16a34a', pendente: '#d97706', cancelado: '#dc2626' };
-  const statusLabel = { confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelado: '✕ Cancelado' };
+  const statusCor   = { pago: '#16a34a', confirmado: '#16a34a', pendente: '#d97706', cancelada: '#dc2626', cancelado: '#dc2626' };
+  const statusLabel = { pago: '✓ Confirmado', confirmado: '✓ Confirmado', pendente: '⏳ Pendente', cancelada: '✕ Cancelada', cancelado: '✕ Cancelada' };
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -1311,11 +1311,13 @@ async function carregarInscricoes(dados) {
 
 function statusBadge(s) {
   const map = {
+    pago:       ['status-confirmado', '✓ Confirmado'],
     confirmado: ['status-confirmado', '✓ Confirmado'],
     pendente:   ['status-pendente',   '⏳ Pendente'],
-    cancelado:  ['status-cancelado',  '✕ Cancelado'],
+    cancelada:  ['status-cancelado',  '✕ Cancelada'],
+    cancelado:  ['status-cancelado',  '✕ Cancelada'],
   };
-  const [cls, txt] = map[s] || ['status-pendente', s];
+  const [cls, txt] = map[String(s||'').toLowerCase()] || ['status-pendente', s];
   return `<span class="insc-status ${cls}">${txt}</span>`;
 }
 
