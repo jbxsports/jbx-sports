@@ -762,6 +762,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <span id="ig-resumo" style="font-size:13px;color:var(--muted);margin-left:6px;">—</span>
           <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
             <button class="ig-btn" onclick="igRecarregar()">↻ Atualizar</button>
+            <button class="ig-btn" id="ig-btn-msg" onclick="igToggleMsg()">💬 Mensagem</button>
             <button class="ig-btn" onclick="igToggleColunas()">☰ Colunas</button>
             <button class="ig-btn ig-btn-xls" onclick="igExportar(false)">⤓ Exportar Excel</button>
             <button class="ig-btn" id="ig-btn-completo" onclick="igExportar(true)">⤓ Exportar completo</button>
@@ -784,6 +785,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <button class="ig-btn" onclick="igColsTodas(false)">Desmarcar todas</button>
             <button class="ig-btn" onclick="igColsPadrao()">Restaurar padrão</button>
           </div>
+        </div>
+
+        <!-- MENSAGEM DO WHATSAPP -->
+        <div class="panel" id="ig-msg-box" style="display:none;margin-bottom:16px;">
+          <h3 style="margin-bottom:10px;">Mensagem do WhatsApp</h3>
+          <textarea id="ig-msg" rows="3" style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-size:14px;font-family:'Ubuntu',sans-serif;line-height:1.6;resize:vertical;" oninput="igSalvarMsg()"></textarea>
+          <div class="hint">Marcadores: <b>{primeiro}</b>, <b>{nome}</b>, <b>{evento}</b>, <b>{modalidade}</b>, <b>{kit}</b>. O texto fica salvo neste navegador.</div>
         </div>
 
         <!-- FILTROS -->
@@ -2412,9 +2420,10 @@ const IG_COLS = [
   {k:'emergencia_telefone', l:'Emergência (tel)'},
   {k:'criado_em',           l:'Inscrito em', f:'datahora'},
   {k:'evento_local',        l:'Local do evento'},
-  {k:'pedido_id',           l:'Pedido'}
+  {k:'pedido_id',           l:'Pedido'},
+  {k:'whatsapp',            l:'WhatsApp', f:'wpp'}
 ];
-const IG_COLS_PADRAO = ['evento','evento_data','nome','cpf','email','telefone','genero','kit','modalidade','tamanho_camisa','valor','status','criado_em'];
+const IG_COLS_PADRAO = ['evento','evento_data','nome','cpf','email','telefone','genero','kit','modalidade','tamanho_camisa','valor','status','criado_em','whatsapp'];
 const IG_LIMITE_TELA = 500;
 
 let igTodos = [], igFiltrados = [], igColsSel = IG_COLS_PADRAO.slice(), igCarregado = false;
@@ -2430,9 +2439,28 @@ function igLerColsSalvas(){
 }
 function igSalvarCols(){ try{localStorage.setItem('jbx_ig_cols', JSON.stringify(igColsSel));}catch(e){} }
 
+function igToggleMsg(){
+  const box = document.getElementById('ig-msg-box');
+  if(box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+}
+function igCarregarMsg(){
+  const el = document.getElementById('ig-msg');
+  if(!el || el.value) return;
+  let salvo = null;
+  try{ salvo = localStorage.getItem('jbx_msg_inscrito'); }catch(e){}
+  el.value = salvo || MSG_INSCRITO;
+}
+function igSalvarMsg(){
+  const el = document.getElementById('ig-msg');
+  if(!el) return;
+  try{ localStorage.setItem('jbx_msg_inscrito', el.value); }catch(e){}
+  igRenderTabela();
+}
+
 async function igInit(){
   const salvas = igLerColsSalvas();
   if(salvas) igColsSel = salvas;
+  igCarregarMsg();
   igRenderColunasBox();
   if(!igCarregado) await igCarregar();
   else igAplicar();
@@ -2579,6 +2607,7 @@ function igCelula(i, col){
     const st = v || 'pendente';
     return '<span class="status-pill status-' + st + '">' + st + '</span>';
   }
+  if(col.f === 'wpp') return wppBotaoInscrito(i);
   if(v === null || v === undefined || v === '') return '—';
   return String(v);
 }
@@ -2652,6 +2681,7 @@ function igColsPadrao(){
 
 /* ── exportação ── */
 function igValorExcel(i, col){
+  if(col.f === 'wpp') return wppLink({ nome: i.nome, telefone: i.telefone, evento_pendente: i.evento });
   const v = i[col.k];
   if(col.f === 'brl') return Number(v||0);
   if(col.f === 'data') return v ? fmtDS(igDataISO(v)) : '';
@@ -2737,6 +2767,10 @@ function igSubTab(nome){
   if(boxCols && nome !== 'inscricoes') boxCols.style.display = 'none';
   const btnComp = document.getElementById('ig-btn-completo');
   if(btnComp) btnComp.style.display = (nome === 'inscricoes') ? '' : 'none';
+  const btnMsg = document.getElementById('ig-btn-msg');
+  if(btnMsg) btnMsg.style.display = (nome === 'inscricoes') ? '' : 'none';
+  const boxMsg = document.getElementById('ig-msg-box');
+  if(boxMsg && nome !== 'inscricoes') boxMsg.style.display = 'none';
 
   if(nome === 'cadastros'){ if(!cadCarregado) cadCarregar(); else cadAplicar(); }
   if(nome === 'leads'){ leadCarregarMsg(); if(!leadCarregado) leadCarregar(); else leadAplicar(); }
@@ -2769,6 +2803,26 @@ function wppLink(pessoa){
     .split('{evento}').join(pessoa.evento_pendente || pessoa.ultimo_evento || 'nossos eventos');
   return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
 }
+/* Mensagem para quem JÁ está inscrito (aba Inscrições) */
+const MSG_INSCRITO = 'Oi {primeiro}, tudo bem? Aqui é da JBX Sports 🙂\n\nEstou entrando em contato sobre a sua inscrição no {evento}.';
+
+function wppBotaoInscrito(i){
+  const num = wppNumero(i.telefone);
+  if(!num) return '<span class="wpp-btn wpp-off" title="Sem telefone">sem tel.</span>';
+  const nomeCompleto = (i.nome || '').trim();
+  const primeiro = nomeCompleto.split(' ')[0] || 'atleta';
+  let modelo = MSG_INSCRITO;
+  try{ modelo = localStorage.getItem('jbx_msg_inscrito') || MSG_INSCRITO; }catch(e){}
+  const texto = modelo
+    .split('{primeiro}').join(primeiro)
+    .split('{nome}').join(nomeCompleto)
+    .split('{evento}').join(i.evento || 'nosso evento')
+    .split('{modalidade}').join(i.modalidade || '')
+    .split('{kit}').join(i.kit || '');
+  const link = 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
+  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener" title="' + (i.telefone||'') + '">💬 Chamar</a>';
+}
+
 function wppBotao(pessoa, rotulo){
   const link = wppLink(pessoa);
   if(!link) return '<span class="wpp-btn wpp-off" title="Sem telefone">sem tel.</span>';
