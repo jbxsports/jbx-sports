@@ -215,6 +215,49 @@
     padding: 5px 14px; border-radius: 20px; font-size: 14px; font-weight: 700;
   }
 
+  /* ── SELO DE DATA (card do evento) ── */
+  .ev-data-selo {
+    position: absolute; top: 14px; left: 14px; z-index: 2;
+    background: var(--orange); color: #fff;
+    border-radius: 12px; padding: 10px 14px 8px;
+    text-align: center; line-height: 1;
+    box-shadow: 0 8px 20px rgba(255,117,31,0.35);
+    min-width: 62px;
+  }
+  .ev-data-selo .dia { font-size: 30px; font-weight: 700; letter-spacing: -1px; display: block; }
+  .ev-data-selo .mes { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; display: block; margin-top: 3px; }
+  .ev-data-selo .ano { font-size: 10px; font-weight: 500; opacity: 0.75; display: block; margin-top: 3px; letter-spacing: 1px; }
+  .ev-data-linha {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 16px; font-weight: 700; color: var(--orange);
+    margin-bottom: 6px;
+  }
+  .ev-data-linha svg { opacity: 1; flex-shrink: 0; }
+  .ev-data-linha .hora {
+    font-size: 13px; font-weight: 700; color: var(--orange);
+    background: rgba(255,117,31,0.12); border-radius: 20px; padding: 3px 10px;
+  }
+
+  /* ── BLOCO DE DATA (página do evento) ── */
+  .ed-data-box {
+    display: inline-flex; align-items: center; gap: 16px;
+    background: linear-gradient(135deg, rgba(255,117,31,0.12), rgba(255,117,31,0.04));
+    border: 1.5px solid rgba(255,117,31,0.3);
+    border-radius: 14px; padding: 14px 20px; margin-top: 16px;
+  }
+  .ed-data-box .cal {
+    background: var(--orange); color: #fff; border-radius: 10px;
+    padding: 8px 12px 7px; text-align: center; line-height: 1; min-width: 58px;
+  }
+  .ed-data-box .cal .d { font-size: 26px; font-weight: 700; display: block; letter-spacing: -1px; }
+  .ed-data-box .cal .m { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; display: block; margin-top: 3px; }
+  .ed-data-box .txt .ext { font-size: 17px; font-weight: 700; color: #2a2520; line-height: 1.25; }
+  .ed-data-box .txt .hr { font-size: 14px; color: var(--orange); font-weight: 700; margin-top: 3px; }
+  @media (max-width: 600px) {
+    .ed-data-box { width: 100%; }
+    .ed-data-box .txt .ext { font-size: 15px; }
+  }
+
   .event-card-body { padding: 20px 24px 24px; position: relative; }
   .event-name { font-size: 22px; font-weight: 700; margin-bottom: 0; color: #2a2520; line-height: 1.2; }
   .event-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
@@ -972,6 +1015,7 @@
     <div class="ed-col-info">
       <span class="event-badge badge-soon" id="ed-status">Em breve</span>
       <h1 class="ed-title" id="ed-nome" style="margin-top:12px;">Evento</h1>
+      <div id="ed-data-box"></div>
       <div class="ed-meta" id="ed-meta"></div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:16px;margin-bottom:4px;">
         <div id="ed-countdown"></div>
@@ -2422,6 +2466,24 @@ function formatarData(dataStr, hora) {
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}${hora ? ' · ' + hora : ''}`;
 }
 
+// Quebra a data em partes para os destaques visuais
+function partesData(dataStr) {
+  if (!dataStr) return null;
+  const d = new Date(dataStr + 'T12:00:00');
+  if (isNaN(d)) return null;
+  const meses    = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesesExt = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const semana   = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+  return {
+    dia: String(d.getDate()).padStart(2,'0'),
+    mes: meses[d.getMonth()],
+    mesExt: mesesExt[d.getMonth()],
+    ano: d.getFullYear(),
+    semana: semana[d.getDay()],
+    extenso: semana[d.getDay()] + ', ' + d.getDate() + ' de ' + mesesExt[d.getMonth()] + ' de ' + d.getFullYear()
+  };
+}
+
 function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
   const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
   const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
@@ -2438,6 +2500,17 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
     ? `<img src="${bannerUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top;z-index:0;" onerror="this.style.display='none'">`
     : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`;
 
+  // destaque da data: selo na imagem + linha em laranja no corpo
+  const pd = partesData(ev.data);
+  const selo = pd
+    ? '<div class="ev-data-selo"><span class="dia">' + pd.dia + '</span><span class="mes">' + pd.mes + '</span><span class="ano">' + pd.ano + '</span></div>'
+    : '';
+  const iconeCal = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  const horaChip = ev.hora ? '<span class="hora">' + ev.hora + '</span>' : '';
+  const linhaData = pd
+    ? '<div class="ev-data-linha">' + iconeCal + '<span>' + pd.semana.charAt(0).toUpperCase() + pd.semana.slice(1) + ', ' + Number(pd.dia) + ' de ' + pd.mesExt + '</span>' + horaChip + '</div>'
+    : '';
+
   return `
   <div class="event-card" onclick="${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}" style="${ev.status !== 'open' ? 'cursor:default;' : ''}">
     <div class="event-card-img" style="${imgStyle}">
@@ -2446,6 +2519,7 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
         <img src="${bannerUrl || bannerMobileUrl}" style="width:100%;height:100%;object-fit:cover;object-position:center;" onerror="this.style.display='none'">
       </picture>` : `<div class="ev-bg">${iconesEv[idx % iconesEv.length]}</div>`}
       <div class="ev-overlay"></div>
+      ${selo}
     </div>
     <div class="event-card-body">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
@@ -2456,11 +2530,8 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
           ${ev.status === 'open' ? 'Inscrições abertas' : ev.status === 'soon' ? 'Em breve' : 'Encerrado'}
         </button>
       </div>
+      ${linhaData}
       <div class="event-meta" style="flex-direction:column;gap:4px;">
-        <div class="event-meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          ${formatarData(ev.data, ev.hora)}
-        </div>
         <div class="event-meta-item">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
           ${ev.local || '—'}
@@ -2611,8 +2682,29 @@ function renderEventoBase(ev, bannerUrl) {
   st.className = 'event-badge ' + (statusMap[ev.status] || 'badge-soon');
 
   document.getElementById('ed-nome').textContent = ev.nome || '';
-  document.getElementById('ed-meta').textContent =
-    formatarData(ev.data, ev.hora) + (ev.local ? '  ·  ' + ev.local : '');
+
+  // Bloco de data em destaque
+  const boxData = document.getElementById('ed-data-box');
+  if (boxData) {
+    const pd = partesData(ev.data);
+    if (pd) {
+      const hr = ev.hora
+        ? '<div class="hr">Largada às ' + ev.hora + '</div>'
+        : '';
+      boxData.innerHTML =
+        '<div class="ed-data-box">' +
+          '<div class="cal"><span class="d">' + pd.dia + '</span><span class="m">' + pd.mes + '</span></div>' +
+          '<div class="txt">' +
+            '<div class="ext">' + pd.extenso.charAt(0).toUpperCase() + pd.extenso.slice(1) + '</div>' +
+            hr +
+          '</div>' +
+        '</div>';
+    } else {
+      boxData.innerHTML = '';
+    }
+  }
+
+  document.getElementById('ed-meta').textContent = (ev.local || '');
   document.getElementById('ed-price') && (document.getElementById('ed-price').textContent = '');
 
   // Countdown moderno em dias
