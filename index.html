@@ -641,13 +641,17 @@
   .sponsor-parceiro .sponsor-logo { width: 100%; }
   .sponsor-master   .sponsor-logo img { height: 96px; }
   .sponsor-parceiro .sponsor-logo img { height: 80px; }
-  .sponsor-ouro     .sponsor-logo img { width: 150px; height: 68px; }
-  .sponsor-prata    .sponsor-logo img { width: 132px; height: 58px; }
-  .sponsor-bronze   .sponsor-logo img { width: 116px; height: 50px; }
+  /* Ouro, Prata e Bronze: dois por linha, ocupando a largura disponível */
+  .sponsor-ouro   .sponsor-logo,
+  .sponsor-prata  .sponsor-logo,
+  .sponsor-bronze .sponsor-logo { flex: 1 1 calc(50% - 14px); min-width: 150px; }
+  .sponsor-ouro     .sponsor-logo img { height: 76px; }
+  .sponsor-prata    .sponsor-logo img { height: 68px; }
+  .sponsor-bronze   .sponsor-logo img { height: 62px; }
   @media (max-width: 900px) {
-    .sponsor-ouro   .sponsor-logo img { width: 130px; height: 58px; }
-    .sponsor-prata  .sponsor-logo img { width: 118px; height: 52px; }
-    .sponsor-bronze .sponsor-logo img { width: 104px; height: 46px; }
+    .sponsor-ouro   .sponsor-logo img { height: 66px; }
+    .sponsor-prata  .sponsor-logo img { height: 60px; }
+    .sponsor-bronze .sponsor-logo img { height: 56px; }
   }
   @media (max-width: 900px) {
     .ed-layout { grid-template-columns: 1fr; }
