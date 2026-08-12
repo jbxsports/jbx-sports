@@ -791,6 +791,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <nav class="admin-nav">
         <button class="nav-btn active" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
         <button class="nav-btn" id="nav-inscritos" onclick="showInner('inscritos')">Inscritos</button>
+        <button class="nav-btn" id="nav-planos" onclick="showInner('planos')">Plano de Evento</button>
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
@@ -828,10 +829,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <input type="checkbox" id="chk-arquivados" onchange="loadDashboard()" style="accent-color:var(--orange);width:15px;height:15px;cursor:pointer;">
               Mostrar arquivados (<span id="arquivados-count">0</span>)
             </label>
-            <button onclick="showInner('planos')" style="display:inline-flex;align-items:center;gap:8px;background:#2a2520;color:#fff;border:1px solid #2a2520;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h20v13H2z"/><path d="M12 16v5"/><path d="M8 21h8"/><path d="M6 7h6M6 11h10"/></svg>
-              Plano de Evento
-            </button>
             <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
             <button onclick="abrirConfiguracoes()" style="display:inline-flex;align-items:center;gap:8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.background='#f0ede8'" onmouseout="this.style.background='var(--card)'">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1608,7 +1605,6 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <!-- TELA: LISTA DE PLANOS -->
       <div class="inner-screen" id="screen-planos">
         <div class="page-hd">
-          <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1>📋 Planos de Evento</h1>
           <div style="margin-left:auto;">
             <button class="btn-new-ev" onclick="plNovo()">+ Novo plano</button>
@@ -1751,7 +1747,7 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 
 /* ── AUTH ── */
 const ADM_ABAS=[
- {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
+ {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'}
 ];
@@ -1813,7 +1809,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','planos':'dash','plano-edit':'dash'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'){if(!admUser||!admUser.master)return;}
   else if(!admTemAba(abaReq))return;
@@ -1828,8 +1824,8 @@ function showInner(name){
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
-  if(name==='planos'){document.getElementById('nav-dash').classList.add('active');plListar();}
-  if(name==='plano-edit'){document.getElementById('nav-dash').classList.add('active');}
+  if(name==='planos'){document.getElementById('nav-planos').classList.add('active');plListar();}
+  if(name==='plano-edit'){document.getElementById('nav-planos').classList.add('active');}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
