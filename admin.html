@@ -100,6 +100,82 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ig-sub{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .ig-sub:hover{color:var(--text);}
 .ig-sub.active{color:var(--orange);border-bottom-color:var(--orange);}
+/* ── PLANO DE EVENTO ── */
+.pl-layout{display:grid;grid-template-columns:230px 1fr;gap:24px;align-items:start;}
+.pl-nav{position:sticky;top:78px;display:flex;flex-direction:column;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;}
+.pl-nav button{display:flex;align-items:center;gap:10px;background:none;border:none;border-radius:8px;padding:9px 12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'Ubuntu',sans-serif;text-align:left;transition:all .15s;width:100%;}
+.pl-nav button:hover{background:#f0ede8;color:var(--text);}
+.pl-nav button.on{background:rgba(255,117,31,.12);color:var(--orange);}
+.pl-nav .n{width:22px;height:22px;border-radius:50%;background:rgba(42,37,32,.08);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.pl-nav button.on .n{background:var(--orange);color:#fff;}
+.pl-nav button.ok .n{background:#22c55e;color:#fff;}
+.pl-sec{display:none;}
+.pl-sec.on{display:block;}
+.pl-sec h2{font-size:22px;margin-bottom:4px;}
+.pl-sec .sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;}
+.pl-rodape{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px;padding-top:18px;border-top:1px solid var(--border);}
+.pl-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;position:relative;}
+.pl-item .del{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px 8px;border-radius:6px;}
+.pl-item .del:hover{background:rgba(220,38,38,.1);color:#dc2626;}
+.pl-add{width:100%;border:1.5px dashed var(--orange);color:var(--orange);background:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:background .2s;}
+.pl-add:hover{background:rgba(255,117,31,.07);}
+.pl-thumb{width:100%;height:150px;object-fit:contain;background:#f5f3f0;border-radius:8px;margin-bottom:10px;display:block;}
+.pl-up{display:inline-block;font-size:12px;font-weight:700;color:var(--orange);cursor:pointer;padding:6px 12px;border:1px solid rgba(255,117,31,.35);border-radius:7px;transition:background .2s;}
+.pl-up:hover{background:rgba(255,117,31,.08);}
+.pl-card-plano{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;}
+.pl-card-plano:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(42,37,32,.12);}
+.pl-card-capa{height:130px;background:linear-gradient(135deg,#2a2520,#3d362e);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.25);font-size:34px;position:relative;}
+.pl-card-capa img{width:100%;height:100%;object-fit:cover;}
+.pl-st{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.pl-st-rascunho{background:rgba(42,37,32,.08);color:var(--muted);}
+.pl-st-kickoff{background:rgba(59,130,246,.14);color:#1d4ed8;}
+.pl-st-aprovado{background:rgba(34,197,94,.14);color:#15803d;}
+.pl-st-lancado{background:rgba(255,117,31,.16);color:#c2410c;}
+.pl-tl{position:relative;padding-left:28px;}
+.pl-tl::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:rgba(255,117,31,.25);}
+.pl-tl-item{position:relative;margin-bottom:14px;}
+.pl-tl-item::before{content:'';position:absolute;left:-25px;top:18px;width:12px;height:12px;border-radius:50%;background:var(--orange);border:2.5px solid var(--bg);}
+@media(max-width:900px){.pl-layout{grid-template-columns:1fr;}.pl-nav{position:static;flex-direction:row;overflow-x:auto;}.pl-nav button{white-space:nowrap;}}
+
+/* ── MODO APRESENTAÇÃO ── */
+#pl-slides{position:fixed;inset:0;z-index:9000;background:#15120f;display:none;flex-direction:column;}
+#pl-slides.on{display:flex;}
+.sl-topo{display:flex;align-items:center;gap:14px;padding:14px 26px;border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:13px;flex-shrink:0;}
+.sl-topo button{background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
+.sl-topo button:hover{background:rgba(255,255,255,.2);}
+.sl-palco{flex:1;overflow-y:auto;padding:44px 60px 60px;}
+.sl-slide{display:none;max-width:1100px;margin:0 auto;color:#f5f3f0;animation:slFade .3s ease;}
+.sl-slide.on{display:block;}
+@keyframes slFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sl-tag{font-size:12px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--orange);margin-bottom:10px;}
+.sl-slide h2{font-size:40px;line-height:1.15;margin-bottom:26px;color:#fff;letter-spacing:-1px;}
+.sl-slide h3{font-size:17px;color:var(--orange);margin:26px 0 12px;}
+.sl-slide p,.sl-slide li{font-size:16px;line-height:1.75;color:rgba(245,243,240,.82);}
+.sl-slide ul{padding-left:20px;}
+.sl-box{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:20px 24px;margin-bottom:14px;}
+.sl-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+.sl-kpi{background:rgba(255,117,31,.12);border:1px solid rgba(255,117,31,.3);border-radius:14px;padding:22px 26px;text-align:center;}
+.sl-kpi .v{font-size:38px;font-weight:700;color:var(--orange);line-height:1;}
+.sl-kpi .l{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:rgba(245,243,240,.55);margin-top:8px;}
+.sl-img{width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:rgba(255,255,255,.05);margin-bottom:12px;}
+.sl-tb{width:100%;border-collapse:collapse;font-size:15px;}
+.sl-tb th{text-align:left;padding:12px 14px;color:var(--orange);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,.15);}
+.sl-tb td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.07);color:rgba(245,243,240,.85);}
+.sl-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px;border-top:1px solid rgba(255,255,255,.1);flex-shrink:0;}
+.sl-nav button{background:var(--orange);border:none;color:#fff;border-radius:8px;padding:9px 22px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
+.sl-nav button:disabled{opacity:.3;cursor:default;}
+.sl-nav .cont{color:rgba(255,255,255,.5);font-size:13px;min-width:70px;text-align:center;}
+@media print{
+  nav,.pl-nav,.pl-rodape,.page-hd button,.sl-topo,.sl-nav{display:none !important;}
+  #pl-slides{position:static;display:block !important;background:#fff;}
+  .sl-palco{padding:0;overflow:visible;}
+  .sl-slide{display:block !important;page-break-after:always;color:#2a2520;max-width:100%;}
+  .sl-slide h2{color:#2a2520;font-size:28px;}
+  .sl-slide p,.sl-slide li,.sl-tb td{color:#2a2520;}
+  .sl-box,.sl-kpi{background:#f5f3f0;border-color:#ddd;}
+}
+
 .ig-btn-disparo{background:#25d366;color:#fff;border-color:#25d366;}
 .ig-btn-disparo:hover{filter:brightness(.92);color:#fff;border-color:#25d366;}
 .disp-chk{accent-color:var(--orange);width:16px;height:16px;cursor:pointer;}
@@ -708,6 +784,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 </div>
 
 <!-- ADMIN -->
+<div id="pl-slides"></div>
 <div id="admin" class="screen">
   <div class="admin-shell">
     <header class="admin-header">
@@ -751,6 +828,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
               <input type="checkbox" id="chk-arquivados" onchange="loadDashboard()" style="accent-color:var(--orange);width:15px;height:15px;cursor:pointer;">
               Mostrar arquivados (<span id="arquivados-count">0</span>)
             </label>
+            <button onclick="showInner('planos')" style="display:inline-flex;align-items:center;gap:8px;background:#2a2520;color:#fff;border:1px solid #2a2520;border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h20v13H2z"/><path d="M12 16v5"/><path d="M8 21h8"/><path d="M6 7h6M6 11h10"/></svg>
+              Plano de Evento
+            </button>
             <button class="btn-new-ev" onclick="loadEventoForm(null)">+ Novo Evento</button>
             <button onclick="abrirConfiguracoes()" style="display:inline-flex;align-items:center;gap:8px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;" onmouseover="this.style.background='#f0ede8'" onmouseout="this.style.background='var(--card)'">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1524,6 +1605,51 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 
 
 
+      <!-- TELA: LISTA DE PLANOS -->
+      <div class="inner-screen" id="screen-planos">
+        <div class="page-hd">
+          <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
+          <h1>📋 Planos de Evento</h1>
+          <div style="margin-left:auto;">
+            <button class="btn-new-ev" onclick="plNovo()">+ Novo plano</button>
+          </div>
+        </div>
+        <p style="font-size:14px;color:var(--muted);margin:-8px 0 24px;line-height:1.6;max-width:760px;">
+          O plano concentra tudo que o time precisa saber sobre um evento antes do lançamento: identidade visual, kits, percursos, premiação, metas e cotas de patrocínio.
+          Preencha em equipe, use o <b>modo apresentação</b> na reunião de kickoff e volte para editar quando algo mudar.
+        </p>
+        <div id="pl-lista"><div class="empty-state">Carregando…</div></div>
+      </div>
+
+      <!-- TELA: EDITOR DO PLANO -->
+      <div class="inner-screen" id="screen-plano-edit">
+        <div class="page-hd">
+          <button class="back-btn" onclick="plVoltar()">← Planos</button>
+          <h1 id="pl-titulo">Plano</h1>
+          <span id="pl-salvo" style="font-size:12px;color:var(--muted);margin-left:8px;"></span>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="ig-btn" onclick="plApresentar()">▶ Apresentar</button>
+            <button class="ig-btn" onclick="plImprimir()">🖨 Imprimir</button>
+            <button class="ig-btn ig-btn-xls" onclick="plSalvar()">💾 Salvar</button>
+          </div>
+        </div>
+
+        <div class="pl-layout">
+          <!-- NAVEGAÇÃO DAS ETAPAS -->
+          <aside class="pl-nav" id="pl-nav"></aside>
+
+          <!-- CONTEÚDO -->
+          <div class="pl-conteudo">
+            <div id="pl-secoes"></div>
+            <div class="pl-rodape">
+              <button class="ig-btn" id="pl-btn-ant" onclick="plIrEtapa(plEtapa-1)">← Anterior</button>
+              <span id="pl-progresso" style="font-size:13px;color:var(--muted);"></span>
+              <button class="ig-btn ig-btn-xls" id="pl-btn-prox" onclick="plIrEtapa(plEtapa+1)">Próxima →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- TELA: PATROCINADORES -->
       <div class="inner-screen" id="screen-patrocinadores" style="padding-top:0;">
         <div class="page-hd" style="margin-top:0;padding-top:0;">
@@ -1687,7 +1813,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash'};
+  const mapa={'fin-evento':'financeiro','config':'dash','planos':'dash','plano-edit':'dash'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'){if(!admUser||!admUser.master)return;}
   else if(!admTemAba(abaReq))return;
@@ -1702,6 +1828,8 @@ function showInner(name){
   if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
+  if(name==='planos'){document.getElementById('nav-dash').classList.add('active');plListar();}
+  if(name==='plano-edit'){document.getElementById('nav-dash').classList.add('active');}
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
@@ -2816,7 +2944,928 @@ function igExportar(todasColunas){
   }catch(e){ alert('Erro ao exportar: ' + e.message); }
 }
 
+/* ═══════════════ PLANO DE EVENTO (kickoff) ═══════════════ */
+let plAtual = null;      // { id, nome, modalidade, data_evento, status, dados }
+let plEtapa = 0;
+let plSlideAtual = 0;
+
+const PL_MODALIDADES = ['Corrida de Rua','Trail Run','Beach Tennis','CrossFit','Hyrox','Ciclismo','Travessia / Natação','Caminhada','Outro'];
+const PL_STATUS = [
+  {v:'rascunho', l:'Rascunho'},
+  {v:'kickoff',  l:'Em kickoff'},
+  {v:'aprovado', l:'Aprovado'},
+  {v:'lancado',  l:'Lançado'}
+];
+const PL_ETAPAS = [
+  {id:'identificacao', ic:'🏁', l:'Identificação'},
+  {id:'datas',         ic:'📅', l:'Data e horários'},
+  {id:'visual',        ic:'🎨', l:'Identidade visual'},
+  {id:'kits',          ic:'🎽', l:'Kits do atleta'},
+  {id:'produtos',      ic:'🛒', l:'Produtos avulsos'},
+  {id:'cronograma',    ic:'🗓', l:'Cronograma'},
+  {id:'percursos',     ic:'🗺', l:'Percursos'},
+  {id:'premiacao',     ic:'🏆', l:'Premiação'},
+  {id:'estrategia',    ic:'🎯', l:'Estratégia'},
+  {id:'metas',         ic:'📈', l:'Metas'},
+  {id:'cotas',         ic:'🤝', l:'Patrocínio'}
+];
+
+function plModeloVazio(){
+  return {
+    local:'', cidade:'', descricao:'', publico:'',
+    capa:{url:''},
+    multiplos_dias:false,
+    dias:[],
+    visual:{drive_url:'', responsavel:'', prazo:'', obs:''},
+    kits:[], produtos:[], cronograma:[], percursos:[],
+    premiacao:{geral:'', categorias:'', obs:''},
+    medalha:{url:'', obs:''},
+    trofeu:{url:'', obs:''},
+    estrategia:{fortes:'', criticos:'', objecoes:''},
+    metas:{inscritos:'', ticket:'', faturamento:'', patrocinio:'', obs:''},
+    cotas:[]
+  };
+}
+
+function plD(){
+  if(!plAtual) return plModeloVazio();
+  if(!plAtual.dados) plAtual.dados = plModeloVazio();
+  return plAtual.dados;
+}
+
+/* ── LISTA ── */
+async function plListar(){
+  const el = document.getElementById('pl-lista');
+  if(!el) return;
+  el.innerHTML = '<div class="empty-state">Carregando…</div>';
+  try{
+    const lista = await rpc('admin_planos_listar');
+    if(!lista || !lista.length){
+      el.innerHTML = '<div class="empty-state">Nenhum plano ainda. Clique em "+ Novo plano" para começar.</div>';
+      return;
+    }
+    const stMap = {};
+    PL_STATUS.forEach(x=>stMap[x.v]=x.l);
+    el.innerHTML = '<div class="pl-grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));">' +
+      lista.map(p=>{
+        const capa = p.capa
+          ? '<img src="' + p.capa + '" onerror="this.style.display=\'none\'">'
+          : '📋';
+        const dt = p.data_evento ? fmtDS(String(p.data_evento).slice(0,10)) : 'Data a definir';
+        const localTxt = [p.local, p.cidade].filter(Boolean).join(' · ') || '—';
+        return '<div class="pl-card-plano" onclick="plAbrir(\'' + p.id + '\')">' +
+          '<div class="pl-card-capa">' + capa + '</div>' +
+          '<div style="padding:16px 18px 18px;">' +
+            '<span class="pl-st pl-st-' + (p.status||'rascunho') + '">' + (stMap[p.status]||p.status) + '</span>' +
+            '<div style="font-size:17px;font-weight:700;margin:9px 0 5px;line-height:1.3;">' + (p.nome||'—') + '</div>' +
+            '<div style="font-size:12px;color:var(--muted);line-height:1.6;">' +
+              (p.modalidade ? p.modalidade + '<br>' : '') + dt + '<br>' + localTxt +
+            '</div>' +
+            '<div style="display:flex;gap:12px;margin-top:12px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;">' +
+              '<span>🎽 ' + fmt(Number(p.qtd_kits||0)) + ' kit(s)</span>' +
+              '<span>🤝 ' + fmt(Number(p.qtd_cotas||0)) + ' cota(s)</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+  }catch(e){
+    el.innerHTML = '<div class="empty-state" style="color:#dc2626;">Erro ao carregar: ' + (e.message||'') + '</div>';
+  }
+}
+
+function plNovo(){
+  plAtual = { id:null, nome:'', modalidade:'', data_evento:'', status:'rascunho', dados: plModeloVazio() };
+  plEtapa = 0;
+  showInner('plano-edit');
+  plRender();
+}
+
+async function plAbrir(id){
+  try{
+    const p = await rpc('admin_plano_get', { p_id: id });
+    if(!p){ alert('Plano não encontrado.'); return; }
+    plAtual = {
+      id: p.id, nome: p.nome || '', modalidade: p.modalidade || '',
+      data_evento: p.data_evento ? String(p.data_evento).slice(0,10) : '',
+      status: p.status || 'rascunho',
+      dados: Object.assign(plModeloVazio(), p.dados || {})
+    };
+    plEtapa = 0;
+    showInner('plano-edit');
+    plRender();
+  }catch(e){ alert('Erro ao abrir: ' + (e.message||e)); }
+}
+
+function plVoltar(){
+  if(plSujo && !confirm('Há alterações não salvas. Sair mesmo assim?')) return;
+  plSujo = false;
+  showInner('planos');
+}
+
+let plSujo = false;
+function plMarcarSujo(){
+  plSujo = true;
+  const el = document.getElementById('pl-salvo');
+  if(el){ el.textContent = '● alterações não salvas'; el.style.color = '#c2410c'; }
+}
+
+async function plSalvar(){
+  if(!plAtual) return;
+  const nome = (plAtual.nome||'').trim();
+  if(!nome){ alert('Dê um nome ao plano (primeira etapa).'); plIrEtapa(0); return; }
+  const el = document.getElementById('pl-salvo');
+  if(el){ el.textContent = 'salvando…'; el.style.color = 'var(--muted)'; }
+  try{
+    const id = await rpc('admin_plano_salvar', { dados: {
+      id: plAtual.id || null,
+      nome: nome,
+      modalidade: plAtual.modalidade || null,
+      data_evento: plAtual.data_evento || null,
+      status: plAtual.status || 'rascunho',
+      dados: plAtual.dados || {},
+      autor: (admUser && admUser.nome) || ''
+    }});
+    plAtual.id = id;
+    plSujo = false;
+    if(el){ el.textContent = '✓ salvo ' + new Date().toLocaleTimeString('pt-BR').slice(0,5); el.style.color = '#22c55e'; }
+  }catch(e){
+    if(el){ el.textContent = ''; }
+    alert('Erro ao salvar: ' + (e.message||e));
+  }
+}
+
+async function plExcluir(){
+  if(!plAtual || !plAtual.id) return;
+  if(!confirm('Excluir este plano? Não dá para desfazer.')) return;
+  try{
+    await rpc('admin_plano_excluir', { p_id: plAtual.id });
+    plSujo = false;
+    showInner('planos');
+  }catch(e){ alert('Erro ao excluir: ' + (e.message||e)); }
+}
+
+async function plDuplicar(){
+  if(!plAtual || !plAtual.id) { alert('Salve o plano antes de duplicar.'); return; }
+  const nome = prompt('Nome do novo plano:', plAtual.nome + ' (cópia)');
+  if(!nome) return;
+  try{
+    const novo = await rpc('admin_plano_duplicar', { p_id: plAtual.id, p_nome: nome });
+    plAbrir(novo);
+  }catch(e){ alert('Erro ao duplicar: ' + (e.message||e)); }
+}
+
+/* ── NAVEGAÇÃO DAS ETAPAS ── */
+function plIrEtapa(n){
+  if(n < 0 || n >= PL_ETAPAS.length) return;
+  plEtapa = n;
+  plRenderNav();
+  document.querySelectorAll('#pl-secoes .pl-sec').forEach((sec,i)=>sec.classList.toggle('on', i === n));
+  const prog = document.getElementById('pl-progresso');
+  if(prog) prog.textContent = 'Etapa ' + (n+1) + ' de ' + PL_ETAPAS.length + ' · ' + PL_ETAPAS[n].l;
+  const ant = document.getElementById('pl-btn-ant');
+  const prox = document.getElementById('pl-btn-prox');
+  if(ant) ant.style.visibility = n === 0 ? 'hidden' : '';
+  if(prox) prox.style.visibility = n === PL_ETAPAS.length-1 ? 'hidden' : '';
+  window.scrollTo(0,0);
+}
+
+function plEtapaPreenchida(id){
+  const d = plD();
+  if(id === 'identificacao') return !!(plAtual && plAtual.nome && plAtual.modalidade);
+  if(id === 'datas')        return !!(plAtual && plAtual.data_evento) || (d.dias||[]).length > 0;
+  if(id === 'visual')       return !!(d.visual && d.visual.drive_url);
+  if(id === 'kits')         return (d.kits||[]).length > 0;
+  if(id === 'produtos')     return (d.produtos||[]).length > 0;
+  if(id === 'cronograma')   return (d.cronograma||[]).length > 0;
+  if(id === 'percursos')    return (d.percursos||[]).length > 0;
+  if(id === 'premiacao')    return !!(d.premiacao && (d.premiacao.geral || d.medalha.url || d.trofeu.url));
+  if(id === 'estrategia')   return !!(d.estrategia && (d.estrategia.fortes || d.estrategia.criticos));
+  if(id === 'metas')        return !!(d.metas && d.metas.inscritos);
+  if(id === 'cotas')        return (d.cotas||[]).length > 0;
+  return false;
+}
+
+function plRenderNav(){
+  const nav = document.getElementById('pl-nav');
+  if(!nav) return;
+  nav.innerHTML = PL_ETAPAS.map((e,i)=>{
+    const cls = (i === plEtapa ? ' on' : '') + (plEtapaPreenchida(e.id) ? ' ok' : '');
+    const marca = plEtapaPreenchida(e.id) && i !== plEtapa ? '✓' : (i+1);
+    return '<button class="' + cls.trim() + '" onclick="plIrEtapa(' + i + ')"><span class="n">' + marca + '</span>' + e.ic + ' ' + e.l + '</button>';
+  }).join('');
+}
+
+/* ── CAMPOS ── */
+function plSet(caminho, valor){
+  const partes = caminho.split('.');
+  if(partes[0] === 'raiz'){ plAtual[partes[1]] = valor; plMarcarSujo(); return; }
+  let obj = plD();
+  for(let i=0;i<partes.length-1;i++){
+    if(!obj[partes[i]]) obj[partes[i]] = {};
+    obj = obj[partes[i]];
+  }
+  obj[partes[partes.length-1]] = valor;
+  plMarcarSujo();
+}
+function plGet(caminho){
+  const partes = caminho.split('.');
+  if(partes[0] === 'raiz') return (plAtual && plAtual[partes[1]]) || '';
+  let obj = plD();
+  for(const p of partes){
+    if(obj == null) return '';
+    obj = obj[p];
+  }
+  return obj == null ? '' : obj;
+}
+function plEsc(v){
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function plCampo(rot, caminho, tipo, ph, extra){
+  const v = plEsc(plGet(caminho));
+  const at = extra || '';
+  return '<div class="form-g"><label>' + rot + '</label>' +
+    '<input type="' + (tipo||'text') + '" value="' + v + '" placeholder="' + plEsc(ph||'') + '" ' + at +
+    ' oninput="plSet(\'' + caminho + '\', this.value)"></div>';
+}
+function plArea(rot, caminho, ph, linhas){
+  return '<div class="form-g"><label>' + rot + '</label>' +
+    '<textarea rows="' + (linhas||4) + '" placeholder="' + plEsc(ph||'') + '"' +
+    ' style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-size:14px;font-family:\'Ubuntu\',sans-serif;line-height:1.6;resize:vertical;"' +
+    ' oninput="plSet(\'' + caminho + '\', this.value)">' + plEsc(plGet(caminho)) + '</textarea></div>';
+}
+
+/* ── LISTAS (kits, produtos, etc) ── */
+function plLista(nome){
+  const d = plD();
+  if(!Array.isArray(d[nome])) d[nome] = [];
+  return d[nome];
+}
+function plAddItem(nome, modelo){
+  plLista(nome).push(modelo || {});
+  plMarcarSujo();
+  plRenderSecao(nome);
+}
+function plDelItem(nome, idx){
+  if(!confirm('Remover este item?')) return;
+  plLista(nome).splice(idx,1);
+  plMarcarSujo();
+  plRenderSecao(nome);
+}
+function plSetItem(nome, idx, campo, valor){
+  const l = plLista(nome);
+  if(!l[idx]) return;
+  l[idx][campo] = valor;
+  plMarcarSujo();
+}
+function plMoverItem(nome, idx, dir){
+  const l = plLista(nome);
+  const novo = idx + dir;
+  if(novo < 0 || novo >= l.length) return;
+  const tmp = l[idx]; l[idx] = l[novo]; l[novo] = tmp;
+  plMarcarSujo();
+  plRenderSecao(nome);
+}
+function plInp(nome, idx, campo, rot, tipo, ph){
+  const l = plLista(nome);
+  const v = plEsc((l[idx]||{})[campo]);
+  return '<div class="form-g" style="margin-bottom:10px;"><label>' + rot + '</label>' +
+    '<input type="' + (tipo||'text') + '" value="' + v + '" placeholder="' + plEsc(ph||'') + '"' +
+    ' oninput="plSetItem(\'' + nome + '\',' + idx + ',\'' + campo + '\', this.value)"></div>';
+}
+function plTxt(nome, idx, campo, rot, ph, linhas){
+  const l = plLista(nome);
+  return '<div class="form-g" style="margin-bottom:10px;"><label>' + rot + '</label>' +
+    '<textarea rows="' + (linhas||2) + '" placeholder="' + plEsc(ph||'') + '"' +
+    ' style="width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:9px 13px;font-size:14px;font-family:\'Ubuntu\',sans-serif;line-height:1.5;resize:vertical;"' +
+    ' oninput="plSetItem(\'' + nome + '\',' + idx + ',\'' + campo + '\', this.value)">' + plEsc((l[idx]||{})[campo]) + '</textarea></div>';
+}
+function plCabItem(nome, idx, titulo){
+  return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;">' +
+    '<span style="font-size:12px;font-weight:700;color:var(--orange);letter-spacing:1px;text-transform:uppercase;">' + titulo + ' ' + (idx+1) + '</span>' +
+    '<button class="ig-btn" style="padding:2px 8px;font-size:12px;margin-left:auto;" onclick="plMoverItem(\'' + nome + '\',' + idx + ',-1)">↑</button>' +
+    '<button class="ig-btn" style="padding:2px 8px;font-size:12px;" onclick="plMoverItem(\'' + nome + '\',' + idx + ',1)">↓</button>' +
+    '<button class="del" onclick="plDelItem(\'' + nome + '\',' + idx + ')" style="position:static;">✕</button>' +
+    '</div>';
+}
+
+/* ── UPLOAD DE IMAGEM ── */
+async function plUpload(input, destino, idx, campo){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){ alert('Máximo 8MB por imagem.'); input.value=''; return; }
+  const st = input.parentElement.querySelector('.pl-up-st');
+  if(st){ st.textContent = 'enviando…'; st.style.color = 'var(--muted)'; }
+  try{
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const nomeArq = 'plano_' + destino + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,7) + '.' + ext;
+    const r = await fetch(SB_URL + '/storage/v1/object/' + STORAGE_BUCKET + '/' + nomeArq, {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer ' + SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},
+      body:file
+    });
+    if(!r.ok) throw new Error(await r.text());
+    const url = SB_URL + '/storage/v1/object/public/' + STORAGE_BUCKET + '/' + nomeArq;
+    if(idx === null || idx === undefined) plSet(destino + '.' + campo, url);
+    else plSetItem(destino, idx, campo, url);
+    if(st){ st.textContent = '✓ enviado'; st.style.color = '#22c55e'; }
+    plRenderSecao(idx === null || idx === undefined ? null : destino);
+  }catch(e){
+    if(st){ st.textContent = 'erro no envio'; st.style.color = '#dc2626'; }
+    console.error(e);
+  }
+}
+function plBotaoUpload(destino, idx, campo, urlAtual){
+  const alvo = (idx === null || idx === undefined) ? 'null' : idx;
+  const img = urlAtual
+    ? '<img src="' + plEsc(urlAtual) + '" class="pl-thumb" onerror="this.style.display=\'none\'">'
+    : '<div class="pl-thumb" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;">sem imagem</div>';
+  const limpar = urlAtual
+    ? '<button class="ig-btn" style="padding:5px 11px;font-size:12px;" onclick="plLimparImg(\'' + destino + '\',' + alvo + ',\'' + campo + '\')">remover</button>'
+    : '';
+  return img +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+      '<label class="pl-up">📤 Enviar imagem' +
+        '<input type="file" accept="image/*" style="display:none;" onchange="plUpload(this,\'' + destino + '\',' + alvo + ',\'' + campo + '\')">' +
+      '</label>' + limpar +
+      '<span class="pl-up-st" style="font-size:12px;"></span>' +
+    '</div>';
+}
+function plLimparImg(destino, idx, campo){
+  if(idx === null || idx === undefined) plSet(destino + '.' + campo, '');
+  else plSetItem(destino, idx, campo, '');
+  plRenderSecao(idx === null || idx === undefined ? null : destino);
+}
+
+/* ── RENDER DAS SEÇÕES ── */
+function plRender(){
+  const el = document.getElementById('pl-secoes');
+  if(!el) return;
+  const tit = document.getElementById('pl-titulo');
+  if(tit) tit.textContent = (plAtual && plAtual.nome) ? plAtual.nome : 'Novo plano';
+  el.innerHTML = PL_ETAPAS.map(e=>'<div class="pl-sec" id="pl-sec-' + e.id + '"></div>').join('');
+  PL_ETAPAS.forEach(e=>plRenderSecao(e.id));
+  plIrEtapa(plEtapa);
+}
+
+function plRenderSecao(id){
+  if(!id){ PL_ETAPAS.forEach(e=>plRenderSecao(e.id)); return; }
+  const el = document.getElementById('pl-sec-' + id);
+  if(!el) return;
+  const fn = {
+    identificacao: plSecIdentificacao, datas: plSecDatas, visual: plSecVisual,
+    kits: plSecKits, produtos: plSecProdutos, cronograma: plSecCronograma,
+    percursos: plSecPercursos, premiacao: plSecPremiacao, estrategia: plSecEstrategia,
+    metas: plSecMetas, cotas: plSecCotas
+  }[id];
+  if(!fn) return;
+  const ativo = el.classList.contains('on');
+  el.innerHTML = fn();
+  if(ativo) el.classList.add('on');
+  plRenderNav();
+}
+
+function plCab(ic, tit, sub){
+  return '<h2>' + ic + ' ' + tit + '</h2><div class="sub">' + sub + '</div>';
+}
+
+function plSecIdentificacao(){
+  const mods = PL_MODALIDADES.map(m=>'<option' + (plAtual.modalidade === m ? ' selected' : '') + '>' + m + '</option>').join('');
+  const sts = PL_STATUS.map(x=>'<option value="' + x.v + '"' + (plAtual.status === x.v ? ' selected' : '') + '>' + x.l + '</option>').join('');
+  const acoes = plAtual.id
+    ? '<div style="display:flex;gap:8px;margin-top:18px;"><button class="ig-btn" onclick="plDuplicar()">⧉ Duplicar plano</button><button class="ig-btn" style="color:#dc2626;border-color:rgba(220,38,38,.3);" onclick="plExcluir()">🗑 Excluir plano</button></div>'
+    : '';
+  return plCab('🏁','Identificação do evento','Comece pelo básico. Esse nome é o que aparece na lista de planos e no título da apresentação.') +
+    '<div class="panel">' +
+      '<div class="form-row">' +
+        plCampo('Nome do evento *','raiz.nome','text','Ex.: Trail Run | Artesano 2027') +
+        '<div class="form-g"><label>Modalidade *</label><select onchange="plSet(\'raiz.modalidade\', this.value)"><option value="">Selecione</option>' + mods + '</select></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        plCampo('Local / endereço','local','text','Ex.: Estr. Mun. Eugenio do Val — Faz. Santa Tereza') +
+        plCampo('Cidade / UF','cidade','text','Ex.: Ribeirão Preto - SP') +
+      '</div>' +
+      '<div class="form-g"><label>Situação do plano</label><select onchange="plSet(\'raiz.status\', this.value)">' + sts + '</select>' +
+        '<div class="hint">Rascunho → Em kickoff → Aprovado → Lançado. Ajuda o time a saber em que pé está.</div></div>' +
+      plArea('Conceito do evento','descricao','Em poucas linhas: qual é a proposta, o que torna esse evento diferente.',4) +
+      plArea('Público-alvo','publico','Quem queremos atrair? Iniciantes, corredores experientes, famílias, atletas de outra cidade…',3) +
+      '<div style="margin-top:14px;"><label style="display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px;">Imagem de capa (aparece na lista e na abertura da apresentação)</label>' +
+        plBotaoUpload('capa', null, 'url', plGet('capa.url')) + '</div>' +
+      acoes +
+    '</div>';
+}
+
+function plSecDatas(){
+  const d = plD();
+  const multi = !!d.multiplos_dias;
+  let corpo = '';
+  if(!multi){
+    corpo = '<div class="form-row">' +
+      plCampo('Data do evento','raiz.data_evento','date') +
+      plCampo('Horário da largada','hora','time') +
+    '</div>' + plArea('Observações sobre horários','obs_horario','Ex.: concentração 1h antes, retirada de kit no dia anterior.',3);
+  } else {
+    const dias = plLista('dias');
+    corpo = dias.map((x,i)=>
+      '<div class="pl-item">' + plCabItem('dias', i, 'Dia') +
+        '<div class="form-row">' +
+          plInp('dias', i, 'data', 'Data', 'date') +
+          plInp('dias', i, 'titulo', 'Etapa / fase', 'text', 'Ex.: Fase de grupos') +
+        '</div>' +
+        '<div class="form-row">' +
+          plInp('dias', i, 'hora_inicio', 'Início', 'time') +
+          plInp('dias', i, 'hora_fim', 'Término', 'time') +
+        '</div>' +
+        plTxt('dias', i, 'obs', 'Observações', 'Categorias, quadras, chaves…', 2) +
+      '</div>'
+    ).join('') +
+    '<button class="pl-add" onclick="plAddItem(\'dias\',{})">➕ Adicionar dia</button>' +
+    '<div class="form-g" style="margin-top:16px;">' + plCampo('Data principal (para ordenar na lista)','raiz.data_evento','date') + '</div>';
+  }
+  return plCab('📅','Data e horários','Evento de um dia só, ou vários dias como no beach tennis? Escolha abaixo.') +
+    '<div class="panel">' +
+      '<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">' +
+        '<button class="ig-btn' + (!multi ? ' ig-btn-xls' : '') + '" onclick="plSet(\'multiplos_dias\',false);plRenderSecao(\'datas\')">Dia único</button>' +
+        '<button class="ig-btn' + (multi ? ' ig-btn-xls' : '') + '" onclick="plSet(\'multiplos_dias\',true);plRenderSecao(\'datas\')">Vários dias / horários</button>' +
+      '</div>' + corpo +
+    '</div>';
+}
+
+function plSecVisual(){
+  return plCab('🎨','Identidade visual','Espaço do designer. Cole aqui o link da pasta no Drive com logo, banners, artes de post, template de story — tudo do evento.') +
+    '<div class="panel">' +
+      plCampo('Link da pasta no Google Drive','visual.drive_url','url','https://drive.google.com/drive/folders/…') +
+      '<div class="form-row">' +
+        plCampo('Responsável pela criação','visual.responsavel','text','Quem faz as artes') +
+        plCampo('Prazo de entrega','visual.prazo','date') +
+      '</div>' +
+      plArea('O que precisa estar na pasta','visual.obs','Ex.: logo em PNG e vetor, banner site 1920×810, banner mobile 1080×1750, arte de feed, story, camiseta, medalha, número de peito.',5) +
+    '</div>';
+}
+
+function plSecKits(){
+  const kits = plLista('kits');
+  const itens = kits.map((k,i)=>
+    '<div class="pl-item">' + plCabItem('kits', i, 'Kit') +
+      '<div class="form-row">' +
+        plInp('kits', i, 'nome', 'Nome do kit', 'text', 'Ex.: Starter / VIP') +
+        plInp('kits', i, 'preco', 'Valor previsto (R$)', 'number', '99.90') +
+      '</div>' +
+      plTxt('kits', i, 'itens', 'O que vem no kit', 'Camiseta, número de peito, medalha, sacola, viseira…', 3) +
+      '<div style="margin-top:6px;">' + plBotaoUpload('kits', i, 'imagem', k.imagem) + '</div>' +
+    '</div>'
+  ).join('');
+  return plCab('🎽','Kits do atleta','Cada kit com a foto do mockup e o valor previsto. Depois isso vira o cadastro real de kits do evento.') +
+    '<div class="panel">' + (itens || '<div class="empty-state" style="padding:20px;">Nenhum kit ainda.</div>') +
+      '<button class="pl-add" onclick="plAddItem(\'kits\',{})">➕ Adicionar kit</button>' +
+    '</div>';
+}
+
+function plSecProdutos(){
+  const ps = plLista('produtos');
+  const itens = ps.map((p,i)=>
+    '<div class="pl-item">' + plCabItem('produtos', i, 'Produto') +
+      '<div class="form-row">' +
+        plInp('produtos', i, 'nome', 'Nome do produto', 'text', 'Ex.: Boné, Viseira, Camiseta extra') +
+        plInp('produtos', i, 'preco', 'Valor previsto (R$)', 'number', '49.90') +
+      '</div>' +
+      '<div class="form-row">' +
+        plInp('produtos', i, 'estoque', 'Quantidade prevista', 'number', '100') +
+        plInp('produtos', i, 'fornecedor', 'Fornecedor', 'text', '') +
+      '</div>' +
+      plTxt('produtos', i, 'descricao', 'Descrição', '', 2) +
+      '<div style="margin-top:6px;">' + plBotaoUpload('produtos', i, 'imagem', p.imagem) + '</div>' +
+    '</div>'
+  ).join('');
+  return plCab('🛒','Produtos avulsos','Itens que o atleta compra além da inscrição.') +
+    '<div class="panel">' + (itens || '<div class="empty-state" style="padding:20px;">Nenhum produto ainda.</div>') +
+      '<button class="pl-add" onclick="plAddItem(\'produtos\',{})">➕ Adicionar produto</button>' +
+    '</div>';
+}
+
+function plSecCronograma(){
+  const cs = plLista('cronograma');
+  const itens = cs.map((c,i)=>
+    '<div class="pl-tl-item"><div class="pl-item" style="margin-bottom:0;">' + plCabItem('cronograma', i, 'Marco') +
+      '<div class="form-row">' +
+        plInp('cronograma', i, 'data', 'Data', 'date') +
+        plInp('cronograma', i, 'titulo', 'O que acontece', 'text', 'Ex.: Save the date') +
+      '</div>' +
+      '<div class="form-row">' +
+        plInp('cronograma', i, 'responsavel', 'Responsável', 'text', 'Stephano / Monique / Gui') +
+        plInp('cronograma', i, 'canal', 'Onde / canal', 'text', 'Instagram, site, WhatsApp…') +
+      '</div>' +
+      plTxt('cronograma', i, 'obs', 'Detalhes', '', 2) +
+    '</div></div>'
+  ).join('');
+  const sugestao = cs.length === 0
+    ? '<div style="background:rgba(255,117,31,.07);border:1px solid rgba(255,117,31,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;line-height:1.7;color:var(--text);">' +
+      '<b>Sequência sugerida:</b> Save the date → Abertura de inscrições (1º lote) → Virada de lote → Divulgação do percurso → Fechamento das inscrições → Retirada de kit → <b>Dia do evento</b>' +
+      '<div style="margin-top:10px;"><button class="ig-btn" onclick="plCronogramaPadrao()">Criar essa sequência</button></div></div>'
+    : '';
+  return plCab('🗓','Cronograma','A linha do tempo do evento, do primeiro anúncio até o dia da prova.') +
+    sugestao + '<div class="pl-tl">' + itens + '</div>' +
+    '<button class="pl-add" onclick="plAddItem(\'cronograma\',{})">➕ Adicionar marco</button>';
+}
+function plCronogramaPadrao(){
+  const base = ['Save the date','Abertura de inscrições — 1º lote','Virada de lote','Divulgação do percurso','Fechamento das inscrições','Retirada de kit','Dia do evento'];
+  const d = plD();
+  d.cronograma = base.map(t=>({data:'', titulo:t, responsavel:'', canal:'', obs:''}));
+  plMarcarSujo();
+  plRenderSecao('cronograma');
+}
+
+function plSecPercursos(){
+  const ps = plLista('percursos');
+  const itens = ps.map((p,i)=>
+    '<div class="pl-item">' + plCabItem('percursos', i, 'Percurso') +
+      '<div class="form-row">' +
+        plInp('percursos', i, 'nome', 'Nome', 'text', 'Ex.: Short / Long / 5km') +
+        plInp('percursos', i, 'distancia', 'Distância', 'text', 'Ex.: 4,4 km') +
+      '</div>' +
+      '<div class="form-row">' +
+        plInp('percursos', i, 'altimetria', 'Altimetria / ganho', 'text', 'Ex.: 120 m') +
+        plInp('percursos', i, 'terreno', 'Terreno', 'text', 'Ex.: trilha, asfalto, misto') +
+      '</div>' +
+      plInp('percursos', i, 'mapa_url', 'Link do mapa (Google Maps, Strava, GPX)', 'url', 'https://…') +
+      plTxt('percursos', i, 'obs', 'Observações', 'Pontos de hidratação, largada, chegada, trechos técnicos…', 2) +
+      '<div style="margin-top:6px;">' + plBotaoUpload('percursos', i, 'imagem', p.imagem) + '</div>' +
+    '</div>'
+  ).join('');
+  return plCab('🗺','Percursos','Cada modalidade com distância, mapa e a imagem do traçado.') +
+    '<div class="panel">' + (itens || '<div class="empty-state" style="padding:20px;">Nenhum percurso ainda.</div>') +
+      '<button class="pl-add" onclick="plAddItem(\'percursos\',{})">➕ Adicionar percurso</button>' +
+    '</div>';
+}
+
+function plSecPremiacao(){
+  return plCab('🏆','Premiação','O que o atleta leva e como fica a divisão por categoria.') +
+    '<div class="panel">' +
+      plArea('Premiação geral','premiacao.geral','Ex.: troféu para os 5 primeiros do geral masculino e feminino; premiação em dinheiro para o pódio.',4) +
+      plArea('Categorias','premiacao.categorias','Ex.: faixas de idade de 5 em 5 anos a partir dos 18; categoria PCD; equipes.',4) +
+      plArea('Observações','premiacao.obs','Regras de empate, retirada da premiação, patrocinador que assina o prêmio…',3) +
+    '</div>' +
+    '<div class="pl-grid" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));margin-top:16px;">' +
+      '<div class="panel" style="margin:0;"><h3 style="font-size:15px;margin-bottom:12px;">🥇 Medalha</h3>' +
+        plBotaoUpload('medalha', null, 'url', plGet('medalha.url')) +
+        '<div style="margin-top:10px;">' + plArea('Detalhes','medalha.obs','Material, tamanho, fita, fornecedor, prazo.',3) + '</div>' +
+      '</div>' +
+      '<div class="panel" style="margin:0;"><h3 style="font-size:15px;margin-bottom:12px;">🏆 Troféu</h3>' +
+        plBotaoUpload('trofeu', null, 'url', plGet('trofeu.url')) +
+        '<div style="margin-top:10px;">' + plArea('Detalhes','trofeu.obs','Material, tamanho, quantidade, fornecedor, prazo.',3) + '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+function plSecEstrategia(){
+  return plCab('🎯','Estratégia','Uma linha por item. Isso vira a discussão principal do kickoff.') +
+    '<div class="panel" style="border-left:4px solid #22c55e;">' +
+      '<h3 style="font-size:15px;color:#15803d;margin-bottom:10px;">✔ Pontos fortes</h3>' +
+      plArea('','estrategia.fortes','Percurso dentro de uma fazenda\nParceria com o Artesano\nKit muito acima da média da região',6) +
+    '</div>' +
+    '<div class="panel" style="border-left:4px solid #f59e0b;margin-top:16px;">' +
+      '<h3 style="font-size:15px;color:#b45309;margin-bottom:10px;">⚠ Pontos críticos</h3>' +
+      plArea('','estrategia.criticos','Acesso ao local é de terra — sinalizar bem\nData próxima de outra prova na região\nEstacionamento limitado',6) +
+    '</div>' +
+    '<div class="panel" style="border-left:4px solid #dc2626;margin-top:16px;">' +
+      '<h3 style="font-size:15px;color:#b91c1c;margin-bottom:10px;">💬 Objeções esperadas</h3>' +
+      plArea('','estrategia.objecoes','"Está caro" → mostrar o que vem no kit\n"É longe" → divulgar caronas e ponto de encontro\n"Nunca corri trail" → reforçar o percurso short de 4km',6) +
+    '</div>';
+}
+
+function plSecMetas(){
+  const d = plD();
+  const insc = Number(d.metas && d.metas.inscritos) || 0;
+  const tk = Number(d.metas && d.metas.ticket) || 0;
+  const proj = insc * tk;
+  const projBox = proj > 0
+    ? '<div class="sl-kpi" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);margin-top:16px;">' +
+      '<div class="v" style="color:#15803d;">' + brl(proj) + '</div>' +
+      '<div class="l" style="color:var(--muted);">Receita projetada de inscrições (' + fmt(insc) + ' × ' + brl(tk) + ')</div></div>'
+    : '';
+  return plCab('📈','Metas','Números que o time vai perseguir. A projeção se calcula sozinha.') +
+    '<div class="panel">' +
+      '<div class="form-row">' +
+        plCampo('Meta de inscritos','metas.inscritos','number','500') +
+        plCampo('Ticket médio esperado (R$)','metas.ticket','number','120.00') +
+      '</div>' +
+      '<div class="form-row">' +
+        plCampo('Meta de faturamento total (R$)','metas.faturamento','number','80000') +
+        plCampo('Meta de patrocínio (R$)','metas.patrocinio','number','40000') +
+      '</div>' +
+      projBox +
+      '<div style="margin-top:16px;">' + plArea('Como chegar lá','metas.obs','Ações de divulgação, parcerias com assessorias, cupons para grupos, meta por lote…',4) + '</div>' +
+    '</div>';
+}
+
+function plSecCotas(){
+  const cs = plLista('cotas');
+  const itens = cs.map((c,i)=>{
+    const total = (Number(c.vagas)||0) * (Number(c.valor)||0);
+    const tot = total > 0 ? '<div style="font-size:12px;color:var(--muted);margin-top:4px;">Potencial da cota: <b style="color:var(--orange);">' + brl(total) + '</b></div>' : '';
+    return '<div class="pl-item">' + plCabItem('cotas', i, 'Cota') +
+      '<div class="form-row">' +
+        plInp('cotas', i, 'nome', 'Nome da cota', 'text', 'Ex.: Ouro') +
+        plInp('cotas', i, 'vagas', 'Nº de vagas', 'number', '4') +
+      '</div>' +
+      '<div class="form-row">' +
+        plInp('cotas', i, 'valor', 'Valor por vaga (R$)', 'number', '12000') +
+        plInp('cotas', i, 'vendidas', 'Já fechadas', 'number', '0') +
+      '</div>' +
+      plTxt('cotas', i, 'beneficios', 'Contrapartidas', 'Logo no banner e camiseta, 4 posts no feed, ativação na arena, 10 inscrições cortesia…', 3) +
+      tot +
+    '</div>';
+  }).join('');
+  const totalGeral = cs.reduce((a,c)=>a + (Number(c.vagas)||0)*(Number(c.valor)||0), 0);
+  const fechado = cs.reduce((a,c)=>a + (Number(c.vendidas)||0)*(Number(c.valor)||0), 0);
+  const resumo = cs.length
+    ? '<div class="pl-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));margin-bottom:16px;">' +
+      '<div class="sl-kpi" style="background:rgba(255,117,31,.1);"><div class="v">' + brl(totalGeral) + '</div><div class="l" style="color:var(--muted);">Potencial total</div></div>' +
+      '<div class="sl-kpi" style="background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);"><div class="v" style="color:#15803d;">' + brl(fechado) + '</div><div class="l" style="color:var(--muted);">Já fechado</div></div>' +
+      '<div class="sl-kpi" style="background:rgba(42,37,32,.05);border-color:var(--border);"><div class="v" style="color:var(--muted);">' + brl(totalGeral - fechado) + '</div><div class="l" style="color:var(--muted);">A buscar</div></div>' +
+      '</div>'
+    : '';
+  const modelo = cs.length === 0
+    ? '<div style="background:rgba(255,117,31,.07);border:1px solid rgba(255,117,31,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;line-height:1.7;">' +
+      '<b>Estrutura comum:</b> Ouro 4 vagas × R$ 12.000 · Prata 4 vagas × R$ 8.000 · Bronze 8 vagas × R$ 3.000' +
+      '<div style="margin-top:10px;"><button class="ig-btn" onclick="plCotasPadrao()">Criar essa estrutura</button></div></div>'
+    : '';
+  return plCab('🤝','Cotas de patrocínio','A tabela que o time usa para prospectar. Deixe claro o que cada cota entrega.') +
+    resumo + modelo +
+    '<div class="panel">' + (itens || '<div class="empty-state" style="padding:20px;">Nenhuma cota ainda.</div>') +
+      '<button class="pl-add" onclick="plAddItem(\'cotas\',{})">➕ Adicionar cota</button>' +
+    '</div>';
+}
+function plCotasPadrao(){
+  const d = plD();
+  d.cotas = [
+    {nome:'Master', vagas:1, valor:20000, vendidas:0, beneficios:'Nome no evento, logo em todos os materiais, ativação principal na arena'},
+    {nome:'Ouro',   vagas:4, valor:12000, vendidas:0, beneficios:'Logo no banner e camiseta, posts no feed, ativação na arena'},
+    {nome:'Prata',  vagas:4, valor:8000,  vendidas:0, beneficios:'Logo no banner e camiseta, menção nos stories'},
+    {nome:'Bronze', vagas:8, valor:3000,  vendidas:0, beneficios:'Logo no banner e no site'}
+  ];
+  plMarcarSujo();
+  plRenderSecao('cotas');
+}
+
+/* ═══════════════ MODO APRESENTAÇÃO ═══════════════ */
+function plSl(tag, titulo, corpo){
+  return '<div class="sl-slide">' +
+    '<div class="sl-tag">' + tag + '</div>' +
+    '<h2>' + titulo + '</h2>' + corpo + '</div>';
+}
+function plLinhas(txt){
+  const l = String(txt||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!l.length) return '<p style="opacity:.5;">— a definir —</p>';
+  return '<ul>' + l.map(x=>'<li>' + plEsc(x) + '</li>').join('') + '</ul>';
+}
+function plPara(txt){
+  const t = String(txt||'').trim();
+  return t ? '<p style="white-space:pre-wrap;">' + plEsc(t) + '</p>' : '<p style="opacity:.5;">— a definir —</p>';
+}
+
+function plMontarSlides(){
+  const d = plD();
+  const nome = plEsc(plAtual.nome || 'Evento');
+  const S = [];
+
+  // 1. CAPA
+  const capaImg = d.capa && d.capa.url
+    ? '<img src="' + plEsc(d.capa.url) + '" style="width:100%;max-height:340px;object-fit:cover;border-radius:16px;margin-bottom:26px;">'
+    : '';
+  const dataTxt = plAtual.data_evento ? fmtDS(plAtual.data_evento) : 'Data a definir';
+  const localTxt = [d.local, d.cidade].filter(Boolean).join(' · ') || 'Local a definir';
+  S.push('<div class="sl-slide">' + capaImg +
+    '<div class="sl-tag">Plano de evento · kickoff</div>' +
+    '<h2 style="font-size:52px;">' + nome + '</h2>' +
+    '<div class="sl-cols" style="margin-top:24px;">' +
+      '<div class="sl-box"><div class="sl-tag" style="margin:0 0 6px;">Modalidade</div><p>' + plEsc(plAtual.modalidade || '—') + '</p></div>' +
+      '<div class="sl-box"><div class="sl-tag" style="margin:0 0 6px;">Data</div><p>' + dataTxt + (d.hora ? ' · ' + plEsc(d.hora) : '') + '</p></div>' +
+      '<div class="sl-box"><div class="sl-tag" style="margin:0 0 6px;">Local</div><p>' + plEsc(localTxt) + '</p></div>' +
+    '</div></div>');
+
+  // 2. CONCEITO
+  if(d.descricao || d.publico){
+    S.push(plSl('Sobre o evento', 'O conceito',
+      '<div class="sl-box">' + plPara(d.descricao) + '</div>' +
+      '<h3>Público-alvo</h3><div class="sl-box">' + plPara(d.publico) + '</div>'));
+  }
+
+  // 3. DATAS (se vários dias)
+  if(d.multiplos_dias && (d.dias||[]).length){
+    const linhas = d.dias.map(x=>
+      '<tr><td><b>' + (x.data ? fmtDS(String(x.data).slice(0,10)) : '—') + '</b></td>' +
+      '<td>' + plEsc(x.titulo||'—') + '</td>' +
+      '<td>' + plEsc([x.hora_inicio, x.hora_fim].filter(Boolean).join(' às ') || '—') + '</td>' +
+      '<td>' + plEsc(x.obs||'') + '</td></tr>').join('');
+    S.push(plSl('Programação', 'Dias e horários',
+      '<table class="sl-tb"><thead><tr><th>Data</th><th>Etapa</th><th>Horário</th><th>Observações</th></tr></thead><tbody>' + linhas + '</tbody></table>'));
+  }
+
+  // 4. IDENTIDADE VISUAL
+  if(d.visual && (d.visual.drive_url || d.visual.obs)){
+    const link = d.visual.drive_url
+      ? '<div class="sl-box"><div class="sl-tag" style="margin:0 0 8px;">Pasta do material</div>' +
+        '<p><a href="' + plEsc(d.visual.drive_url) + '" target="_blank" style="color:var(--orange);font-weight:700;word-break:break-all;">' + plEsc(d.visual.drive_url) + '</a></p></div>'
+      : '';
+    const resp = (d.visual.responsavel || d.visual.prazo)
+      ? '<div class="sl-cols">' +
+        '<div class="sl-box"><div class="sl-tag" style="margin:0 0 6px;">Responsável</div><p>' + plEsc(d.visual.responsavel||'—') + '</p></div>' +
+        '<div class="sl-box"><div class="sl-tag" style="margin:0 0 6px;">Prazo</div><p>' + (d.visual.prazo ? fmtDS(String(d.visual.prazo).slice(0,10)) : '—') + '</p></div></div>'
+      : '';
+    S.push(plSl('Identidade visual', 'Material de comunicação', link + resp +
+      (d.visual.obs ? '<h3>O que precisa estar pronto</h3>' + plLinhas(d.visual.obs) : '')));
+  }
+
+  // 5. KITS
+  if((d.kits||[]).length){
+    const cards = d.kits.map(k=>
+      '<div class="sl-box">' +
+        (k.imagem ? '<img src="' + plEsc(k.imagem) + '" class="sl-img">' : '') +
+        '<div style="font-size:20px;font-weight:700;color:#fff;">' + plEsc(k.nome||'Kit') + '</div>' +
+        (k.preco ? '<div style="font-size:26px;font-weight:700;color:var(--orange);margin:6px 0 10px;">' + brl(k.preco) + '</div>' : '') +
+        (k.itens ? plLinhas(k.itens) : '') +
+      '</div>').join('');
+    S.push(plSl('Kit do atleta', 'O que o atleta recebe', '<div class="sl-cols">' + cards + '</div>'));
+  }
+
+  // 6. PRODUTOS
+  if((d.produtos||[]).length){
+    const cards = d.produtos.map(p=>
+      '<div class="sl-box">' +
+        (p.imagem ? '<img src="' + plEsc(p.imagem) + '" class="sl-img" style="max-height:180px;">' : '') +
+        '<div style="font-size:17px;font-weight:700;color:#fff;">' + plEsc(p.nome||'—') + '</div>' +
+        (p.preco ? '<div style="font-size:22px;font-weight:700;color:var(--orange);margin-top:4px;">' + brl(p.preco) + '</div>' : '') +
+        (p.estoque ? '<p style="font-size:13px;margin-top:4px;">Previsão: ' + fmt(Number(p.estoque)) + ' un.</p>' : '') +
+      '</div>').join('');
+    S.push(plSl('Receita extra', 'Produtos avulsos', '<div class="sl-cols">' + cards + '</div>'));
+  }
+
+  // 7. CRONOGRAMA
+  if((d.cronograma||[]).length){
+    const linhas = d.cronograma.map(c=>
+      '<tr><td style="white-space:nowrap;"><b style="color:var(--orange);">' + (c.data ? fmtDS(String(c.data).slice(0,10)) : '—') + '</b></td>' +
+      '<td><b>' + plEsc(c.titulo||'—') + '</b>' + (c.obs ? '<br><span style="font-size:13px;opacity:.7;">' + plEsc(c.obs) + '</span>' : '') + '</td>' +
+      '<td>' + plEsc(c.responsavel||'—') + '</td>' +
+      '<td>' + plEsc(c.canal||'—') + '</td></tr>').join('');
+    S.push(plSl('Linha do tempo', 'Cronograma até o evento',
+      '<table class="sl-tb"><thead><tr><th>Data</th><th>Marco</th><th>Responsável</th><th>Canal</th></tr></thead><tbody>' + linhas + '</tbody></table>'));
+  }
+
+  // 8. PERCURSOS
+  if((d.percursos||[]).length){
+    const cards = d.percursos.map(p=>
+      '<div class="sl-box">' +
+        (p.imagem ? '<img src="' + plEsc(p.imagem) + '" class="sl-img">' : '') +
+        '<div style="font-size:20px;font-weight:700;color:#fff;">' + plEsc(p.nome||'—') + '</div>' +
+        '<div style="font-size:26px;font-weight:700;color:var(--orange);margin:4px 0 8px;">' + plEsc(p.distancia||'—') + '</div>' +
+        '<p style="font-size:14px;">' + [p.terreno, p.altimetria].filter(Boolean).map(plEsc).join(' · ') + '</p>' +
+        (p.obs ? '<p style="font-size:14px;margin-top:8px;opacity:.8;">' + plEsc(p.obs) + '</p>' : '') +
+        (p.mapa_url ? '<p style="margin-top:10px;"><a href="' + plEsc(p.mapa_url) + '" target="_blank" style="color:var(--orange);font-weight:700;">🗺 Abrir o mapa</a></p>' : '') +
+      '</div>').join('');
+    S.push(plSl('Percursos', 'Traçado e distâncias', '<div class="sl-cols">' + cards + '</div>'));
+  }
+
+  // 9. PREMIAÇÃO
+  const temPrem = d.premiacao && (d.premiacao.geral || d.premiacao.categorias);
+  if(temPrem || (d.medalha && d.medalha.url) || (d.trofeu && d.trofeu.url)){
+    let corpo = '';
+    if(d.premiacao && d.premiacao.geral){ corpo += '<h3>Premiação geral</h3>' + plLinhas(d.premiacao.geral); }
+    if(d.premiacao && d.premiacao.categorias){ corpo += '<h3>Categorias</h3>' + plLinhas(d.premiacao.categorias); }
+    const mock = [];
+    if(d.medalha && d.medalha.url) mock.push('<div class="sl-box"><div class="sl-tag" style="margin:0 0 10px;">Medalha</div><img src="' + plEsc(d.medalha.url) + '" class="sl-img">' + (d.medalha.obs ? '<p style="font-size:14px;">' + plEsc(d.medalha.obs) + '</p>' : '') + '</div>');
+    if(d.trofeu && d.trofeu.url) mock.push('<div class="sl-box"><div class="sl-tag" style="margin:0 0 10px;">Troféu</div><img src="' + plEsc(d.trofeu.url) + '" class="sl-img">' + (d.trofeu.obs ? '<p style="font-size:14px;">' + plEsc(d.trofeu.obs) + '</p>' : '') + '</div>');
+    if(mock.length) corpo += '<div class="sl-cols" style="margin-top:20px;">' + mock.join('') + '</div>';
+    if(d.premiacao && d.premiacao.obs) corpo += '<h3>Observações</h3>' + plPara(d.premiacao.obs);
+    S.push(plSl('Premiação', 'O que está em jogo', corpo));
+  }
+
+  // 10. ESTRATÉGIA
+  const e = d.estrategia || {};
+  if(e.fortes || e.criticos || e.objecoes){
+    S.push(plSl('Estratégia', 'Onde ganhamos e onde temos risco',
+      '<div class="sl-cols">' +
+        '<div class="sl-box" style="border-left:3px solid #22c55e;"><h3 style="color:#4ade80;margin-top:0;">✔ Pontos fortes</h3>' + plLinhas(e.fortes) + '</div>' +
+        '<div class="sl-box" style="border-left:3px solid #f59e0b;"><h3 style="color:#fbbf24;margin-top:0;">⚠ Pontos críticos</h3>' + plLinhas(e.criticos) + '</div>' +
+      '</div>' +
+      (e.objecoes ? '<div class="sl-box" style="border-left:3px solid #dc2626;margin-top:16px;"><h3 style="color:#f87171;margin-top:0;">💬 Objeções e respostas</h3>' + plLinhas(e.objecoes) + '</div>' : '')));
+  }
+
+  // 11. METAS
+  const m = d.metas || {};
+  if(m.inscritos || m.faturamento || m.patrocinio){
+    const proj = (Number(m.inscritos)||0) * (Number(m.ticket)||0);
+    const kpis = [];
+    if(m.inscritos)   kpis.push('<div class="sl-kpi"><div class="v">' + fmt(Number(m.inscritos)) + '</div><div class="l">Inscritos</div></div>');
+    if(m.ticket)      kpis.push('<div class="sl-kpi"><div class="v">' + brl(m.ticket) + '</div><div class="l">Ticket médio</div></div>');
+    if(proj)          kpis.push('<div class="sl-kpi"><div class="v">' + brl(proj) + '</div><div class="l">Receita de inscrições</div></div>');
+    if(m.patrocinio)  kpis.push('<div class="sl-kpi"><div class="v">' + brl(m.patrocinio) + '</div><div class="l">Patrocínio</div></div>');
+    if(m.faturamento) kpis.push('<div class="sl-kpi"><div class="v">' + brl(m.faturamento) + '</div><div class="l">Faturamento total</div></div>');
+    S.push(plSl('Metas', 'Nossos números',
+      '<div class="sl-cols">' + kpis.join('') + '</div>' +
+      (m.obs ? '<h3>Como chegamos lá</h3>' + plLinhas(m.obs) : '')));
+  }
+
+  // 12. COTAS
+  if((d.cotas||[]).length){
+    const linhas = d.cotas.map(c=>{
+      const vagas = Number(c.vagas)||0, valor = Number(c.valor)||0, vend = Number(c.vendidas)||0;
+      const rest = Math.max(0, vagas - vend);
+      return '<tr><td><b style="color:var(--orange);font-size:17px;">' + plEsc(c.nome||'—') + '</b></td>' +
+        '<td>' + fmt(vagas) + '</td>' +
+        '<td>' + brl(valor) + '</td>' +
+        '<td><b>' + brl(vagas*valor) + '</b></td>' +
+        '<td>' + (rest ? '<span style="color:#fbbf24;">' + fmt(rest) + ' a buscar</span>' : '<span style="color:#4ade80;">completa</span>') + '</td></tr>' +
+        (c.beneficios ? '<tr><td colspan="5" style="padding-top:0;font-size:14px;opacity:.7;border-bottom:1px solid rgba(255,255,255,.07);">' + plEsc(c.beneficios) + '</td></tr>' : '');
+    }).join('');
+    const total = d.cotas.reduce((a,c)=>a + (Number(c.vagas)||0)*(Number(c.valor)||0), 0);
+    const fech = d.cotas.reduce((a,c)=>a + (Number(c.vendidas)||0)*(Number(c.valor)||0), 0);
+    S.push(plSl('Patrocínio', 'Cotas para prospectar',
+      '<div class="sl-cols" style="margin-bottom:22px;">' +
+        '<div class="sl-kpi"><div class="v">' + brl(total) + '</div><div class="l">Potencial total</div></div>' +
+        '<div class="sl-kpi" style="background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.3);"><div class="v" style="color:#4ade80;">' + brl(fech) + '</div><div class="l">Já fechado</div></div>' +
+        '<div class="sl-kpi" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.3);"><div class="v" style="color:#fbbf24;">' + brl(total-fech) + '</div><div class="l">A buscar</div></div>' +
+      '</div>' +
+      '<table class="sl-tb"><thead><tr><th>Cota</th><th>Vagas</th><th>Valor unitário</th><th>Total da cota</th><th>Situação</th></tr></thead><tbody>' + linhas + '</tbody></table>'));
+  }
+
+  // 13. FECHAMENTO
+  S.push(plSl('Kickoff', 'Combinados da reunião',
+    '<div class="sl-box"><p style="opacity:.6;">Use este espaço na reunião para anotar as decisões: quem faz o quê e até quando.</p></div>' +
+    '<div class="sl-cols" style="margin-top:16px;">' +
+      '<div class="sl-box"><h3 style="margin-top:0;">Próximos passos</h3><p style="opacity:.5;">— a definir na reunião —</p></div>' +
+      '<div class="sl-box"><h3 style="margin-top:0;">Pendências</h3><p style="opacity:.5;">— a definir na reunião —</p></div>' +
+    '</div>'));
+
+  return S;
+}
+
+function plApresentar(){
+  if(!plAtual){ return; }
+  const cont = document.getElementById('pl-slides');
+  if(!cont) return;
+  const slides = plMontarSlides();
+  cont.innerHTML =
+    '<div class="sl-topo">' +
+      '<b style="color:#fff;font-size:15px;">' + plEsc(plAtual.nome || 'Plano') + '</b>' +
+      '<span id="sl-nome-etapa"></span>' +
+      '<div style="margin-left:auto;display:flex;gap:8px;">' +
+        '<button onclick="plImprimir()">🖨 Imprimir / PDF</button>' +
+        '<button onclick="plFecharSlides()">✕ Sair (Esc)</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sl-palco" id="sl-palco">' + slides.join('') + '</div>' +
+    '<div class="sl-nav">' +
+      '<button onclick="plSlide(-1)" id="sl-ant">← Anterior</button>' +
+      '<span class="cont" id="sl-cont"></span>' +
+      '<button onclick="plSlide(1)" id="sl-prox">Próximo →</button>' +
+    '</div>';
+  cont.classList.add('on');
+  document.body.style.overflow = 'hidden';
+  plSlideAtual = 0;
+  plMostrarSlide();
+  document.addEventListener('keydown', plTeclaSlide);
+}
+function plFecharSlides(){
+  const cont = document.getElementById('pl-slides');
+  if(cont) cont.classList.remove('on');
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', plTeclaSlide);
+}
+function plTeclaSlide(ev){
+  if(ev.key === 'Escape') plFecharSlides();
+  else if(ev.key === 'ArrowRight' || ev.key === 'PageDown' || ev.key === ' ') { ev.preventDefault(); plSlide(1); }
+  else if(ev.key === 'ArrowLeft' || ev.key === 'PageUp') { ev.preventDefault(); plSlide(-1); }
+}
+function plSlide(dir){
+  const total = document.querySelectorAll('#sl-palco .sl-slide').length;
+  const novo = plSlideAtual + dir;
+  if(novo < 0 || novo >= total) return;
+  plSlideAtual = novo;
+  plMostrarSlide();
+}
+function plMostrarSlide(){
+  const slides = document.querySelectorAll('#sl-palco .sl-slide');
+  slides.forEach((s,i)=>s.classList.toggle('on', i === plSlideAtual));
+  const c = document.getElementById('sl-cont');
+  if(c) c.textContent = (plSlideAtual+1) + ' / ' + slides.length;
+  const a = document.getElementById('sl-ant');
+  const p = document.getElementById('sl-prox');
+  if(a) a.disabled = plSlideAtual === 0;
+  if(p) p.disabled = plSlideAtual === slides.length - 1;
+  const et = document.getElementById('sl-nome-etapa');
+  const tag = slides[plSlideAtual] && slides[plSlideAtual].querySelector('.sl-tag');
+  if(et) et.textContent = tag ? '· ' + tag.textContent : '';
+  const palco = document.getElementById('sl-palco');
+  if(palco) palco.scrollTop = 0;
+}
+function plImprimir(){
+  const cont = document.getElementById('pl-slides');
+  if(!cont || !cont.classList.contains('on')) plApresentar();
+  setTimeout(()=>window.print(), 250);
+}
+
 /* ── DISPARO EM MASSA DE WHATSAPP ── */
+
 let dispAtivo = false;
 let dispSel = new Set();
 
