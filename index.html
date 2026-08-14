@@ -1261,6 +1261,8 @@
 
       </div><!-- /dados-wrap -->
 
+      <!-- bloco da camiseta: escondido automaticamente em evento SEM KIT -->
+      <div id="bloco-camisa">
       <div class="form-section-title">Tamanho da camiseta</div>
       <div class="form-row">
         <div class="form-group">
@@ -1275,6 +1277,7 @@
           </select>
         </div>
       </div>
+      </div><!-- /bloco-camisa -->
       </div><!-- /etapa 4 -->
 
       <!-- ETAPA 5: PAGAMENTO -->
@@ -1385,6 +1388,26 @@ let currentCupomPct = 0;
 let currentTaxa = 0;
 let cart = [];
 const TOTAL_STEPS = 5;
+
+// ── EVENTO SEM KIT ──
+// Regra: se o evento tiver UM ÚNICO kit com valor R$ 0,00, o site entende que o evento
+// não entrega kit de atleta. Nesse caso a etapa 1 (Kit) é pulada, a bolinha "Kit" some
+// do topo e o campo "Tamanho da camiseta" deixa de aparecer / de ser obrigatório.
+let eventoSemKit = false;
+
+// primeira etapa visível do wizard (2 = Modalidade quando o evento não tem kit)
+function primeiraEtapa() { return eventoSemKit ? 2 : 1; }
+
+// aplica/remove o modo "sem kit" na interface
+function aplicarModoSemKit() {
+  const camisa = document.getElementById('bloco-camisa');
+  if (camisa) camisa.style.display = eventoSemKit ? 'none' : '';
+  const selCamisa = document.getElementById('f-camisa');
+  if (eventoSemKit && selCamisa) selCamisa.value = '';
+  ajustarStepProdutos(); // esconde/renumera as bolinhas das etapas
+  // se o modal já estava na etapa do kit quando os dados chegaram, avança sozinho
+  if (eventoSemKit && currentStep === 1) showStep(2);
+}
 
 // ── Produtos adicionais (etapa 3) ──
 let produtosEvento = [];    // catálogo do evento (produtos_evento_publicos)
@@ -1497,8 +1520,11 @@ function prodTotalDe(it) {
   return (it.produtos || []).reduce((s, p) => s + Number(p.preco || 0) * (p.qtd || 1), 0);
 }
 
-// esconde o dot da etapa 3 quando o evento não tem produtos e renumera os visíveis
+// esconde o dot da etapa 3 quando o evento não tem produtos (e o da etapa 1 quando o
+// evento não tem kit) e renumera os visíveis
 function ajustarStepProdutos() {
+  const dotKit = document.querySelector('.step-dot[data-step="1"]');
+  if (dotKit) dotKit.style.display = eventoSemKit ? 'none' : '';
   const dot = document.getElementById('step-dot-produtos');
   const tem = produtosEvento.length > 0;
   if (dot) dot.style.display = tem ? '' : 'none';
@@ -1511,6 +1537,7 @@ function ajustarStepProdutos() {
 }
 
 function openModal(eventoId, title, info) {
+  eventoSemKit = false; // zera o modo "sem kit" do evento anterior; loadKitsEvento redefine
   currentEventoId = eventoId || "";
   currentEvento = title;
   document.getElementById('modal-title').textContent = title;
@@ -1538,6 +1565,9 @@ async function loadKitsEvento(eventoId) {
     const data = await res.json();
     const lote = data && data.lote;
     const kits = data && Array.isArray(data.kits) ? data.kits : [];
+
+    // ── EVENTO SEM KIT: um único kit sem valor (R$ 0,00) ──
+    eventoSemKit = (kits.length === 1 && Number(kits[0].preco || 0) === 0);
 
     // badge do lote
     const badge = document.getElementById('lote-badge');
@@ -1593,12 +1623,17 @@ async function loadKitsEvento(eventoId) {
       atualizarResumo();
     }
 
+    // aplica (ou remove) o modo "sem kit" na interface
+    aplicarModoSemKit();
+
     // ── carrega modalidades do evento (campo distancias) ──
     const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
     renderModalidades(ev ? ev.distancias : null);
 
   } catch (e) {
     // fallback silencioso: mantém kits hardcoded e carrega modalidades do evento em cache
+    eventoSemKit = false;
+    aplicarModoSemKit();
     const ev = (window._eventos || []).find(e => String(e.id) === String(eventoId));
     renderModalidades(ev ? ev.distancias : null);
   }
@@ -1705,7 +1740,7 @@ function resetRegistro() {
   const br = document.getElementById('busca-resultado'); if (br) { br.textContent = ''; br.className = 'busca-resultado'; }
 
   atualizarResumo();
-  showStep(1);
+  showStep(primeiraEtapa());
 }
 
 // snapshot da inscrição atual (vira um item do carrinho)
@@ -1719,7 +1754,8 @@ function snapshotAtual() {
     valorBase: Number(currentPrice),
     produtos: Object.values(currentProdutos).filter(p => p.qtd > 0).map(p => ({ id: p.id, nome: p.nome, preco: Number(p.preco), qtd: p.qtd })),
     modalidade: currentModalidade,
-    camisa: val('f-camisa'),
+    semKit: eventoSemKit,
+    camisa: eventoSemKit ? '' : val('f-camisa'),
     ref: currentRef,
     cpf: currentCpf,
     idoso: (!currentRef) && (idadeDe(val('f-nasc')) !== null && idadeDe(val('f-nasc')) >= 60),
@@ -1741,7 +1777,7 @@ function snapshotAtual() {
 function adicionarOutroAtleta() {
   cart.push(snapshotAtual());
   resetRegistro();
-  showStep(1); // volta ao kit para o novo atleta
+  showStep(primeiraEtapa()); // volta ao kit (ou à modalidade, se o evento não tem kit)
 }
 
 // Cancela o atleta atual em edição e volta ao pagamento (carrinho preservado)
@@ -1820,7 +1856,7 @@ function showStep(n) {
   const naEtapaFinal = (n === TOTAL_STEPS);
   const adicionandoMaisUm = cart.length > 0 && !naEtapaFinal;
 
-  if (back)     back.style.visibility = (n === 1) ? 'hidden' : 'visible';
+  if (back)     back.style.visibility = (n <= primeiraEtapa()) ? 'hidden' : 'visible';
   if (next)     next.style.display    = naEtapaFinal ? 'none' : 'block';
   // botão Retornar: visível só quando está adicionando atleta extra (etapas 1-3)
   if (retornar) retornar.style.display = adicionandoMaisUm ? 'block' : 'none';
@@ -1832,9 +1868,11 @@ function showStep(n) {
   if (naEtapaFinal) atualizarResumo();
 }
 function prevStep() {
-  if (currentStep <= 1) return;
+  const min = primeiraEtapa();
+  if (currentStep <= min) return;
   let alvo = currentStep - 1;
   if (alvo === 3 && !produtosEvento.length) alvo = 2; // pula Adicionais se evento não tem produtos
+  if (alvo < min) alvo = min;                          // pula Kit se evento não tem kit
   showStep(alvo);
 }
 function nextStep() {
@@ -1896,7 +1934,7 @@ function atualizarResumo() {
       // cabeçalho: nome + kit/modalidade/camisa
       const t = document.createElement('div'); t.className = 'atleta-titulo'; t.textContent = it.rotulo;
       const sub = document.createElement('div'); sub.className = 'atleta-sub';
-      sub.textContent = it.kit + ' · ' + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '');
+      sub.textContent = (it.semKit ? '' : (it.kit + ' · ')) + it.modalidade + (it.camisa ? (' · ' + it.camisa) : '');
       info.appendChild(t); info.appendChild(sub);
 
       // valores por atleta
@@ -2303,9 +2341,11 @@ function validarDados() {
     setTimeout(() => el && (el.style.borderColor = ''), 2000);
     alert('Por favor, preencha todos os campos obrigatórios (*)');
   };
-  // A camiseta é sempre obrigatória (escolhida a cada inscrição)
-  const cam = document.getElementById('f-camisa');
-  if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
+  // A camiseta é obrigatória — exceto em evento SEM KIT (não há camiseta para escolher)
+  if (!eventoSemKit) {
+    const cam = document.getElementById('f-camisa');
+    if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
+  }
   // 1 CPF por evento
   if (_cpfDuplicado) {
     alert('Este CPF já possui inscrição neste evento. Cada atleta pode se inscrever uma única vez.');
