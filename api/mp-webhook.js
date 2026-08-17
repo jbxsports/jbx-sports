@@ -10,12 +10,24 @@ const ZAPI_TOKEN        = 'CD007B54BA8BD1111B802279';
 const ZAPI_CLIENT_TOKEN = 'Fbe7af069c70a4f1281ad63eee20c5cbeS';
 const ZAPI_URL          = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
 
+// ══════════════════════════════════════════════════════════════
+// CHAVE GERAL DO WHATSAPP
+// Desligado por padrão. Só liga se a variável de ambiente
+// WHATSAPP_ATIVO estiver escrita EXATAMENTE como "true" na Vercel.
+// Variável ausente, vazia ou com qualquer outro valor = DESLIGADO.
+// ══════════════════════════════════════════════════════════════
+const WHATSAPP_ATIVO = process.env.WHATSAPP_ATIVO === 'true';
+
 const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SITE_URL       = process.env.SITE_URL || 'https://jbxsports.com.br';
 
 // ── WhatsApp ──
 async function enviarWhatsApp(telefone, mensagem) {
+  if (!WHATSAPP_ATIVO) {
+    console.log('[mp-webhook] WhatsApp DESLIGADO (WHATSAPP_ATIVO != true) — nada enviado.');
+    return;
+  }
   try {
     let digits = telefone.replace(/[^0-9]/g, '');
     if (digits.startsWith('55') && digits.length > 11) digits = digits.slice(2);

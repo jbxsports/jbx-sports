@@ -21,7 +21,17 @@ async function getRawBody(req) {
   });
 }
 
+// ══════════════════════════════════════════════════════════════
+// CHAVE GERAL DO WHATSAPP — mesma lógica do api/mp-webhook.js.
+// Desligado por padrão. Só liga com WHATSAPP_ATIVO === "true".
+// ══════════════════════════════════════════════════════════════
+const WHATSAPP_ATIVO = process.env.WHATSAPP_ATIVO === 'true';
+
 async function enviarWhatsApp(telefone, mensagem) {
+  if (!WHATSAPP_ATIVO) {
+    console.log('[stripe-webhook] WhatsApp DESLIGADO (WHATSAPP_ATIVO != true) — nada enviado.');
+    return;
+  }
   try {
     let digits = telefone.replace(/\D/g, '');
     // Remove o 55 se já tiver, para normalizar
