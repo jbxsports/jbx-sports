@@ -108,7 +108,17 @@ const ZAPI_TOKEN        = 'CD007B54BA8BD1111B802279';
 const ZAPI_CLIENT_TOKEN = 'Fbe7af069c70a4f1281ad63eee20c5cbeS';
 const ZAPI_URL          = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
 
+// ══════════════════════════════════════════════════════════════
+// CHAVE GERAL DO WHATSAPP — mesma lógica do api/mp-webhook.js.
+// Desligado por padrão. Só liga com WHATSAPP_ATIVO === "true".
+// ══════════════════════════════════════════════════════════════
+const WHATSAPP_ATIVO = process.env.WHATSAPP_ATIVO === 'true';
+
 async function enviarWhatsApp(telefone, mensagem) {
+  if (!WHATSAPP_ATIVO) {
+    console.log('[checkout] WhatsApp DESLIGADO (WHATSAPP_ATIVO != true) — nada enviado.');
+    return;
+  }
   try {
     let digits = String(telefone || '').replace(/[^0-9]/g, '');
     if (!digits) return;
