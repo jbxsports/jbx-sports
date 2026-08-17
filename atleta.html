@@ -1419,13 +1419,12 @@ function gerarQR(id) {
   const pedido = params.get('pedido');
   if (pedido) {
     try {
-      // Busca o CPF da inscrição pelo pedido_id
-      const r = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido_id=eq.${pedido}&select=cpf&limit=1`, {
-        headers: { 'apikey': SB_KEY }
-      });
-      const data = await r.json();
-      if (data && data.length > 0 && data[0].cpf) {
-        const cpf = data[0].cpf;
+      // Busca o CPF da inscrição pelo pedido_id.
+      // Via RPC: a leitura direta da tabela foi revogada da chave anônima
+      // em 17/08/2026 (vazamento de dados). A RPC devolve só o CPF.
+      const cpfPedido = await rpc('inscricao_cpf_por_pedido', { p_pedido: pedido });
+      if (cpfPedido) {
+        const cpf = String(cpfPedido);
         // Verifica se já tem conta
         const check = await rpc('verificar_primeiro_acesso', { p_cpf: cpf });
         // Formata CPF para exibição
