@@ -317,6 +317,25 @@ async function validarPedidoGratuito(itens) {
   return null;
 }
 
+// Apaga as inscrições de um pedido que não chegou ao fim.
+// Sem isto, qualquer falha depois da gravação deixa linha órfã em 'pendente'.
+async function deletarInscricoesPedido(pedido) {
+  if (!pedido) return;
+  try {
+    const res = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido_id=eq.${pedido}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+        'Content-Type':  'application/json'
+      }
+    });
+    console.log('[checkout] limpeza do pedido', pedido, '| status:', res.status);
+  } catch (e) {
+    console.error('[checkout] erro ao limpar pedido:', e.message);
+  }
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -324,7 +343,6 @@ module.exports = async (req, res) => {
 
   const { itens, pedido, cupom, forma_pagamento, evento_nome } = req.body;
 
-  // LOG TEMPORÁRIO — remover após diagnóstico
   const token = process.env.MP_ACCESS_TOKEN || '';
   console.log('[checkout] TOKEN prefixo:', token.slice(0, 15), '| tamanho:', token.length);
 
@@ -339,27 +357,35 @@ module.exports = async (req, res) => {
     return res.status(409).json({ error: erroCpf });
   }
 
+  // Total calculado a partir dos itens, ANTES de gravar qualquer coisa.
+  const totalPedido = itens.reduce((acc, it) => acc + Number(it.valor || 0), 0);
+  const ehGratuito  = totalPedido <= 0.005;
+
+  // ── VALIDAÇÃO DO PEDIDO GRATUITO — AGORA ANTES DA GRAVAÇÃO ──
+  // Antes esta conferência rodava depois de gravar. Quando ela recusava
+  // (kit fora do lote vigente, kit oculto, preço mudou), a inscrição já
+  // estava no banco e ficava presa em 'pendente' para sempre.
+  if (ehGratuito) {
+    const erroGratuito = await validarPedidoGratuito(itens);
+    if (erroGratuito) {
+      console.warn('[checkout] gratuito recusado (nada gravado):', erroGratuito);
+      return res.status(400).json({ error: erroGratuito });
+    }
+  }
+
   // Cria inscrições no Supabase
   const resultados = await criarInscricoes(itens, pedido, cupom, forma_pagamento, evento_nome);
   const erros = resultados.filter(r => !r.ok);
   if (erros.length) {
+    // Um item falhou: apaga os que já entraram, para não sobrar meio pedido.
+    await deletarInscricoesPedido(pedido);
     return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
   }
 
   const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
 
   // ── INSCRIÇÃO GRATUITA (total R$ 0,00) ──
-  // O Mercado Pago não aceita preferência com valor zero. Neste caso confirmamos
-  // o pedido direto pela RPC confirmar_pagamento (mesma usada pelo webhook).
   if (totalCents <= 0) {
-    // Conferência autoritativa do preço: confere o kit escolhido contra o preço
-    // publicado pela RPC kits_evento_publicos. Impede forjar valor 0 num evento pago.
-    const erroGratuito = await validarPedidoGratuito(itens);
-    if (erroGratuito) {
-      console.warn('[checkout] gratuito recusado:', erroGratuito);
-      return res.status(400).json({ error: erroGratuito });
-    }
-
     try {
       const rc = await fetch(`${SB_URL}/rest/v1/rpc/confirmar_pagamento`, {
         method: 'POST',
@@ -375,10 +401,13 @@ module.exports = async (req, res) => {
       if (!rc.ok) {
         let msg = tc;
         try { msg = JSON.parse(tc).message || JSON.parse(tc).error || tc; } catch (e) {}
+        // Não conseguiu confirmar: apaga em vez de deixar 'pendente' órfã.
+        await deletarInscricoesPedido(pedido);
         return res.status(400).json({ error: msg || 'Erro ao confirmar inscrição gratuita.' });
       }
     } catch (e) {
       console.error('[checkout] gratuito — erro confirmar_pagamento:', e.message);
+      await deletarInscricoesPedido(pedido);
       return res.status(500).json({ error: e.message });
     }
 
@@ -447,10 +476,9 @@ module.exports = async (req, res) => {
           itens:       JSON.stringify(metadataItens),
         },
         payment_methods: {
-          // PIX + Cartão de crédito
           excluded_payment_types: [
-            { id: 'ticket' },      // boleto
-            { id: 'debit_card' },  // débito
+            { id: 'ticket' },
+            { id: 'debit_card' },
           ],
         },
         back_urls: {
@@ -469,6 +497,9 @@ module.exports = async (req, res) => {
 
   } catch(e) {
     console.error('[checkout] Mercado Pago error:', e.message);
+    // A preferência não foi criada: o atleta nunca vai ver tela de pagamento.
+    // Apaga as inscrições para não sobrar 'pendente' que ninguém consegue pagar.
+    await deletarInscricoesPedido(pedido);
     return res.status(500).json({ error: e.message });
   }
 };
