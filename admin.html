@@ -1157,7 +1157,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         </div>
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Lote</th><th>Modalidade</th><th>Camiseta</th><th>Valor</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
+            <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Lote</th><th>Modalidade</th><th>Camiseta</th><th>Inscrição</th><th>Taxa</th><th>Total</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
             <tbody id="inscritos-tbody"></tbody>
           </table>
         </div>
@@ -2542,13 +2542,15 @@ function renderInscritos(arr){
   document.getElementById('inscritos-count').textContent =
     ativos.length + ' inscritos' + (canceladas.length ? ' · ' + canceladas.length + ' cancelada(s)' : '');
   const tb=document.getElementById('inscritos-tbody');
-  if(!arr.length){tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
+  if(!arr.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
     <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
     <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
     <td>${i.kit||'—'}</td>
     <td style="font-size:12px;color:var(--orange);">${i.lote_nome||'—'}</td>
     <td>${i.modalidade||'—'}</td><td>${i.tamanho_camisa||'—'}</td>
+    <td style="font-size:12px;">${brl(i.valor_base)}</td>
+    <td style="font-size:12px;color:var(--muted);">${Number(i.valor_taxa||0) > 0 ? brl(i.valor_taxa) : '—'}</td>
     <td style="color:var(--orange);font-weight:700;">${brl(i.valor)}</td>
     <td><span class="status-pill status-${i.status||'pendente'}">${i.status||'pendente'}</span></td>
     <td style="font-size:12px;color:var(--muted);">${fmtData(i.criado_em)}</td>
