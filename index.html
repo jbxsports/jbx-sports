@@ -1395,15 +1395,27 @@ const TOTAL_STEPS = 5;
 // do topo e o campo "Tamanho da camiseta" deixa de aparecer / de ser obrigatório.
 let eventoSemKit = false;
 
+// ── KIT SEM CAMISETA ──
+// Cada kit tem o flag tem_camiseta. Quando o kit escolhido não inclui camiseta,
+// o bloco "Tamanho da camiseta" some e deixa de ser obrigatório.
+let kitTemCamiseta = true;
+
 // primeira etapa visível do wizard (2 = Modalidade quando o evento não tem kit)
 function primeiraEtapa() { return eventoSemKit ? 2 : 1; }
 
 // aplica/remove o modo "sem kit" na interface
-function aplicarModoSemKit() {
+function precisaCamiseta() { return !eventoSemKit && kitTemCamiseta; }
+
+// mostra/esconde o bloco da camiseta conforme o evento e o kit escolhido
+function aplicarVisibilidadeCamisa() {
   const camisa = document.getElementById('bloco-camisa');
-  if (camisa) camisa.style.display = eventoSemKit ? 'none' : '';
+  if (camisa) camisa.style.display = precisaCamiseta() ? '' : 'none';
   const selCamisa = document.getElementById('f-camisa');
-  if (eventoSemKit && selCamisa) selCamisa.value = '';
+  if (!precisaCamiseta() && selCamisa) selCamisa.value = '';
+}
+
+function aplicarModoSemKit() {
+  aplicarVisibilidadeCamisa();
   ajustarStepProdutos(); // esconde/renumera as bolinhas das etapas
   // se o modal já estava na etapa do kit quando os dados chegaram, avança sozinho
   if (eventoSemKit && currentStep === 1) showStep(2);
@@ -1597,7 +1609,7 @@ async function loadKitsEvento(eventoId) {
         const preco = Number(k.preco || 0);
         const precoFmt = preco > 0 ? ('R$ ' + preco.toFixed(2).replace('.', ',')) : 'Grátis';
         return `<div class="kit-option${i === 0 && !esgotado ? ' selected' : ''}${esgotado ? ' disabled' : ''}"
-          onclick="${esgotado ? '' : `selectKit(this,${preco},'${k.nome.replace(/'/g,"\\'")}','${k.id}','${k.lote_id||''}','${(k.lote_nome||'').replace(/'/g,"\\'")}' )`}"
+          onclick="${esgotado ? '' : `selectKit(this,${preco},'${k.nome.replace(/'/g,"\\'")}','${k.id}','${k.lote_id||''}','${(k.lote_nome||'').replace(/'/g,"\\'")}',${k.tem_camiseta === false ? 'false' : 'true'})`}"
           style="position:relative;${esgotado ? 'opacity:.6;cursor:not-allowed;' : 'cursor:pointer;'}">
           ${esgotado ? `<div style="position:absolute;top:10px;right:10px;background:#ff4444;color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;z-index:1;">ESGOTADO</div>` : ''}
           <div class="kit-img">
@@ -1619,6 +1631,7 @@ async function loadKitsEvento(eventoId) {
         currentKitId = primeiro.id;
         currentLoteId = primeiro.lote_id || '';
         currentLoteNome = primeiro.lote_nome || '';
+        kitTemCamiseta = (primeiro.tem_camiseta !== false);
       }
       atualizarResumo();
     }
@@ -1755,7 +1768,7 @@ function snapshotAtual() {
     produtos: Object.values(currentProdutos).filter(p => p.qtd > 0).map(p => ({ id: p.id, nome: p.nome, preco: Number(p.preco), qtd: p.qtd })),
     modalidade: currentModalidade,
     semKit: eventoSemKit,
-    camisa: eventoSemKit ? '' : val('f-camisa'),
+    camisa: precisaCamiseta() ? val('f-camisa') : '',
     ref: currentRef,
     cpf: currentCpf,
     idoso: (!currentRef) && (idadeDe(val('f-nasc')) !== null && idadeDe(val('f-nasc')) >= 60),
@@ -2075,7 +2088,7 @@ function imgKitFallback(img) {
 }
 
 // Kit selection (o PREÇO vem daqui)
-function selectKit(el, price, nome, kitId, loteId, loteNome) {
+function selectKit(el, price, nome, kitId, loteId, loteNome, temCamiseta) {
   document.querySelectorAll('.kit-option').forEach(k => k.classList.remove('selected'));
   el.classList.add('selected');
   currentPrice = price;
@@ -2083,6 +2096,8 @@ function selectKit(el, price, nome, kitId, loteId, loteNome) {
   currentKitId = kitId || '';
   currentLoteId = loteId || currentLoteId;
   currentLoteNome = loteNome || currentLoteNome;
+  kitTemCamiseta = (temCamiseta !== false);
+  aplicarVisibilidadeCamisa();
   atualizarResumo();
 }
 
@@ -2342,7 +2357,7 @@ function validarDados() {
     alert('Por favor, preencha todos os campos obrigatórios (*)');
   };
   // A camiseta é obrigatória — exceto em evento SEM KIT (não há camiseta para escolher)
-  if (!eventoSemKit) {
+  if (precisaCamiseta()) {
     const cam = document.getElementById('f-camisa');
     if (!cam || !cam.value.trim()) { marcarErro(cam); return false; }
   }
