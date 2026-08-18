@@ -1715,6 +1715,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="form-g"><label>Estado</label><input id="d-estado" maxlength="2" style="text-transform:uppercase"></div>
       <div class="form-g"><label>Status</label>
         <select id="d-status"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="cancelada">Cancelada</option></select></div>
+      <div class="form-g"><label>Valor (R$)</label>
+        <input id="d-valor" type="number" step="0.01" min="0" placeholder="0.00">
+        <small style="font-size:11px;color:var(--muted);">Entra no faturamento apenas quando o status for Pago.</small></div>
     </div>
     <div class="drawer-foot">
       <button class="btn-primary-sm" onclick="salvarEdicao()">Salvar</button>
@@ -4353,6 +4356,7 @@ function editarInscrito(i){
   set('d-nome',i.nome);set('d-email',i.email);set('d-tel',i.telefone);set('d-genero',i.genero);
   set('d-kit',i.kit);set('d-modalidade',i.modalidade);set('d-camisa',i.tamanho_camisa);
   set('d-cidade',i.cidade);set('d-estado',i.estado);set('d-status',i.status||'pendente');
+  set('d-valor', (i.valor===null||i.valor===undefined) ? '' : Number(i.valor).toFixed(2));
   document.getElementById('drawer-feedback').textContent='';
   document.getElementById('drawer-overlay').classList.add('open');
 }
@@ -4360,6 +4364,8 @@ function closeDrawer(){document.getElementById('drawer-overlay').classList.remov
 async function salvarEdicao(){
   const get=id=>document.getElementById(id)?.value||'';
   const dados={nome:get('d-nome'),email:get('d-email'),telefone:get('d-tel'),genero:get('d-genero'),kit:get('d-kit'),modalidade:get('d-modalidade'),tamanho_camisa:get('d-camisa'),cidade:get('d-cidade'),estado:get('d-estado').toUpperCase(),status:get('d-status')};
+  const vTxt=get('d-valor').trim();
+  if(vTxt!=='') dados.valor=Number(String(vTxt).replace(',','.'));
   const fb=document.getElementById('drawer-feedback');fb.style.color='var(--muted)';fb.textContent='Salvando…';
   try{
     await rpc('admin_update_inscricao',{p_id:editingId,dados});
