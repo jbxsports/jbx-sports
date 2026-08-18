@@ -2393,7 +2393,10 @@ function montarDadosItem(it, pedido) {
     valor_inscricao: it.valorBase, // base da inscrição sem adicionais (fallback do servidor quando não há kit_id/lote_id)
     produtos: (it.produtos || []).map(p => ({ id: p.id, qtd: p.qtd })), // servidor busca preço autoritativo
     tamanho_camisa: it.camisa,
-    forma_pagamento: currentPagamento
+    forma_pagamento: currentPagamento,
+    // taxa de serviço do evento (%). Sem isto o banco grava valor_taxa = 0
+    // e a inscrição fica registrada por menos do que o atleta pagou.
+    taxa_pct: currentTaxa || 0
   };
   if (!it.ref && it.dados) Object.assign(d, it.dados);
   return d;
