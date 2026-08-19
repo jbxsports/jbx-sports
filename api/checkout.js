@@ -63,6 +63,10 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
         emergencia_telefone: item.emergencia_telefone || '',
         valor:               item.valor               || 0,
         valor_inscricao:     item.valor_inscricao     || '',
+        // Taxa de serviço do evento (%). O index.html já envia este campo, mas ele
+        // não constava nesta lista e era descartado aqui — por isso o banco gravava
+        // valor_taxa = 0 e a coluna TAXA do painel ficava vazia em toda inscrição.
+        taxa_pct:            Number(item.taxa_pct)    || 0,
         produtos:            Array.isArray(item.produtos) ? item.produtos : [],
       };
 
