@@ -686,6 +686,36 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-baixar-todas{width:100%;margin-bottom:10px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 14px;cursor:pointer;}
 .mkt-baixar-todas:hover{background:var(--orange-dark);}
 
+/* ══ HISTÓRICO DO ATLETA ══ */
+.hist-overlay{display:none;position:fixed;inset:0;z-index:400;background:rgba(30,26,22,.55);backdrop-filter:blur(3px);padding:24px;overflow-y:auto;}
+.hist-overlay.active{display:block;}
+.hist-box{background:var(--card);border-radius:14px;max-width:860px;margin:0 auto;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.28);}
+.hist-head{background:#17140f;color:#fff;padding:22px 28px;position:relative;}
+.hist-head h3{font-size:21px;font-weight:700;margin:0 0 3px;color:#fff;}
+.hist-head .sub{font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.7;}
+.hist-head .sub b{color:rgba(255,255,255,.85);font-weight:600;}
+.hist-fechar{position:absolute;top:16px;right:18px;background:rgba(255,255,255,.12);border:none;color:#fff;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:15px;line-height:1;}
+.hist-fechar:hover{background:rgba(255,255,255,.25);}
+.hist-wpp{display:inline-block;margin-top:10px;background:#25d366;color:#fff;text-decoration:none;font-size:12px;font-weight:700;padding:6px 14px;border-radius:7px;}
+.hist-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:1px;background:var(--border);}
+.hist-tile{background:var(--card);padding:14px 16px;}
+.hist-tile .l{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.hist-tile .v{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;}
+.hist-tile .v.orange{color:var(--orange);}
+.hist-tile .v.small{font-size:13px;font-weight:600;}
+.hist-lista{padding:18px 24px 24px;}
+.hist-lista h4{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;}
+.hist-item{border:1px solid var(--border);border-left:3px solid var(--orange);border-radius:10px;padding:13px 16px;margin-bottom:9px;}
+.hist-item.cancel{border-left-color:#dc2626;opacity:.62;}
+.hist-item.pend{border-left-color:#d97706;}
+.hist-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+.hist-item-ev{font-size:14.5px;font-weight:700;line-height:1.35;}
+.hist-item-val{font-size:14.5px;font-weight:700;color:var(--orange);white-space:nowrap;}
+.hist-item-meta{font-size:12px;color:var(--muted);line-height:1.75;margin-top:5px;}
+.hist-vazio{text-align:center;padding:34px;color:var(--muted);font-size:13.5px;}
+.hist-nome-link{color:inherit;font-weight:600;cursor:pointer;border-bottom:1px dotted rgba(255,117,31,.55);}
+.hist-nome-link:hover{color:var(--orange);border-bottom-color:var(--orange);}
+
 /* ── PROJEÇÃO DE FEED (INSTAGRAM) ── */
 .mkt-feed-btns{display:flex;gap:6px;align-items:center;margin-right:10px;}
 .mkt-feed-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:20px;padding:5px 12px 5px 6px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -2564,6 +2594,147 @@ function renderCharts(d){const s=a=>a||[];
   mkChart('chart-cidade','bar',s(d.por_cidade).map(x=>x.label),s(d.por_cidade).map(x=>x.count),{opts:{indexAxis:'y'}});
   mkChart('chart-diario','bar',s(d.diario_15dias).map(x=>x.dia),s(d.diario_15dias).map(x=>x.count));
 }
+
+/* ══════════════════════════════════════════════════════════════
+   HISTÓRICO DO ATLETA
+   Abre ao clicar no nome, tanto na lista de inscritos de um evento
+   quanto na aba Inscritos (todos os eventos). Mostra a vida inteira
+   da pessoa: todas as inscrições, em todos os eventos.
+
+   Fonte dos dados: admin_inscritos_geral (RPC que a aba Inscritos já
+   usa). Nenhuma RPC nova — filtra por CPF aqui mesmo.
+   ══════════════════════════════════════════════════════════════ */
+const histCpf = v => String(v == null ? '' : v).replace(/[^0-9]/g, '');
+function histCpfFmt(cpf){
+  const d = histCpf(cpf);
+  return d.length === 11 ? d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4') : (cpf || '—');
+}
+function histEhCancelada(st){ return /^cancel/i.test(String(st || '')); }
+
+// Carrega o conjunto completo uma vez e reaproveita (a aba Inscritos usa o mesmo cache)
+async function histGarantirDados(){
+  if(igCarregado && igTodos.length) return;
+  const dados = await rpc('admin_inscritos_geral');
+  igTodos = (dados || []).map(i => {
+    const o = Object.assign({}, i);
+    o.idade = igIdade(o.nascimento);
+    o.produtos_txt = igProdutosTxt(o.produtos);
+    return o;
+  });
+  igCarregado = true;
+  try{ igMontarFiltros(); }catch(e){}
+}
+
+function fecharHistorico(){
+  document.getElementById('hist-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function abrirHistoricoAtleta(cpf, nomeFallback){
+  const d = histCpf(cpf);
+  const ov = document.getElementById('hist-overlay');
+  const box = document.getElementById('hist-box');
+  if(!ov || !box) return;
+  if(!d){ alert('Esta inscrição não tem CPF registrado, não dá para montar o histórico.'); return; }
+
+  box.innerHTML = '<div class="hist-vazio">Carregando histórico…</div>';
+  ov.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  try{ await histGarantirDados(); }
+  catch(e){
+    box.innerHTML = '<div class="hist-vazio" style="color:#dc2626;">Erro ao carregar: ' + (e.message || '') + '</div>';
+    return;
+  }
+  box.innerHTML = histMontarHtml(d, nomeFallback);
+}
+
+function histMontarHtml(d, nomeFallback){
+  const insc = igTodos.filter(i => histCpf(i.cpf) === d)
+    .sort((a,b) => String(b.criado_em || '').localeCompare(String(a.criado_em || '')));
+
+  if(!insc.length){
+    return '<div class="hist-head"><button class="hist-fechar" onclick="fecharHistorico()">✕</button>'
+      + '<h3>' + (nomeFallback || 'Atleta') + '</h3>'
+      + '<div class="sub">' + histCpfFmt(d) + '</div></div>'
+      + '<div class="hist-vazio">Nenhuma inscrição encontrada para este CPF.</div>';
+  }
+
+  const p = insc[0]; // dados pessoais mais recentes
+  const pagas    = insc.filter(i => String(i.status || '').toLowerCase() === 'pago');
+  const pend     = insc.filter(i => String(i.status || '').toLowerCase() === 'pendente');
+  const canc     = insc.filter(i => histEhCancelada(i.status));
+  const totalPg  = pagas.reduce((a,i) => a + Number(i.valor || 0), 0);
+  const datas    = insc.map(i => i.criado_em).filter(Boolean).sort();
+  const primeira = datas.length ? fmtDS(String(datas[0]).slice(0,10)) : '—';
+  const ultima   = datas.length ? fmtDS(String(datas[datas.length-1]).slice(0,10)) : '—';
+
+  const contato = [
+    p.email    ? p.email : null,
+    p.telefone ? p.telefone : null,
+    (p.cidade || p.estado) ? [p.cidade, p.estado].filter(Boolean).join('/') : null,
+    p.idade ? p.idade + ' anos' : null
+  ].filter(Boolean).join(' · ');
+
+  const wpp = wppNumero(p.telefone)
+    ? '<a class="hist-wpp" target="_blank" rel="noopener" href="' + wppLink({nome:p.nome, telefone:p.telefone}) + '">💬 Falar no WhatsApp</a>'
+    : '';
+
+  let h = '<div class="hist-head">'
+    + '<button class="hist-fechar" onclick="fecharHistorico()" title="Fechar">✕</button>'
+    + '<h3>' + (p.nome || nomeFallback || 'Atleta') + '</h3>'
+    + '<div class="sub"><b>' + histCpfFmt(d) + '</b>' + (contato ? ' · ' + contato : '') + '</div>'
+    + wpp + '</div>';
+
+  h += '<div class="hist-tiles">'
+    + histTile('Inscrições', insc.length)
+    + histTile('Pagas', pagas.length, 'orange')
+    + histTile('Pendentes', pend.length)
+    + histTile('Canceladas', canc.length)
+    + histTile('Total pago', brl(totalPg), 'orange small')
+    + histTile('Primeira', primeira, 'small')
+    + histTile('Última', ultima, 'small')
+    + '</div>';
+
+  h += '<div class="hist-lista"><h4>Todas as inscrições</h4>';
+  insc.forEach(i => {
+    const st = String(i.status || 'pendente').toLowerCase();
+    const cls = histEhCancelada(st) ? ' cancel' : (st === 'pendente' ? ' pend' : '');
+    const meta = [
+      i.kit, i.modalidade, i.tamanho_camisa,
+      i.lote_nome, i.forma_pagamento,
+      (Number(i.desconto_pct) > 0 ? 'desconto ' + i.desconto_pct + '%' + (i.cupom ? ' (' + i.cupom + ')' : '') : null)
+    ].filter(Boolean).join(' · ');
+    h += '<div class="hist-item' + cls + '">'
+      + '<div class="hist-item-top">'
+      +   '<div><div class="hist-item-ev">' + (i.evento || '—') + '</div>'
+      +   '<div style="margin-top:5px;"><span class="status-pill status-' + st + '">' + st + '</span></div></div>'
+      +   '<div class="hist-item-val">' + brl(i.valor) + '</div>'
+      + '</div>'
+      + '<div class="hist-item-meta">' + (meta || '—')
+      +   '<br>Inscrito em ' + (i.criado_em ? fmtData(i.criado_em) : '—')
+      +   (i.evento_data ? ' · evento em ' + fmtDS(igDataISO(i.evento_data)) : '')
+      + '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+function histTile(label, valor, cls){
+  return '<div class="hist-tile"><div class="l">' + label + '</div>'
+    + '<div class="v ' + (cls || '') + '">' + valor + '</div></div>';
+}
+
+// Monta o nome como link clicável. Usado nas duas listas de inscritos.
+function histNomeLink(nome, cpf){
+  const n = nome || '—';
+  const d = histCpf(cpf);
+  if(!d) return n;
+  const nEsc = String(n).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return '<span class="hist-nome-link" title="Ver histórico completo deste atleta" '
+    + 'onclick="event.stopPropagation();abrirHistoricoAtleta(\'' + d + '\',\'' + nEsc + '\')">' + n + '</span>';
+}
+
 function renderInscritos(arr){
   const canceladas = arr.filter(i => i.status === 'cancelada' || i.status === 'cancelado');
   const ativos     = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
@@ -2572,7 +2743,7 @@ function renderInscritos(arr){
   const tb=document.getElementById('inscritos-tbody');
   if(!arr.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
-    <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.nome||'—'}</td>
+    <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${histNomeLink(i.nome, i.cpf)}</td>
     <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
     <td>${i.kit||'—'}</td>
     <td style="font-size:12px;color:var(--orange);">${i.lote_nome||'—'}</td>
@@ -2831,6 +3002,7 @@ function igAplicar(){
 
 function igCelula(i, col){
   const v = i[col.k];
+  if(col.k === 'nome') return histNomeLink(v, i.cpf);
   if(col.f === 'brl') return brl(v);
   if(col.f === 'data') return v ? fmtDS(igDataISO(v)) : '—';
   if(col.f === 'datahora') return v ? fmtData(v) : '—';
@@ -7924,6 +8096,11 @@ async function mktSalvarPat(){
       </div>
     </main>
   </div>
+</div>
+
+<!-- HISTÓRICO DO ATLETA — abre ao clicar no nome em qualquer lista de inscritos -->
+<div class="hist-overlay" id="hist-overlay" onclick="if(event.target===this)fecharHistorico()">
+  <div class="hist-box" id="hist-box"></div>
 </div>
 
 </body>
