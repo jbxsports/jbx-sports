@@ -716,6 +716,20 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .hist-nome-link{color:inherit;font-weight:600;cursor:pointer;border-bottom:1px dotted rgba(255,117,31,.55);}
 .hist-nome-link:hover{color:var(--orange);border-bottom-color:var(--orange);}
 
+/* ══ GRÁFICO DE GÊNERO — barra de proporção ══
+   Duas categorias não justificam rosca (pizza de 2 fatias não se lê).
+   Barra de proporção com rótulo direto: dispensa legenda. */
+.gen-box{display:flex;flex-direction:column;justify-content:center;height:100%;padding:4px 2px;}
+.gen-barra{display:flex;height:34px;border-radius:9px;overflow:hidden;background:var(--border);gap:2px;}
+.gen-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;min-width:2px;transition:width .4s;}
+.gen-legenda{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;}
+.gen-item{display:flex;align-items:flex-start;gap:8px;}
+.gen-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0;margin-top:4px;}
+.gen-item .rot{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.gen-item .num{font-size:19px;font-weight:700;color:var(--text);line-height:1.15;}
+.gen-item .pct{font-size:11.5px;color:var(--muted);font-weight:600;}
+.gen-vazio{color:var(--muted);font-size:13px;text-align:center;padding:26px;}
+
 /* ── PROJEÇÃO DE FEED (INSTAGRAM) ── */
 .mkt-feed-btns{display:flex;gap:6px;align-items:center;margin-right:10px;}
 .mkt-feed-btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:20px;padding:5px 12px 5px 6px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;font-family:inherit;transition:all .15s;}
@@ -1195,7 +1209,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <div class="stats-row" id="ev-stats-row"></div>
         <div class="charts-grid">
           <div class="chart-card"><h3>Inscrições por Idade</h3><div class="chart-wrap"><canvas id="chart-idade"></canvas></div></div>
-          <div class="chart-card"><h3>Inscrições por Gênero</h3><div class="chart-wrap"><canvas id="chart-genero"></canvas></div></div>
+          <div class="chart-card"><h3>Inscrições por Gênero</h3><div class="chart-wrap" id="chart-genero-box"></div></div>
           <div class="chart-card"><h3>Top Cidades</h3><div class="chart-wrap"><canvas id="chart-cidade"></canvas></div></div>
           <div class="chart-card"><h3>Inscrições – Últimos 15 dias</h3><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div>
         </div>
@@ -2579,21 +2593,177 @@ async function abrirEvento(id,nome,status,data){
     renderCharts(cd||{});todosInscritos=inscritos||[];renderInscritos(todosInscritos);
   }catch(e){console.error(e);}
 }
-const COLORS=['#ff751f','#ff9a54','#ffb87a','#ffd4a0','#22c55e','#3b82f6','#a855f7'];
-function mkChart(id,type,labels,data,opts={}){
-  const ctx=document.getElementById(id);if(!ctx)return;
-  try{if(charts[id])charts[id].destroy();}catch(e){}
-  charts[id]=new Chart(ctx,{type,data:{labels,datasets:[{data,backgroundColor:type==='doughnut'?COLORS.slice(0,data.length):COLORS[0],borderColor:'transparent',borderRadius:type!=='doughnut'?4:0,...opts.ds}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type==='doughnut',position:'right',labels:{color:'rgba(255,255,255,.6)',font:{size:11}}}},
-      scales:type!=='doughnut'?{x:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11}},grid:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'rgba(255,255,255,.5)',font:{size:11},stepSize:1},grid:{color:'rgba(255,255,255,.05)'},beginAtZero:true}}:{},
-      ...opts.opts}});
+/* ══════════════════════════════════════════════════════════════
+   GRÁFICOS DO EVENTO
+
+   Os rótulos eram brancos (resíduo do painel escuro) e sumiam no
+   fundo claro. Agora usam os tokens de texto do próprio painel.
+
+   Paleta: série única = uma cor só (o comprimento da barra já diz o
+   tamanho; pintar cada barra de um tom gastaria a cor à toa).
+   A dupla laranja/azul fica só no gênero, onde a cor identifica —
+   e foi validada para daltonismo (ΔE 33 em protanopia, 42 normal).
+   ══════════════════════════════════════════════════════════════ */
+const CHART_LARANJA = '#ff751f';
+const CHART_AZUL    = '#2563eb';
+const CHART_TINTA   = '#2a2520';
+const CHART_MUDO    = '#8a837a';
+const CHART_GRADE   = 'rgba(42,37,32,.07)';
+
+Chart.defaults.font.family = "'Ubuntu', sans-serif";
+Chart.defaults.color = CHART_MUDO;
+
+// Tooltip com a cara do painel
+const CHART_TOOLTIP = {
+  backgroundColor:'#17140f', titleColor:'#fff', bodyColor:'rgba(255,255,255,.8)',
+  padding:11, cornerRadius:8, displayColors:false, titleFont:{size:12,weight:'700'},
+  bodyFont:{size:12}, caretSize:5
+};
+
+// Escreve o valor na ponta da barra. Evita depender de plugin externo.
+const rotuloValor = {
+  id:'rotuloValor',
+  afterDatasetsDraw(c, a, opts){
+    const {ctx} = c;
+    const horizontal = c.options.indexAxis === 'y';
+    ctx.save();
+    ctx.font = '700 11px Ubuntu, sans-serif';
+    ctx.fillStyle = opts && opts.cor ? opts.cor : CHART_TINTA;
+    c.data.datasets.forEach((ds,di)=>{
+      c.getDatasetMeta(di).data.forEach((el,i)=>{
+        const v = ds.data[i];
+        if(v === null || v === undefined || v === 0) return;
+        ctx.textAlign = horizontal ? 'left' : 'center';
+        ctx.textBaseline = horizontal ? 'middle' : 'bottom';
+        ctx.fillText(fmt(v), el.x + (horizontal ? 7 : 0), el.y - (horizontal ? 0 : 6));
+      });
+    });
+    ctx.restore();
+  }
+};
+
+function mkChart(id, cfg){
+  const ctx = document.getElementById(id);
+  if(!ctx) return null;
+  try{ if(charts[id]) charts[id].destroy(); }catch(e){}
+  charts[id] = new Chart(ctx, cfg);
+  return charts[id];
 }
-function renderCharts(d){const s=a=>a||[];
-  mkChart('chart-idade','bar',s(d.por_idade).map(x=>x.label),s(d.por_idade).map(x=>x.count));
-  mkChart('chart-genero','doughnut',s(d.por_genero).map(x=>x.label),s(d.por_genero).map(x=>x.count));
-  mkChart('chart-cidade','bar',s(d.por_cidade).map(x=>x.label),s(d.por_cidade).map(x=>x.count),{opts:{indexAxis:'y'}});
-  mkChart('chart-diario','bar',s(d.diario_15dias).map(x=>x.dia),s(d.diario_15dias).map(x=>x.count));
+
+const eixoY_oculto = { display:false, beginAtZero:true, grace:'12%' };
+const eixoX_limpo  = { grid:{display:false}, border:{display:false},
+                       ticks:{color:CHART_MUDO, font:{size:11}} };
+
+function renderCharts(d){
+  const s = a => Array.isArray(a) ? a : [];
+
+  /* ── IDADE — barras verticais, cor única, valor em cima ── */
+  const idade = s(d.por_idade);
+  mkChart('chart-idade', {
+    type:'bar',
+    data:{ labels: idade.map(x=>x.label),
+      datasets:[{ data: idade.map(x=>Number(x.count)||0), backgroundColor:CHART_LARANJA,
+        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, borderSkipped:false,
+        categoryPercentage:.72, barPercentage:.86, hoverBackgroundColor:'#e0620f' }]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:20}},
+      plugins:{ legend:{display:false},
+        tooltip:{...CHART_TOOLTIP, callbacks:{label:c=>fmt(c.parsed.y)+' inscrição(ões)'}}},
+      scales:{ x:eixoX_limpo, y:eixoY_oculto }},
+    plugins:[rotuloValor]
+  });
+
+  /* ── GÊNERO — barra de proporção em HTML, com rótulo direto ── */
+  renderGenero(s(d.por_genero));
+
+  /* ── TOP CIDADES — barras horizontais, top 8 + "Outras" ── */
+  const cid = s(d.por_cidade).map(x=>({label:x.label||'—', count:Number(x.count)||0}))
+                             .sort((a,b)=>b.count-a.count);
+  const TOPO = 8;
+  const cidades = cid.slice(0,TOPO);
+  const resto = cid.slice(TOPO).reduce((a,x)=>a+x.count,0);
+  if(resto > 0) cidades.push({label:'Outras ('+(cid.length-TOPO)+')', count:resto});
+  mkChart('chart-cidade', {
+    type:'bar',
+    data:{ labels: cidades.map(x=>x.label),
+      datasets:[{ data: cidades.map(x=>x.count), backgroundColor:CHART_LARANJA,
+        borderRadius:{topLeft:0,topRight:4,bottomLeft:0,bottomRight:4}, borderSkipped:false,
+        categoryPercentage:.78, barPercentage:.88, hoverBackgroundColor:'#e0620f' }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      layout:{padding:{right:34}},
+      plugins:{ legend:{display:false},
+        tooltip:{...CHART_TOOLTIP, callbacks:{label:c=>fmt(c.parsed.x)+' inscrição(ões)'}}},
+      scales:{
+        x:{ display:false, beginAtZero:true, grace:'8%' },
+        y:{ grid:{display:false}, border:{display:false},
+            ticks:{color:CHART_TINTA, font:{size:11.5, weight:'600'}, crossAlign:'far', autoSkip:false} }}},
+    plugins:[rotuloValor]
+  });
+
+  /* ── ÚLTIMOS 15 DIAS — área, que é a forma de tendência ── */
+  const dia = s(d.diario_15dias);
+  const valores = dia.map(x=>Number(x.count)||0);
+  const pico = Math.max(...valores, 0);
+  mkChart('chart-diario', {
+    type:'line',
+    data:{ labels: dia.map(x=>chartDiaCurto(x.dia)),
+      datasets:[{ data:valores, borderColor:CHART_LARANJA, borderWidth:2, fill:true,
+        // monotone em vez de tension: spline solta cria barriga entre pontos
+        // e sugere um valor que não existiu naquele dia
+        cubicInterpolationMode:'monotone', tension:0,
+        backgroundColor:(c)=>{
+          const {ctx, chartArea} = c.chart;
+          if(!chartArea) return 'rgba(255,117,31,.14)';
+          const g = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          g.addColorStop(0,'rgba(255,117,31,.26)'); g.addColorStop(1,'rgba(255,117,31,0)');
+          return g;
+        },
+        pointRadius:(c)=>c.raw === pico && pico > 0 ? 4.5 : 0,
+        pointBackgroundColor:CHART_LARANJA, pointBorderColor:'#fff', pointBorderWidth:2,
+        pointHoverRadius:5.5, pointHoverBorderWidth:2 }]},
+    options:{ responsive:true, maintainAspectRatio:false, layout:{padding:{top:18}},
+      interaction:{mode:'index', intersect:false},
+      plugins:{ legend:{display:false},
+        tooltip:{...CHART_TOOLTIP, callbacks:{label:c=>fmt(c.parsed.y)+' inscrição(ões)'}}},
+      scales:{
+        x:{ grid:{display:false}, border:{display:false},
+            ticks:{color:CHART_MUDO, font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit:8} },
+        y:{ beginAtZero:true, grace:'20%', border:{display:false},
+            grid:{color:CHART_GRADE, drawTicks:false},
+            ticks:{color:CHART_MUDO, font:{size:10}, precision:0, maxTicksLimit:4, padding:8} }}}
+  });
 }
+
+function chartDiaCurto(d){
+  if(!d) return '';
+  const p = String(d).slice(0,10).split('-');
+  return p.length === 3 ? p[2]+'/'+p[1] : String(d);
+}
+
+/* Barra de proporção do gênero — HTML, não canvas.
+   Rosca de duas fatias é ilegível; barra com número escrito resolve. */
+function renderGenero(lista){
+  const box = document.getElementById('chart-genero-box');
+  if(!box) return;
+  const dados = (lista||[]).map(x=>({label:x.label||'Não informado', count:Number(x.count)||0}))
+                           .filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+  const total = dados.reduce((a,x)=>a+x.count,0);
+  if(!total){ box.innerHTML = '<div class="gen-vazio">Sem inscrições para exibir.</div>'; return; }
+  const cores = [CHART_LARANJA, CHART_AZUL, '#8a837a', '#c2500a'];
+  const segs = dados.map((x,i)=>{
+    const pc = x.count/total*100;
+    return '<div class="gen-seg" style="width:'+pc.toFixed(2)+'%;background:'+cores[i%cores.length]+';" '
+      + 'title="'+x.label+': '+fmt(x.count)+'">' + (pc >= 11 ? Math.round(pc)+'%' : '') + '</div>';
+  }).join('');
+  const itens = dados.map((x,i)=>{
+    const pc = x.count/total*100;
+    return '<div class="gen-item"><span class="gen-dot" style="background:'+cores[i%cores.length]+';"></span>'
+      + '<div><div class="rot">'+x.label+'</div><div class="num">'+fmt(x.count)+'</div>'
+      + '<div class="pct">'+pc.toFixed(1).replace('.',',')+'%</div></div></div>';
+  }).join('');
+  box.innerHTML = '<div class="gen-box"><div class="gen-barra">'+segs+'</div>'
+    + '<div class="gen-legenda">'+itens+'</div></div>';
+}
+
 
 /* ══════════════════════════════════════════════════════════════
    HISTÓRICO DO ATLETA
