@@ -678,6 +678,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-arte-item .acts button{flex:1;font-size:11px;padding:3px 2px;border:1px solid var(--border);background:var(--card);border-radius:6px;cursor:pointer;font-family:inherit;font-weight:700;color:var(--muted);transition:all .15s;}
 .mkt-arte-item .acts button:hover{color:var(--text);border-color:#aaa;}
 .mkt-arte-item .acts button.del:hover{color:#dc2626;border-color:#dc2626;}
+.mkt-arte-item .acts button.baixar{color:#fff;background:var(--orange);border-color:var(--orange);}
+.mkt-arte-item .acts button.baixar:hover{background:var(--orange-dark);color:#fff;border-color:var(--orange-dark);}
+.mkt-arte-item a.zoom{display:block;position:relative;}
+.mkt-arte-item a.zoom::after{content:'\2922';position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:1px 4px;border-radius:4px;opacity:0;transition:opacity .15s;}
+.mkt-arte-item a.zoom:hover::after{opacity:1;}
+.mkt-baixar-todas{width:100%;margin-bottom:10px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 14px;cursor:pointer;}
+.mkt-baixar-todas:hover{background:var(--orange-dark);}
 
 /* ── PROJEÇÃO DE FEED (INSTAGRAM) ── */
 .mkt-feed-btns{display:flex;gap:6px;align-items:center;margin-right:10px;}
@@ -7111,8 +7118,9 @@ function mktDesenharArtesGrid(){
   mktArtesSel.forEach((u,i)=>{
     h+='<div class="mkt-arte-item">'
       +(carr&&i===0?'<span class="capa-tag">CAPA</span>':'')
-      +'<img src="'+u+'">'
+      +'<a class="zoom" href="'+u+'" target="_blank" rel="noopener" title="Ver a arte em tamanho real"><img src="'+u+'"></a>'
       +'<div class="acts">'
+      +'<button class="baixar" onclick="mktBaixarArte('+i+')" title="Baixar esta arte">⤓</button>'
       +'<button onclick="mktEscolherArte('+i+')" title="Substituir esta arte">↻</button>'
       +(carr&&i>0?'<button onclick="mktMoverArte('+i+',-1)" title="Mover para a esquerda">←</button>':'')
       +(carr&&i<mktArtesSel.length-1?'<button onclick="mktMoverArte('+i+',1)" title="Mover para a direita">→</button>':'')
@@ -7120,9 +7128,39 @@ function mktDesenharArtesGrid(){
       +'</div></div>';
   });
   h+='</div>';
+  if(mktArtesSel.length>1)h='<button class="mkt-baixar-todas" onclick="mktBaixarTodasArtes()">⤓ Baixar todas as '+mktArtesSel.length+' artes</button>'+h;
   if(carr)h+='<div style="font-size:11px;color:var(--muted);">A primeira imagem é a capa do carrossel. Use ← → para reordenar.</div>';
   pv.innerHTML=h;
 }
+/* ══ DOWNLOAD DA ARTE ══
+   O Storage do Supabase está em outro domínio, então o atributo download="" do HTML
+   é ignorado pelo navegador (regra de cross-origin) e a imagem só abriria numa aba.
+   A solução é o parâmetro ?download= do próprio Storage, que devolve o arquivo com
+   Content-Disposition: attachment — aí o navegador baixa de verdade, com nome legível. */
+function mktNomeArquivoArte(i){
+  const tRaw=(document.getElementById('mp-titulo')||{}).value||'arte';
+  const t=tRaw.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9 _-]/g,'').replace(/\s+/g,'-').slice(0,45)||'arte';
+  const d=((document.getElementById('mp-data')||{}).value||'').replace(/-/g,'');
+  const url=String(mktArtesSel[i]||'').split('?')[0];
+  const ext=(url.split('.').pop()||'jpg').toLowerCase().slice(0,4);
+  const seq=mktArtesSel.length>1 ? '_'+String(i+1).padStart(2,'0') : '';
+  return t+(d?'_'+d:'')+seq+'.'+ext;
+}
+function mktBaixarArte(i){
+  const u=mktArtesSel[i]; if(!u) return;
+  const a=document.createElement('a');
+  a.href=u+(u.indexOf('?')>-1?'&':'?')+'download='+encodeURIComponent(mktNomeArquivoArte(i));
+  a.rel='noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function mktBaixarTodasArtes(){
+  // intervalo entre os cliques: disparar tudo junto faz o navegador bloquear os seguintes
+  mktArtesSel.forEach((_,i)=>setTimeout(()=>mktBaixarArte(i), i*700));
+  const st=document.getElementById('mp-arte-status');
+  if(st){ st.textContent='⬇ Baixando '+mktArtesSel.length+' artes…'; st.style.color='var(--muted)'; }
+}
+
 function mktEscolherArte(idx){
   mktArteSubstIdx=idx;
   const inp=document.getElementById('mp-arte-file');
