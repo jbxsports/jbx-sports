@@ -63,9 +63,8 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
         emergencia_telefone: item.emergencia_telefone || '',
         valor:               item.valor               || 0,
         valor_inscricao:     item.valor_inscricao     || '',
-        // Taxa de serviço do evento (%). O index.html já envia este campo, mas ele
-        // não constava nesta lista e era descartado aqui — por isso o banco gravava
-        // valor_taxa = 0 e a coluna TAXA do painel ficava vazia em toda inscrição.
+        // Taxa de serviço do evento (%). O index.html envia, mas o campo não constava
+        // nesta lista e era descartado aqui — o banco gravava valor_taxa = 0.
         taxa_pct:            Number(item.taxa_pct)    || 0,
         produtos:            Array.isArray(item.produtos) ? item.produtos : [],
       };
@@ -321,6 +320,28 @@ async function validarPedidoGratuito(itens) {
   return null;
 }
 
+// ══════════════════════════════════════════════════════════════
+// PREÇO AUTORITATIVO — lê de volta o que o banco gravou.
+//
+// O criar_inscricao é quem sabe o preço de verdade: busca o valor em
+// lote_precos, aplica o desconto 60+ (pela data de nascimento que ele tem
+// no cadastro), aplica cupom, calcula a taxa e valida os produtos.
+// O navegador não tem esses dados — no caso do atleta com cadastro salvo
+// ele nem conhece a data de nascimento, então calculava sem o desconto 60+.
+// Cobrar o número do navegador foi o que gerou a cobrança cheia com registro
+// descontado. Daqui em diante o Mercado Pago cobra o que está no banco.
+// ══════════════════════════════════════════════════════════════
+async function lerInscricoesGravadas(pedido) {
+  const cols = 'id,nome,cpf,email,telefone,valor,valor_base,valor_taxa,desconto_pct,kit,modalidade,tamanho_camisa';
+  const res = await fetch(`${SB_URL}/rest/v1/inscricoes?pedido_id=eq.${pedido}&select=${cols}&order=criado_em.asc`, {
+    headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
+  });
+  if (!res.ok) throw new Error('Não foi possível confirmar os valores da inscrição.');
+  const rows = await res.json();
+  if (!Array.isArray(rows) || !rows.length) throw new Error('Inscrições não localizadas após a gravação.');
+  return rows;
+}
+
 // Apaga as inscrições de um pedido que não chegou ao fim.
 // Sem isto, qualquer falha depois da gravação deixa linha órfã em 'pendente'.
 async function deletarInscricoesPedido(pedido) {
@@ -386,7 +407,26 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: erros[0].erro || 'Erro ao criar inscrição.' });
   }
 
-  const totalCents = resultados.reduce((acc, r) => acc + (r.valor_cents || 0), 0);
+  // ── Valores autoritativos: o que o banco realmente gravou ──
+  let gravadas;
+  try {
+    gravadas = await lerInscricoesGravadas(pedido);
+  } catch (e) {
+    console.error('[checkout] leitura autoritativa falhou:', e.message);
+    await deletarInscricoesPedido(pedido);
+    return res.status(500).json({ error: e.message });
+  }
+
+  const totalBanco = gravadas.reduce((acc, r) => acc + Number(r.valor || 0), 0);
+  const totalCents = Math.round(totalBanco * 100);
+
+  // Alerta de divergência: se navegador e banco discordam, o log registra.
+  // Era exatamente este o sintoma do caso 60+ com cadastro salvo.
+  if (Math.abs(totalPedido - totalBanco) > 0.005) {
+    console.warn('[checkout] DIVERGÊNCIA de valor — navegador:', totalPedido.toFixed(2),
+      '| banco:', totalBanco.toFixed(2), '| pedido:', pedido,
+      '| descontos no banco:', gravadas.map(r => (r.desconto_pct || 0) + '%').join(','));
+  }
 
   // ── INSCRIÇÃO GRATUITA (total R$ 0,00) ──
   if (totalCents <= 0) {
@@ -417,7 +457,7 @@ module.exports = async (req, res) => {
 
     // avisa cada atleta (WhatsApp + e-mail) — o fluxo pago faz isso no webhook
     try {
-      await notificarGratuitos(itens, evento_nome);
+      await notificarGratuitos(gravadas, evento_nome);
     } catch (e) {
       console.error('[checkout] gratuito — erro ao notificar:', e.message);
     }
@@ -428,44 +468,31 @@ module.exports = async (req, res) => {
     });
   }
 
-  // Monta metadados dos atletas (para o webhook usar)
-  const metadataItens = await Promise.all(itens.map(async (it) => {
-    let nome     = it.nome     || '';
-    let telefone = it.telefone || '';
-    let email    = it.email    || '';
-
-    if (it.cpf && (!telefone || !email)) {
-      const dadosBanco = await buscarDadosAtleta(it.cpf);
-      if (dadosBanco) {
-        nome     = nome     || dadosBanco.nome     || '';
-        telefone = telefone || dadosBanco.telefone || '';
-        email    = email    || dadosBanco.email    || '';
-      }
-    }
-
-    console.log('[checkout] item final — nome:', nome, '| tel:', telefone, '| email:', email);
-
-    return {
-      nome:       nome.slice(0, 40),
-      tel:        (telefone || '').replace(/[^0-9]/g, '').slice(0, 15),
-      email:      email.slice(0, 60),
-      evento:     (evento_nome || '').slice(0, 40),
-      kit:        (it.kit || '').slice(0, 20),
-      modalidade: (it.modalidade || '').slice(0, 20),
-      camisa:     (it.tamanho_camisa || '').slice(0, 10),
-      valor:      it.valor || 0,
-    };
+  // Metadados dos atletas para o webhook — vêm da linha gravada, que já traz
+  // nome/e-mail/telefone resolvidos inclusive no fluxo de cadastro protegido.
+  const metadataItens = gravadas.map(r => ({
+    nome:       String(r.nome     || '').slice(0, 40),
+    tel:        String(r.telefone || '').replace(/[^0-9]/g, '').slice(0, 15),
+    email:      String(r.email    || '').slice(0, 60),
+    evento:     (evento_nome || '').slice(0, 40),
+    kit:        String(r.kit || '').slice(0, 20),
+    modalidade: String(r.modalidade || '').slice(0, 20),
+    camisa:     String(r.tamanho_camisa || '').slice(0, 10),
+    valor:      Math.round(Number(r.valor || 0) * 100) / 100,
   }));
 
-  // Monta itens da preferência MP
-  const mpItems = itens.map((item, i) => ({
-    id:          `${pedido}-${i}`,
-    title:       `${item.kit || 'Kit'} — ${item.modalidade || ''} (${item.nome || 'Atleta'})`,
-    description: evento_nome || 'JBX Sports',
-    quantity:    1,
-    unit_price:  item.valor,
-    currency_id: 'BRL',
-  }));
+  // Itens da preferência MP — preço do banco, nunca o do navegador.
+  // Linhas de valor zero ficam de fora: o MP recusa item com unit_price 0.
+  const mpItems = gravadas
+    .filter(r => Number(r.valor || 0) > 0)
+    .map((r, i) => ({
+      id:          `${pedido}-${i}`,
+      title:       `${r.kit || 'Kit'} — ${r.modalidade || ''} (${r.nome || 'Atleta'})`,
+      description: evento_nome || 'JBX Sports',
+      quantity:    1,
+      unit_price:  Math.round(Number(r.valor) * 100) / 100,
+      currency_id: 'BRL',
+    }));
 
   try {
     const preference = new Preference(mp);
