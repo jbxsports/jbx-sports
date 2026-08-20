@@ -5460,9 +5460,18 @@ function calPctHtml(ev){
     +'<div class="cal-bar"><div class="cal-bar-fill" style="width:'+larg+'%;background:'+calPctCor(pct)+';"></div></div>';
 }
 
+// Formata enquanto o usuário digita: 20000 -> 20.000
+// (campo é type="text"; type="number" não aceita ponto de milhar)
+function calMoedaDigitando(el){
+  const d = String(el.value||'').replace(/\D/g,'').slice(0,12);
+  el.value = d ? Number(d).toLocaleString('pt-BR') : '';
+}
+
 function calMetaEdit(id, campo, valor){
   const ev=_calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
-  ev[campo] = valor==='' ? 0 : (Math.max(0, parseFloat(String(valor).replace(',','.'))) || 0);
+  // só dígitos: "20.000" -> 20000. Valores de patrocínio são em reais inteiros.
+  const d = String(valor==null?'':valor).replace(/\D/g,'');
+  ev[campo] = d ? Number(d) : 0;
   calRedesenharCaptado(id);
   calExtraSalvar(ev);
 }
@@ -5770,15 +5779,17 @@ function calBuildListaDB(){
       +'</select>';
     const realBtn='<button class="cal-check-btn'+(e.realizado?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'realizado\',this)" title="Marcar como realizado">'+(e.realizado?'✓':'')+'</button>';
     const metaInp='<span class="cal-money-wrap"><span class="cal-money-pre">R$</span>'
-      +'<input type="number" min="0" step="500" class="cal-edit-num" style="width:82px;" placeholder="0" '
-      +'value="'+(Number(e.meta_patrocinio)||0 ? calEsc(e.meta_patrocinio) : '')+'" '
+      +'<input type="text" inputmode="numeric" class="cal-edit-num" style="width:82px;" placeholder="0" '
+      +'value="'+(Number(e.meta_patrocinio)||0 ? calMoedaBR(e.meta_patrocinio) : '')+'" '
       +'title="Meta de patrocínio para este evento" '
+      +'oninput="calMoedaDigitando(this)" '
       +'onchange="calMetaEdit(\''+id+'\',\'meta_patrocinio\',this.value)" onclick="event.stopPropagation()"></span>';
     const capInp='<div class="cal-captado-cel">'
       +'<span class="cal-money-wrap"><span class="cal-money-pre">R$</span>'
-      +'<input type="number" min="0" step="500" class="cal-edit-num" style="width:82px;" placeholder="0" '
-      +'value="'+(Number(e.captado)||0 ? calEsc(e.captado) : '')+'" '
+      +'<input type="text" inputmode="numeric" class="cal-edit-num" style="width:82px;" placeholder="0" '
+      +'value="'+(Number(e.captado)||0 ? calMoedaBR(e.captado) : '')+'" '
       +'title="Quanto já foi captado de patrocínio" '
+      +'oninput="calMoedaDigitando(this)" '
       +'onchange="calMetaEdit(\''+id+'\',\'captado\',this.value)" onclick="event.stopPropagation()"></span>'
       +'<span id="cal-pct-'+id+'">'+calPctHtml(e)+'</span></div>';
     const driveCel='<div class="cal-drive-cel" id="cal-drive-'+id+'">'+calDriveHtml(e)+'</div>';
