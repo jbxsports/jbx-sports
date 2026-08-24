@@ -3202,6 +3202,19 @@ function reelsScroll(dir) {
 const HERO_VIDEO_RX = /\.(mp4|webm|mov|m4v)(\?|$)/i;
 function heroEhVideo(url) { return HERO_VIDEO_RX.test(String(url || '')); }
 
+// Banner que aponta para um evento: mesma rota do card, respeitando inscrição externa
+function abrirBannerEvento(id) {
+  const ev = (window._eventos || []).find(e => String(e.id) === String(id));
+  if (!ev) { // evento oculto, encerrado ou removido: leva para a lista
+    const sec = document.getElementById('eventos');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  const urlExterna = linkExternoDe(ev);
+  if (urlExterna) { abrirLinkExterno(urlExterna); return; }
+  irParaEvento(id);
+}
+
 function renderHeroBanners(dados) {
   const banners = Array.isArray(dados.banners) ? dados.banners.filter(b => b && b.desktop) : [];
   if (!banners.length) return; // sem banners → mantém o vídeo padrão
@@ -3238,6 +3251,21 @@ function renderHeroBanners(dados) {
   }
   slides.innerHTML = htmlSlides + htmlDots;
   hero.appendChild(slides);
+
+  // ── destino do clique no banner (definido no admin) ──
+  slides.querySelectorAll('.hero-slide').forEach((el, i) => {
+    const b = banners[i];
+    if (!b) return;
+    // registros antigos não têm "destino": deduz pelo campo preenchido
+    const destino = b.destino || (b.evento_id ? 'evento' : (b.link ? 'link' : 'nenhum'));
+    if (destino === 'evento' && b.evento_id) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => abrirBannerEvento(b.evento_id));
+    } else if (destino === 'link' && b.link) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => abrirLinkExterno(b.link));
+    }
+  });
 
   // pré-carrega as próximas imagens (vídeos já usam preload="auto")
   banners.slice(1).forEach(b => {
