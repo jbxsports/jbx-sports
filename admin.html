@@ -6732,6 +6732,7 @@ let crzInscritos = null;
 let crzFonte = { A: null, B: null };
 let crzResultado = [];
 let crzStats = null;
+let crzSoNaoChamados = true;   // some com quem já foi chamado
 
 function crzFonteVazia(){
   return { tipo:'evento', evento:'', linhas:[], headers:[], map:{nome:'',cpf:'',telefone:'',email:''}, arquivo:'' };
@@ -6788,6 +6789,8 @@ function crzToggleChamado(id, el){
   if(tr) tr.style.opacity = el.checked ? '.45' : '';
   crzContador();
 }
+function crzToggleFiltro(el){ crzSoNaoChamados = el.checked; crzRenderResultado(); }
+
 function crzLimparChamados(){
   if(!confirm('Isto desmarca TODAS as pessoas já chamadas, de todos os cruzamentos. Continuar?')) return;
   crzChamadosGravar(new Set());
@@ -6993,21 +6996,19 @@ function crzSalvarMsg(){
   try { localStorage.setItem('jbx_crz_msg', document.getElementById('crz-msg').value); } catch(e){}
   crzRenderResultado();
 }
-function crzContador(){
-  const el = document.getElementById('crz-contador');
-  if(!el || !crzResultado.length) return;
-  const ch = crzChamadosLer();
-  let n = 0;
-  crzResultado.forEach(function(p){ if(ch.has(crzId(p))) n++; });
-  el.textContent = n + ' de ' + crzResultado.length + ' já chamados';
-}
+function crzContador(){ /* o cabeçalho já mostra os totais; recalcula ao re-renderizar */ }
 
 function crzRenderResultado(){
   const box = document.getElementById('crz-resultado');
   if(!box || !crzStats) return;
   const s = crzStats;
   const ch = crzChamadosLer();
-  const semTel = crzResultado.filter(function(p){ return !wppNumero(p.telefone); }).length;
+  const jaChamados = crzResultado.filter(function(p){ return ch.has(crzId(p)); }).length;
+  const restantes = crzResultado.length - jaChamados;
+  const lista = crzSoNaoChamados
+    ? crzResultado.filter(function(p){ return !ch.has(crzId(p)); })
+    : crzResultado;
+  const semTel = lista.filter(function(p){ return !wppNumero(p.telefone); }).length;
 
   let avisos = '';
   if(s.semChaveA){
@@ -7023,7 +7024,7 @@ function crzRenderResultado(){
       semTel + ' pessoa(s) sem telefone utilizável — aparecem na lista, mas sem botão de WhatsApp.</div>';
   }
 
-  const linhas = crzResultado.map(function(p, i){
+  const linhas = lista.map(function(p, i){
     const id = crzId(p);
     const feito = ch.has(id);
     return '<tr style="' + (feito ? 'opacity:.45;' : '') + '">' +
@@ -7039,15 +7040,25 @@ function crzRenderResultado(){
   box.innerHTML =
     '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;">' +
       '<div style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;">' +
-        crzResultado.length + ' pessoa(s) para chamar' +
+        restantes + ' ainda não chamada(s)' +
       '</div>' +
-      '<div style="font-size:12px;color:var(--muted);">Base A: ' + s.a + ' · Base B: ' + s.b + ' · comparado por ' + s.modo +
+      (jaChamados
+        ? '<div style="background:#f8fafc;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px 14px;font-size:13px;">' +
+            jaChamados + ' já chamada(s) em rodadas anteriores' +
+          '</div>'
+        : '') +
+      '<div style="font-size:12px;color:var(--muted);">Base A: ' + s.a + ' · Base B: ' + s.b + ' · por ' + s.modo +
         (s.duplicados ? ' · ' + s.duplicados + ' duplicado(s) na A' : '') + '</div>' +
-      '<span id="crz-contador" style="font-size:12px;color:var(--muted);margin-left:auto;"></span>' +
+      '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;margin-left:auto;">' +
+        '<input type="checkbox"' + (crzSoNaoChamados ? ' checked' : '') + ' onchange="crzToggleFiltro(this)"> Esconder quem já chamei' +
+      '</label>' +
     '</div>' + avisos +
     (crzResultado.length
       ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">' +
-          '<button type="button" class="btn-upload" onclick="crzExportar()">📊 Exportar Excel</button>' +
+          '<button type="button" class="btn-upload" onclick="crzExportar()">📊 Exportar lista</button>' +
+          '<button type="button" class="btn-upload" onclick="crzBackupChamados()">💾 Backup das marcações</button>' +
+          '<button type="button" class="btn-upload" onclick="document.getElementById(\'crz-restore\').click()">📥 Restaurar backup</button>' +
+          '<input type="file" id="crz-restore" accept=".xlsx,.xls,.csv" style="display:none;" onchange="crzRestaurarChamados(this)">' +
           '<button type="button" class="btn-upload" onclick="crzLimparChamados()">↺ Desmarcar todos</button>' +
         '</div>' +
         '<div style="overflow:auto;border:1px solid var(--border);border-radius:10px;">' +
@@ -7059,7 +7070,43 @@ function crzRenderResultado(){
           '</tr></thead><tbody>' + linhas + '</tbody>' +
         '</table></div>'
       : '<div style="padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px;">Todo mundo da Base A já está na Base B. Nada a chamar 🎉</div>');
+  if(crzResultado.length && !lista.length){
+    box.innerHTML = box.innerHTML.replace('<div style="overflow:auto;', '<div style="display:none;overflow:auto;') +
+      '<div style="padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px;">' +
+      'Você já chamou todas as ' + crzResultado.length + ' pessoas desta lista. Desmarque "Esconder quem já chamei" para revê-las.</div>';
+  }
   crzContador();
+}
+
+function crzBackupChamados(){
+  const ch = Array.from(crzChamadosLer());
+  if(!ch.length){ alert('Ainda não há ninguém marcado como chamado.'); return; }
+  const linhas = [['chave','observacao']];
+  ch.forEach(function(k){ linhas.push([k, 'nao apagar esta coluna']); });
+  igExportarPlanilha(linhas, 'backup_chamados');
+}
+function crzRestaurarChamados(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const fr = new FileReader();
+  fr.onload = function(e){
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      const linhas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval:'', raw:false });
+      const s = crzChamadosLer();
+      let n = 0;
+      linhas.forEach(function(l){
+        let k = String(l.chave || l.Chave || '').trim();
+        if(!k && (l.CPF || l.cpf)) k = 'c:' + crzCpf(l.CPF || l.cpf);   // aceita também um Excel só com CPF
+        if(k && !s.has(k)){ s.add(k); n++; }
+      });
+      crzChamadosGravar(s);
+      alert(n + ' marcação(ões) restaurada(s). Total agora: ' + s.size + '.');
+      crzRenderResultado();
+    }catch(err){ alert('Não consegui ler o backup: ' + (err.message || err)); }
+  };
+  fr.readAsArrayBuffer(file);
+  input.value = '';
 }
 
 function crzExportar(){
