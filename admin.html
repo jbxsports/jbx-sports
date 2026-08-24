@@ -862,6 +862,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <nav class="admin-nav">
         <button class="nav-btn active" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
         <button class="nav-btn" id="nav-inscritos" onclick="showInner('inscritos')">Inscritos</button>
+        <button class="nav-btn" id="nav-cruzar" onclick="showInner('cruzar')">Cruzamento</button>
         <button class="nav-btn" id="nav-planos" onclick="showInner('planos')">Plano de Evento</button>
         <button class="nav-btn" id="nav-cupons" onclick="showInner('cupons')">Cupons</button>
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
@@ -1833,7 +1834,8 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
- {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'}
+ {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'},
+ {id:'cruzar',label:'Cruzamento'}
 ];
 let admUser=null, admToken=null;
 function admTemAba(id){
@@ -1915,6 +1917,7 @@ function showInner(name){
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
   if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
+  if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
 }
 
@@ -6720,6 +6723,355 @@ async function usrSalvar(){
   }catch(e){alert('Erro: '+e.message);}
 }
 
+/* ══════════ CRUZAMENTO DE BASES ══════════ */
+/* Base A (quem chamar) menos Base B (quem já está lá).
+   Cada lado pode ser um evento do sistema ou uma planilha enviada. */
+
+const CRZ_MSG_PADRAO = 'Oi {primeiro}, tudo bem? Aqui é da JBX Sports 🙂\n\nVi que você está no {origem} e ainda não garantiu sua vaga no {destino}. Bora?';
+let crzInscritos = null;
+let crzFonte = { A: null, B: null };
+let crzResultado = [];
+let crzStats = null;
+
+function crzFonteVazia(){
+  return { tipo:'evento', evento:'', linhas:[], headers:[], map:{nome:'',cpf:'',telefone:'',email:''}, arquivo:'' };
+}
+
+/* ── normalizadores ── */
+function crzSoDigitos(v){ return String(v == null ? '' : v).replace(/\D/g, ''); }
+function crzCpf(v){
+  let d = crzSoDigitos(v);
+  if(!d) return '';
+  if(d.length > 11) d = d.slice(-11);
+  while(d.length < 11) d = '0' + d;   // Excel come zero à esquerda
+  return d;
+}
+function crzTelChave(v){
+  const d = crzSoDigitos(v);
+  if(d.length < 8) return '';
+  return d.slice(-8);                 // ignora DDI, DDD e o 9 extra
+}
+function crzEmailChave(v){ return String(v || '').trim().toLowerCase(); }
+
+function crzPessoa(nome, cpf, tel, email){
+  return {
+    nome: String(nome || '').trim(),
+    cpf: crzCpf(cpf),
+    telefone: String(tel == null ? '' : tel).trim(),
+    telKey: crzTelChave(tel),
+    email: crzEmailChave(email)
+  };
+}
+function crzChave(p, modo){
+  if(modo === 'cpf')      return p.cpf    ? 'c:' + p.cpf    : '';
+  if(modo === 'telefone') return p.telKey ? 't:' + p.telKey : '';
+  if(modo === 'email')    return p.email  ? 'e:' + p.email  : '';
+  return '';
+}
+function crzId(p){
+  return p.cpf ? 'c:' + p.cpf : (p.telKey ? 't:' + p.telKey : 'e:' + p.email);
+}
+
+/* ── marcados como "já chamei" (só neste navegador) ── */
+function crzChamadosLer(){
+  try { return new Set(JSON.parse(localStorage.getItem('jbx_crz_chamados') || '[]')); }
+  catch(e){ return new Set(); }
+}
+function crzChamadosGravar(s){
+  try { localStorage.setItem('jbx_crz_chamados', JSON.stringify(Array.from(s))); } catch(e){}
+}
+function crzToggleChamado(id, el){
+  const s = crzChamadosLer();
+  if(el.checked) s.add(id); else s.delete(id);
+  crzChamadosGravar(s);
+  const tr = el.closest('tr');
+  if(tr) tr.style.opacity = el.checked ? '.45' : '';
+  crzContador();
+}
+function crzLimparChamados(){
+  if(!confirm('Isto desmarca TODAS as pessoas já chamadas, de todos os cruzamentos. Continuar?')) return;
+  crzChamadosGravar(new Set());
+  crzRenderResultado();
+}
+
+/* ── init ── */
+function crzInit(){
+  if(!crzFonte.A){ crzFonte.A = crzFonteVazia(); crzFonte.B = crzFonteVazia(); }
+  const msg = document.getElementById('crz-msg');
+  if(msg && !msg.value){
+    let salvo = '';
+    try { salvo = localStorage.getItem('jbx_crz_msg') || ''; } catch(e){}
+    msg.value = salvo || CRZ_MSG_PADRAO;
+  }
+  crzGarantirInscritos().then(crzRenderFontes);
+}
+async function crzGarantirInscritos(){
+  if(crzInscritos) return crzInscritos;
+  crzInscritos = (await rpc('admin_inscritos_geral')) || [];
+  return crzInscritos;
+}
+function crzEventosDoSistema(){
+  const set = {};
+  (crzInscritos || []).forEach(i => { if(i.evento) set[i.evento] = true; });
+  return Object.keys(set).sort();
+}
+
+/* ── painéis das duas fontes ── */
+function crzEsc(t){
+  return String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+}
+function crzSetTipo(lado, tipo){ crzFonte[lado].tipo = tipo; crzRenderFontes(); }
+function crzSetEvento(lado, v){ crzFonte[lado].evento = v; crzResumoLado(lado); }
+function crzSetMap(lado, campo, v){ crzFonte[lado].map[campo] = v; }
+
+function crzAutoMap(hs){
+  const acha = function(){
+    const termos = Array.prototype.slice.call(arguments);
+    for(let t = 0; t < termos.length; t++){
+      for(let i = 0; i < hs.length; i++){
+        const n = String(hs[i]).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+        if(n.indexOf(termos[t]) > -1) return hs[i];
+      }
+    }
+    return '';
+  };
+  return {
+    nome:     acha('nome completo','nome do atleta','atleta','participante','nome'),
+    cpf:      acha('cpf','documento'),
+    telefone: acha('whatsapp','celular','telefone','fone'),
+    email:    acha('mail')
+  };
+}
+
+function crzArquivo(lado, input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const fr = new FileReader();
+  fr.onload = function(e){
+    try{
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const linhas = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
+      if(!linhas.length){ alert('A planilha está vazia ou o cabeçalho não foi reconhecido.'); return; }
+      const f = crzFonte[lado];
+      f.linhas = linhas;
+      f.headers = Object.keys(linhas[0]);
+      f.arquivo = file.name;
+      f.map = crzAutoMap(f.headers);
+      crzRenderFontes();
+    }catch(err){ alert('Não consegui ler a planilha: ' + (err.message || err)); }
+  };
+  fr.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+function crzPainel(lado, titulo, ajuda){
+  const f = crzFonte[lado];
+  const est = 'width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fff;';
+  let corpo = '';
+  if(f.tipo === 'evento'){
+    const evs = crzEventosDoSistema();
+    corpo = '<select onchange="crzSetEvento(\'' + lado + '\',this.value)" style="' + est + '">' +
+              '<option value="">— selecione o evento —</option>' +
+              evs.map(function(n){ return '<option value="' + crzEsc(n) + '"' + (f.evento === n ? ' selected' : '') + '>' + crzEsc(n) + '</option>'; }).join('') +
+            '</select>' +
+            (evs.length ? '' : '<div style="font-size:11px;color:#dc2626;margin-top:6px;">Nenhum inscrito carregado ainda.</div>');
+  } else {
+    const opts = function(campo){
+      return '<select onchange="crzSetMap(\'' + lado + '\',\'' + campo + '\',this.value)" style="' + est + '">' +
+        '<option value="">— não tem —</option>' +
+        f.headers.map(function(h){ return '<option value="' + crzEsc(h) + '"' + (f.map[campo] === h ? ' selected' : '') + '>' + crzEsc(h) + '</option>'; }).join('') +
+      '</select>';
+    };
+    corpo = '<button type="button" class="btn-upload" onclick="document.getElementById(\'crz-file-' + lado + '\').click()">📄 ' + (f.arquivo ? 'Trocar planilha' : 'Escolher planilha') + '</button>' +
+            '<input type="file" id="crz-file-' + lado + '" accept=".xlsx,.xls,.csv" style="display:none;" onchange="crzArquivo(\'' + lado + '\',this)">' +
+            (f.arquivo
+              ? '<div style="font-size:12px;color:#16a34a;margin-top:8px;">✓ ' + crzEsc(f.arquivo) + ' — ' + f.linhas.length + ' linhas</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">' +
+                  '<div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Coluna do nome</label>' + opts('nome') + '</div>' +
+                  '<div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Coluna do CPF</label>' + opts('cpf') + '</div>' +
+                  '<div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Coluna do telefone</label>' + opts('telefone') + '</div>' +
+                  '<div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:3px;">Coluna do e-mail</label>' + opts('email') + '</div>' +
+                '</div>'
+              : '<div style="font-size:11px;color:var(--muted);margin-top:8px;">Aceita .xlsx, .xls ou .csv. A primeira linha tem que ser o cabeçalho.</div>');
+  }
+  return '<div style="border:1px solid var(--border);border-radius:10px;padding:16px;flex:1;min-width:300px;">' +
+    '<div style="font-weight:700;font-size:14px;margin-bottom:2px;">' + titulo + '</div>' +
+    '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;">' + ajuda + '</div>' +
+    '<div style="display:flex;gap:14px;margin-bottom:12px;font-size:13px;">' +
+      '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="crz-tipo-' + lado + '"' + (f.tipo === 'evento' ? ' checked' : '') + ' onchange="crzSetTipo(\'' + lado + '\',\'evento\')"> Evento do sistema</label>' +
+      '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="crz-tipo-' + lado + '"' + (f.tipo === 'planilha' ? ' checked' : '') + ' onchange="crzSetTipo(\'' + lado + '\',\'planilha\')"> Planilha</label>' +
+    '</div>' + corpo +
+    '<div id="crz-resumo-' + lado + '" style="font-size:12px;color:var(--muted);margin-top:10px;"></div>' +
+  '</div>';
+}
+
+function crzRenderFontes(){
+  const el = document.getElementById('crz-fontes');
+  if(!el) return;
+  el.innerHTML =
+    crzPainel('A', 'Base A — quem eu quero chamar', 'A lista de onde saem os contatos.') +
+    crzPainel('B', 'Base B — quem já está inscrito', 'Quem estiver aqui é removido do resultado.');
+  crzResumoLado('A'); crzResumoLado('B');
+}
+async function crzResumoLado(lado){
+  const el = document.getElementById('crz-resumo-' + lado);
+  if(!el) return;
+  const p = await crzPessoas(lado);
+  el.textContent = p.length ? (p.length + ' pessoas nesta base') : '';
+}
+
+/* ── leitura das pessoas de cada lado ── */
+async function crzPessoas(lado){
+  const f = crzFonte[lado];
+  if(!f) return [];
+  if(f.tipo === 'evento'){
+    if(!f.evento) return [];
+    await crzGarantirInscritos();
+    return crzInscritos
+      .filter(function(i){ return String(i.evento || '') === f.evento; })
+      .filter(function(i){ return !/cancel/i.test(String(i.status || '')); })
+      .map(function(i){ return crzPessoa(i.nome, i.cpf, i.telefone, i.email); });
+  }
+  const m = f.map;
+  return f.linhas.map(function(l){
+    return crzPessoa(m.nome ? l[m.nome] : '', m.cpf ? l[m.cpf] : '', m.telefone ? l[m.telefone] : '', m.email ? l[m.email] : '');
+  });
+}
+
+/* ── comparação ── */
+async function crzComparar(){
+  const modo = document.getElementById('crz-chave').value;
+  const btn = document.getElementById('crz-btn-comparar');
+  btn.disabled = true; btn.textContent = 'Comparando…';
+  try{
+    const A = await crzPessoas('A');
+    const B = await crzPessoas('B');
+    if(!A.length){ alert('A Base A está vazia. Escolha o evento ou envie a planilha.'); return; }
+    if(!B.length){ alert('A Base B está vazia. Escolha o evento ou envie a planilha.'); return; }
+
+    const setB = {};
+    let semChaveB = 0;
+    B.forEach(function(p){ const k = crzChave(p, modo); if(k) setB[k] = true; else semChaveB++; });
+
+    const vistos = {};
+    crzResultado = [];
+    let semChaveA = 0, duplicados = 0;
+    A.forEach(function(p){
+      const k = crzChave(p, modo);
+      if(!k){ semChaveA++; return; }
+      if(setB[k]) return;
+      if(vistos[k]){ duplicados++; return; }
+      vistos[k] = true;
+      crzResultado.push(p);
+    });
+    crzStats = { a:A.length, b:B.length, semChaveA:semChaveA, semChaveB:semChaveB, duplicados:duplicados, modo:modo };
+    crzRenderResultado();
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 Comparar bases';
+  }
+}
+
+function crzRotulo(lado){
+  const f = crzFonte[lado];
+  if(!f) return 'nossos eventos';
+  if(f.tipo === 'evento') return f.evento || 'nossos eventos';
+  return (f.arquivo || '').replace(/\.(xlsx|xls|csv)$/i, '') || 'nossos eventos';
+}
+function crzWpp(p){
+  const num = wppNumero(p.telefone);
+  if(!num) return '<span style="font-size:11px;color:var(--muted);">sem telefone</span>';
+  const modelo = (document.getElementById('crz-msg') || {}).value || CRZ_MSG_PADRAO;
+  const texto = modelo
+    .split('{primeiro}').join((p.nome.split(' ')[0]) || 'atleta')
+    .split('{nome}').join(p.nome)
+    .split('{origem}').join(crzRotulo('A'))
+    .split('{destino}').join(crzRotulo('B'));
+  return '<a class="wpp-btn" href="https://wa.me/' + num + '?text=' + encodeURIComponent(texto) + '" target="_blank" rel="noopener">💬 Chamar</a>';
+}
+function crzSalvarMsg(){
+  try { localStorage.setItem('jbx_crz_msg', document.getElementById('crz-msg').value); } catch(e){}
+  crzRenderResultado();
+}
+function crzContador(){
+  const el = document.getElementById('crz-contador');
+  if(!el || !crzResultado.length) return;
+  const ch = crzChamadosLer();
+  let n = 0;
+  crzResultado.forEach(function(p){ if(ch.has(crzId(p))) n++; });
+  el.textContent = n + ' de ' + crzResultado.length + ' já chamados';
+}
+
+function crzRenderResultado(){
+  const box = document.getElementById('crz-resultado');
+  if(!box || !crzStats) return;
+  const s = crzStats;
+  const ch = crzChamadosLer();
+  const semTel = crzResultado.filter(function(p){ return !wppNumero(p.telefone); }).length;
+
+  let avisos = '';
+  if(s.semChaveA){
+    avisos += '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:10px;">' +
+      '⚠ ' + s.semChaveA + ' pessoa(s) da Base A estão sem ' + s.modo + ' e ficaram de fora — não dá para afirmar se estão ou não na Base B. Confira a coluna escolhida ou compare por outro campo.</div>';
+  }
+  if(s.semChaveB){
+    avisos += '<div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:10px;">' +
+      '⚠ ' + s.semChaveB + ' pessoa(s) da Base B estão sem ' + s.modo + '. Se alguma delas já estiver inscrita, pode aparecer na lista por engano.</div>';
+  }
+  if(semTel){
+    avisos += '<div style="background:#f8fafc;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:10px;">' +
+      semTel + ' pessoa(s) sem telefone utilizável — aparecem na lista, mas sem botão de WhatsApp.</div>';
+  }
+
+  const linhas = crzResultado.map(function(p, i){
+    const id = crzId(p);
+    const feito = ch.has(id);
+    return '<tr style="' + (feito ? 'opacity:.45;' : '') + '">' +
+      '<td style="text-align:center;"><input type="checkbox"' + (feito ? ' checked' : '') + ' onchange="crzToggleChamado(\'' + crzEsc(id) + '\',this)"></td>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td style="font-weight:600;">' + crzEsc(p.nome || '—') + '</td>' +
+      '<td>' + crzEsc(p.telefone || '—') + '</td>' +
+      '<td style="font-variant-numeric:tabular-nums;">' + crzEsc(p.cpf || '—') + '</td>' +
+      '<td>' + crzWpp(p) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  box.innerHTML =
+    '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;">' +
+      '<div style="background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;">' +
+        crzResultado.length + ' pessoa(s) para chamar' +
+      '</div>' +
+      '<div style="font-size:12px;color:var(--muted);">Base A: ' + s.a + ' · Base B: ' + s.b + ' · comparado por ' + s.modo +
+        (s.duplicados ? ' · ' + s.duplicados + ' duplicado(s) na A' : '') + '</div>' +
+      '<span id="crz-contador" style="font-size:12px;color:var(--muted);margin-left:auto;"></span>' +
+    '</div>' + avisos +
+    (crzResultado.length
+      ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">' +
+          '<button type="button" class="btn-upload" onclick="crzExportar()">📊 Exportar Excel</button>' +
+          '<button type="button" class="btn-upload" onclick="crzLimparChamados()">↺ Desmarcar todos</button>' +
+        '</div>' +
+        '<div style="overflow:auto;border:1px solid var(--border);border-radius:10px;">' +
+        '<table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+          '<thead><tr style="background:#f8fafc;text-align:left;">' +
+            '<th style="padding:9px;width:36px;">✓</th><th style="padding:9px;width:40px;">#</th>' +
+            '<th style="padding:9px;">Nome</th><th style="padding:9px;">Telefone</th>' +
+            '<th style="padding:9px;">CPF</th><th style="padding:9px;width:120px;">WhatsApp</th>' +
+          '</tr></thead><tbody>' + linhas + '</tbody>' +
+        '</table></div>'
+      : '<div style="padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:10px;">Todo mundo da Base A já está na Base B. Nada a chamar 🎉</div>');
+  crzContador();
+}
+
+function crzExportar(){
+  if(!crzResultado.length){ alert('Nada para exportar.'); return; }
+  const ch = crzChamadosLer();
+  const linhas = [['Nome','CPF','Telefone','E-mail','Já chamado']];
+  crzResultado.forEach(function(p){
+    linhas.push([p.nome, p.cpf, p.telefone, p.email, ch.has(crzId(p)) ? 'sim' : 'não']);
+  });
+  igExportarPlanilha(linhas, 'cruzamento');
+}
+
 /* ══════════ SOCIAL MEDIA — CALENDÁRIO MKT ══════════ */
 const MKT_PERFIS=[
  {id:'jbx',label:'@jbx.sports',sigla:'JBX'},
@@ -8082,6 +8434,32 @@ async function mktSalvarPat(){
       </div>
 
 <!-- TELA: USUÁRIOS -->
+      <div class="inner-screen" id="screen-cruzar">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;">Cruzamento de bases</h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:18px;max-width:760px;">
+          Mostra quem está na <strong>Base A</strong> e <strong>não está</strong> na Base B — para chamar um a um no WhatsApp.
+          Cada lado pode ser um evento do sistema ou uma planilha de outra plataforma (OTicket, por exemplo).
+          Inscrições canceladas são ignoradas.
+        </p>
+        <div id="crz-fontes" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;"></div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px;">
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Comparar as duas bases por</label>
+            <select id="crz-chave" style="border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;background:#fff;min-width:220px;">
+              <option value="cpf">CPF (mais confiável)</option>
+              <option value="telefone">Telefone</option>
+              <option value="email">E-mail</option>
+            </select>
+          </div>
+          <button type="button" id="crz-btn-comparar" class="btn-upload" onclick="crzComparar()" style="padding:11px 20px;">🔍 Comparar bases</button>
+        </div>
+        <div style="margin-bottom:18px;">
+          <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Mensagem do WhatsApp — atalhos: {primeiro} {nome} {origem} {destino}</label>
+          <textarea id="crz-msg" rows="3" onchange="crzSalvarMsg()" style="width:100%;max-width:760px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+        </div>
+        <div id="crz-resultado"></div>
+      </div>
+
       <div class="inner-screen" id="screen-usuarios">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
           <h1>Usuários do painel</h1>
