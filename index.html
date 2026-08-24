@@ -1549,6 +1549,10 @@ function ajustarStepProdutos() {
 }
 
 function openModal(eventoId, title, info) {
+  // rede de segurança: evento com inscrição externa nunca abre o modal do site
+  const evExterno = (window._eventos || []).find(e => String(e.id) === String(eventoId));
+  const urlExternaModal = linkExternoDe(evExterno);
+  if (urlExternaModal) { abrirLinkExterno(urlExternaModal); return; }
   eventoSemKit = false; // zera o modo "sem kit" do evento anterior; loadKitsEvento redefine
   currentEventoId = eventoId || "";
   currentEvento = title;
@@ -2535,6 +2539,55 @@ function renderPatrocinadores(lista) {
 const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
 
+// ── EVENTOS COM INSCRIÇÃO EXTERNA (OTicket) ─────────────────────────
+// Quando um evento está nesta lista, o clique no card (em qualquer ponto dele,
+// inclusive no botão) leva o atleta direto para o site parceiro. Ele NÃO vê a
+// página do evento nem o modal de inscrição do site da JBX.
+//
+// A chave é o nome do evento como está cadastrado no admin, já "limpo":
+// sem acento, minúsculo e com qualquer pontuação virando espaço.
+// Ex.: "TRAIL RUN | ARTESANO" → "trail run artesano"
+//
+// ⚠ "Treinão Trail Run | Artesano" NÃO entra aqui — continua com a inscrição
+//   normal no site (a comparação é pelo início do nome, então "treinão ..."
+//   nunca casa com "trail run artesano").
+const LINKS_EXTERNOS = {
+  'trail run artesano':        'https://oticketplay.com.br/event/jbx-sports-trail-run',
+  'travessia bonfim ribeirao': 'https://oticketplay.com.br/event/travessia-bonfim-ribeirao-2026'
+};
+
+// Opcional: trava pelo UUID do evento (tem prioridade sobre o nome).
+// Use se algum dia o nome mudar e você quiser garantir o redirecionamento.
+// Ex.: { 'a1b2c3d4-...': 'https://oticketplay.com.br/event/...' }
+const LINKS_EXTERNOS_POR_ID = {};
+
+// tira acento, deixa minúsculo e troca pontuação por espaço
+function normalizarNomeEvento(nome) {
+  return String(nome || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+// devolve a URL externa do evento, ou '' se a inscrição é no próprio site
+function linkExternoDe(ev) {
+  if (!ev) return '';
+  if (LINKS_EXTERNOS_POR_ID[String(ev.id)]) return LINKS_EXTERNOS_POR_ID[String(ev.id)];
+  if (ev.link_externo) return ev.link_externo; // se um dia vier do banco
+  const nome = normalizarNomeEvento(ev.nome);
+  for (const chave in LINKS_EXTERNOS) {
+    if (nome === chave || nome.startsWith(chave + ' ')) return LINKS_EXTERNOS[chave];
+  }
+  return '';
+}
+
+// manda o atleta para o site parceiro (mesma aba)
+function abrirLinkExterno(url) {
+  if (!url) return;
+  window.location.href = url;
+}
+
 const iconesEv = ['🏃','🌙','⛰️','🏙️','🚴','🏊','🎽','🏆'];
 const bgEv = [
   'linear-gradient(135deg,#1a0800,#2d1500)',
@@ -2569,6 +2622,11 @@ function partesData(dataStr) {
 }
 
 function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
+  // inscrição externa (OTicket): o clique sai do site em vez de abrir a página do evento
+  const urlExterna = linkExternoDe(ev);
+  const acaoClique = ev.status === 'open'
+    ? (urlExterna ? `abrirLinkExterno('${urlExterna}')` : `irParaEvento('${ev.id}')`)
+    : '';
   const statusMap = { open: 'badge-open', soon: 'badge-soon', closed: 'badge-sold' };
   const statusLabel = { open: 'Inscrições abertas', soon: 'Em breve', closed: 'Encerrado' };
   const dists = ev.distancias ? ev.distancias.split(',').map(d => d.trim()) : [];
@@ -2596,7 +2654,7 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
     : '';
 
   return `
-  <div class="event-card" onclick="${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}" style="${ev.status !== 'open' ? 'cursor:default;' : ''}">
+  <div class="event-card" onclick="${acaoClique}" style="${ev.status !== 'open' ? 'cursor:default;' : ''}">
     <div class="event-card-img" style="${imgStyle}">
       ${(bannerUrl || bannerMobileUrl) ? `<picture style="position:absolute;inset:0;width:100%;height:100%;z-index:0;">
         ${bannerMobileUrl ? `<source media="(max-width:768px)" srcset="${bannerMobileUrl}">` : ''}
@@ -2610,7 +2668,7 @@ function renderCard(ev, idx, bannerUrl, bannerMobileUrl) {
         <div class="event-name" style="margin-bottom:0;flex:1;">${ev.nome}</div>
         <button class="btn-inscricao ${ev.status === 'closed' ? 'disabled' : ''}"
           style="flex-shrink:0;${ev.status === 'open' ? '' : 'opacity:0.7;cursor:default;'}"
-          onclick="event.stopPropagation();${ev.status === 'open' ? `irParaEvento('${ev.id}')` : ''}">
+          onclick="event.stopPropagation();${acaoClique}">
           ${ev.status === 'open' ? 'Inscrições abertas' : ev.status === 'soon' ? 'Em breve' : 'Encerrado'}
         </button>
       </div>
@@ -2722,6 +2780,9 @@ async function abrirEventoPorId(id) {
   const eventos = window._eventos || [];
   const ev = eventos.find(e => String(e.id) === String(id));
   if (!ev) return; // lista ainda não carregou ou id inexistente
+  // inscrição externa: mesmo por link compartilhado (#evento/<id>), vai para o parceiro
+  const urlExternaEv = linkExternoDe(ev);
+  if (urlExternaEv) { abrirLinkExterno(urlExternaEv); return; }
   const bp = (window._bannersPagina || []).find(b => String(b.evento_id) === String(ev.id));
   const isMobPg = window.matchMedia('(max-width: 900px)').matches;
   let bannerPagina = null;
