@@ -836,6 +836,39 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .usr-abas-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#fbfaf8;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:13px;}
 .usr-abas-grid label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500;margin:0;}
 .usr-abas-grid input{width:15px;height:15px;accent-color:var(--orange);cursor:pointer;}
+
+/* ── REUNIÕES ── */
+.reu-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+.reu-search{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:9px 12px;min-width:260px;flex:1;max-width:380px;}
+.reu-search:focus{outline:none;border-color:var(--orange);}
+.reu-contador{font-size:12px;color:var(--muted);font-weight:600;}
+.reu-card{display:flex;gap:18px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:12px;transition:border-color .15s,box-shadow .15s;}
+.reu-card:hover{border-color:rgba(255,117,31,.45);box-shadow:0 4px 16px rgba(42,37,32,.06);}
+.reu-data-box{flex-shrink:0;width:64px;text-align:center;background:#f5f3f0;border:1px solid var(--border);border-radius:10px;padding:8px 4px;}
+.reu-dia{display:block;font-size:22px;font-weight:700;line-height:1;color:var(--orange);}
+.reu-mes{display:block;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text);margin-top:3px;}
+.reu-ano{display:block;font-size:10px;color:var(--muted);margin-top:2px;}
+.reu-body{flex:1;min-width:0;}
+.reu-tema{font-size:15px;font-weight:700;color:var(--text);margin-bottom:7px;line-height:1.3;}
+.reu-chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px;}
+.reu-chip{display:inline-block;font-size:11px;font-weight:600;color:var(--text);background:#f0ede8;border:1px solid rgba(42,37,32,.1);border-radius:20px;padding:3px 10px;}
+.reu-chip.vazio{color:var(--muted);font-weight:400;background:none;border-style:dashed;}
+.reu-obs{font-size:13px;color:var(--muted);line-height:1.5;white-space:pre-wrap;word-break:break-word;}
+.reu-sem-arq{font-size:11px;color:var(--muted);font-style:italic;}
+.reu-acoes{flex-shrink:0;display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+.reu-acoes .mkt-btn{text-align:center;text-decoration:none;display:block;}
+.reu-btn-pdf{background:rgba(255,117,31,.08);border-color:rgba(255,117,31,.4);color:var(--orange);}
+.reu-del:hover{border-color:#ef4444 !important;color:#ef4444 !important;}
+.reu-drop{width:100%;border:2px dashed rgba(42,37,32,.18);border-radius:10px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:6px;background:#f5f3f0;cursor:pointer;transition:border-color .2s;text-align:center;}
+.reu-drop:hover{border-color:var(--orange);}
+.reu-drop-nome{font-size:13px;font-weight:700;color:var(--text);word-break:break-all;}
+.reu-drop-hint{font-size:11px;color:var(--muted);}
+@media(max-width:760px){
+  .reu-card{flex-direction:column;gap:12px;}
+  .reu-data-box{width:auto;display:flex;gap:6px;align-items:baseline;justify-content:flex-start;padding:6px 12px;}
+  .reu-dia,.reu-mes,.reu-ano{display:inline;margin:0;}
+  .reu-acoes{flex-direction:row;flex-wrap:wrap;width:100%;}
+}
 </style>
 </head>
 <body>
@@ -871,6 +904,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-parceiros" onclick="showInner('parceiros')">Patrocinadores</button>
         <button class="nav-btn" id="nav-patseg" onclick="showInner('patseg')">Pat. Segmentos</button>
+        <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;" id="hd-usuario">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -1816,7 +1850,8 @@ let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
 const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
-  'admin_calendario_extra_listar','admin_calendario_extra_salvar'];
+  'admin_calendario_extra_listar','admin_calendario_extra_salvar',
+  'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -1835,7 +1870,7 @@ const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'},
- {id:'cruzar',label:'Cruzamento'}
+ {id:'cruzar',label:'Cruzamento'},{id:'reunioes',label:'Reuniões'}
 ];
 let admUser=null, admToken=null;
 function admTemAba(id){
@@ -1918,6 +1953,7 @@ function showInner(name){
   if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
   if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
+  if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
 }
 
@@ -8302,6 +8338,202 @@ async function mktSalvarPat(){
   }catch(e){alert('Erro ao salvar: '+e.message);}
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   REUNIÕES — atas em PDF (data, tema, participantes, observações)
+   ══════════════════════════════════════════════════════════════ */
+const REU_MESES = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+let reuLista = [];
+let reuAtual = null;
+let reuFiltro = '';
+
+function reuEsc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function reuNomes(txt){
+  return (txt||'').split(/[,;]/).map(s=>s.trim()).filter(Boolean);
+}
+
+function reuInit(){ reuListar(); }
+
+async function reuListar(){
+  const el = document.getElementById('reu-lista');
+  el.innerHTML = '<div class="empty-state">Carregando…</div>';
+  try{
+    reuLista = await rpc('admin_reunioes_listar') || [];
+    reuRender();
+  }catch(e){
+    el.innerHTML = '<div class="empty-state">Erro ao carregar: '+reuEsc(e.message)+'</div>';
+  }
+}
+
+function reuRender(){
+  const el = document.getElementById('reu-lista');
+  const q = (reuFiltro||'').trim().toLowerCase();
+  const lista = reuLista.filter(r => !q
+    || (r.tema||'').toLowerCase().includes(q)
+    || (r.participantes||'').toLowerCase().includes(q)
+    || (r.observacoes||'').toLowerCase().includes(q));
+
+  const cont = document.getElementById('reu-contador');
+  if(cont) cont.textContent = reuLista.length
+    ? (q ? lista.length+' de '+reuLista.length+' reuniões' : reuLista.length+(reuLista.length===1?' reunião':' reuniões'))
+    : '';
+
+  if(!lista.length){
+    el.innerHTML = '<div class="empty-state">'
+      + (reuLista.length ? 'Nenhuma reunião encontrada para essa busca.'
+                         : 'Nenhuma reunião cadastrada ainda. Clique em “＋ Nova reunião”.')
+      + '</div>';
+    return;
+  }
+
+  el.innerHTML = lista.map(r => {
+    const p = String(r.data||'').split('-');
+    const dia = p[2]||'--', mes = REU_MESES[(parseInt(p[1],10)||1)-1]||'', ano = p[0]||'';
+    const nomes = reuNomes(r.participantes);
+    const chips = nomes.length
+      ? nomes.map(n => '<span class="reu-chip">'+reuEsc(n)+'</span>').join('')
+      : '<span class="reu-chip vazio">sem participantes informados</span>';
+    const obs = r.observacoes ? '<div class="reu-obs">'+reuEsc(r.observacoes)+'</div>' : '';
+    const pdf = r.arquivo_url
+      ? '<a class="mkt-btn sm reu-btn-pdf" href="'+reuEsc(r.arquivo_url)+'" target="_blank" rel="noopener">📄 Abrir PDF</a>'
+      : '<span class="reu-sem-arq">sem arquivo</span>';
+    return ''
+      + '<div class="reu-card">'
+      +   '<div class="reu-data-box">'
+      +     '<span class="reu-dia">'+dia+'</span>'
+      +     '<span class="reu-mes">'+mes+'</span>'
+      +     '<span class="reu-ano">'+ano+'</span>'
+      +   '</div>'
+      +   '<div class="reu-body">'
+      +     '<div class="reu-tema">'+reuEsc(r.tema)+'</div>'
+      +     '<div class="reu-chips">'+chips+'</div>'
+      +     obs
+      +   '</div>'
+      +   '<div class="reu-acoes">'
+      +     pdf
+      +     '<button class="mkt-btn sm" onclick="reuAbrir(\''+r.id+'\')">Editar</button>'
+      +     '<button class="mkt-btn sm reu-del" onclick="reuExcluir(\''+r.id+'\')">Excluir</button>'
+      +   '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function reuAbrir(id){
+  reuAtual = id ? reuLista.find(r => r.id === id) : null;
+  const r = reuAtual;
+  document.getElementById('reu-title').textContent = r ? 'Editar reunião' : 'Nova reunião';
+  document.getElementById('reu-data').value          = r ? (r.data||'') : new Date().toISOString().split('T')[0];
+  document.getElementById('reu-tema').value          = r ? (r.tema||'') : '';
+  document.getElementById('reu-participantes').value = r ? (r.participantes||'') : '';
+  document.getElementById('reu-obs').value           = r ? (r.observacoes||'') : '';
+  document.getElementById('reu-arquivo-url').value   = r ? (r.arquivo_url||'') : '';
+  document.getElementById('reu-arquivo-nome').value  = r ? (r.arquivo_nome||'') : '';
+  document.getElementById('reu-status').textContent  = '';
+  document.getElementById('reu-file').value = '';
+  reuAtualizarLabelArquivo();
+  document.getElementById('reu-overlay').classList.add('open');
+}
+
+function reuFechar(){
+  document.getElementById('reu-overlay').classList.remove('open');
+  reuAtual = null;
+}
+
+function reuAtualizarLabelArquivo(){
+  const url = document.getElementById('reu-arquivo-url').value;
+  const nome = document.getElementById('reu-arquivo-nome').value;
+  const lbl = document.getElementById('reu-arquivo-label');
+  const btn = document.getElementById('reu-btn-remover');
+  if(url){
+    lbl.textContent = nome || 'Arquivo anexado';
+    btn.style.display = '';
+  }else{
+    lbl.textContent = 'Clique para escolher o PDF';
+    btn.style.display = 'none';
+  }
+}
+
+function reuRemoverArquivo(){
+  document.getElementById('reu-arquivo-url').value = '';
+  document.getElementById('reu-arquivo-nome').value = '';
+  document.getElementById('reu-file').value = '';
+  document.getElementById('reu-status').textContent = 'Arquivo removido. Salve para confirmar.';
+  document.getElementById('reu-status').style.color = 'var(--muted)';
+  reuAtualizarLabelArquivo();
+}
+
+async function reuUploadPdf(input){
+  const file = input.files[0];
+  if(!file) return;
+  const st = document.getElementById('reu-status');
+  const ehPdf = (file.type === 'application/pdf') || /\.pdf$/i.test(file.name);
+  if(!ehPdf){ st.textContent='Envie um arquivo PDF.'; st.style.color='#ff6b6b'; input.value=''; return; }
+  if(file.size > 20*1024*1024){ st.textContent='Máximo 20MB.'; st.style.color='#ff6b6b'; input.value=''; return; }
+
+  st.textContent = 'Enviando…'; st.style.color = 'var(--muted)';
+  const base = file.name.replace(/\.pdf$/i,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').toLowerCase().slice(0,50) || 'ata';
+  const nome = 'reuniao_' + Date.now() + '_' + base + '.pdf';
+  try{
+    const r = await fetch(`${SB_URL}/storage/v1/object/${STORAGE_BUCKET}/${nome}`, {
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/pdf','x-upsert':'true'},
+      body:file
+    });
+    if(!r.ok) throw new Error(await r.text());
+    document.getElementById('reu-arquivo-url').value  = `${SB_URL}/storage/v1/object/public/${STORAGE_BUCKET}/${nome}`;
+    document.getElementById('reu-arquivo-nome').value = file.name;
+    reuAtualizarLabelArquivo();
+    st.textContent = '✓ Enviado! Clique em Salvar reunião.'; st.style.color = '#22c55e';
+  }catch(e){
+    st.textContent = 'Erro no upload.'; st.style.color = '#ff6b6b'; console.error(e);
+  }
+  input.value = '';
+}
+
+async function reuSalvar(){
+  const data = document.getElementById('reu-data').value;
+  const tema = document.getElementById('reu-tema').value.trim();
+  const part = document.getElementById('reu-participantes').value.trim();
+  const obs  = document.getElementById('reu-obs').value.trim();
+  const url  = document.getElementById('reu-arquivo-url').value;
+  const anome= document.getElementById('reu-arquivo-nome').value;
+
+  if(!data){ alert('Informe a data da reunião.'); return; }
+  if(!tema){ alert('Informe o tema da reunião.'); return; }
+
+  const btn = document.getElementById('reu-btn-salvar');
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  try{
+    await rpc('admin_reuniao_salvar', { dados:{
+      id: reuAtual ? reuAtual.id : '',
+      data: data,
+      tema: tema,
+      participantes: part,
+      observacoes: obs,
+      arquivo_url: url,
+      arquivo_nome: anome,
+      criado_por: (admUser && admUser.nome) ? admUser.nome : ''
+    }});
+    reuFechar();
+    await reuListar();
+  }catch(e){
+    alert('Erro ao salvar: ' + e.message);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Salvar reunião';
+  }
+}
+
+async function reuExcluir(id){
+  const r = reuLista.find(x => x.id === id);
+  if(!confirm('Excluir a reunião "'+((r&&r.tema)||'')+'"?\nO PDF continua no Storage, mas o registro some do painel.')) return;
+  try{
+    await rpc('admin_reuniao_excluir', { p_id: id });
+    await reuListar();
+  }catch(e){ alert('Erro ao excluir: ' + e.message); }
+}
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
 <div class="modal-overlay2" id="confirmar-overlay" onclick="if(event.target===this)fecharConfirmarDialog()">
@@ -8749,6 +8981,60 @@ async function mktSalvarPat(){
         </div>
         <iframe id="patseg-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
       </div>
+      <!-- TELA: REUNIÕES -->
+      <div class="inner-screen" id="screen-reunioes">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <h1>Reuniões</h1>
+          <button class="mkt-btn primary" onclick="reuAbrir(null)">＋ Nova reunião</button>
+        </div>
+        <div class="reu-toolbar">
+          <input type="text" class="reu-search" id="reu-busca" placeholder="Buscar por tema, participante ou observação…"
+            oninput="reuFiltro=this.value;reuRender();">
+          <span class="reu-contador" id="reu-contador"></span>
+        </div>
+        <div id="reu-lista"><div class="empty-state">Carregando…</div></div>
+      </div>
+
+<!-- MODAL: REUNIÃO -->
+<div class="modal-overlay2" id="reu-overlay" onclick="if(event.target===this)reuFechar()">
+  <div class="mkt-modal" style="max-width:600px;">
+    <h3 id="reu-title">Nova reunião</h3>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Data da reunião *</label><input type="date" id="reu-data"></div>
+      <div class="mkt-fg"><label>Tema *</label><input type="text" id="reu-tema" placeholder="Ex.: Patrocínios — Trail Run e Beach Tennis"></div>
+    </div>
+    <div class="mkt-fg">
+      <label>Participantes <span style="text-transform:none;font-weight:400;">(separe por vírgula)</span></label>
+      <input type="text" id="reu-participantes" placeholder="Ex.: Stephano, Gui, Fernanda">
+    </div>
+    <div class="mkt-fg">
+      <label>Observações <span style="text-transform:none;font-weight:400;">(opcional)</span></label>
+      <textarea id="reu-obs" placeholder="Decisões, pendências, próximos passos…"></textarea>
+    </div>
+    <div class="mkt-fg">
+      <label>Arquivo da ata (PDF)</label>
+      <div class="reu-drop" onclick="document.getElementById('reu-file').click()">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted);">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="M9 15l3-3 3 3"/>
+        </svg>
+        <span class="reu-drop-nome" id="reu-arquivo-label">Clique para escolher o PDF</span>
+        <span class="reu-drop-hint">Somente PDF — máximo 20MB</span>
+      </div>
+      <input type="file" id="reu-file" accept="application/pdf,.pdf" style="display:none;" onchange="reuUploadPdf(this)">
+      <div class="upload-row" style="margin-top:8px;">
+        <button type="button" class="btn-upload" onclick="document.getElementById('reu-file').click()">📄 Escolher PDF</button>
+        <button type="button" class="btn-upload" id="reu-btn-remover" style="display:none;" onclick="reuRemoverArquivo()">✕ Remover</button>
+        <span id="reu-status" style="font-size:12px;color:var(--muted);"></span>
+      </div>
+      <input type="hidden" id="reu-arquivo-url">
+      <input type="hidden" id="reu-arquivo-nome">
+    </div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" onclick="reuFechar()">Cancelar</button>
+      <button class="mkt-btn primary" id="reu-btn-salvar" onclick="reuSalvar()">Salvar reunião</button>
+    </div>
+  </div>
+</div>
     </main>
   </div>
 </div>
