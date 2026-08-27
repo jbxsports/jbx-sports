@@ -455,6 +455,18 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .tz-count{font-size:11px;color:var(--muted);white-space:nowrap;}
   .tz-del-grupo{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);opacity:.5;padding:2px 4px;}
   .tz-del-grupo:hover{opacity:1;color:#dc2626;}
+  /* Reordenar cards */
+  .tz-grip{flex:none;cursor:grab;color:var(--muted);opacity:.4;font-size:14px;line-height:1;padding:2px 1px;user-select:none;-webkit-user-select:none;}
+  .tz-grip:hover{opacity:1;color:var(--orange);}
+  .tz-grip:active{cursor:grabbing;}
+  .tz-move{flex:none;background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);opacity:.45;padding:2px 3px;line-height:1;font-family:'Ubuntu',sans-serif;}
+  .tz-move:hover:not(:disabled){opacity:1;color:var(--orange);}
+  .tz-move:disabled{opacity:.12;cursor:default;}
+  .tz-card{transition:border-color .12s,box-shadow .12s,opacity .12s;}
+  .tz-card.tz-arrastando{opacity:.35;}
+  .tz-card.tz-alvo{border-color:var(--orange);box-shadow:0 0 0 2px rgba(255,117,31,.22);}
+  .tz-ordem-hint{font-size:11px;color:var(--muted);align-self:center;}
+  .tz-ordem-status{font-size:11px;font-weight:700;align-self:center;min-width:120px;}
   .tz-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed rgba(42,37,32,0.07);}
   .tz-item:last-of-type{border-bottom:none;}
   .tz-item input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;flex:none;}
@@ -6448,20 +6460,29 @@ function tzRender(){
   let html='<div class="tz-toolbar">';
   html+='<input id="tz-novo-grupo" class="tz-input" placeholder="Novo grupo (ex: 16/08 Aero Franca)" onkeydown="if(event.key===\'Enter\')tzAddGrupo()">';
   html+='<button class="tz-btn-add" onclick="tzAddGrupo()">＋ Grupo</button>';
+  html+='<span class="tz-ordem-hint">Arraste pelo ⠿ ou use ◀ ▶ para ordenar os cards.</span>';
+  html+='<span class="tz-ordem-status" id="tz-ordem-status"></span>';
   html+='</div>';
   if(!_tzData.length){
     html+='<div class="empty-state">Nenhum grupo de tarefas. Crie o primeiro acima.</div>';
     pane.innerHTML=html; return;
   }
   html+='<div class="tz-grid">';
-  const grupos=[..._tzData].sort((a,b)=>(a.ordem||0)-(b.ordem||0));
-  for(const g of grupos){
+  const grupos=tzOrdenados();
+  for(let gi=0; gi<grupos.length; gi++){
+    const g=grupos[gi];
     const tarefas=[...(g.tarefas||[])].sort((a,b)=>(a.concluida-b.concluida)||((a.ordem||0)-(b.ordem||0)));
     const feitas=tarefas.filter(t=>t.concluida).length;
-    html+='<div class="tz-card">';
+    html+='<div class="tz-card" data-gid="'+g.id+'"'
+       + ' ondragstart="tzDragStart(event,\''+g.id+'\')" ondragend="tzDragEnd(event)"'
+       + ' ondragover="tzDragOver(event,\''+g.id+'\')" ondragleave="tzDragLeave(event)"'
+       + ' ondrop="tzDrop(event,\''+g.id+'\')">';
     html+='<div class="tz-card-hd">';
+    html+='<span class="tz-grip" title="Arraste para reordenar" onmousedown="tzGripDown(\''+g.id+'\')" onmouseup="tzGripUp()">⠿</span>';
     html+='<h4 ondblclick="tzRenameGrupo(\''+g.id+'\')" title="Duplo clique para renomear">'+tzEsc(g.titulo)+'</h4>';
     html+='<span class="tz-count">'+feitas+'/'+tarefas.length+'</span>';
+    html+='<button class="tz-move" onclick="tzMover(\''+g.id+'\',-1)" title="Mover para tr\u00e1s"'+(gi===0?' disabled':'')+'>\u25c0</button>';
+    html+='<button class="tz-move" onclick="tzMover(\''+g.id+'\',1)" title="Mover para frente"'+(gi===grupos.length-1?' disabled':'')+'>\u25b6</button>';
     html+='<button class="tz-del-grupo" onclick="tzDelGrupo(\''+g.id+'\')" title="Excluir grupo">✕</button>';
     html+='</div>';
     for(const t of tarefas){
@@ -6484,6 +6505,101 @@ function tzRender(){
   }
   html+='</div>';
   pane.innerHTML=html;
+}
+
+/* ── Ordenação dos cards de tarefas (coluna "ordem" do grupo) ── */
+let _tzDragId=null;
+
+function tzOrdenados(){
+  return [..._tzData].sort((a,b)=>
+    ((a.ordem||0)-(b.ordem||0)) || String(a.titulo||'').localeCompare(String(b.titulo||''),'pt-BR'));
+}
+
+function tzOrdemStatus(msg,cor){
+  const el=document.getElementById('tz-ordem-status');
+  if(!el)return;
+  el.textContent=msg||'';
+  el.style.color=cor||'var(--muted)';
+}
+
+async function tzSalvarOrdem(lista){
+  const antes=_tzData.map(g=>({id:g.id,ordem:g.ordem}));
+  lista.forEach((g,i)=>{ g.ordem=i+1; });
+  tzRender();                       // aplica na tela na hora
+  tzOrdemStatus('Salvando ordem…');
+  try{
+    for(const g of lista){
+      await rpc('admin_tarefas_grupo_salvar',{p_id:g.id,p_titulo:g.titulo,p_ordem:g.ordem});
+    }
+    tzOrdemStatus('✓ Ordem salva','#22c55e');
+    setTimeout(()=>tzOrdemStatus(''),1800);
+  }catch(e){
+    console.error(e);
+    antes.forEach(a=>{ const g=_tzData.find(x=>x.id===a.id); if(g)g.ordem=a.ordem; });
+    tzRender();
+    tzOrdemStatus('Erro ao salvar a ordem.','#ff6b6b');
+  }
+}
+
+async function tzMover(gid,dir){
+  const lista=tzOrdenados();
+  const i=lista.findIndex(g=>g.id===gid);
+  const j=i+dir;
+  if(i<0||j<0||j>=lista.length)return;
+  const tmp=lista[i]; lista[i]=lista[j]; lista[j]=tmp;
+  await tzSalvarOrdem(lista);
+}
+
+async function tzReordenar(origemId,destinoId){
+  const lista=tzOrdenados();
+  const i=lista.findIndex(g=>g.id===origemId);
+  const j=lista.findIndex(g=>g.id===destinoId);
+  if(i<0||j<0||i===j)return;
+  const mov=lista.splice(i,1)[0];
+  lista.splice(j,0,mov);
+  await tzSalvarOrdem(lista);
+}
+
+/* o card só fica arrastável enquanto o ⠿ estiver pressionado —
+   assim os campos de texto do card continuam selecionáveis */
+function tzGripDown(gid){
+  const el=document.querySelector('.tz-card[data-gid="'+gid+'"]');
+  if(el) el.setAttribute('draggable','true');
+}
+function tzGripUp(){
+  document.querySelectorAll('.tz-card[draggable]').forEach(el=>el.removeAttribute('draggable'));
+}
+
+function tzDragStart(ev,gid){
+  _tzDragId=gid;
+  try{ ev.dataTransfer.effectAllowed='move'; ev.dataTransfer.setData('text/plain',gid); }catch(e){}
+  const el=ev.currentTarget;
+  setTimeout(()=>el.classList.add('tz-arrastando'),0);
+}
+function tzDragEnd(ev){
+  ev.currentTarget.classList.remove('tz-arrastando');
+  document.querySelectorAll('.tz-card.tz-alvo').forEach(c=>c.classList.remove('tz-alvo'));
+  tzGripUp();
+  _tzDragId=null;
+}
+function tzDragOver(ev,gid){
+  if(!_tzDragId||_tzDragId===gid)return;
+  ev.preventDefault();
+  try{ ev.dataTransfer.dropEffect='move'; }catch(e){}
+  ev.currentTarget.classList.add('tz-alvo');
+}
+function tzDragLeave(ev){
+  const para=ev.relatedTarget;
+  if(para&&ev.currentTarget.contains(para))return;
+  ev.currentTarget.classList.remove('tz-alvo');
+}
+async function tzDrop(ev,gid){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('tz-alvo');
+  const origem=_tzDragId;
+  _tzDragId=null; tzGripUp();
+  if(!origem||origem===gid)return;
+  await tzReordenar(origem,gid);
 }
 
 async function tzAddGrupo(){
