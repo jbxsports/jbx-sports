@@ -394,9 +394,16 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-month-count{font-size:11px;color:var(--muted);}
 
   /* Lista */
-  table.cal-lista{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  table.cal-lista th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 14px;border-bottom:1px solid var(--border);}
-  table.cal-lista td{padding:11px 14px;font-size:13.5px;color:#555;border-bottom:0.5px solid var(--border);}
+  table.cal-lista{width:100%;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--border);border-radius:12px;}
+  table.cal-lista th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:12px 14px;background:#fff;}
+  /* cabeçalho travado logo abaixo do menu enquanto a página rola */
+  .cal-tab-wrap{position:relative;}
+  .cal-tab-wrap table.cal-lista thead th{position:sticky;top:60px;z-index:6;box-shadow:inset 0 -1px 0 var(--border);}
+  .cal-tab-wrap table.cal-lista thead th:first-child{border-top-left-radius:12px;}
+  .cal-tab-wrap table.cal-lista thead th:last-child{border-top-right-radius:12px;}
+  table.cal-lista tbody tr:last-child td:first-child{border-bottom-left-radius:12px;}
+  table.cal-lista tbody tr:last-child td:last-child{border-bottom-right-radius:12px;}
+  table.cal-lista td{padding:11px 14px;font-size:13.5px;color:#555;border-bottom:1px solid var(--border);}
   table.cal-lista tbody tr:nth-child(even) td{background:#faf7f3;}
   table.cal-lista tr:last-child td{border-bottom:none;}
   table.cal-lista td.cal-col-evt{color:var(--text);font-weight:500;}
@@ -613,7 +620,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-semg-head .hd .dn{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
 .mkt-semg-head .hd .dd{font-size:16px;font-weight:700;color:var(--text);}
 .mkt-semg-head .hd.hoje .dd{color:var(--orange);}
-.mkt-semg-allday{display:grid;grid-template-columns:56px repeat(7,1fr);border-bottom:2px solid var(--border);min-height:36px;}
+.mkt-semg-allday{display:grid;grid-template-columns:56px repeat(7,1fr);border-bottom:2px solid var(--border);min-height:36px;position:sticky;top:106px;z-index:19;background:var(--card);}
 .mkt-semg-allday .lb{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px;}
 .mkt-semg-allday .ad-col{border-left:1px solid var(--border);padding:3px;cursor:pointer;}
 .mkt-semg-allday .ad-col .mkt-card{margin-bottom:3px;padding:4px 7px;}
@@ -649,7 +656,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 /* PIPELINE */
 .mkt-pipe{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;align-items:start;}
 .mkt-pipe-col{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px;min-height:240px;}
-.mkt-pipe-hd{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid #f0ede8;}
+.mkt-pipe-hd{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);margin:-10px -10px 12px;padding:10px 10px 9px;border-bottom:2px solid #f0ede8;position:sticky;top:60px;z-index:12;background:var(--card);border-radius:12px 12px 0 0;}
 .mkt-pipe-hd .st-dot{width:9px;height:9px;border-radius:50%;}
 .mkt-pipe-count{margin-left:auto;font-size:11px;background:#f0ede8;color:var(--muted);border-radius:10px;padding:1px 8px;}
 .mkt-pipe-data{font-size:10px;font-weight:700;color:var(--orange);margin-bottom:3px;}
@@ -6224,7 +6231,7 @@ function calBuildLista(){
       +'<td class="col-status">'+perSel+'</td>'
       +'</tr>';
   }).join('');
-  return '<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  return '<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 // ── Lista 100% editável (modo Supabase) ──
@@ -6297,7 +6304,7 @@ function calBuildListaDB(){
   }).join('');
   return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
     +'<button onclick="calAdicionarEvento()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Adicionar evento</button></div>'
-    +'<div style="overflow-x:auto;"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function _filtrarOrdenado(){ return [...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio)); }
 
@@ -6444,7 +6451,7 @@ function calBuildPrazos(){
   return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:12px;flex-wrap:wrap;">'
     +'<div style="font-size:11px;color:var(--muted);"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(220,38,38,.25);margin-right:4px;"></span>Atrasado&nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(255,117,31,.3);margin-right:4px;"></span>Próximos 7 dias&nbsp;&nbsp;<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:rgba(22,163,74,.25);margin-right:4px;"></span>Feito</div>'
     +'<button onclick="przAdicionarAssunto()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Assunto</button></div>'
-    +'<div style="overflow-x:auto;"><table class="cal-lista cal-prazos"><thead><tr><th>Evento</th>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="cal-tab-wrap"><table class="cal-lista cal-prazos"><thead><tr><th>Evento</th>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 function przRefresh(){ document.getElementById('cal-pane-prazos').innerHTML=calBuildPrazos(); }
@@ -7808,6 +7815,9 @@ function mktRenderSemana(){
   document.getElementById('mkt-conteudo').innerHTML=h;
   const body=document.getElementById('mkt-semg-body');
   if(body)body.scrollTop=Math.max(0,(7-MKT_H_INI)*MKT_PXH-8);
+  /* a faixa "Sem hora" trava logo abaixo do cabeçalho dos dias, seja qual for a altura dele */
+  const cab=document.querySelector('.mkt-semg-head'), allday=document.querySelector('.mkt-semg-allday');
+  if(cab&&allday)allday.style.top=(60+cab.offsetHeight)+'px';
 }
 /* ── DRAG & DROP (semana + mês) ── */
 let mktDragId=null;
