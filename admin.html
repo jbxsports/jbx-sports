@@ -6038,53 +6038,45 @@ async function calExcluirEvento(id){
 }
 
 const CAL_FERIADOS = [
-  /* 2026 — nacionais conferidos na ANBIMA; municipais/estaduais seguem a mesma lista de 2027 */
+  /* Só o que é feriado em RIBEIRÃO PRETO e SERTÃOZINHO:
+     nacionais + estadual de SP + os dois municipais de cada cidade.
+     Municipais: RP → 20/01 São Sebastião e 19/06 aniversário;
+                 Sertãozinho → 05/12 aniversário. */
+  /* ── 2026 ── */
   { data:"2026-01-01", nome:"Confraternização Universal" },
-  { data:"2026-01-20", nome:"São Sebastião · RP" },
+  { data:"2026-01-20", nome:"São Sebastião · Ribeirão Preto" },
   { data:"2026-02-16", nome:"Carnaval" },
   { data:"2026-02-17", nome:"Carnaval" },
-  { data:"2026-03-19", nome:"Aniversário SJRP" },
   { data:"2026-04-03", nome:"Sexta-feira Santa" },
   { data:"2026-04-21", nome:"Tiradentes" },
   { data:"2026-05-01", nome:"Dia do Trabalho" },
   { data:"2026-06-04", nome:"Corpus Christi" },
-  { data:"2026-06-19", nome:"Aniversário de RP" },
-  { data:"2026-07-09", nome:"Revolução Const." },
-  { data:"2026-08-01", nome:"Aniversário de Bauru" },
-  { data:"2026-08-15", nome:"N. Sra. da Abadia · Uberlândia" },
-  { data:"2026-08-31", nome:"Aniversário de Uberlândia" },
+  { data:"2026-06-19", nome:"Aniversário de Ribeirão Preto" },
+  { data:"2026-07-09", nome:"Revolução Constitucionalista · SP" },
   { data:"2026-09-07", nome:"Independência" },
   { data:"2026-10-12", nome:"N. Sra. Aparecida" },
   { data:"2026-11-02", nome:"Finados" },
   { data:"2026-11-15", nome:"Proclamação da República" },
   { data:"2026-11-20", nome:"Consciência Negra" },
-  { data:"2026-11-28", nome:"Aniversário de Franca" },
   { data:"2026-12-05", nome:"Aniversário de Sertãozinho" },
-  { data:"2026-12-08", nome:"N. Sra. da Conceição" },
   { data:"2026-12-25", nome:"Natal" },
-  /* 2027 */
+  /* ── 2027 ── */
   { data:"2027-01-01", nome:"Confraternização Universal" },
-  { data:"2027-01-20", nome:"São Sebastião · RP" },
+  { data:"2027-01-20", nome:"São Sebastião · Ribeirão Preto" },
   { data:"2027-02-08", nome:"Carnaval" },
   { data:"2027-02-09", nome:"Carnaval" },
-  { data:"2027-03-19", nome:"Aniversário SJRP" },
   { data:"2027-03-26", nome:"Sexta-feira Santa" },
   { data:"2027-04-21", nome:"Tiradentes" },
   { data:"2027-05-01", nome:"Dia do Trabalho" },
   { data:"2027-05-27", nome:"Corpus Christi" },
-  { data:"2027-06-19", nome:"Aniversário de RP" },
-  { data:"2027-07-09", nome:"Revolução Const." },
-  { data:"2027-08-01", nome:"Aniversário de Bauru" },
-  { data:"2027-08-15", nome:"N. Sra. da Abadia · Uberlândia" },
-  { data:"2027-08-31", nome:"Aniversário de Uberlândia" },
+  { data:"2027-06-19", nome:"Aniversário de Ribeirão Preto" },
+  { data:"2027-07-09", nome:"Revolução Constitucionalista · SP" },
   { data:"2027-09-07", nome:"Independência" },
   { data:"2027-10-12", nome:"N. Sra. Aparecida" },
   { data:"2027-11-02", nome:"Finados" },
   { data:"2027-11-15", nome:"Proclamação da República" },
   { data:"2027-11-20", nome:"Consciência Negra" },
-  { data:"2027-11-28", nome:"Aniversário de Franca" },
   { data:"2027-12-05", nome:"Aniversário de Sertãozinho" },
-  { data:"2027-12-08", nome:"N. Sra. da Conceição" },
   { data:"2027-12-25", nome:"Natal" },
 ];
 
@@ -9008,7 +9000,7 @@ async function reuExcluir(id){
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
         </div>
         <div style="margin-top:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:12px;">
-          Feriados municipais: São Sebastião e Aniversário (RP); Aniversário/São José (SJRP); N. Sra. Conceição (Campinas); N. Sra. Abadia e Aniversário (Uberlândia); Aniversário (Sertãozinho, Franca, Bauru). Estadual: Revolução Constitucionalista — SP (9/jul).
+          Feriados municipais: São Sebastião (20/jan) e Aniversário (19/jun) — Ribeirão Preto; Aniversário (5/dez) — Sertãozinho. Estadual: Revolução Constitucionalista — SP (9/jul). Os demais são nacionais.
         </div>
       </div>
 
