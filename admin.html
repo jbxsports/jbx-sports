@@ -881,6 +881,28 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .reu-dia,.reu-mes,.reu-ano{display:inline;margin:0;}
   .reu-acoes{flex-direction:row;flex-wrap:wrap;width:100%;}
 }
+
+/* ── CANAIS DE COMUNICAÇÃO (Social Media) ── */
+.mkt-cico{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:4px;color:#fff;flex:none;vertical-align:-3px;}
+.mkt-cico svg{width:10px;height:10px;fill:currentColor;}
+.mkt-cico.g{width:17px;height:17px;border-radius:5px;}
+.mkt-cico.g svg{width:11px;height:11px;}
+.mkt-pill .mkt-cico{background:rgba(0,0,0,.28)!important;}
+.mkt-ok{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#16a34a;color:#fff;font-size:9px;font-weight:700;line-height:1;flex:none;border:1.5px solid rgba(255,255,255,.85);font-family:'Ubuntu',sans-serif;}
+.mkt-ok.escuro{border-color:rgba(22,163,74,.25);}
+.mkt-leg-canais{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#f3f1ee;border:1px solid var(--border);border-radius:9px;padding:6px 11px;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
+.mkt-leg-canais b{color:var(--text);font-weight:700;}
+.mkt-leg-canais .it{display:flex;align-items:center;gap:5px;cursor:pointer;padding:1px 3px;border-radius:5px;}
+.mkt-leg-canais .it:hover{color:var(--text);}
+.mkt-leg-canais .it.on{color:var(--text);font-weight:700;background:rgba(255,117,31,.12);}
+.mkt-card-canal{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.mkt-pill{padding-left:3px;gap:3px;}
+.mkt-semg-card .t{display:flex;align-items:flex-start;gap:3px;}
+.mkt-semg-card .t>span{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.mkt-semg-card .t .mkt-cico{width:13px;height:13px;border-radius:3px;margin-top:1px;}
+.mkt-semg-card .t .mkt-cico svg{width:9px;height:9px;}
+.mkt-semg-card .t .mkt-ok{width:12px;height:12px;font-size:8px;margin-top:1px;}
+.mkt-card-titulo .mkt-cico{margin-right:2px;}
 </style>
 </head>
 <body>
@@ -7287,7 +7309,33 @@ const MKT_STATUS=[
  {id:'aprovado',label:'Aprovado',cor:'#16a34a'},
  {id:'postado',label:'Postado',cor:'#6b7280'}
 ];
-const MKT_FORMATOS={story:'📱 Story',post:'🖼️ Post',carrossel:'🧩 Carrossel',reel:'🎬 Reel'};
+const MKT_FORMATOS={
+ story:'📱 Story',post:'🖼️ Post',carrossel:'🧩 Carrossel',reel:'🎬 Reel',
+ disparo:'✉️ Disparo',newsletter:'📰 Newsletter',
+ mensagem:'💬 Mensagem',arte_texto:'🖼️ Arte + texto',
+ abordagem:'🤝 Abordagem',followup:'🔁 Follow-up',
+ panfleto:'📄 Panfleto',cartaz:'🖼️ Cartaz',banner:'🏳️ Banner'};
+/* ── CANAIS DE COMUNICAÇÃO ──
+   'instagram' é o padrão: todo conteúdo antigo nasce como Instagram. */
+const MKT_CANAIS=[
+ {id:'instagram',label:'Instagram',cor:'#d62976',svg:'<path d="M12 2c2.7 0 3.1 0 4.1.06 1 .05 1.7.2 2.3.44.6.24 1.1.55 1.6 1.05.5.5.81 1 1.05 1.6.24.6.39 1.3.44 2.3.05 1 .06 1.4.06 4.1s0 3.1-.06 4.1c-.05 1-.2 1.7-.44 2.3a4.4 4.4 0 0 1-1.05 1.6c-.5.5-1 .81-1.6 1.05-.6.24-1.3.39-2.3.44-1 .05-1.4.06-4.1.06s-3.1 0-4.1-.06c-1-.05-1.7-.2-2.3-.44a4.4 4.4 0 0 1-1.6-1.05 4.4 4.4 0 0 1-1.05-1.6c-.24-.6-.39-1.3-.44-2.3C2.01 15.1 2 14.7 2 12s0-3.1.06-4.1c.05-1 .2-1.7.44-2.3.24-.6.55-1.1 1.05-1.6.5-.5 1-.81 1.6-1.05.6-.24 1.3-.39 2.3-.44C8.9 2.01 9.3 2 12 2Zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 8.2a3.2 3.2 0 1 1 0-6.4 3.2 3.2 0 0 1 0 6.4Zm5.3-8.4a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z"/>'},
+ {id:'influenciadores',label:'Influenciadores',cor:'#7c3aed',svg:'<path d="M18 3 8 8H4a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h1.2l2 5h2.4l-2-5L18 21V3Zm2.6 6.1a3.2 3.2 0 0 1 0 5.8V9.1Z"/>'},
+ {id:'email',label:'E-mail MKT',cor:'#2563eb',svg:'<path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm9 8.1L4.3 7.2v10.3h15.4V7.2L12 13.1Zm0-2L19.2 6H4.8L12 11.1Z"/>'},
+ {id:'wpp_grupo',label:'Grupo WhatsApp',cor:'#128c7e',svg:'<path d="M9 11a3.2 3.2 0 1 0 0-6.4A3.2 3.2 0 0 0 9 11Zm7.5.2a2.7 2.7 0 1 0 0-5.4 2.7 2.7 0 0 0 0 5.4ZM9 12.6c-2.7 0-8 1.35-8 4.05V20h16v-3.35c0-2.7-5.3-4.05-8-4.05Zm7.5.4c-.6 0-1.3.06-2 .18 1.4.95 2.3 2.2 2.3 3.47V20H23v-2.9c0-2.35-4.2-3.5-6.5-3.5Z"/>'},
+ {id:'wpp_individual',label:'WhatsApp individual',cor:'#25d366',svg:'<path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.1-1.33A10 10 0 1 0 12 2Zm5.5 14.1c-.24.66-1.4 1.28-1.93 1.32-.5.05-.97.23-3.27-.68-2.75-1.08-4.5-3.86-4.63-4.04-.14-.18-1.1-1.46-1.1-2.8 0-1.32.7-1.97.94-2.24a1 1 0 0 1 .72-.34h.52c.17 0 .4-.06.62.47.24.57.8 1.98.87 2.12.07.14.11.3.02.48-.09.18-.14.3-.27.46l-.4.47c-.13.13-.27.28-.12.55.15.27.67 1.1 1.44 1.79 1 .88 1.83 1.16 2.1 1.3.26.13.42.11.57-.07.15-.18.66-.77.84-1.04.17-.27.35-.22.58-.13.24.09 1.5.71 1.76.84.26.13.43.2.5.31.06.11.06.65-.18 1.31Z"/>'},
+ {id:'panfletagem',label:'Panfletagem',cor:'#b45309',svg:'<path d="M6 2h9l5 5v15H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8.5 1.8V8H19l-4.5-4.2ZM8 11h8v1.7H8V11Zm0 3.4h8v1.7H8v-1.7Zm0 3.4h5.5v1.7H8v-1.7Z"/>'}
+];
+/* canais que publicam em perfil do Instagram — mantêm os @ de destino */
+const MKT_CANAIS_COM_PERFIL=['instagram','influenciadores'];
+/* formatos que fazem sentido em cada canal */
+const MKT_FORMATOS_CANAL={
+ instagram:['story','post','carrossel','reel'],
+ influenciadores:['story','post','carrossel','reel'],
+ email:['disparo','newsletter'],
+ wpp_grupo:['mensagem','arte_texto'],
+ wpp_individual:['abordagem','followup'],
+ panfletagem:['panfleto','cartaz','banner']
+};
 const MKT_CORES=['#e0403c','#e07b00','#c9a227','#2e9e44','#0e9f9f','#2f6fe0','#7b4fe0','#d0479e','#7a5c3e','#54606e'];
 const MKT_OBRIG=[
  {t:'Save the Date',d:-90},{t:'Abertura de inscrições',d:-75},{t:'Virada de Lote 1',d:-45},
@@ -7298,7 +7346,7 @@ const MKT_DIAS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const MKT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
-let mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
+let mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:''};
 let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
 let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
 let mktPerfisEvSel=['jbx'];
@@ -7319,6 +7367,17 @@ async function mktRecarregar(){
   try{
     const d=await rpc('mkt_dados');
     mktData={eventos:d.eventos||[],pats:d.patrocinadores||[],posts:d.posts||[]};
+    /* o canal pode vir do próprio mkt_dados; se não vier, busca à parte */
+    if(mktData.posts.some(p=>!p.canal)){
+      try{
+        const cs=await rpc('mkt_posts_canais');
+        const mapa={}; (cs||[]).forEach(x=>{mapa[x.id]=x.canal;});
+        mktData.posts.forEach(p=>{ if(!p.canal) p.canal=mapa[p.id]||'instagram'; });
+      }catch(e){
+        mktData.posts.forEach(p=>{ if(!p.canal) p.canal='instagram'; });
+        console.warn('mkt_posts_canais indisponível — rode canais.sql no Supabase.');
+      }
+    }
     try{
       const pp=await rpc('mkt_perfis_padrao');
       mktPerfisPadrao={eventos:{},pats:{}};
@@ -7406,7 +7465,7 @@ function mktXlsContar(){
 function mktBaixarXls(){
   const posts=mktXlsFiltrar();
   if(!posts.length){alert('Nenhum conteúdo com esses filtros.');return;}
-  const linhas=[['Data','Hora','Título','Tipo','Formato','Evento','Patrocinador','Instagram','Status','Qtd. artes','Link(s) da arte','Briefing']];
+  const linhas=[['Data','Hora','Título','Canal','Tipo','Formato','Evento','Patrocinador','Instagram','Status','Qtd. artes','Link(s) da arte','Briefing']];
   posts.forEach(p=>{
     const ev=mktEv(p.evento_id), pat=mktPat(p.patrocinador_id);
     const perfisLbl=(p.perfis||'').split(',').filter(Boolean)
@@ -7416,6 +7475,7 @@ function mktBaixarXls(){
       p.data_post?p.data_post.split('-').reverse().join('/'):'',
       p.hora?String(p.hora).slice(0,5):'',
       p.titulo||'',
+      mktCanalInfo(mktCanalDe(p)).label,
       MKT_TIPOS_LABEL[p.tipo]||p.tipo||'',
       (MKT_FORMATOS[p.formato]||p.formato||'').replace(/^[^ ]+ /,''),
       ev?ev.nome:'',
@@ -7429,7 +7489,7 @@ function mktBaixarXls(){
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(linhas);
-  ws['!cols']=[{wch:10},{wch:6},{wch:38},{wch:13},{wch:11},{wch:22},{wch:20},{wch:28},{wch:20},{wch:9},{wch:45},{wch:50}];
+  ws['!cols']=[{wch:10},{wch:6},{wch:38},{wch:19},{wch:13},{wch:11},{wch:22},{wch:20},{wch:28},{wch:20},{wch:9},{wch:45},{wch:50}];
   XLSX.utils.book_append_sheet(wb,ws,'Conteúdos');
   const evId=document.getElementById('mx-evento').value;
   const evNome=evId&&mktEv(evId)?mktEv(evId).nome.toLowerCase().replace(/[^a-z0-9]+/g,'_'):'todos';
@@ -7438,6 +7498,19 @@ function mktBaixarXls(){
 }
 function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
 function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
+/* ── canal ── */
+function mktCanalDe(p){return (p&&p.canal)||'instagram';}
+function mktCanalInfo(id){return MKT_CANAIS.find(c=>c.id===id)||MKT_CANAIS[0];}
+function mktUsaPerfil(canalId){return MKT_CANAIS_COM_PERFIL.indexOf(canalId)!==-1;}
+function mktCanalIco(canalId,cls){
+  const c=mktCanalInfo(canalId);
+  return '<span class="mkt-cico'+(cls?' '+cls:'')+'" style="background:'+c.cor+';" title="'+c.label+'"><svg viewBox="0 0 24 24">'+c.svg+'</svg></span>';
+}
+/* selo de aprovação: só aparece quando a arte já está aprovada */
+function mktOkHtml(status,cls){
+  if(status!=='aprovado'&&status!=='postado')return '';
+  return '<span class="mkt-ok'+(cls?' '+cls:'')+'" title="Arte aprovada">✓</span>';
+}
 function mktArtes(p){return (p&&p.arte_url?String(p.arte_url).split('|'):[]).filter(Boolean);}
 function mktArteCapa(p){const a=mktArtes(p);return a.length?a[0]:null;}
 
@@ -7481,6 +7554,7 @@ function mktAbrirFeed(pid){
   const pf=MKT_PERFIS.find(x=>x.id===pid);
   if(!pf||!mktData)return;
   const posts=(mktData.posts||[])
+    .filter(p=>mktCanalDe(p)==='instagram')
     .filter(p=>p.formato==='post'||p.formato==='carrossel'||p.formato==='reel')
     .filter(p=>(p.perfis||'').split(',').includes(pid))
     .filter(p=>p.data_post)
@@ -7514,6 +7588,10 @@ function mktMontarFiltros(){
   let h2='<option value="">Todos os patrocinadores</option>';
   mktData.pats.forEach(p=>{const e=mktEv(p.evento_id);h2+='<option value="'+p.id+'">'+p.nome+(e?' ('+e.nome+')':'')+'</option>';});
   fp.innerHTML=h2; fp.value=mktFiltro.pat;
+  const fc=document.getElementById('mkt-f-canal');
+  let hc='<option value="">Todos os canais</option>';
+  MKT_CANAIS.forEach(c=>{hc+='<option value="'+c.id+'">'+c.label+'</option>';});
+  fc.innerHTML=hc; fc.value=mktFiltro.canal;
   const fpe=document.getElementById('mkt-f-perfil');
   let h3='<option value="">Todos os perfis</option>';
   MKT_PERFIS.forEach(p=>{h3+='<option value="'+p.id+'">'+p.label+'</option>';});
@@ -7526,14 +7604,15 @@ function mktMontarFiltros(){
 function mktFiltroChange(){
   mktFiltro.evento=document.getElementById('mkt-f-evento').value;
   mktFiltro.pat=document.getElementById('mkt-f-pat').value;
+  mktFiltro.canal=document.getElementById('mkt-f-canal').value;
   mktFiltro.perfil=document.getElementById('mkt-f-perfil').value;
   mktFiltro.tipo=document.getElementById('mkt-f-tipo').value;
   mktFiltro.status=document.getElementById('mkt-f-status').value;
   mktRender();
 }
 function mktLimparFiltros(){
-  mktFiltro={evento:'',pat:'',perfil:'',tipo:'',status:''};
-  ['mkt-f-evento','mkt-f-pat','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
+  mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:''};
+  ['mkt-f-evento','mkt-f-pat','mkt-f-canal','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
   mktRender();
 }
 function mktFiltraPorEvento(id){
@@ -7545,6 +7624,7 @@ function mktPostsFiltrados(){
   return (mktData.posts||[]).filter(p=>{
     if(mktFiltro.evento&&p.evento_id!==mktFiltro.evento)return false;
     if(mktFiltro.pat&&p.patrocinador_id!==mktFiltro.pat)return false;
+    if(mktFiltro.canal&&mktCanalDe(p)!==mktFiltro.canal)return false;
     if(mktFiltro.perfil&&!(p.perfis||'').split(',').includes(mktFiltro.perfil))return false;
     if(mktFiltro.tipo&&p.tipo!==mktFiltro.tipo)return false;
     if(mktFiltro.status&&p.status!==mktFiltro.status)return false;
@@ -7586,6 +7666,26 @@ function mktRenderLegenda(){
       +'<span onclick="event.stopPropagation();mktAbrirEvento(\''+e.id+'\')" title="Editar / excluir evento" style="margin-left:2px;padding:2px 6px;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--muted);background:var(--card);">✎</span></div>';
   });
   el.innerHTML=h;
+  mktRenderLegendaCanais();
+}
+function mktRenderLegendaCanais(){
+  const el=document.getElementById('mkt-leg-canais');
+  if(!el)return;
+  const usados={};
+  (mktData.posts||[]).forEach(p=>{usados[mktCanalDe(p)]=(usados[mktCanalDe(p)]||0)+1;});
+  let h='<b>Canais:</b>';
+  MKT_CANAIS.forEach(c=>{
+    const n=usados[c.id]||0;
+    h+='<span class="it'+(mktFiltro.canal===c.id?' on':'')+'" onclick="mktFiltraPorCanal(\''+c.id+'\')" title="Clique para filtrar">'
+      +mktCanalIco(c.id)+c.label+(n?' <span style="opacity:.65;">('+n+')</span>':'')+'</span>';
+  });
+  h+='<span style="margin-left:auto;display:flex;align-items:center;gap:5px;"><span class="mkt-ok escuro">✓</span> arte aprovada</span>';
+  el.innerHTML=h;
+}
+function mktFiltraPorCanal(id){
+  mktFiltro.canal=(mktFiltro.canal===id)?'':id;
+  const el=document.getElementById('mkt-f-canal'); if(el)el.value=mktFiltro.canal;
+  mktRender();
 }
 
 function mktBadgesHtml(p){
@@ -7593,10 +7693,12 @@ function mktBadgesHtml(p){
   if(p.tipo==='patrocinador'){const pa=mktPat(p.patrocinador_id);h+='<span class="mkt-tag pat"'+(pa?' style="cursor:pointer;" title="Editar patrocinador / adicionar conteúdos" onclick="event.stopPropagation();mktAbrirPat(\''+pa.id+'\')"':'')+'>★ '+(pa?pa.nome:'Patroc.')+'</span>';}
   else if(p.tipo==='obrigatorio'){h+='<span class="mkt-tag obrig">Obrigatório</span>';}
   else{h+='<span class="mkt-tag outro">Outro</span>';}
-  (p.perfis||'').split(',').forEach(pid=>{
-    const pf=MKT_PERFIS.find(x=>x.id===pid);
-    if(pf)h+='<span class="mkt-perfil-sigla" title="'+pf.label+'">'+pf.sigla+'</span>';
-  });
+  if(mktUsaPerfil(mktCanalDe(p))){
+    (p.perfis||'').split(',').forEach(pid=>{
+      const pf=MKT_PERFIS.find(x=>x.id===pid);
+      if(pf)h+='<span class="mkt-perfil-sigla" title="'+pf.label+'">'+pf.sigla+'</span>';
+    });
+  }
   return h;
 }
 function mktCardHtml(p,comData,drag){
@@ -7607,8 +7709,8 @@ function mktCardHtml(p,comData,drag){
   if(capaTh)h+='<img class="mkt-thumb" src="'+capaTh+'" loading="lazy">';
   if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
   h+='<div class="mkt-card-top">'+mktBadgesHtml(p)+'</div>';
-  h+='<div class="mkt-card-titulo">'+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
-  h+='<div class="mkt-card-foot"><div class="mkt-card-status"><span class="st-dot" style="background:'+st.cor+'"></span>'+st.label+'</div>';
+  h+='<div class="mkt-card-titulo">'+mktCanalIco(mktCanalDe(p))+' '+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
+  h+='<div class="mkt-card-foot"><div class="mkt-card-status" style="color:'+st.cor+';">'+mktOkHtml(p.status,'escuro')+st.label+'</div>';
   if(!comData&&p.hora)h+='<div class="mkt-card-hora">'+p.hora.slice(0,5)+'</div>';
   h+='</div></div>';
   return h;
@@ -7634,9 +7736,9 @@ function mktRenderMes(){
     h+='<div class="mkt-dia-num">'+cur.getDate()+'</div>';
     const dp=(porDia[iso]||[]).slice().sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
     dp.forEach(p=>{
-      const st=mktStInfo(p.status);
-      h+='<div class="mkt-pill" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo+'">'
-        +'<span class="st-dot" style="background:'+st.cor+'"></span><span>'+p.titulo+'</span></div>';
+      const cn=mktCanalInfo(mktCanalDe(p)), stp=mktStInfo(p.status);
+      h+='<div class="mkt-pill" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+stp.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
+        +mktCanalIco(cn.id)+mktOkHtml(p.status)+'<span>'+p.titulo+'</span></div>';
     });
     h+='</div>';
     cur.setDate(cur.getDate()+1);
@@ -7694,11 +7796,11 @@ function mktRenderSemana(){
       const min=mktHoraMin(p.hora);
       if(min<MKT_H_INI*60||min>=MKT_H_FIM*60)return;
       const top=(min-MKT_H_INI*60)/60*MKT_PXH;
-      const st=mktStInfo(p.status), cor=mktCorDe(p);
+      const st=mktStInfo(p.status), cor=mktCorDe(p), cn=mktCanalInfo(mktCanalDe(p));
       const w=100/maxL, lft=p._lane*w;
-      h+='<div class="mkt-semg-card" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;border-left-color:'+cor+';left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+p.titulo.replace(/"/g,'&quot;')+'">'
+      h+='<div class="mkt-semg-card" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;border-left-color:'+cor+';left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+st.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
         +'<div class="h">'+p.hora.slice(0,5)+'</div>'
-        +'<div class="t"><span class="st-dot" style="background:'+st.cor+'"></span>'+p.titulo+'</div></div>';
+        +'<div class="t">'+mktCanalIco(cn.id)+mktOkHtml(p.status,'escuro')+'<span>'+p.titulo+'</span></div></div>';
     });
     h+='</div>';
   });
@@ -7978,12 +8080,16 @@ function mktAbrirPost(id,dataPre){
   document.getElementById('mp-titulo').value=p?p.titulo:'';
   document.getElementById('mp-data').value=p?p.data_post:(dataPre||mktHojeISO());
   document.getElementById('mp-hora').value=p&&p.hora?p.hora.slice(0,5):'12:00';
-  document.getElementById('mp-formato').value=p?p.formato:'post';
+  const canalAtual=p?mktCanalDe(p):(mktFiltro.canal||'instagram');
+  mktMontarSelectCanal(canalAtual);
+  mktMontarSelectFormato(canalAtual,p?p.formato:'post');
   document.getElementById('mp-briefing').value=p&&p.briefing?p.briefing:'';
   document.getElementById('mp-comentario').value=p&&p.comentario?p.comentario:'';
   mktPerfisSel=p?(p.perfis||'jbx').split(',').filter(Boolean):mktPerfisDe(document.getElementById('mp-evento').value,null);
   mktStatusSel=p?p.status:'a_criar';
   mktRenderPerfisChips(); mktRenderStatusChips();
+  const wPerf=document.getElementById('mp-perfis-wrap');
+  if(wPerf)wPerf.style.display=mktUsaPerfil(canalAtual)?'':'none';
   mktSyncTipoPat(); mktSyncPatSelect(p?p.patrocinador_id:null);
   mktRenderArte(p?p.arte_url:null);
   document.getElementById('mp-arte-status').textContent='';
@@ -7992,6 +8098,28 @@ function mktAbrirPost(id,dataPre){
   document.getElementById('mkt-post-overlay').classList.add('open');
 }
 function mktFecharPost(){document.getElementById('mkt-post-overlay').classList.remove('open');mktPostAtual=null;}
+/* ── canal dentro do modal ── */
+function mktMontarSelectCanal(sel){
+  let h='';
+  MKT_CANAIS.forEach(c=>{h+='<option value="'+c.id+'"'+(c.id===sel?' selected':'')+'>'+c.label+'</option>';});
+  document.getElementById('mp-canal').innerHTML=h;
+}
+/* o formato depende do canal: Story/Post/Carrossel/Reel só no Instagram e Influenciadores */
+function mktMontarSelectFormato(canalId,sel){
+  const lista=MKT_FORMATOS_CANAL[canalId]||MKT_FORMATOS_CANAL.instagram;
+  let h='';
+  lista.forEach(f=>{h+='<option value="'+f+'">'+(MKT_FORMATOS[f]||f)+'</option>';});
+  const el=document.getElementById('mp-formato');
+  el.innerHTML=h;
+  el.value=(lista.indexOf(sel)!==-1)?sel:lista[0];
+}
+function mktCanalChange(){
+  const canal=document.getElementById('mp-canal').value;
+  mktMontarSelectFormato(canal,document.getElementById('mp-formato').value);
+  const w=document.getElementById('mp-perfis-wrap');
+  if(w)w.style.display=mktUsaPerfil(canal)?'':'none';
+  mktSyncArteBox();
+}
 function mktRenderPerfisChips(){
   let h='';
   MKT_PERFIS.forEach(pf=>{
@@ -8163,10 +8291,11 @@ async function mktSalvarPost(){
   const data=document.getElementById('mp-data').value;
   const evId=document.getElementById('mp-evento').value;
   if(!titulo||!data||!evId){alert('Preencha evento, título e data.');return;}
-  if(!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
+  const canal=document.getElementById('mp-canal').value||'instagram';
+  if(mktUsaPerfil(canal)&&!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
   const tipo=document.getElementById('mp-tipo').value;
   try{
-    await rpc('mkt_post_salvar',{
+    const retorno=await rpc('mkt_post_salvar',{
       p_id:mktPostAtual?mktPostAtual.id:null,
       p_evento_id:evId,
       p_patrocinador_id:(tipo==='patrocinador'?(document.getElementById('mp-pat').value||null):null),
@@ -8181,8 +8310,26 @@ async function mktSalvarPost(){
       p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
       p_comentario:document.getElementById('mp-comentario').value.trim()||null
     });
+    /* o canal é gravado à parte, para não mexer na mkt_post_salvar que já existe */
+    let pid=(typeof retorno==='string'&&retorno)?retorno:(mktPostAtual?mktPostAtual.id:null);
     mktFecharPost();
     await mktRecarregar();
+    if(!pid){
+      /* conteúdo novo e a mkt_post_salvar não devolveu o id: acha pelo que acabou de ser gravado */
+      const cand=(mktData.posts||[]).filter(x=>x.evento_id===evId&&x.titulo===titulo&&x.data_post===data);
+      if(cand.length===1)pid=cand[0].id;
+    }
+    if(pid){
+      try{
+        await rpc('mkt_post_canal_salvar',{p_id:pid,p_canal:canal});
+        const alvo=(mktData.posts||[]).find(x=>x.id===pid);
+        if(alvo)alvo.canal=canal;
+        mktRender();
+      }catch(e){
+        console.error(e);
+        if(canal!=='instagram')alert('O conteúdo foi salvo, mas o canal não. Rode o canais.sql no Supabase.');
+      }
+    }
   }catch(e){alert('Erro ao salvar: '+e.message);}
 }
 async function mktAprovacao(novo){
@@ -8313,7 +8460,7 @@ function mktAbrirPat(id){
 }
 function mktFecharPat(){document.getElementById('mkt-pat-overlay').classList.remove('open');mktPatAtual=null;}
 function mktSaldoPat(pat){
-  const posts=mktData.posts.filter(p=>p.patrocinador_id===pat.id);
+  const posts=mktData.posts.filter(p=>p.patrocinador_id===pat.id&&mktUsaPerfil(mktCanalDe(p)));
   const cont=f=>posts.filter(p=>p.formato===f).length;
   return {stories:cont('story'),posts:cont('post')+cont('carrossel'),reels:cont('reel')};
 }
@@ -8807,6 +8954,7 @@ async function reuExcluir(id){
           <select id="mkt-f-evento" onchange="mktFiltroChange()"><option value="">Todos os eventos</option></select>
           <select id="mkt-f-pat" onchange="mktFiltroChange()"><option value="">Todos os patrocinadores</option></select>
           <button class="mkt-btn sm" onclick="mktEditarPatSel()" title="Editar o patrocinador selecionado no filtro (adicionar conteúdos)">✎ Pat.</button>
+          <select id="mkt-f-canal" onchange="mktFiltroChange()"><option value="">Todos os canais</option></select>
           <select id="mkt-f-perfil" onchange="mktFiltroChange()"><option value="">Todos os perfis</option></select>
           <select id="mkt-f-tipo" onchange="mktFiltroChange()">
             <option value="">Todos os tipos</option>
@@ -8825,6 +8973,7 @@ async function reuExcluir(id){
         </div>
 
         <div class="mkt-legenda" id="mkt-legenda"></div>
+        <div class="mkt-leg-canais" id="mkt-leg-canais"></div>
         <div id="mkt-conteudo"><div class="mkt-empty">Carregando calendário…</div></div>
       </div>
 
@@ -8896,6 +9045,7 @@ async function reuExcluir(id){
 <div class="modal-overlay2" id="mkt-post-overlay" onclick="if(event.target===this)mktFecharPost()">
   <div class="mkt-modal">
     <h3 id="mkt-post-title">Novo conteúdo</h3>
+    <div class="mkt-fg"><label>Canal *</label><select id="mp-canal" onchange="mktCanalChange()"></select></div>
     <div class="mkt-row2">
       <div class="mkt-fg"><label>Evento *</label><select id="mp-evento" onchange="mktSyncPatSelect();mktPostEventoChange()"></select></div>
       <div class="mkt-fg"><label>Tipo *</label>
@@ -8912,15 +9062,10 @@ async function reuExcluir(id){
       <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data"></div>
       <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora"></div>
       <div class="mkt-fg"><label>Formato *</label>
-        <select id="mp-formato" onchange="mktSyncArteBox()">
-          <option value="story">📱 Story</option>
-          <option value="post" selected>🖼️ Post</option>
-          <option value="carrossel">🧩 Carrossel</option>
-          <option value="reel">🎬 Reel</option>
-        </select>
+        <select id="mp-formato" onchange="mktSyncArteBox()"></select>
       </div>
     </div>
-    <div class="mkt-fg"><label>Perfis de destino *</label><div class="mkt-chips" id="mp-perfis"></div></div>
+    <div class="mkt-fg" id="mp-perfis-wrap"><label>Perfis de destino *</label><div class="mkt-chips" id="mp-perfis"></div></div>
     <div class="mkt-fg"><label>Briefing / orientações para o designer</label><textarea id="mp-briefing" placeholder="Referências, textos, logos, cores, formato de entrega…"></textarea></div>
 
     <div class="mkt-fg"><label>Arte</label>
