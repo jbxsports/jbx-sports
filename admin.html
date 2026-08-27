@@ -576,6 +576,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-view-btn{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border:none;background:none;color:var(--muted);padding:7px 16px;border-radius:6px;cursor:pointer;transition:all .15s;}
 .mkt-view-btn.active{background:var(--card);color:var(--orange);box-shadow:0 1px 3px rgba(42,37,32,.12);}
 .mkt-filtros{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:16px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+.mkt-filtros select.escondendo{border-color:#dc2626;color:#dc2626;font-weight:700;background:rgba(220,38,38,.06);}
 .mkt-filtros select{font-family:'Ubuntu',sans-serif;font-size:13px;color:var(--text);background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:8px 10px;cursor:pointer;max-width:190px;}
 .mkt-filtros select:focus{outline:none;border-color:var(--orange);}
 .mkt-filtros label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
@@ -6037,6 +6038,31 @@ async function calExcluirEvento(id){
 }
 
 const CAL_FERIADOS = [
+  /* 2026 — nacionais conferidos na ANBIMA; municipais/estaduais seguem a mesma lista de 2027 */
+  { data:"2026-01-01", nome:"Confraternização Universal" },
+  { data:"2026-01-20", nome:"São Sebastião · RP" },
+  { data:"2026-02-16", nome:"Carnaval" },
+  { data:"2026-02-17", nome:"Carnaval" },
+  { data:"2026-03-19", nome:"Aniversário SJRP" },
+  { data:"2026-04-03", nome:"Sexta-feira Santa" },
+  { data:"2026-04-21", nome:"Tiradentes" },
+  { data:"2026-05-01", nome:"Dia do Trabalho" },
+  { data:"2026-06-04", nome:"Corpus Christi" },
+  { data:"2026-06-19", nome:"Aniversário de RP" },
+  { data:"2026-07-09", nome:"Revolução Const." },
+  { data:"2026-08-01", nome:"Aniversário de Bauru" },
+  { data:"2026-08-15", nome:"N. Sra. da Abadia · Uberlândia" },
+  { data:"2026-08-31", nome:"Aniversário de Uberlândia" },
+  { data:"2026-09-07", nome:"Independência" },
+  { data:"2026-10-12", nome:"N. Sra. Aparecida" },
+  { data:"2026-11-02", nome:"Finados" },
+  { data:"2026-11-15", nome:"Proclamação da República" },
+  { data:"2026-11-20", nome:"Consciência Negra" },
+  { data:"2026-11-28", nome:"Aniversário de Franca" },
+  { data:"2026-12-05", nome:"Aniversário de Sertãozinho" },
+  { data:"2026-12-08", nome:"N. Sra. da Conceição" },
+  { data:"2026-12-25", nome:"Natal" },
+  /* 2027 */
   { data:"2027-01-01", nome:"Confraternização Universal" },
   { data:"2027-01-20", nome:"São Sebastião · RP" },
   { data:"2027-02-08", nome:"Carnaval" },
@@ -6066,6 +6092,7 @@ const CAL_MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho"
 const CAL_DS = ["D","S","T","Q","Q","S","S"];
 const CAL_BG = { corrida:"cal-bg-corrida", beach:"cal-bg-beach", especial:"cal-bg-especial", hyrox:"cal-bg-hyrox" };
 const CAL_DOTCOLOR = { corrida:"var(--orange)", beach:"#F4D35E", especial:"#C94F4F", hyrox:"#1d4e89" };
+const CAL_FER_COR = "#8A8A82";   /* mesma cor do "Feriado" na legenda do topo */
 let _calBuilt = {};
 let _calYear = 2026;
 
@@ -6352,11 +6379,19 @@ function calBuildResumido(){
     const prefix=year+"-"+String(m+1).padStart(2,"0");
     const firstDay=new Date(year,m,1).getDay();
     const daysInMonth=new Date(year,m+1,0).getDate();
-    const dotDays={};
+    const dotDays={}, evNomes={}, ferDias={};
     calFiltrarEventos().forEach(e=>{
       calDiasIntervalo(e.inicio,e.fim).forEach(d=>{
-        if(d.startsWith(prefix)) dotDays[parseInt(d.slice(8,10),10)] = e.realizado ? '#c8c4be' : CAL_DOTCOLOR[e.tipo];
+        if(!d.startsWith(prefix))return;
+        const dd=parseInt(d.slice(8,10),10);
+        dotDays[dd] = e.realizado ? '#c8c4be' : CAL_DOTCOLOR[e.tipo];
+        (evNomes[dd]=evNomes[dd]||[]).push((e.realizado?'✓ ':'')+(e.evento||'')+(e.cidade?' — '+e.cidade:''));
       });
+    });
+    CAL_FERIADOS.forEach(f=>{
+      if(!f.data.startsWith(prefix))return;
+      const dd=parseInt(f.data.slice(8,10),10);
+      (ferDias[dd]=ferDias[dd]||[]).push(f.nome);
     });
     let t='<table class="cal-res"><thead><tr>';
     CAL_DS.forEach(d=>t+='<th>'+d+'</th>');
@@ -6365,9 +6400,18 @@ function calBuildResumido(){
     let col=firstDay;
     for(let day=1;day<=daysInMonth;day++){
       if(col===7){t+='</tr><tr>';col=0;}
-      const dc=dotDays[day];
-      if(dc) t+='<td class="cal-res-dot"><span class="crday" style="background:'+dc+';box-shadow:0 0 0 2px '+dc+'22;">'+day+'</span></td>';
-      else t+='<td><span class="crday">'+day+'</span></td>';
+      const dc=dotDays[day], fer=ferDias[day];
+      const legenda=[].concat(evNomes[day]||[], (fer||[]).map(n=>'Feriado: '+n));
+      const tt=legenda.length?' title="'+legenda.join(' · ').replace(/"/g,'&quot;')+'"':'';
+      if(dc){
+        /* evento no dia; se também for feriado, ganha um anel cinza em volta */
+        const anel = fer ? '0 0 0 2px '+CAL_FER_COR : '0 0 0 2px '+dc+'22';
+        t+='<td class="cal-res-dot"'+tt+'><span class="crday" style="background:'+dc+';box-shadow:'+anel+';">'+day+'</span></td>';
+      }else if(fer){
+        t+='<td class="cal-res-dot cal-res-fer"'+tt+'><span class="crday" style="background:'+CAL_FER_COR+';box-shadow:0 0 0 2px '+CAL_FER_COR+'22;">'+day+'</span></td>';
+      }else{
+        t+='<td><span class="crday">'+day+'</span></td>';
+      }
       col++;
     }
     while(col<7){t+='<td></td>';col++;}
@@ -7411,7 +7455,8 @@ function mktEv(id){return (mktData.eventos||[]).find(e=>e.id===id)||null;}
 function mktPat(id){return (mktData.pats||[]).find(p=>p.id===id)||null;}
 
 /* ── EXPORTAR CONTEÚDOS EM EXCEL ── */
-const MKT_TIPOS_LABEL={obrigatorio:'Obrigatório',patrocinador:'Patrocinador',avulso:'Avulso'};
+const MKT_TIPOS_LABEL={obrigatorio:'Obrigatório',patrocinador:'Patrocinador',outro:'Outro',avulso:'Avulso'};
+const MKT_TIPOS_FILTRO=['obrigatorio','patrocinador','outro'];   /* os 3 tipos que o modal oferece */
 function mktAbrirXls(){
   if(!mktData)return;
   let hEv='<option value="">Todos os eventos</option>';
@@ -7586,27 +7631,45 @@ function mktAbrirFeed(pid){
 function mktFecharFeed(){document.getElementById('mkt-feed-overlay').classList.remove('open');}
 
 /* ── filtros ── */
+/* Cada filtro tem dois grupos: "Mostrar só" (o de sempre) e "Esconder".
+   Um valor começando com "!" quer dizer exclusão. "!*" no filtro de
+   patrocinadores esconde TUDO que tem patrocinador de uma vez. */
+function mktEscOpt(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function mktOpcoesFiltro(rotuloVazio,itens,extras){
+  let h='<option value="">'+mktEscOpt(rotuloVazio)+'</option>';
+  (extras||[]).forEach(x=>{h+='<option value="'+mktEscOpt(x.id)+'">'+mktEscOpt(x.label)+'</option>';});
+  if(!itens.length)return h;
+  h+='<optgroup label="Mostrar só">';
+  itens.forEach(i=>{h+='<option value="'+mktEscOpt(i.id)+'">'+mktEscOpt(i.label)+'</option>';});
+  h+='</optgroup><optgroup label="Esconder">';
+  itens.forEach(i=>{h+='<option value="!'+mktEscOpt(i.id)+'">✕ '+mktEscOpt(i.label)+'</option>';});
+  h+='</optgroup>';
+  return h;
+}
+function mktPintarFiltros(){
+  [['mkt-f-evento','evento'],['mkt-f-pat','pat'],['mkt-f-canal','canal'],
+   ['mkt-f-perfil','perfil'],['mkt-f-tipo','tipo'],['mkt-f-status','status']].forEach(([id,k])=>{
+    const el=document.getElementById(id);
+    if(el)el.classList.toggle('escondendo',String(mktFiltro[k]||'').charAt(0)==='!');
+  });
+}
 function mktMontarFiltros(){
-  const fe=document.getElementById('mkt-f-evento');
-  let h='<option value="">Todos os eventos</option>';
-  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'">'+e.nome+'</option>';});
-  fe.innerHTML=h; fe.value=mktFiltro.evento;
-  const fp=document.getElementById('mkt-f-pat');
-  let h2='<option value="">Todos os patrocinadores</option>';
-  mktData.pats.forEach(p=>{const e=mktEv(p.evento_id);h2+='<option value="'+p.id+'">'+p.nome+(e?' ('+e.nome+')':'')+'</option>';});
-  fp.innerHTML=h2; fp.value=mktFiltro.pat;
-  const fc=document.getElementById('mkt-f-canal');
-  let hc='<option value="">Todos os canais</option>';
-  MKT_CANAIS.forEach(c=>{hc+='<option value="'+c.id+'">'+c.label+'</option>';});
-  fc.innerHTML=hc; fc.value=mktFiltro.canal;
-  const fpe=document.getElementById('mkt-f-perfil');
-  let h3='<option value="">Todos os perfis</option>';
-  MKT_PERFIS.forEach(p=>{h3+='<option value="'+p.id+'">'+p.label+'</option>';});
-  fpe.innerHTML=h3; fpe.value=mktFiltro.perfil;
-  const fs=document.getElementById('mkt-f-status');
-  let h4='<option value="">Todos os status</option>';
-  MKT_STATUS.forEach(s=>{h4+='<option value="'+s.id+'">'+s.label+'</option>';});
-  fs.innerHTML=h4; fs.value=mktFiltro.status;
+  const def=(id,valor,html)=>{const el=document.getElementById(id);el.innerHTML=html;el.value=valor;if(el.value!==valor){el.value='';mktFiltro[id.replace('mkt-f-','')]='';}};
+  def('mkt-f-evento',mktFiltro.evento,
+      mktOpcoesFiltro('Todos os eventos',mktData.eventos.map(e=>({id:e.id,label:e.nome}))));
+  def('mkt-f-pat',mktFiltro.pat,
+      mktOpcoesFiltro('Todos os patrocinadores',
+        mktData.pats.map(p=>{const e=mktEv(p.evento_id);return {id:p.id,label:p.nome+(e?' ('+e.nome+')':'')};}),
+        [{id:'!*',label:'✕ Esconder todos os patrocinadores'}]));
+  def('mkt-f-canal',mktFiltro.canal,
+      mktOpcoesFiltro('Todos os canais',MKT_CANAIS.map(c=>({id:c.id,label:c.label}))));
+  def('mkt-f-perfil',mktFiltro.perfil,
+      mktOpcoesFiltro('Todos os perfis',MKT_PERFIS.map(p=>({id:p.id,label:p.label}))));
+  def('mkt-f-tipo',mktFiltro.tipo,
+      mktOpcoesFiltro('Todos os tipos',MKT_TIPOS_FILTRO.map(t=>({id:t,label:MKT_TIPOS_LABEL[t]}))));
+  def('mkt-f-status',mktFiltro.status,
+      mktOpcoesFiltro('Todos os status',MKT_STATUS.map(s=>({id:s.id,label:s.label}))));
+  mktPintarFiltros();
 }
 function mktFiltroChange(){
   mktFiltro.evento=document.getElementById('mkt-f-evento').value;
@@ -7615,11 +7678,13 @@ function mktFiltroChange(){
   mktFiltro.perfil=document.getElementById('mkt-f-perfil').value;
   mktFiltro.tipo=document.getElementById('mkt-f-tipo').value;
   mktFiltro.status=document.getElementById('mkt-f-status').value;
+  mktPintarFiltros();
   mktRender();
 }
 function mktLimparFiltros(){
   mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:''};
   ['mkt-f-evento','mkt-f-pat','mkt-f-canal','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
+  mktPintarFiltros();
   mktRender();
 }
 function mktFiltraPorEvento(id){
@@ -7627,14 +7692,26 @@ function mktFiltraPorEvento(id){
   document.getElementById('mkt-f-evento').value=mktFiltro.evento;
   mktRender();
 }
+/* f vazio = tudo; f='x' = só x; f='!x' = tudo menos x */
+function mktBate(f,v){
+  if(!f)return true;
+  if(f.charAt(0)==='!')return String(v||'')!==f.slice(1);
+  return String(v||'')===f;
+}
+function mktBateLista(f,lista){
+  if(!f)return true;
+  if(f.charAt(0)==='!')return lista.indexOf(f.slice(1))===-1;
+  return lista.indexOf(f)!==-1;
+}
 function mktPostsFiltrados(){
   return (mktData.posts||[]).filter(p=>{
-    if(mktFiltro.evento&&p.evento_id!==mktFiltro.evento)return false;
-    if(mktFiltro.pat&&p.patrocinador_id!==mktFiltro.pat)return false;
-    if(mktFiltro.canal&&mktCanalDe(p)!==mktFiltro.canal)return false;
-    if(mktFiltro.perfil&&!(p.perfis||'').split(',').includes(mktFiltro.perfil))return false;
-    if(mktFiltro.tipo&&p.tipo!==mktFiltro.tipo)return false;
-    if(mktFiltro.status&&p.status!==mktFiltro.status)return false;
+    if(!mktBate(mktFiltro.evento,p.evento_id))return false;
+    if(mktFiltro.pat==='!*'){ if(p.patrocinador_id)return false; }
+    else if(!mktBate(mktFiltro.pat,p.patrocinador_id))return false;
+    if(!mktBate(mktFiltro.canal,mktCanalDe(p)))return false;
+    if(!mktBateLista(mktFiltro.perfil,(p.perfis||'').split(',')))return false;
+    if(!mktBate(mktFiltro.tipo,p.tipo))return false;
+    if(!mktBate(mktFiltro.status,p.status))return false;
     return true;
   });
 }
@@ -8966,12 +9043,7 @@ async function reuExcluir(id){
           <button class="mkt-btn sm" onclick="mktEditarPatSel()" title="Editar o patrocinador selecionado no filtro (adicionar conteúdos)">✎ Pat.</button>
           <select id="mkt-f-canal" onchange="mktFiltroChange()"><option value="">Todos os canais</option></select>
           <select id="mkt-f-perfil" onchange="mktFiltroChange()"><option value="">Todos os perfis</option></select>
-          <select id="mkt-f-tipo" onchange="mktFiltroChange()">
-            <option value="">Todos os tipos</option>
-            <option value="obrigatorio">Obrigatório</option>
-            <option value="patrocinador">Patrocinador</option>
-            <option value="outro">Outro</option>
-          </select>
+          <select id="mkt-f-tipo" onchange="mktFiltroChange()"><option value="">Todos os tipos</option></select>
           <select id="mkt-f-status" onchange="mktFiltroChange()"><option value="">Todos os status</option></select>
           <button class="mkt-btn sm" onclick="mktLimparFiltros()">Limpar</button>
           <div class="mkt-periodo" id="mkt-periodo-nav">
