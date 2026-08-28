@@ -903,6 +903,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-leg-canais .it{display:flex;align-items:center;gap:5px;cursor:pointer;padding:1px 3px;border-radius:5px;}
 .mkt-leg-canais .it:hover{color:var(--text);}
 .mkt-leg-canais .it.on{color:var(--text);font-weight:700;background:rgba(255,117,31,.12);}
+.mkt-des{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:4px;background:rgba(0,0,0,.3);color:#fff;font-size:9px;line-height:1;flex:none;font-weight:700;}
+.mkt-des.claro{background:rgba(255,117,31,.16);color:var(--orange);}
+.mkt-btn.designer-on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mkt-pipe-nota{grid-column:1/-1;font-size:12px;color:var(--muted);margin-bottom:2px;display:flex;align-items:center;gap:6px;}
 .mkt-rep-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;}
 .mkt-rep-check input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
 .mkt-rep-box{border:1px solid rgba(255,117,31,.35);background:rgba(255,117,31,.05);border-radius:10px;padding:12px 13px;margin-top:9px;}
@@ -7381,6 +7385,8 @@ const MKT_CANAIS=[
 ];
 /* canais que publicam em perfil do Instagram — mantêm os @ de destino */
 const MKT_CANAIS_COM_PERFIL=['instagram','influenciadores'];
+/* canais em que o conteúdo, por padrão, precisa de arte do designer */
+const MKT_CANAIS_DESIGNER=['instagram','influenciadores','email','panfletagem'];
 /* formatos que fazem sentido em cada canal */
 const MKT_FORMATOS_CANAL={
  instagram:['story','post','carrossel','reel'],
@@ -7400,7 +7406,7 @@ const MKT_DIAS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const MKT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
 let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
-let mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:''};
+let mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:'',designer:false};
 let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
 let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
 let mktPerfisEvSel=['jbx'];
@@ -7422,15 +7428,23 @@ async function mktRecarregar(){
     const d=await rpc('mkt_dados');
     mktData={eventos:d.eventos||[],pats:d.patrocinadores||[],posts:d.posts||[]};
     /* o canal pode vir do próprio mkt_dados; se não vier, busca à parte */
-    if(mktData.posts.some(p=>!p.canal)){
+    if(mktData.posts.some(p=>!p.canal||p.designer===undefined)){
       try{
-        const cs=await rpc('mkt_posts_canais');
-        const mapa={}; (cs||[]).forEach(x=>{mapa[x.id]=x.canal;});
-        mktData.posts.forEach(p=>{ if(!p.canal) p.canal=mapa[p.id]||'instagram'; });
+        const cs=await rpc('mkt_posts_extra');
+        const mapa={}; (cs||[]).forEach(x=>{mapa[x.id]=x;});
+        mktData.posts.forEach(p=>{
+          const e=mapa[p.id];
+          if(e){ if(!p.canal)p.canal=e.canal||'instagram'; if(p.designer===undefined)p.designer=e.designer!==false; }
+        });
       }catch(e){
-        mktData.posts.forEach(p=>{ if(!p.canal) p.canal='instagram'; });
-        console.warn('mkt_posts_canais indisponível — rode canais.sql no Supabase.');
+        console.warn('mkt_posts_extra indisponível — tentando mkt_posts_canais.');
+        try{
+          const cs=await rpc('mkt_posts_canais');
+          const mapa={}; (cs||[]).forEach(x=>{mapa[x.id]=x.canal;});
+          mktData.posts.forEach(p=>{ if(!p.canal)p.canal=mapa[p.id]||'instagram'; });
+        }catch(e2){ console.warn('rode canais.sql e designer.sql no Supabase.'); }
       }
+      mktData.posts.forEach(p=>{ if(!p.canal)p.canal='instagram'; if(p.designer===undefined)p.designer=true; });
     }
     try{
       const pp=await rpc('mkt_perfis_padrao');
@@ -7520,7 +7534,7 @@ function mktXlsContar(){
 function mktBaixarXls(){
   const posts=mktXlsFiltrar();
   if(!posts.length){alert('Nenhum conteúdo com esses filtros.');return;}
-  const linhas=[['Data','Hora','Título','Canal','Tipo','Formato','Evento','Patrocinador','Instagram','Status','Qtd. artes','Link(s) da arte','Briefing']];
+  const linhas=[['Data','Hora','Título','Canal','Designer','Tipo','Formato','Evento','Patrocinador','Instagram','Status','Qtd. artes','Link(s) da arte','Briefing']];
   posts.forEach(p=>{
     const ev=mktEv(p.evento_id), pat=mktPat(p.patrocinador_id);
     const perfisLbl=(p.perfis||'').split(',').filter(Boolean)
@@ -7531,6 +7545,7 @@ function mktBaixarXls(){
       p.hora?String(p.hora).slice(0,5):'',
       p.titulo||'',
       mktCanalInfo(mktCanalDe(p)).label,
+      mktEhDesigner(p)?'Sim':'Não',
       MKT_TIPOS_LABEL[p.tipo]||p.tipo||'',
       (MKT_FORMATOS[p.formato]||p.formato||'').replace(/^[^ ]+ /,''),
       ev?ev.nome:'',
@@ -7544,7 +7559,7 @@ function mktBaixarXls(){
   });
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.aoa_to_sheet(linhas);
-  ws['!cols']=[{wch:10},{wch:6},{wch:38},{wch:19},{wch:13},{wch:11},{wch:22},{wch:20},{wch:28},{wch:20},{wch:9},{wch:45},{wch:50}];
+  ws['!cols']=[{wch:10},{wch:6},{wch:38},{wch:19},{wch:9},{wch:13},{wch:11},{wch:22},{wch:20},{wch:28},{wch:20},{wch:9},{wch:45},{wch:50}];
   XLSX.utils.book_append_sheet(wb,ws,'Conteúdos');
   const evId=document.getElementById('mx-evento').value;
   const evNome=evId&&mktEv(evId)?mktEv(evId).nome.toLowerCase().replace(/[^a-z0-9]+/g,'_'):'todos';
@@ -7567,6 +7582,15 @@ function mktFeriados(){
 }
 function mktCanalInfo(id){return MKT_CANAIS.find(c=>c.id===id)||MKT_CANAIS[0];}
 function mktUsaPerfil(canalId){return MKT_CANAIS_COM_PERFIL.indexOf(canalId)!==-1;}
+/* conteúdo antigo, sem a coluna, conta como do designer */
+function mktEhDesigner(p){return !(p&&p.designer===false);}
+function mktDesignerPadrao(canalId){return MKT_CANAIS_DESIGNER.indexOf(canalId)!==-1;}
+/* o selo ✎ some quando o filtro "só do designer" está ligado — ali seria redundante */
+function mktDesHtml(p,cls){
+  if(mktFiltro.designer)return '';
+  if(!mktEhDesigner(p))return '';
+  return '<span class="mkt-des'+(cls?' '+cls:'')+'" title="Precisa de arte do designer">✎</span>';
+}
 function mktCanalIco(canalId,cls){
   const c=mktCanalInfo(canalId);
   return '<span class="mkt-cico'+(cls?' '+cls:'')+'" style="background:'+c.cor+';" title="'+c.label+'"><svg viewBox="0 0 24 24">'+c.svg+'</svg></span>';
@@ -7695,10 +7719,22 @@ function mktFiltroChange(){
   mktRender();
 }
 function mktLimparFiltros(){
-  mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:''};
+  mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:'',designer:false};
   ['mkt-f-evento','mkt-f-pat','mkt-f-canal','mkt-f-perfil','mkt-f-tipo','mkt-f-status'].forEach(id=>{document.getElementById(id).value='';});
+  mktSyncBotaoDesigner();
   mktPintarFiltros();
   mktRender();
+}
+function mktToggleDesigner(){
+  mktFiltro.designer=!mktFiltro.designer;
+  mktSyncBotaoDesigner();
+  mktRender();
+}
+function mktSyncBotaoDesigner(){
+  const b=document.getElementById('mkt-btn-designer');
+  if(!b)return;
+  b.classList.toggle('designer-on',!!mktFiltro.designer);
+  b.textContent=mktFiltro.designer?'✎ Só do designer ✓':'✎ Só do designer';
 }
 function mktFiltraPorEvento(id){
   mktFiltro.evento=(mktFiltro.evento===id)?'':id;
@@ -7725,6 +7761,7 @@ function mktPostsFiltrados(){
     if(!mktBateLista(mktFiltro.perfil,(p.perfis||'').split(',')))return false;
     if(!mktBate(mktFiltro.tipo,p.tipo))return false;
     if(!mktBate(mktFiltro.status,p.status))return false;
+    if(mktFiltro.designer&&!mktEhDesigner(p))return false;
     return true;
   });
 }
@@ -7806,7 +7843,7 @@ function mktCardHtml(p,comData,drag){
   if(capaTh)h+='<img class="mkt-thumb" src="'+capaTh+'" loading="lazy">';
   if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
   h+='<div class="mkt-card-top">'+mktBadgesHtml(p)+'</div>';
-  h+='<div class="mkt-card-titulo">'+mktCanalIco(mktCanalDe(p))+' '+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
+  h+='<div class="mkt-card-titulo">'+mktCanalIco(mktCanalDe(p))+mktDesHtml(p,'claro')+' '+(MKT_FORMATOS[p.formato]||'')+' — '+p.titulo+'</div>';
   h+='<div class="mkt-card-foot"><div class="mkt-card-status" style="color:'+st.cor+';">'+mktOkHtml(p.status,'escuro')+st.label+'</div>';
   if(!comData&&p.hora)h+='<div class="mkt-card-hora">'+p.hora.slice(0,5)+'</div>';
   h+='</div></div>';
@@ -7836,8 +7873,8 @@ function mktRenderMes(){
     const dp=(porDia[iso]||[]).slice().sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
     dp.forEach(p=>{
       const cn=mktCanalInfo(mktCanalDe(p)), stp=mktStInfo(p.status);
-      h+='<div class="mkt-pill" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+stp.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
-        +mktCanalIco(cn.id)+mktOkHtml(p.status)+'<span>'+p.titulo+'</span></div>';
+      h+='<div class="mkt-pill" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="background:'+mktCorDe(p)+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+stp.label+(mktEhDesigner(p)?' · precisa de arte':'')+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
+        +mktCanalIco(cn.id)+mktDesHtml(p)+mktOkHtml(p.status)+'<span>'+p.titulo+'</span></div>';
     });
     h+='</div>';
     cur.setDate(cur.getDate()+1);
@@ -7901,7 +7938,7 @@ function mktRenderSemana(){
       const w=100/maxL, lft=p._lane*w;
       h+='<div class="mkt-semg-card" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;border-left-color:'+cor+';left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+st.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
         +'<div class="h">'+p.hora.slice(0,5)+'</div>'
-        +'<div class="t">'+mktCanalIco(cn.id)+mktOkHtml(p.status,'escuro')+'<span>'+p.titulo+'</span></div></div>';
+        +'<div class="t">'+mktCanalIco(cn.id)+mktDesHtml(p,'claro')+mktOkHtml(p.status,'escuro')+'<span>'+p.titulo+'</span></div></div>';
     });
     h+='</div>';
   });
@@ -7991,8 +8028,13 @@ async function mktMoverPost(id,novaData,novaHora){
 
 /* PIPELINE */
 function mktRenderPipe(){
-  const posts=mktPostsFiltrados().slice().sort((a,b)=>a.data_post.localeCompare(b.data_post));
+  /* o Pipeline é a fila do designer: só entra o que precisa de arte */
+  const todos=mktPostsFiltrados();
+  const posts=todos.filter(mktEhDesigner).slice().sort((a,b)=>a.data_post.localeCompare(b.data_post));
+  const fora=todos.length-posts.length;
   let h='<div class="mkt-pipe">';
+  h+='<div class="mkt-pipe-nota"><span class="mkt-des claro">✎</span> O Pipeline mostra só o que precisa de arte do designer'
+   +(fora?' — '+fora+' conteúdo(s) sem essa marca ficaram de fora.':'.')+'</div>';
   MKT_STATUS.forEach(st=>{
     const dp=posts.filter(p=>p.status===st.id);
     h+='<div class="mkt-pipe-col"><div class="mkt-pipe-hd"><span class="st-dot" style="background:'+st.cor+'"></span>'+st.label+'<span class="mkt-pipe-count">'+dp.length+'</span></div>';
@@ -8197,6 +8239,9 @@ function mktAbrirPost(id,dataPre){
   mktSyncTipoPat(); mktSyncPatSelect(p?p.patrocinador_id:null);
   mktRenderArte(p?p.arte_url:null);
   document.getElementById('mp-arte-status').textContent='';
+  mktDesignerTocadoFlag=false;
+  const chkDes=document.getElementById('mp-designer');
+  if(chkDes)chkDes.checked = p ? mktEhDesigner(p) : mktDesignerPadrao(canalAtual);
   const repW=document.getElementById('mp-rep-wrap'), repOn=document.getElementById('mp-rep-on');
   if(repW&&repOn){
     repOn.checked=false;
@@ -8277,8 +8322,15 @@ function mktMontarSelectFormato(canalId,sel){
   el.innerHTML=h;
   el.value=(lista.indexOf(sel)!==-1)?sel:lista[0];
 }
+let mktDesignerTocadoFlag=false;
+function mktDesignerTocado(){mktDesignerTocadoFlag=true;}
 function mktCanalChange(){
   const canal=document.getElementById('mp-canal').value;
+  /* em conteúdo novo, a marca acompanha o canal — a não ser que já tenha sido mexida */
+  if(!mktPostAtual&&!mktDesignerTocadoFlag){
+    const d=document.getElementById('mp-designer');
+    if(d)d.checked=mktDesignerPadrao(canal);
+  }
   mktMontarSelectFormato(canal,document.getElementById('mp-formato').value);
   const w=document.getElementById('mp-perfis-wrap');
   if(w)w.style.display=mktUsaPerfil(canal)?'':'none';
@@ -8456,6 +8508,7 @@ async function mktSalvarPost(){
   const evId=document.getElementById('mp-evento').value;
   if(!titulo||!data||!evId){alert('Preencha evento, título e data.');return;}
   const canal=document.getElementById('mp-canal').value||'instagram';
+  const ehDesigner=!!document.getElementById('mp-designer').checked;
   if(mktUsaPerfil(canal)&&!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
   const tipo=document.getElementById('mp-tipo').value;
 
@@ -8514,14 +8567,19 @@ async function mktSalvarPost(){
   if(ids.length){
     try{
       for(const pid of ids){
-        await rpc('mkt_post_canal_salvar',{p_id:pid,p_canal:canal});
+        try{
+          await rpc('mkt_post_extra_salvar',{p_id:pid,p_canal:canal,p_designer:ehDesigner});
+        }catch(e1){
+          /* base ainda sem o designer.sql: grava ao menos o canal */
+          await rpc('mkt_post_canal_salvar',{p_id:pid,p_canal:canal});
+        }
         const alvo=(mktData.posts||[]).find(x=>x.id===pid);
-        if(alvo)alvo.canal=canal;
+        if(alvo){alvo.canal=canal;alvo.designer=ehDesigner;}
       }
       mktRender();
     }catch(e){
       console.error(e);
-      if(canal!=='instagram')alert('O conteúdo foi salvo, mas o canal não. Rode o canais.sql no Supabase.');
+      alert('O conteúdo foi salvo, mas o canal/marca do designer não. Rode o canais.sql e o designer.sql no Supabase.');
     }
   }
   if(btn){btn.disabled=false;btn.textContent=rotulo;}
@@ -9152,6 +9210,7 @@ async function reuExcluir(id){
           <select id="mkt-f-perfil" onchange="mktFiltroChange()"><option value="">Todos os perfis</option></select>
           <select id="mkt-f-tipo" onchange="mktFiltroChange()"><option value="">Todos os tipos</option></select>
           <select id="mkt-f-status" onchange="mktFiltroChange()"><option value="">Todos os status</option></select>
+          <button class="mkt-btn sm" id="mkt-btn-designer" onclick="mktToggleDesigner()" title="Mostrar só o que o designer precisa criar">✎ Só do designer</button>
           <button class="mkt-btn sm" onclick="mktLimparFiltros()">Limpar</button>
           <div class="mkt-periodo" id="mkt-periodo-nav">
             <button class="mkt-nav-btn" onclick="mktNav(-1)">‹</button>
@@ -9235,6 +9294,9 @@ async function reuExcluir(id){
   <div class="mkt-modal">
     <h3 id="mkt-post-title">Novo conteúdo</h3>
     <div class="mkt-fg"><label>Canal *</label><select id="mp-canal" onchange="mktCanalChange()"></select></div>
+    <div class="mkt-fg" style="margin-top:-4px;">
+      <label class="mkt-rep-check"><input type="checkbox" id="mp-designer" onchange="mktDesignerTocado()">✎ Designer precisa criar a arte deste conteúdo</label>
+    </div>
     <div class="mkt-row2">
       <div class="mkt-fg"><label>Evento *</label><select id="mp-evento" onchange="mktSyncPatSelect();mktPostEventoChange()"></select></div>
       <div class="mkt-fg"><label>Tipo *</label>
