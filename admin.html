@@ -903,6 +903,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-leg-canais .it{display:flex;align-items:center;gap:5px;cursor:pointer;padding:1px 3px;border-radius:5px;}
 .mkt-leg-canais .it:hover{color:var(--text);}
 .mkt-leg-canais .it.on{color:var(--text);font-weight:700;background:rgba(255,117,31,.12);}
+.mkt-dia.feriado:not(.hoje){background:#f6f5f2;}
+.mkt-dia .mkt-fer{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7a7068;background:rgba(138,138,130,.16);border-radius:4px;padding:1px 5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mkt-semg-head .hd .fer{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7a7068;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
 .mkt-card-canal{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
 .mkt-pill{padding-left:3px;gap:3px;}
 .mkt-semg-card .t{display:flex;align-items:flex-start;gap:3px;}
@@ -7544,6 +7547,16 @@ function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
 function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
 /* ── canal ── */
 function mktCanalDe(p){return (p&&p.canal)||'instagram';}
+/* feriados — mesma lista do Calendário (Ribeirão Preto e Sertãozinho) */
+let _mktFerMapa=null;
+function mktFeriados(){
+  if(_mktFerMapa)return _mktFerMapa;
+  _mktFerMapa={};
+  (typeof CAL_FERIADOS!=='undefined'?CAL_FERIADOS:[]).forEach(f=>{
+    (_mktFerMapa[f.data]=_mktFerMapa[f.data]||[]).push(f.nome);
+  });
+  return _mktFerMapa;
+}
 function mktCanalInfo(id){return MKT_CANAIS.find(c=>c.id===id)||MKT_CANAIS[0];}
 function mktUsaPerfil(canalId){return MKT_CANAIS_COM_PERFIL.indexOf(canalId)!==-1;}
 function mktCanalIco(canalId,cls){
@@ -7808,8 +7821,10 @@ function mktRenderMes(){
   const cur=new Date(ini);
   for(let i=0;i<42;i++){
     const iso=mktISO(cur), fora=cur.getMonth()!==m, ehHoje=iso===hoje;
-    h+='<div class="mkt-dia'+(fora?' fora':'')+(ehHoje?' hoje':'')+'" onclick="mktAbrirPost(null,\''+iso+'\')" ondragover="mktDragOverDia(event,this)" ondragleave="this.classList.remove(\'mkt-drop-ok\')" ondrop="mktDropMes(event,this,\''+iso+'\')">';
+    const fer=mktFeriados()[iso];
+    h+='<div class="mkt-dia'+(fora?' fora':'')+(ehHoje?' hoje':'')+(fer?' feriado':'')+'" onclick="mktAbrirPost(null,\''+iso+'\')" ondragover="mktDragOverDia(event,this)" ondragleave="this.classList.remove(\'mkt-drop-ok\')" ondrop="mktDropMes(event,this,\''+iso+'\')">';
     h+='<div class="mkt-dia-num">'+cur.getDate()+'</div>';
+    if(fer)h+='<div class="mkt-fer" title="Feriado: '+fer.join(' · ').replace(/"/g,'&quot;')+'">'+fer.join(' · ')+'</div>';
     const dp=(porDia[iso]||[]).slice().sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
     dp.forEach(p=>{
       const cn=mktCanalInfo(mktCanalDe(p)), stp=mktStInfo(p.status);
@@ -7840,7 +7855,9 @@ function mktRenderSemana(){
   const cur=new Date(ini);
   for(let i=0;i<7;i++){
     const iso=mktISO(cur);dias.push(iso);
-    h+='<div class="hd'+(iso===hoje?' hoje':'')+'"><div class="dn">'+MKT_DIAS[i]+'</div><div class="dd">'+cur.getDate()+'</div></div>';
+    const ferS=mktFeriados()[iso];
+    h+='<div class="hd'+(iso===hoje?' hoje':'')+'"><div class="dn">'+MKT_DIAS[i]+'</div><div class="dd">'+cur.getDate()+'</div>'
+      +(ferS?'<div class="fer" title="Feriado: '+ferS.join(' · ').replace(/"/g,'&quot;')+'">'+ferS.join(' · ')+'</div>':'')+'</div>';
     cur.setDate(cur.getDate()+1);
   }
   h+='</div>';
