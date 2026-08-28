@@ -630,6 +630,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-semg-col{position:relative;border-left:1px solid var(--border);background-image:linear-gradient(to bottom,var(--border) 1px,transparent 1px);background-size:100% 48px;cursor:pointer;}
 .mkt-semg-col.hoje{background-color:rgba(255,117,31,.04);}
 .mkt-semg-card{position:absolute;background:#fdfcfb;border:1px solid var(--border);border-left:3px solid #999;border-radius:7px;padding:3px 6px;cursor:grab;overflow:hidden;box-shadow:0 1px 3px rgba(42,37,32,.12);z-index:2;}
+/* pintado com a cor do evento, igual ao pill do mês */
+.mkt-semg-card.pintado{border-color:rgba(0,0,0,.14);}
+.mkt-semg-card.pintado .h{color:inherit;opacity:.82;}
+.mkt-semg-card.pintado .t{color:inherit;}
+.mkt-semg-card.pintado .mkt-cico{background:rgba(0,0,0,.28)!important;}
+.mkt-semg-allday .mkt-card.pintado{border-color:rgba(0,0,0,.14);}
+.mkt-semg-allday .mkt-card.pintado .mkt-card-titulo,
+.mkt-semg-allday .mkt-card.pintado .mkt-card-status{color:inherit!important;}
+.mkt-semg-allday .mkt-card.pintado .mkt-tag,
+.mkt-semg-allday .mkt-card.pintado .mkt-perfil-sigla{background:rgba(0,0,0,.22);color:inherit;}
+.mkt-semg-allday .mkt-card.pintado .mkt-cico{background:rgba(0,0,0,.28)!important;}
 .mkt-semg-card:hover{box-shadow:0 4px 12px rgba(42,37,32,.22);z-index:5;}
 .mkt-semg-card:active{cursor:grabbing;}
 .mkt-semg-card .h{font-size:9px;font-weight:700;color:var(--orange);}
@@ -1010,7 +1021,21 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .pt-drop-logo{width:78px;height:78px;border-radius:15px;border:2px dashed rgba(42,37,32,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:#faf9f7;flex:none;overflow:hidden;position:relative;}
 .pt-drop-logo:hover{border-color:var(--orange);}
 .pt-drop-logo img{max-width:80%;max-height:80%;object-fit:contain;}
-@media(max-width:900px){.pt-funil{grid-template-columns:1fr;}.pt-lixo{position:static;}}
+.pt-cts{border-top:1px solid var(--border);margin-top:14px;padding-top:12px;}
+.pt-cts h5{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.pt-ct{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed rgba(42,37,32,.08);font-size:12.5px;}
+.pt-ct:last-of-type{border-bottom:none;}
+.pt-ct .n{font-weight:700;} .pt-ct .c{color:var(--muted);font-size:11.5px;}
+.pt-ct .acs{margin-left:auto;display:flex;gap:4px;}
+.pt-ct .acs button{background:none;border:1px solid var(--border);border-radius:6px;font-size:10px;padding:3px 7px;cursor:pointer;color:var(--muted);font-family:inherit;}
+.pt-ct .acs button:hover{color:var(--text);border-color:#aaa;}
+.pt-ct .acs button.del:hover{color:#dc2626;border-color:#dc2626;}
+.pt-ct .pr{font-size:8.5px;font-weight:700;background:rgba(255,117,31,.14);color:var(--orange);border-radius:4px;padding:2px 5px;letter-spacing:.4px;}
+.pt-ct-novo{display:grid;grid-template-columns:1.4fr 1.2fr 1fr 1.4fr auto;gap:6px;margin-top:10px;}
+.pt-ct-novo input{font-family:'Ubuntu',sans-serif;font-size:12px;padding:6px 9px;border:1px solid var(--border);border-radius:7px;background:#faf9f7;}
+.pt-ct-novo input:focus{outline:none;border-color:var(--orange);background:#fff;}
+.pt-ct-novo button{font-family:inherit;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:none;border-radius:7px;padding:0 14px;cursor:pointer;}
+@media(max-width:900px){.pt-funil{grid-template-columns:1fr;}.pt-lixo{position:static;}.pt-ct-novo{grid-template-columns:1fr;}}
 
 </style>
 </head>
@@ -1995,7 +2020,8 @@ let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_calendario_extra_listar','admin_calendario_extra_salvar',
   'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir',
-  'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir'];
+  'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir',
+  'pat_contato_salvar','pat_contato_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -7643,6 +7669,13 @@ function mktBaixarXls(){
   mktFecharXls();
 }
 function mktCorDe(post){const e=mktEv(post.evento_id);return e?e.cor:'#999';}
+/* branco ou escuro conforme o brilho da cor do evento — evento amarelo pede texto escuro */
+function mktTextoSobre(hex){
+  const m=String(hex||'').replace('#','');
+  if(m.length<6)return '#fff';
+  const r=parseInt(m.slice(0,2),16), g=parseInt(m.slice(2,4),16), b=parseInt(m.slice(4,6),16);
+  return ((r*299+g*587+b*114)/1000) > 165 ? '#2a2520' : '#fff';
+}
 function mktStInfo(id){return MKT_STATUS.find(s=>s.id===id)||MKT_STATUS[0];}
 /* ── canal ── */
 function mktCanalDe(p){return (p&&p.canal)||'instagram';}
@@ -7911,10 +7944,13 @@ function mktBadgesHtml(p){
   }
   return h;
 }
-function mktCardHtml(p,comData,drag){
+function mktCardHtml(p,comData,drag,pintar){
   const st=mktStInfo(p.status), cor=mktCorDe(p);
   const dragAttr=drag?' draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)"':'';
-  let h='<div class="mkt-card"'+dragAttr+' style="border-left-color:'+cor+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)">';
+  const estilo = pintar
+    ? 'background:'+cor+';color:'+mktTextoSobre(cor)+';border-left-color:rgba(0,0,0,.22);'
+    : 'border-left-color:'+cor+';';
+  let h='<div class="mkt-card'+(pintar?' pintado':'')+'"'+dragAttr+' style="'+estilo+'" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)">';
   const capaTh=mktArteCapa(p);
   if(capaTh)h+='<img class="mkt-thumb" src="'+capaTh+'" loading="lazy">';
   if(comData)h+='<div class="mkt-pipe-data">'+mktFmtCurta(p.data_post)+(p.hora?' · '+p.hora.slice(0,5):'')+'</div>';
@@ -7987,7 +8023,7 @@ function mktRenderSemana(){
   dias.forEach(iso=>{
     const dp=posts.filter(p=>p.data_post===iso&&!p.hora);
     h+='<div class="ad-col" ondragover="mktDragOverDia(event,this)" ondragleave="this.classList.remove(\'mkt-drop-ok\')" ondrop="mktDropDia(event,this,\''+iso+'\',null)" onclick="mktAbrirPost(null,\''+iso+'\')">';
-    dp.forEach(p=>{h+=mktCardHtml(p,false,true);});
+    dp.forEach(p=>{h+=mktCardHtml(p,false,true,true);});
     h+='</div>';
   });
   h+='</div>';
@@ -8012,7 +8048,7 @@ function mktRenderSemana(){
       const top=(min-MKT_H_INI*60)/60*MKT_PXH;
       const st=mktStInfo(p.status), cor=mktCorDe(p), cn=mktCanalInfo(mktCanalDe(p));
       const w=100/maxL, lft=p._lane*w;
-      h+='<div class="mkt-semg-card" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;border-left-color:'+cor+';left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+st.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
+      h+='<div class="mkt-semg-card pintado" draggable="true" ondragstart="mktDragStart(event,\''+p.id+'\')" ondragend="mktDragEnd(event)" style="top:'+top+'px;min-height:44px;background:'+cor+';color:'+mktTextoSobre(cor)+';border-left-color:rgba(0,0,0,.22);left:calc('+lft+'% + 2px);width:calc('+w+'% - 4px);" onclick="event.stopPropagation();mktAbrirPost(\''+p.id+'\',null)" title="'+cn.label+' · '+st.label+' — '+String(p.titulo||'').replace(/"/g,'&quot;')+'">'
         +'<div class="h">'+p.hora.slice(0,5)+'</div>'
         +'<div class="t">'+mktCanalIco(cn.id)+mktDesHtml(p,'claro')+mktOkHtml(p.status,'escuro')+'<span>'+p.titulo+'</span></div></div>';
     });
@@ -9159,11 +9195,20 @@ function patCorDe(n){
 function patLogoHtml(m,tam,extra){
   const cls='pt-logo '+(tam||'m')+(extra?' '+extra:'');
   const t='title="'+patEsc(m.nome)+'"';
-  if(m.logo_url) return '<span class="'+cls+'" '+t+'><img src="'+patEsc(m.logo_url)+'" alt="'+patEsc(m.nome)+'" loading="lazy"></span>';
+  if(m.logo_url) return '<span class="'+cls+'" '+t+'><img src="'+patEsc(m.logo_url)+'" alt="'+patEsc(m.nome)+'" loading="lazy" onerror="patLogoFalhou(this)"></span>';
   const c=patCorDe(m.nome);
   return '<span class="'+cls+'" '+t+' style="background:linear-gradient(160deg,'+c+',#00000033),'+c+';"><span class="mono">'+patEsc(patIniciais(m.nome))+'</span></span>';
 }
+/* se a logo não carregar (link quebrado), volta para o bloco com as iniciais */
+function patLogoFalhou(img){
+  const w=img.parentElement; if(!w)return;
+  const nome=w.getAttribute('title')||'';
+  const c=patCorDe(nome);
+  w.style.background='linear-gradient(160deg,'+c+',#00000033),'+c;
+  w.innerHTML='<span class="mono">'+patEsc(patIniciais(nome))+'</span>';
+}
 function patMarca(id){return (patDados&&patDados.marcas||[]).find(m=>m.id===id)||null;}
+function patContatosDe(marcaId){return (patDados&&patDados.contatos||[]).filter(c=>c.marca_id===marcaId);}
 function patOportsDoEvento(){
   if(!patDados||!patEvSel)return [];
   return (patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(patEvSel));
@@ -9179,10 +9224,10 @@ async function patCarregar(){
   patCarregando=true;
   try{
     const d=await rpc('pat_dados');
-    patDados={marcas:(d&&d.marcas)||[],oportunidades:(d&&d.oportunidades)||[]};
+    patDados={marcas:(d&&d.marcas)||[],oportunidades:(d&&d.oportunidades)||[],contatos:(d&&d.contatos)||[]};
   }catch(e){
     console.error(e);
-    patDados={marcas:[],oportunidades:[]};
+    patDados={marcas:[],oportunidades:[],contatos:[]};
     const g=document.getElementById('pt-grid');
     if(g)g.innerHTML='<div class="empty-state">Não consegui carregar. Rode o <b>patrocinios.sql</b> no Supabase.</div>';
   }
@@ -9245,6 +9290,8 @@ function patRenderMarcas(){
     const ativos=ops.filter(o=>o.etapa!=='fechado'&&o.etapa!=='sem_interesse').length;
     if(ativos)tags+='<span class="pt-tag" style="background:rgba(255,117,31,.14);color:var(--orange);">'+ativos+' no funil</span>';
     if(!ops.length)tags='<span class="pt-tag" style="background:rgba(42,37,32,.07);color:var(--muted);">fora do funil</span>';
+    const nc=patContatosDe(m.id).length;
+    if(nc)tags+='<span class="pt-tag" style="background:rgba(42,37,32,.06);color:var(--muted);">👤 '+nc+'</span>';
     return '<div class="pt-card" onclick="patAbrirMarca(\''+m.id+'\')">'
       +patLogoHtml(m,'g')
       +'<div><div class="nm">'+patEsc(m.nome)+'</div>'
@@ -9271,10 +9318,64 @@ function patAbrirMarca(id){
   document.getElementById('pt-logo-status').textContent='';
   document.getElementById('pt-btn-excluir').style.display=m?'':'none';
   document.getElementById('pt-btn-salvar').textContent=m?'Salvar alterações':'Salvar e cadastrar a próxima';
+  patRenderContatos();
   document.getElementById('pt-nome').focus();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function patFecharForm(){document.getElementById('pt-form-rapido').style.display='none';patMarcaAtual=null;}
+function patRenderContatos(){
+  const box=document.getElementById('pt-cts-lista'), novo=document.getElementById('pt-ct-novo');
+  if(!box)return;
+  if(!patMarcaAtual){
+    box.innerHTML='<div style="font-size:11.5px;color:var(--muted);">Salve a marca para começar a lançar os contatos.</div>';
+    novo.style.display='none'; return;
+  }
+  novo.style.display='';
+  const cts=patContatosDe(patMarcaAtual.id);
+  box.innerHTML = cts.length ? cts.map(c=>
+     '<div class="pt-ct">'
+    +'<span class="n">'+patEsc(c.nome)+'</span>'
+    +(c.principal?'<span class="pr">PRINCIPAL</span>':'')
+    +'<span class="c">'+[c.cargo,c.telefone,c.email].filter(Boolean).map(patEsc).join(' · ')+'</span>'
+    +'<span class="acs">'
+    +(c.linkedin?'<a href="'+patEsc(c.linkedin)+'" target="_blank" rel="noopener"><button type="button">in</button></a>':'')
+    +(c.telefone?'<a href="https://wa.me/55'+patEsc(String(c.telefone).replace(/\D/g,''))+'" target="_blank" rel="noopener"><button type="button">zap</button></a>':'')
+    +(c.principal?'':'<button type="button" onclick="patPrincipal(\''+c.id+'\')" title="Tornar contato principal">★</button>')
+    +'<button type="button" class="del" onclick="patDelContato(\''+c.id+'\')">✕</button>'
+    +'</span></div>').join('')
+   : '<div style="font-size:11.5px;color:var(--muted);">Nenhum contato ainda.</div>';
+}
+async function patAddContato(){
+  if(!patMarcaAtual){alert('Salve a marca primeiro.');return;}
+  const g=k=>(document.getElementById(k).value||'').trim();
+  const nome=g('pt-ct-nome');
+  if(!nome){document.getElementById('pt-ct-nome').focus();return;}
+  const contato=g('pt-ct-email');
+  const ehLink=/linkedin\.com/i.test(contato);
+  try{
+    await rpc('pat_contato_salvar',{dados:{
+      marca_id:patMarcaAtual.id, nome:nome, cargo:g('pt-ct-cargo'), telefone:g('pt-ct-tel'),
+      email:ehLink?'':contato, linkedin:ehLink?contato:'',
+      canal:g('pt-ct-tel')?'whatsapp':(ehLink?'linkedin':'email'),
+      principal: patContatosDe(patMarcaAtual.id).length===0
+    }});
+    ['pt-ct-nome','pt-ct-cargo','pt-ct-tel','pt-ct-email'].forEach(k=>{document.getElementById(k).value='';});
+    await patCarregar();
+    patMarcaAtual=patMarca(patMarcaAtual.id);
+    patRenderContatos();
+    document.getElementById('pt-ct-nome').focus();
+  }catch(e){alert('Erro: '+e.message);}
+}
+async function patDelContato(id){
+  if(!confirm('Remover este contato?'))return;
+  try{ await rpc('pat_contato_excluir',{p_id:id}); await patCarregar(); patRenderContatos(); }
+  catch(e){alert('Erro: '+e.message);}
+}
+async function patPrincipal(id){
+  const c=(patDados.contatos||[]).find(x=>x.id===id); if(!c)return;
+  try{ await rpc('pat_contato_salvar',{dados:Object.assign({},c,{principal:true})}); await patCarregar(); patRenderContatos(); }
+  catch(e){alert('Erro: '+e.message);}
+}
 function patPreverLogo(){
   const u=document.getElementById('pt-logo-url').value;
   const img=document.getElementById('pt-logo-img'), ph=document.getElementById('pt-logo-ph');
@@ -10027,6 +10128,17 @@ async function patTirarDoFunil(){
                 <div class="pt-fg"><label>Origem</label><select id="pt-origem"><option value="">—</option><option value="lista fria">Lista fria</option><option value="indicacao">Indicação</option><option value="inbound">Inbound</option><option value="evento anterior">Evento anterior</option></select></div>
               </div>
               <div class="pt-fg" style="margin-top:10px;"><label>Observações</label><textarea id="pt-observacoes" rows="2" placeholder="Contexto da conversa, histórico…"></textarea></div>
+              <div class="pt-cts" id="pt-cts-wrap">
+                <h5>Contatos da marca</h5>
+                <div id="pt-cts-lista"></div>
+                <div class="pt-ct-novo" id="pt-ct-novo">
+                  <input type="text" id="pt-ct-nome" placeholder="Nome">
+                  <input type="text" id="pt-ct-cargo" placeholder="Cargo">
+                  <input type="text" id="pt-ct-tel" placeholder="Telefone">
+                  <input type="text" id="pt-ct-email" placeholder="E-mail ou LinkedIn">
+                  <button type="button" onclick="patAddContato()">＋</button>
+                </div>
+              </div>
               <div id="pt-dup-aviso" class="pt-aviso"></div>
               <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap;">
                 <button class="mkt-btn primary" id="pt-btn-salvar" onclick="patSalvarMarca()">Salvar e cadastrar a próxima</button>
