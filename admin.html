@@ -35,7 +35,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
 .admin-logout:hover{background:rgba(42,37,32,.1);color:var(--text);}
 .admin-content{padding:32px;width:100%;box-sizing:border-box;overflow-x:clip;}
-.inner-screen{display:none;}.inner-screen.active{display:block;}#screen-parceiros.active,#screen-patseg.active{display:flex;flex-direction:column;height:calc(100vh - 60px);}
+.inner-screen{display:none;}.inner-screen.active{display:block;}
 /* PAGE HEADER */
 .page-hd{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
 .page-hd h1{font-size:24px;font-weight:700;letter-spacing:-1px;color:var(--text);}
@@ -926,6 +926,92 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-semg-card .t .mkt-cico svg{width:9px;height:9px;}
 .mkt-semg-card .t .mkt-ok{width:12px;height:12px;font-size:8px;margin-top:1px;}
 .mkt-card-titulo .mkt-cico{margin-right:2px;}
+/* ══════════ PATROCÍNIOS — base de marcas + funil ══════════ */
+.pt-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.pt-busca{font-family:'Ubuntu',sans-serif;font-size:13px;padding:9px 13px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);min-width:230px;flex:1;max-width:340px;}
+.pt-busca:focus{outline:none;border-color:var(--orange);}
+.pt-sel{font-family:'Ubuntu',sans-serif;font-size:13px;padding:8px 12px;border:1px solid var(--border);border-radius:9px;background:var(--card);color:var(--text);}
+.pt-sel:focus{outline:none;border-color:var(--orange);}
+.pt-sel.grande{font-size:15px;font-weight:700;padding:10px 16px;border-color:rgba(255,117,31,.4);color:var(--text);}
+.pt-cont{font-size:12px;color:var(--muted);font-weight:700;}
+
+/* ── logo 3D ── */
+.pt-logo{position:relative;border-radius:15px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;
+  box-shadow:0 1px 2px rgba(42,37,32,.16), 0 7px 16px -6px rgba(42,37,32,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  transform:perspective(700px) rotateX(7deg);transition:transform .2s cubic-bezier(.2,.8,.3,1.2), box-shadow .2s;}
+.pt-logo::after{content:'';position:absolute;inset:0;background:linear-gradient(155deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 44%,rgba(0,0,0,.05));pointer-events:none;}
+.pt-logo img{max-width:76%;max-height:76%;object-fit:contain;display:block;position:relative;z-index:1;}
+.pt-logo .mono{font-weight:700;color:#fff;letter-spacing:-.5px;position:relative;z-index:1;text-shadow:0 1px 2px rgba(0,0,0,.25);}
+.pt-logo.arrastavel{cursor:grab;}
+.pt-logo.arrastavel:hover{transform:perspective(700px) rotateX(0deg) translateY(-7px) scale(1.07);box-shadow:0 3px 6px rgba(42,37,32,.2), 0 22px 34px -10px rgba(42,37,32,.45), inset 0 1px 0 rgba(255,255,255,.9);z-index:9;}
+.pt-logo.arrastavel:active{cursor:grabbing;}
+.pt-logo.g{width:78px;height:78px;} .pt-logo.g .mono{font-size:22px;}
+.pt-logo.m{width:58px;height:58px;border-radius:13px;} .pt-logo.m .mono{font-size:17px;}
+.pt-logo.p{width:44px;height:44px;border-radius:11px;} .pt-logo.p .mono{font-size:13px;}
+.pt-logo.pp{width:32px;height:32px;border-radius:9px;} .pt-logo.pp .mono{font-size:10px;}
+.pt-logo.apagado{filter:grayscale(1);opacity:.45;box-shadow:0 1px 3px rgba(42,37,32,.14);transform:none;}
+.pt-logo.apagado:hover{filter:grayscale(.3);opacity:.85;}
+.pt-logo .temp{position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;border:1.5px solid #fff;z-index:2;}
+.pt-fantasma{opacity:.3;}
+
+.pt-peca{display:flex;flex-direction:column;align-items:center;gap:4px;width:86px;}
+.pt-peca .nm{font-size:9.5px;font-weight:700;color:var(--text);text-align:center;line-height:1.15;max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pt-peca .vl{font-size:9px;color:var(--muted);font-weight:700;}
+.pt-peca.mini{width:auto;} .pt-peca.mini .nm{display:none;}
+
+/* ── funil ── */
+.pt-funil{display:grid;grid-template-columns:1fr 210px;gap:20px;align-items:start;}
+.pt-nuvem{background:linear-gradient(180deg,#f3f1ee,#faf9f7);border:1.5px dashed rgba(42,37,32,.18);border-radius:70px;padding:16px 30px;text-align:center;transition:border-color .15s,background .15s;}
+.pt-nuvem.alvo{border-color:var(--orange);background:rgba(255,117,31,.07);}
+.pt-nuvem .tt{font-size:10px;font-weight:700;letter-spacing:1.6px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;}
+.pt-nuvem .logos{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-height:190px;overflow-y:auto;padding:4px;}
+.pt-seta{text-align:center;color:rgba(42,37,32,.18);font-size:12px;line-height:1;margin:3px 0;}
+.pt-banda{position:relative;margin:0 auto 2px;color:#fff;padding:9px 26px 11px;min-height:62px;transition:filter .15s;}
+.pt-banda .pt-peca .nm{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);}
+.pt-banda .pt-peca .vl{color:rgba(255,255,255,.88);text-shadow:0 1px 2px rgba(0,0,0,.35);}
+.pt-fechado .pt-peca .nm{color:#14532d;} .pt-fechado .pt-peca .vl{color:#15803d;}
+.pt-banda.alvo{filter:brightness(1.16) saturate(1.2);}
+.pt-banda .cab{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-bottom:9px;text-shadow:0 1px 2px rgba(0,0,0,.25);}
+.pt-banda .cab .nm{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+.pt-banda .cab .qt{font-size:10.5px;opacity:.9;font-weight:700;}
+.pt-banda .logos{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.pt-fechado{margin:14px auto 0;max-width:680px;background:linear-gradient(180deg,#eaf7ee,#d8efe1);border:1.5px solid rgba(22,163,74,.4);border-radius:16px;padding:16px 22px;text-align:center;box-shadow:0 6px 18px -10px rgba(22,163,74,.5);transition:background .15s;}
+.pt-fechado.alvo{background:linear-gradient(180deg,#d6f2df,#c3e9d0);}
+.pt-fechado .tt{font-size:11px;font-weight:700;letter-spacing:1.6px;color:#15803d;text-transform:uppercase;}
+.pt-fechado .total{font-size:26px;font-weight:700;color:#15803d;margin:2px 0 12px;letter-spacing:-.8px;}
+.pt-fechado .logos{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;}
+.pt-lixo{background:#f3f1ee;border:1.5px dashed rgba(42,37,32,.18);border-radius:16px;padding:16px 12px;text-align:center;position:sticky;top:72px;transition:border-color .15s,background .15s;}
+.pt-lixo.alvo{border-color:#dc2626;background:rgba(220,38,38,.07);}
+.pt-lixo .tt{font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;}
+.pt-lixo .hint{font-size:10.5px;color:var(--muted);line-height:1.45;margin-bottom:12px;}
+.pt-lixo .logos{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;max-height:340px;overflow-y:auto;}
+.pt-kpis{display:flex;gap:22px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 18px;margin-bottom:16px;}
+.pt-kpi .v{font-size:19px;font-weight:700;letter-spacing:-.5px;line-height:1.1;}
+.pt-kpi .l{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.pt-barra{flex:1;min-width:150px;align-self:center;}
+.pt-barra .tr{height:9px;border-radius:5px;background:rgba(42,37,32,.09);overflow:hidden;display:flex;}
+.pt-barra .tr .f{background:#16a34a;} .pt-barra .tr .p{background:rgba(255,117,31,.6);}
+.pt-barra .lg2{font-size:10px;color:var(--muted);margin-top:5px;font-weight:700;}
+
+/* ── base de marcas ── */
+.pt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
+.pt-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s;text-align:center;}
+.pt-card:hover{border-color:rgba(255,117,31,.5);box-shadow:0 8px 22px -12px rgba(42,37,32,.4);transform:translateY(-2px);}
+.pt-card .nm{font-size:13.5px;font-weight:700;line-height:1.25;}
+.pt-card .sg{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.pt-card .evs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
+.pt-tag{font-size:9px;font-weight:700;border-radius:5px;padding:2px 6px;letter-spacing:.3px;}
+.pt-form{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin-bottom:18px;}
+.pt-form-l{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+.pt-fg label{display:block;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.pt-fg input,.pt-fg select,.pt-fg textarea{width:100%;font-family:'Ubuntu',sans-serif;font-size:13px;padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:#faf9f7;color:var(--text);}
+.pt-fg input:focus,.pt-fg select:focus,.pt-fg textarea:focus{outline:none;border-color:var(--orange);background:#fff;}
+.pt-aviso{font-size:11.5px;font-weight:700;color:#dc2626;margin-top:6px;}
+.pt-drop-logo{width:78px;height:78px;border-radius:15px;border:2px dashed rgba(42,37,32,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;background:#faf9f7;flex:none;overflow:hidden;position:relative;}
+.pt-drop-logo:hover{border-color:var(--orange);}
+.pt-drop-logo img{max-width:80%;max-height:80%;object-fit:contain;}
+@media(max-width:900px){.pt-funil{grid-template-columns:1fr;}.pt-lixo{position:static;}}
+
 </style>
 </head>
 <body>
@@ -959,8 +1045,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
-        <button class="nav-btn" id="nav-parceiros" onclick="showInner('parceiros')">Patrocinadores</button>
-        <button class="nav-btn" id="nav-patseg" onclick="showInner('patseg')">Pat. Segmentos</button>
+        <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
+        <button class="nav-btn" id="nav-funil" onclick="showInner('funil')">Funil de Patrocínio</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
@@ -1908,7 +1994,8 @@ let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 /* ── HELPERS ── */
 const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_calendario_extra_listar','admin_calendario_extra_salvar',
-  'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir'];
+  'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir',
+  'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -1926,7 +2013,7 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
- {id:'parceiros',label:'Patrocinadores'},{id:'patseg',label:'Pat. Segmentos'},
+ {id:'marcas',label:'Marcas'},{id:'funil',label:'Funil de Patrocínio'},
  {id:'cruzar',label:'Cruzamento'},{id:'reunioes',label:'Reuniões'}
 ];
 let admUser=null, admToken=null;
@@ -2007,8 +2094,8 @@ function showInner(name){
   if(name==='fin-evento'){document.getElementById('nav-financeiro').classList.add('active');}
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
-  if(name==='parceiros'){document.getElementById('nav-parceiros').classList.add('active');initParceirosFrame();}
-  if(name==='patseg'){document.getElementById('nav-patseg').classList.add('active');initPatSegFrame();}
+  if(name==='marcas'){document.getElementById('nav-marcas').classList.add('active');patInit('marcas');}
+  if(name==='funil'){document.getElementById('nav-funil').classList.add('active');patInit('funil');}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
@@ -6861,17 +6948,6 @@ function calRender(){
 
 
 
-function initParceirosFrame(){
-  const f = document.getElementById('parceiros-frame');
-  if(!f.src || f.src === window.location.href)
-    f.src = 'https://docs.google.com/spreadsheets/d/1xTlq5HxRtazGwpHldfDK1mItTCzc9Mv-/edit?usp=sharing';
-}
-
-function initPatSegFrame(){
-  const f = document.getElementById('patseg-frame');
-  if(!f.src || f.src === window.location.href)
-    f.src = 'https://docs.google.com/spreadsheets/d/11XHi7jHRxYCqwUttc6M4A3lRF-JBRbKY/edit?usp=sharing';
-}
 
 
 function calSetYear(year){
@@ -9049,6 +9125,460 @@ async function reuExcluir(id){
     await reuListar();
   }catch(e){ alert('Erro ao excluir: ' + e.message); }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   PATROCÍNIOS — base de marcas + funil por evento
+   Etapas conforme o documento do Guilherme (28/08/2026).
+   ══════════════════════════════════════════════════════════════ */
+const PAT_ETAPAS=[
+ {id:'a_prospectar',    label:'A prospectar',     cor:'#a8a29a', w:100, prob:.05},
+ {id:'pesquisa_feita',  label:'Pesquisa feita',   cor:'#0891b2', w:86,  prob:.15},
+ {id:'contato_feito',   label:'Contato feito',    cor:'#2563eb', w:72,  prob:.30},
+ {id:'em_negociacao',   label:'Em negociação',    cor:'#f59e0b', w:58,  prob:.55},
+ {id:'proposta_enviada',label:'Proposta enviada', cor:'#7c3aed', w:44,  prob:.75}
+];
+const PAT_TEMP={quente:{l:'Quente',c:'#dc2626'},morna:{l:'Morna',c:'#f59e0b'},fria:{l:'Fria',c:'#38bdf8'}};
+const PAT_MOTIVOS=['Sem verba no momento','Fora do perfil da marca','Já patrocina concorrente','Não respondeu','Timing ruim','Valor acima do orçamento','Outro'];
+const PAT_CORES=['#0f766e','#e0403c','#16a34a','#7a5c3e','#2563eb','#f59e0b','#475569','#1d4e89','#b45309','#65a30d','#dc2626','#78350f','#0891b2','#7c3aed','#e11d48','#111827','#0ea5e9','#c026d3','#059669','#f97316'];
+
+let patDados=null, patEventos=[], patEvSel='', patCarregando=false, patMarcaAtual=null, patOportAtual=null, patArrasto=null;
+
+function patEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function patBRL(v){return 'R$ '+Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:0});}
+function patIniciais(n){
+  const p=String(n||'?').replace(/[^A-Za-zÀ-ÿ0-9 ]/g,' ').split(' ').filter(Boolean);
+  if(!p.length)return '?';
+  /* nome de uma palavra usa as 2 primeiras letras; com 2+ palavras, as iniciais */
+  return (p.length===1 ? p[0].slice(0,2) : p.slice(0,2).map(x=>x[0]).join('')).toUpperCase();
+}
+function patCorDe(n){
+  let s=0; String(n||'').split('').forEach(c=>{s=(s*31+c.charCodeAt(0))%9973;});
+  return PAT_CORES[s%PAT_CORES.length];
+}
+/* a peça 3D: usa a logo quando existe, senão um bloco com as iniciais */
+function patLogoHtml(m,tam,extra){
+  const cls='pt-logo '+(tam||'m')+(extra?' '+extra:'');
+  const t='title="'+patEsc(m.nome)+'"';
+  if(m.logo_url) return '<span class="'+cls+'" '+t+'><img src="'+patEsc(m.logo_url)+'" alt="'+patEsc(m.nome)+'" loading="lazy"></span>';
+  const c=patCorDe(m.nome);
+  return '<span class="'+cls+'" '+t+' style="background:linear-gradient(160deg,'+c+',#00000033),'+c+';"><span class="mono">'+patEsc(patIniciais(m.nome))+'</span></span>';
+}
+function patMarca(id){return (patDados&&patDados.marcas||[]).find(m=>m.id===id)||null;}
+function patOportsDoEvento(){
+  if(!patDados||!patEvSel)return [];
+  return (patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(patEvSel));
+}
+
+/* ── carga ── */
+async function patInit(tela){
+  if(!patDados){ await patCarregar(); }
+  else { if(tela==='marcas')patRenderMarcas(); else patRenderFunil(); }
+}
+async function patCarregar(){
+  if(patCarregando)return;
+  patCarregando=true;
+  try{
+    const d=await rpc('pat_dados');
+    patDados={marcas:(d&&d.marcas)||[],oportunidades:(d&&d.oportunidades)||[]};
+  }catch(e){
+    console.error(e);
+    patDados={marcas:[],oportunidades:[]};
+    const g=document.getElementById('pt-grid');
+    if(g)g.innerHTML='<div class="empty-state">Não consegui carregar. Rode o <b>patrocinios.sql</b> no Supabase.</div>';
+  }
+  if(!patEventos.length){
+    try{
+      const rows=await rpc('admin_calendario_listar');
+      patEventos=(rows||[]).map(r=>({id:String(r.id),nome:r.evento||r.nome||r.titulo||'Evento',data:String(r.inicio||'').slice(0,10)}))
+        .filter(e=>e.data).sort((a,b)=>a.data.localeCompare(b.data));
+      const hoje=new Date().toISOString().slice(0,10);
+      const futuros=patEventos.filter(e=>e.data>=hoje);
+      if(futuros.length)patEventos=futuros;
+    }catch(e){ console.warn('Calendário indisponível para o seletor de eventos.',e); }
+    try{
+      const ext=await rpc('admin_calendario_extra_listar');
+      (ext||[]).forEach(x=>{const e=patEventos.find(y=>String(y.id)===String(x.id));
+        if(e){e.meta=Number(x.meta_patrocinio)||0;}});
+    }catch(e){}
+  }
+  if(!patEvSel&&patEventos.length)patEvSel=patEventos[0].id;
+  patCarregando=false;
+  patRenderMarcas(); patRenderFunil();
+}
+
+/* ══════════ TELA 1 · BASE DE MARCAS ══════════ */
+function patSegmentos(){
+  const s={};
+  (patDados&&patDados.marcas||[]).forEach(m=>{if(m.segmento)s[m.segmento]=1;});
+  return Object.keys(s).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function patRenderMarcas(){
+  const grid=document.getElementById('pt-grid');
+  if(!grid||!patDados)return;
+  const segs=patSegmentos();
+  const dl=document.getElementById('pt-segmentos');
+  if(dl)dl.innerHTML=segs.map(s=>'<option value="'+patEsc(s)+'">').join('');
+  const fs=document.getElementById('pt-f-seg');
+  if(fs){const v=fs.value;fs.innerHTML='<option value="">Todos os segmentos</option>'+segs.map(s=>'<option value="'+patEsc(s)+'">'+patEsc(s)+'</option>').join('');fs.value=v;}
+
+  const q=(document.getElementById('pt-busca').value||'').trim().toLowerCase();
+  const seg=fs?fs.value:'';
+  const lista=(patDados.marcas||[]).filter(m=>{
+    if(seg&&m.segmento!==seg)return false;
+    if(!q)return true;
+    return (m.nome+' '+(m.segmento||'')+' '+(m.responsavel||'')).toLowerCase().includes(q);
+  });
+  document.getElementById('pt-cont').textContent =
+    (patDados.marcas||[]).length ? lista.length+' de '+patDados.marcas.length+' marcas' : '';
+
+  if(!lista.length){
+    grid.innerHTML='<div class="empty-state">'+((patDados.marcas||[]).length
+      ?'Nenhuma marca com esse filtro.'
+      :'Base vazia. Clique em “＋ Nova marca” e comece a lançar.')+'</div>';
+    return;
+  }
+  grid.innerHTML=lista.map(m=>{
+    const ops=(patDados.oportunidades||[]).filter(o=>o.marca_id===m.id);
+    const fech=ops.filter(o=>o.etapa==='fechado').length;
+    let tags='';
+    if(fech)tags+='<span class="pt-tag" style="background:rgba(22,163,74,.14);color:#15803d;">✓ '+fech+' fechado(s)</span>';
+    const ativos=ops.filter(o=>o.etapa!=='fechado'&&o.etapa!=='sem_interesse').length;
+    if(ativos)tags+='<span class="pt-tag" style="background:rgba(255,117,31,.14);color:var(--orange);">'+ativos+' no funil</span>';
+    if(!ops.length)tags='<span class="pt-tag" style="background:rgba(42,37,32,.07);color:var(--muted);">fora do funil</span>';
+    return '<div class="pt-card" onclick="patAbrirMarca(\''+m.id+'\')">'
+      +patLogoHtml(m,'g')
+      +'<div><div class="nm">'+patEsc(m.nome)+'</div>'
+      +(m.segmento?'<div class="sg">'+patEsc(m.segmento)+'</div>':'')+'</div>'
+      +'<div class="evs">'+tags+'</div></div>';
+  }).join('');
+}
+function patNovaMarca(){ patAbrirMarca(null); }
+function patAbrirMarca(id){
+  patMarcaAtual=id?patMarca(id):null;
+  const m=patMarcaAtual;
+  document.getElementById('pt-form-rapido').style.display='block';
+  const g=(k,v)=>{const el=document.getElementById(k);if(el)el.value=v||'';};
+  g('pt-nome',m?m.nome:''); g('pt-segmento',m?m.segmento:''); g('pt-site',m?m.site:'');
+  g('pt-instagram',m?m.instagram:''); g('pt-responsavel',m?m.responsavel:''); g('pt-cargo',m?m.cargo:'');
+  g('pt-email',m?m.email:''); g('pt-telefone',m?m.telefone:''); g('pt-linkedin',m?m.linkedin:'');
+  g('pt-observacoes',m?m.observacoes:'');
+  document.getElementById('pt-prioridade').value=(m&&m.prioridade)||'media';
+  document.getElementById('pt-origem').value=(m&&m.origem)||'';
+  document.getElementById('pt-logo-url').value=(m&&m.logo_url)||'';
+  patPreverLogo();
+  document.getElementById('pt-dup-aviso').textContent='';
+  document.getElementById('pt-form-msg').textContent='';
+  document.getElementById('pt-logo-status').textContent='';
+  document.getElementById('pt-btn-excluir').style.display=m?'':'none';
+  document.getElementById('pt-btn-salvar').textContent=m?'Salvar alterações':'Salvar e cadastrar a próxima';
+  document.getElementById('pt-nome').focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function patFecharForm(){document.getElementById('pt-form-rapido').style.display='none';patMarcaAtual=null;}
+function patPreverLogo(){
+  const u=document.getElementById('pt-logo-url').value;
+  const img=document.getElementById('pt-logo-img'), ph=document.getElementById('pt-logo-ph');
+  if(u){img.src=u;img.style.display='';ph.style.display='none';}
+  else{img.style.display='none';ph.style.display='';}
+}
+function patChecarDuplicada(){
+  const el=document.getElementById('pt-dup-aviso');
+  const chave=n=>String(n||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const k=chave(document.getElementById('pt-nome').value);
+  if(!k){el.textContent='';return;}
+  const dup=(patDados&&patDados.marcas||[]).find(m=>chave(m.nome)===k&&(!patMarcaAtual||m.id!==patMarcaAtual.id));
+  el.textContent=dup?('⚠ "'+dup.nome+'" já está na base.'):'';
+}
+async function patUploadLogo(input){
+  const f=input.files[0]; if(!f)return;
+  const st=document.getElementById('pt-logo-status');
+  if(f.size>5*1024*1024){st.textContent='Máx. 5MB';st.style.color='#dc2626';input.value='';return;}
+  st.textContent='Enviando…';st.style.color='var(--muted)';
+  const ext=(f.name.split('.').pop()||'png').toLowerCase().slice(0,4);
+  const nome='logo_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'.'+ext;
+  try{
+    const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':f.type||'image/png','x-upsert':'true'},body:f});
+    if(!r.ok)throw new Error(await r.text());
+    document.getElementById('pt-logo-url').value=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
+    patPreverLogo();
+    st.textContent='✓ enviada';st.style.color='#16a34a';
+  }catch(e){console.error(e);st.textContent='erro no upload';st.style.color='#dc2626';}
+  input.value='';
+}
+async function patSalvarMarca(){
+  const v=k=>(document.getElementById(k).value||'').trim();
+  const nome=v('pt-nome');
+  if(!nome){alert('Informe o nome da marca.');return;}
+  const btn=document.getElementById('pt-btn-salvar'), msg=document.getElementById('pt-form-msg');
+  btn.disabled=true;
+  try{
+    await rpc('pat_marca_salvar',{dados:{
+      id:patMarcaAtual?patMarcaAtual.id:'',
+      nome:nome, segmento:v('pt-segmento'), site:v('pt-site'), logo_url:v('pt-logo-url'),
+      instagram:v('pt-instagram'), responsavel:v('pt-responsavel'), cargo:v('pt-cargo'),
+      email:v('pt-email'), telefone:v('pt-telefone'), linkedin:v('pt-linkedin'),
+      prioridade:document.getElementById('pt-prioridade').value,
+      origem:document.getElementById('pt-origem').value,
+      observacoes:v('pt-observacoes'),
+      criado_por:(admUser&&admUser.nome)||''
+    }});
+    const editando=!!patMarcaAtual;
+    await patCarregar();
+    msg.style.color='#16a34a';
+    msg.textContent=editando?'✓ Alterações salvas':'✓ "'+nome+'" cadastrada';
+    setTimeout(()=>{msg.textContent='';},2500);
+    if(editando){ patFecharForm(); }
+    else {
+      /* segue aberto e limpo para o próximo lançamento, mantendo o segmento */
+      const seg=v('pt-segmento');
+      patMarcaAtual=null;
+      ['pt-nome','pt-site','pt-instagram','pt-responsavel','pt-cargo','pt-email','pt-telefone','pt-linkedin','pt-observacoes','pt-logo-url']
+        .forEach(k=>{document.getElementById(k).value='';});
+      document.getElementById('pt-segmento').value=seg;
+      document.getElementById('pt-dup-aviso').textContent='';
+      document.getElementById('pt-logo-status').textContent='';
+      patPreverLogo();
+      document.getElementById('pt-nome').focus();
+    }
+  }catch(e){
+    msg.style.color='#dc2626';
+    msg.textContent=(e.message||'').replace(/.*"message":"/,'').replace(/".*/,'')||'Erro ao salvar';
+  }
+  btn.disabled=false;
+}
+async function patExcluirMarca(){
+  if(!patMarcaAtual)return;
+  const ops=(patDados.oportunidades||[]).filter(o=>o.marca_id===patMarcaAtual.id).length;
+  if(!confirm('Excluir "'+patMarcaAtual.nome+'" da base?'+(ops?'\nEla sai também de '+ops+' funil(is).':'')))return;
+  try{ await rpc('pat_marca_excluir',{p_id:patMarcaAtual.id}); patFecharForm(); await patCarregar(); }
+  catch(e){alert('Erro: '+e.message);}
+}
+
+/* ══════════ TELA 2 · FUNIL POR EVENTO ══════════ */
+function patTrocarEvento(){ patEvSel=document.getElementById('pt-evento').value; patRenderFunil(); }
+function patEventoAtual(){ return patEventos.find(e=>String(e.id)===String(patEvSel))||null; }
+
+function patRenderFunil(){
+  const bandas=document.getElementById('pt-bandas');
+  if(!bandas||!patDados)return;
+  const sel=document.getElementById('pt-evento');
+  if(sel){
+    sel.innerHTML=patEventos.length
+      ? patEventos.map(e=>'<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+' · '+(e.data?e.data.split('-').reverse().join('/'):'')+'</option>').join('')
+      : '<option value="">Nenhum evento no calendário</option>';
+    if(patEvSel)sel.value=patEvSel;
+  }
+  const ops=patOportsDoEvento();
+  const porEtapa={}; ops.forEach(o=>{(porEtapa[o.etapa]=porEtapa[o.etapa]||[]).push(o);});
+  const noFunil={}; ops.forEach(o=>{noFunil[o.marca_id]=1;});
+
+  /* nuvem: quem ainda não entrou no funil deste evento */
+  const fora=(patDados.marcas||[]).filter(m=>!noFunil[m.id]);
+  document.getElementById('pt-nuvem-tt').innerHTML='Base completa · <b>'+fora.length+'</b> marca(s) fora deste funil'
+    +(fora.length?' — arraste para dentro':'');
+  document.getElementById('pt-nuvem-logos').innerHTML = fora.length
+    ? fora.map(m=>'<span class="pt-peca mini" draggable="true" ondragstart="patDragStart(event,\'base\',\''+m.id+'\')" ondragend="patDragEnd(event)" onclick="patAbrirOportNova(\''+m.id+'\')">'+patLogoHtml(m,'p','arrastavel apagado')+'</span>').join('')
+    : '<span style="font-size:11.5px;color:var(--muted);">Todas as marcas da base já estão neste funil.</span>';
+
+  /* bandas */
+  bandas.innerHTML=PAT_ETAPAS.map((et,i)=>{
+    const lista=porEtapa[et.id]||[];
+    const soma=lista.reduce((s,o)=>s+Number(o.valor_estimado||0),0);
+    const clip='polygon(0 0, 100% 0, 93% 100%, 7% 100%)';
+    return '<div class="pt-banda" data-etapa="'+et.id+'" style="width:'+et.w+'%;background:linear-gradient(180deg,'+et.cor+','+et.cor+'d0);clip-path:'+clip+';"'
+      +' ondragover="patDragOver(event,this)" ondragleave="patDragLeave(event,this)" ondrop="patSoltar(event,\''+et.id+'\')">'
+      +'<div class="cab"><span class="nm">'+et.label+'</span><span class="qt">'+lista.length+' · '+patBRL(soma)+'</span></div>'
+      +'<div class="logos">'+lista.map(o=>patPecaOport(o,'p')).join('')+'</div></div>'
+      +(i<PAT_ETAPAS.length-1?'<div class="pt-seta">▼</div>':'');
+  }).join('');
+
+  /* fechado */
+  const fech=porEtapa['fechado']||[];
+  document.getElementById('pt-fechado-vl').textContent=patBRL(fech.reduce((s,o)=>s+Number(o.valor_estimado||0),0));
+  document.getElementById('pt-fechado-logos').innerHTML = fech.length
+    ? fech.map(o=>patPecaOport(o,'m')).join('')
+    : '<span style="font-size:11.5px;color:#15803d;opacity:.75;">Nenhuma marca fechada ainda neste evento.</span>';
+
+  /* lixeira */
+  const rec=porEtapa['sem_interesse']||[];
+  document.getElementById('pt-lixo-logos').innerHTML = rec.length
+    ? rec.map(o=>patPecaOport(o,'p','apagado')).join('')
+    : '<span style="font-size:11px;color:var(--muted);opacity:.8;">vazio</span>';
+
+  patRenderKpis(ops);
+}
+function patPecaOport(o,tam,extra){
+  const m=patMarca(o.marca_id); if(!m)return '';
+  const t=PAT_TEMP[o.temperatura]||PAT_TEMP.fria;
+  const val=Number(o.valor_estimado||0);
+  return '<span class="pt-peca" draggable="true" ondragstart="patDragStart(event,\'op\',\''+o.id+'\')" ondragend="patDragEnd(event)" onclick="patAbrirOport(\''+o.id+'\')">'
+    +patLogoHtml(m,tam,'arrastavel'+(extra?' '+extra:''))
+      .replace('</span>','<i class="temp" style="background:'+t.c+'" title="'+t.l+'"></i></span>')
+    +'<span class="nm">'+patEsc(m.nome)+'</span>'
+    +(val?'<span class="vl">'+patBRL(val)+'</span>':'')+'</span>';
+}
+function patRenderKpis(ops){
+  const el=document.getElementById('pt-kpis'); if(!el)return;
+  const ev=patEventoAtual();
+  const fech=ops.filter(o=>o.etapa==='fechado');
+  const vFech=fech.reduce((s,o)=>s+Number(o.valor_estimado||0),0);
+  let vPrev=0;
+  PAT_ETAPAS.forEach(et=>{ops.filter(o=>o.etapa===et.id).forEach(o=>{vPrev+=Number(o.valor_estimado||0)*et.prob;});});
+  const meta=(ev&&ev.meta)||0;
+  const ativos=ops.filter(o=>o.etapa!=='fechado'&&o.etapa!=='sem_interesse').length;
+  const pf=meta?Math.min(100,vFech/meta*100):0;
+  const pp=meta?Math.min(100-pf,vPrev/meta*100):0;
+  let h='';
+  h+='<div class="pt-kpi"><div class="v" style="color:#16a34a;">'+patBRL(vFech)+'</div><div class="l">Fechado</div></div>';
+  h+='<div class="pt-kpi"><div class="v" style="color:var(--orange);">'+patBRL(vPrev)+'</div><div class="l">Previsto ponderado</div></div>';
+  if(meta)h+='<div class="pt-kpi"><div class="v">'+patBRL(meta)+'</div><div class="l">Meta</div></div>';
+  h+='<div class="pt-kpi"><div class="v">'+fech.length+'</div><div class="l">Marcas fechadas</div></div>';
+  h+='<div class="pt-kpi"><div class="v">'+ativos+'</div><div class="l">No funil</div></div>';
+  if(meta){
+    h+='<div class="pt-barra"><div class="tr"><span class="f" style="width:'+pf+'%"></span><span class="p" style="width:'+pp+'%"></span></div>'
+      +'<div class="lg2">'+Math.round(pf)+'% da meta fechado · falta '+patBRL(Math.max(0,meta-vFech))+'</div></div>';
+  }
+  el.innerHTML=h;
+}
+
+/* ── arrastar e soltar ── */
+function patDragStart(ev,tipo,id){
+  patArrasto={tipo:tipo,id:id};
+  try{ev.dataTransfer.effectAllowed='move';ev.dataTransfer.setData('text/plain',id);}catch(e){}
+  const el=ev.currentTarget; setTimeout(()=>el.classList.add('pt-fantasma'),0);
+}
+function patDragEnd(ev){
+  ev.currentTarget.classList.remove('pt-fantasma');
+  document.querySelectorAll('.alvo').forEach(x=>x.classList.remove('alvo'));
+  patArrasto=null;
+}
+function patDragOver(ev,el){
+  if(!patArrasto)return;
+  ev.preventDefault();
+  try{ev.dataTransfer.dropEffect='move';}catch(e){}
+  el.classList.add('alvo');
+}
+function patDragLeave(ev,el){
+  const para=ev.relatedTarget;
+  if(para&&el.contains(para))return;
+  el.classList.remove('alvo');
+}
+async function patSoltar(ev,destino){
+  ev.preventDefault();
+  document.querySelectorAll('.alvo').forEach(x=>x.classList.remove('alvo'));
+  const a=patArrasto; patArrasto=null;
+  if(!a)return;
+
+  if(a.tipo==='base'){
+    if(destino==='__base__')return;
+    const m=patMarca(a.id); if(!m)return;
+    if(destino==='sem_interesse'){ patAbrirOportNova(a.id,'sem_interesse'); return; }
+    const ev2=patEventoAtual();
+    try{
+      await rpc('pat_oport_salvar',{dados:{marca_id:a.id,evento_id:String(patEvSel),
+        evento_nome:ev2?ev2.nome:'',etapa:destino}});
+      await patCarregar();
+    }catch(e){alert('Erro: '+e.message);}
+    return;
+  }
+
+  const o=(patDados.oportunidades||[]).find(x=>x.id===a.id);
+  if(!o)return;
+  if(destino==='__base__'){
+    if(!confirm('Tirar "'+(patMarca(o.marca_id)||{}).nome+'" deste funil? Ela volta para a base.'))return;
+    try{ await rpc('pat_oport_excluir',{p_id:o.id}); await patCarregar(); }
+    catch(e){alert('Erro: '+e.message);}
+    return;
+  }
+  if(o.etapa===destino)return;
+  if(destino==='sem_interesse'){ patAbrirOport(o.id,'sem_interesse'); return; }
+  try{ await rpc('pat_oport_mover',{p_id:o.id,p_etapa:destino,p_motivo:null}); await patCarregar(); }
+  catch(e){alert('Erro: '+e.message);}
+}
+
+/* ── modal da oportunidade ── */
+function patMontarSelectsOport(){
+  const se=document.getElementById('pt-op-etapa');
+  se.innerHTML=PAT_ETAPAS.map(e=>'<option value="'+e.id+'">'+e.label+'</option>').join('')
+    +'<option value="fechado">✓ Fechado</option><option value="sem_interesse">✕ Sem interesse</option>';
+  const sm=document.getElementById('pt-op-motivo');
+  sm.innerHTML='<option value="">— escolha —</option>'+PAT_MOTIVOS.map(m=>'<option value="'+patEsc(m)+'">'+patEsc(m)+'</option>').join('');
+}
+function patAbrirOportNova(marcaId,etapa){
+  const m=patMarca(marcaId); if(!m)return;
+  patOportAtual={novo:true,marca_id:marcaId,etapa:etapa||'a_prospectar',valor_estimado:0,temperatura:'fria'};
+  patPintarOport(m,patOportAtual);
+}
+function patAbrirOport(id,forcarEtapa){
+  const o=(patDados.oportunidades||[]).find(x=>x.id===id); if(!o)return;
+  const m=patMarca(o.marca_id); if(!m)return;
+  patOportAtual=Object.assign({},o,{novo:false});
+  if(forcarEtapa)patOportAtual.etapa=forcarEtapa;
+  patPintarOport(m,patOportAtual);
+}
+function patPintarOport(m,o){
+  patMontarSelectsOport();
+  const ev=patEventoAtual();
+  document.getElementById('pt-op-logo').innerHTML=patLogoHtml(m,'m');
+  document.getElementById('pt-op-nome').textContent=m.nome;
+  document.getElementById('pt-op-ev').textContent=(ev?ev.nome:'')+(m.segmento?' · '+m.segmento:'');
+  document.getElementById('pt-op-etapa').value=o.etapa||'a_prospectar';
+  document.getElementById('pt-op-temp').value=o.temperatura||'fria';
+  document.getElementById('pt-op-cota').value=o.cota_alvo||'';
+  document.getElementById('pt-op-valor').value=Number(o.valor_estimado||0)||'';
+  document.getElementById('pt-op-previsao').value=o.previsao||'';
+  document.getElementById('pt-op-passo').value=o.proximo_passo||'';
+  document.getElementById('pt-op-passo-data').value=o.proximo_passo_data||'';
+  document.getElementById('pt-op-contra').value=o.contrapartida||'';
+  document.getElementById('pt-op-motivo').value=o.motivo_recusa||'';
+  document.getElementById('pt-op-reabordagem').value=o.data_reabordagem||'';
+  document.getElementById('pt-op-tirar').style.display=o.novo?'none':'';
+  patOportEtapaChange();
+  document.getElementById('pt-op-etapa').onchange=patOportEtapaChange;
+  document.getElementById('pt-op-overlay').classList.add('open');
+}
+function patOportEtapaChange(){
+  const e=document.getElementById('pt-op-etapa').value;
+  document.getElementById('pt-op-recusa').style.display=(e==='sem_interesse')?'block':'none';
+}
+function patFecharOport(){document.getElementById('pt-op-overlay').classList.remove('open');patOportAtual=null;}
+async function patSalvarOport(){
+  if(!patOportAtual)return;
+  const etapa=document.getElementById('pt-op-etapa').value;
+  const motivo=document.getElementById('pt-op-motivo').value;
+  if(etapa==='sem_interesse'&&!motivo){alert('Escolha o motivo da recusa.');return;}
+  const ev=patEventoAtual();
+  const btn=document.getElementById('pt-op-salvar'); btn.disabled=true;
+  try{
+    await rpc('pat_oport_salvar',{dados:{
+      marca_id:patOportAtual.marca_id,
+      evento_id:String(patEvSel),
+      evento_nome:ev?ev.nome:'',
+      etapa:etapa,
+      cota_alvo:document.getElementById('pt-op-cota').value,
+      valor_estimado:document.getElementById('pt-op-valor').value||'0',
+      temperatura:document.getElementById('pt-op-temp').value,
+      contrapartida:document.getElementById('pt-op-contra').value.trim(),
+      previsao:document.getElementById('pt-op-previsao').value,
+      proximo_passo:document.getElementById('pt-op-passo').value.trim(),
+      proximo_passo_data:document.getElementById('pt-op-passo-data').value,
+      motivo_recusa:etapa==='sem_interesse'?motivo:'',
+      data_reabordagem:document.getElementById('pt-op-reabordagem').value
+    }});
+    patFecharOport();
+    await patCarregar();
+  }catch(e){alert('Erro ao salvar: '+e.message);}
+  btn.disabled=false;
+}
+async function patTirarDoFunil(){
+  if(!patOportAtual||patOportAtual.novo)return;
+  const m=patMarca(patOportAtual.marca_id);
+  if(!confirm('Tirar "'+(m?m.nome:'')+'" deste funil? A marca continua na base.'))return;
+  try{ await rpc('pat_oport_excluir',{p_id:patOportAtual.id}); patFecharOport(); await patCarregar(); }
+  catch(e){alert('Erro: '+e.message);}
+}
+
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
 <div class="modal-overlay2" id="confirmar-overlay" onclick="if(event.target===this)fecharConfirmarDialog()">
@@ -9464,45 +9994,132 @@ async function reuExcluir(id){
   </div>
 </div>
 
-      <!-- TELA: PATROCINADORES (PLANILHA) -->
-      <div class="inner-screen" id="screen-parceiros" style="padding:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
-            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">PATROCINADORES</span>
-            <span style="font-size:11px;color:var(--muted);">— planilha em tempo real</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="document.getElementById('parceiros-frame').src=document.getElementById('parceiros-frame').src"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
-              ⟳ Atualizar</button>
-            <a href="https://docs.google.com/spreadsheets/d/1xTlq5HxRtazGwpHldfDK1mItTCzc9Mv-/edit?usp=sharing" target="_blank"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
-              ↗ Abrir e editar</a>
+      <!-- TELA: MARCAS (base de patrocinadores) -->
+      <div class="inner-screen" id="screen-marcas">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <h1>Marcas</h1>
+          <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
+        </div>
+
+        <div class="pt-form" id="pt-form-rapido" style="display:none;">
+          <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;">
+            <div>
+              <div class="pt-drop-logo" id="pt-logo-area" onclick="document.getElementById('pt-logo-file').click()" title="Enviar a logo">
+                <span id="pt-logo-ph" style="font-size:10px;color:var(--muted);text-align:center;line-height:1.3;">Logo<br>PNG/SVG</span>
+                <img id="pt-logo-img" style="display:none;">
+              </div>
+              <input type="file" id="pt-logo-file" accept="image/*,.svg" style="display:none;" onchange="patUploadLogo(this)">
+              <div id="pt-logo-status" style="font-size:10px;color:var(--muted);text-align:center;margin-top:5px;width:78px;"></div>
+              <input type="hidden" id="pt-logo-url">
+            </div>
+            <div style="flex:1;min-width:280px;">
+              <div class="pt-form-l">
+                <div class="pt-fg"><label>Marca *</label><input type="text" id="pt-nome" placeholder="Ex: Café Evoluto" oninput="patChecarDuplicada()"></div>
+                <div class="pt-fg"><label>Segmento</label><input type="text" id="pt-segmento" list="pt-segmentos" placeholder="Ex: Alimentos"><datalist id="pt-segmentos"></datalist></div>
+                <div class="pt-fg"><label>Site</label><input type="text" id="pt-site" placeholder="marca.com.br"></div>
+                <div class="pt-fg"><label>Instagram</label><input type="text" id="pt-instagram" placeholder="@marca"></div>
+                <div class="pt-fg"><label>Responsável</label><input type="text" id="pt-responsavel" placeholder="Nome do contato"></div>
+                <div class="pt-fg"><label>Cargo</label><input type="text" id="pt-cargo" placeholder="Ex: Gerente de Marketing"></div>
+                <div class="pt-fg"><label>E-mail</label><input type="text" id="pt-email" placeholder="contato@marca.com.br"></div>
+                <div class="pt-fg"><label>Telefone / WhatsApp</label><input type="text" id="pt-telefone" placeholder="(16) 99999-9999"></div>
+                <div class="pt-fg"><label>LinkedIn</label><input type="text" id="pt-linkedin" placeholder="linkedin.com/in/…"></div>
+                <div class="pt-fg"><label>Prioridade</label><select id="pt-prioridade"><option value="alta">Alta</option><option value="media" selected>Média</option><option value="classica">Clássica</option></select></div>
+                <div class="pt-fg"><label>Origem</label><select id="pt-origem"><option value="">—</option><option value="lista fria">Lista fria</option><option value="indicacao">Indicação</option><option value="inbound">Inbound</option><option value="evento anterior">Evento anterior</option></select></div>
+              </div>
+              <div class="pt-fg" style="margin-top:10px;"><label>Observações</label><textarea id="pt-observacoes" rows="2" placeholder="Contexto da conversa, histórico…"></textarea></div>
+              <div id="pt-dup-aviso" class="pt-aviso"></div>
+              <div style="display:flex;gap:8px;margin-top:12px;align-items:center;flex-wrap:wrap;">
+                <button class="mkt-btn primary" id="pt-btn-salvar" onclick="patSalvarMarca()">Salvar e cadastrar a próxima</button>
+                <button class="mkt-btn" onclick="patFecharForm()">Fechar</button>
+                <button class="mkt-btn" id="pt-btn-excluir" style="display:none;color:#dc2626;margin-left:auto;" onclick="patExcluirMarca()">Excluir marca</button>
+                <span id="pt-form-msg" style="font-size:12px;font-weight:700;"></span>
+              </div>
+            </div>
           </div>
         </div>
-        <iframe id="parceiros-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
+
+        <div class="pt-top">
+          <input type="text" class="pt-busca" id="pt-busca" placeholder="Buscar marca, segmento ou responsável…" oninput="patRenderMarcas()">
+          <select class="pt-sel" id="pt-f-seg" onchange="patRenderMarcas()"><option value="">Todos os segmentos</option></select>
+          <span class="pt-cont" id="pt-cont"></span>
+        </div>
+        <div class="pt-grid" id="pt-grid"><div class="empty-state">Carregando…</div></div>
       </div>
 
-      <!-- TELA: PAT. SEGMENTOS (PLANILHA) -->
-      <div class="inner-screen" id="screen-patseg" style="padding:0;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);animation:pulse-dot 2s infinite;"></div>
-            <span style="font-size:12px;font-weight:700;color:var(--text);letter-spacing:.5px;">PAT. SEGMENTOS</span>
-            <span style="font-size:11px;color:var(--muted);">— planilha em tempo real</span>
+      <!-- TELA: FUNIL DE PATROCÍNIO -->
+      <div class="inner-screen" id="screen-funil">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <h1>Funil de Patrocínio</h1>
+          <select class="pt-sel grande" id="pt-evento" onchange="patTrocarEvento()"></select>
+        </div>
+        <div class="pt-kpis" id="pt-kpis"></div>
+        <div class="pt-funil">
+          <div>
+            <div class="pt-nuvem" id="pt-nuvem"
+                 ondragover="patDragOver(event,this)" ondragleave="patDragLeave(event,this)" ondrop="patSoltar(event,'__base__')">
+              <div class="tt" id="pt-nuvem-tt">Base completa</div>
+              <div class="logos" id="pt-nuvem-logos"></div>
+            </div>
+            <div class="pt-seta">▼</div>
+            <div id="pt-bandas"></div>
+            <div class="pt-fechado" id="pt-fechado"
+                 ondragover="patDragOver(event,this)" ondragleave="patDragLeave(event,this)" ondrop="patSoltar(event,'fechado')">
+              <div class="tt">✓ Fechado</div>
+              <div class="total" id="pt-fechado-vl">R$ 0</div>
+              <div class="logos" id="pt-fechado-logos"></div>
+            </div>
           </div>
-          <div style="display:flex;gap:8px;">
-            <button onclick="document.getElementById('patseg-frame').src=document.getElementById('patseg-frame').src"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;">
-              ⟳ Atualizar</button>
-            <a href="https://docs.google.com/spreadsheets/d/11XHi7jHRxYCqwUttc6M4A3lRF-JBRbKY/edit?usp=sharing" target="_blank"
-              style="font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:600;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:5px 12px;cursor:pointer;text-decoration:none;">
-              ↗ Abrir e editar</a>
+          <div class="pt-lixo" id="pt-lixo"
+               ondragover="patDragOver(event,this)" ondragleave="patDragLeave(event,this)" ondrop="patSoltar(event,'sem_interesse')">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9a938a" stroke-width="1.6" style="margin:0 auto;display:block;"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+            <div class="tt">Declinaram</div>
+            <div class="hint">Arraste aqui quem disse não. O motivo é obrigatório.</div>
+            <div class="logos" id="pt-lixo-logos"></div>
           </div>
         </div>
-        <iframe id="patseg-frame" style="flex:1;width:100%;border:none;display:block;" allow="fullscreen" loading="lazy"></iframe>
       </div>
+
+<!-- MODAL: OPORTUNIDADE (marca x evento) -->
+<div class="modal-overlay2" id="pt-op-overlay" onclick="if(event.target===this)patFecharOport()">
+  <div class="mkt-modal" style="max-width:560px;">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+      <div id="pt-op-logo"></div>
+      <div><h3 id="pt-op-nome" style="margin:0;">Marca</h3>
+        <div id="pt-op-ev" style="font-size:12px;color:var(--muted);"></div></div>
+    </div>
+    <div class="mkt-row3">
+      <div class="mkt-fg"><label>Etapa</label><select id="pt-op-etapa"></select></div>
+      <div class="mkt-fg"><label>Temperatura</label><select id="pt-op-temp">
+        <option value="quente">🔥 Quente</option><option value="morna">🌤 Morna</option><option value="fria" selected>❄ Fria</option></select></div>
+      <div class="mkt-fg"><label>Cota-alvo</label><select id="pt-op-cota">
+        <option value="">—</option><option value="master">Master</option><option value="ouro">Ouro</option>
+        <option value="prata">Prata</option><option value="bronze">Bronze</option><option value="apoio">Apoio</option>
+        <option value="parceiro">Parceiro</option></select></div>
+    </div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Valor estimado (R$)</label><input type="number" id="pt-op-valor" step="100" min="0" placeholder="0"></div>
+      <div class="mkt-fg"><label>Previsão de fechamento</label><input type="date" id="pt-op-previsao"></div>
+    </div>
+    <div class="mkt-row2">
+      <div class="mkt-fg"><label>Próximo passo</label><input type="text" id="pt-op-passo" placeholder="Ex: ligar para o Marcelo"></div>
+      <div class="mkt-fg"><label>Data do próximo passo</label><input type="date" id="pt-op-passo-data"></div>
+    </div>
+    <div class="mkt-fg"><label>Contrapartida pretendida</label><input type="text" id="pt-op-contra" placeholder="Ex: ativação na retirada de kits"></div>
+    <div id="pt-op-recusa" style="display:none;">
+      <div class="mkt-row2">
+        <div class="mkt-fg"><label>Motivo da recusa *</label><select id="pt-op-motivo"></select></div>
+        <div class="mkt-fg"><label>Reabordar em</label><input type="date" id="pt-op-reabordagem"></div>
+      </div>
+    </div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" id="pt-op-tirar" style="margin-right:auto;color:#dc2626;" onclick="patTirarDoFunil()">Tirar deste funil</button>
+      <button class="mkt-btn" onclick="patFecharOport()">Cancelar</button>
+      <button class="mkt-btn primary" id="pt-op-salvar" onclick="patSalvarOport()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+
       <!-- TELA: REUNIÕES -->
       <div class="inner-screen" id="screen-reunioes">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
