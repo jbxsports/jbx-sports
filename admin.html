@@ -2036,7 +2036,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'admin_calendario_extra_listar','admin_calendario_extra_salvar',
   'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir',
   'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir',
-  'pat_contato_salvar','pat_contato_excluir'];
+  'pat_contato_salvar','pat_contato_excluir',
+  'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
