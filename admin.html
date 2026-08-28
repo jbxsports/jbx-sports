@@ -1022,7 +1022,8 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .pt-drop-logo:hover{border-color:var(--orange);}
 .pt-drop-logo img{max-width:80%;max-height:80%;object-fit:contain;}.crz-bs{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
 .crz-bs h4{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
-.crz-bs-form{display:grid;grid-template-columns:1.6fr 1.2fr auto auto;gap:8px;align-items:center;}
+.crz-bs-form{display:grid;grid-template-columns:1.5fr 150px 1fr auto auto;gap:8px;align-items:center;}
+.crz-bs-item .dt{font-size:11.5px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border-radius:5px;padding:2px 7px;}
 .crz-bs-form input{font-family:'Ubuntu',sans-serif;font-size:13px;padding:8px 11px;border:1px solid var(--border);border-radius:8px;background:#faf9f7;}
 .crz-bs-form input:focus{outline:none;border-color:var(--orange);background:#fff;}
 .crz-bs-lista{margin-top:12px;display:flex;flex-direction:column;gap:6px;}
@@ -7158,6 +7159,14 @@ let crzBaseNova = null;       // planilha lida, esperando o Salvar
 async function crzBasesCarregar(){
   try{ crzBases = await rpc('crz_bases_listar') || []; }
   catch(e){ crzBases = []; console.warn('Bases salvas indisponíveis — rode o bases.sql.', e); }
+  /* mais recente primeiro; sem data vai para o fim */
+  crzBases.sort(function(a,b){
+    const da = a.data_evento || '', db = b.data_evento || '';
+    if(da && db) return db.localeCompare(da);
+    if(da) return -1;
+    if(db) return 1;
+    return String(b.criado_em||'').localeCompare(String(a.criado_em||''));
+  });
   crzBasesRender();
 }
 function crzBasesRender(){
@@ -7168,10 +7177,12 @@ function crzBasesRender(){
     return;
   }
   el.innerHTML = crzBases.map(function(b){
-    const d = b.criado_em ? new Date(b.criado_em).toLocaleDateString('pt-BR') : '';
+    const imp = b.criado_em ? new Date(b.criado_em).toLocaleDateString('pt-BR') : '';
+    const ev  = b.data_evento ? String(b.data_evento).slice(0,10).split('-').reverse().join('/') : '';
     return '<div class="crz-bs-item">'
+      + (ev ? '<span class="dt">' + ev + '</span>' : '<span class="dt" style="background:rgba(42,37,32,.07);color:var(--muted);">sem data</span>')
       + '<span class="nm">' + crzEsc(b.nome) + '</span>'
-      + '<span class="qt">' + (b.qtd||0) + ' pessoas' + (d ? ' · ' + d : '') + (b.observacao ? ' · ' + crzEsc(b.observacao) : '') + '</span>'
+      + '<span class="qt">' + (b.qtd||0) + ' pessoas' + (imp ? ' · importada em ' + imp : '') + (b.observacao ? ' · ' + crzEsc(b.observacao) : '') + '</span>'
       + '<span class="acs">'
       +   '<button class="pri" onclick="crzUsarBase(\'A\',\'' + b.id + '\')">Usar na Base A</button>'
       +   '<button onclick="crzUsarBase(\'B\',\'' + b.id + '\')">Usar na Base B</button>'
@@ -7226,6 +7237,7 @@ async function crzBaseSalvar(){
   try{
     await rpc('crz_base_salvar', { dados:{
       nome:nome,
+      data_evento:document.getElementById('crz-bs-data').value || '',
       observacao:(document.getElementById('crz-bs-obs').value || '').trim(),
       arquivo:crzBaseNova.arquivo,
       pessoas:crzBaseNova.pessoas,
@@ -7233,6 +7245,7 @@ async function crzBaseSalvar(){
     }});
     crzBaseNova = null;
     document.getElementById('crz-bs-nome').value = '';
+    document.getElementById('crz-bs-data').value = '';
     document.getElementById('crz-bs-obs').value = '';
     await crzBasesCarregar();
     crzRenderFontes();
@@ -7363,7 +7376,10 @@ function crzPainel(lado, titulo, ajuda){
   } else if(f.tipo === 'salva'){
     corpo = '<select onchange="crzSetBase(\'' + lado + '\',this.value)" style="' + est + '">' +
               '<option value="">— selecione a base salva —</option>' +
-              crzBases.map(function(b){ return '<option value="' + b.id + '"' + (f.base === b.id ? ' selected' : '') + '>' + crzEsc(b.nome) + ' (' + (b.qtd||0) + ')</option>'; }).join('') +
+              crzBases.map(function(b){
+                const ev = b.data_evento ? String(b.data_evento).slice(0,10).split('-').reverse().join('/') + ' · ' : '';
+                return '<option value="' + b.id + '"' + (f.base === b.id ? ' selected' : '') + '>' + ev + crzEsc(b.nome) + ' (' + (b.qtd||0) + ')</option>';
+              }).join('') +
             '</select>' +
             (crzBases.length ? '' : '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Nenhuma base salva ainda — salve uma no bloco acima.</div>');
   } else {
@@ -10028,6 +10044,7 @@ async function patTirarDoFunil(){
           <h4>Bases salvas — planilhas de inscritos guardadas</h4>
           <div class="crz-bs-form">
             <input type="text" id="crz-bs-nome" placeholder="Nome do evento (ex.: Trail Run 2024 — inscritos)">
+            <input type="date" id="crz-bs-data" title="Data do evento — ordena a lista">
             <input type="text" id="crz-bs-obs" placeholder="Observação (opcional)">
             <input type="file" id="crz-bs-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="crzBaseArquivo(this)">
             <button class="mkt-btn" onclick="document.getElementById('crz-bs-file').click()" id="crz-bs-btn-arq">⬆ Escolher planilha</button>
