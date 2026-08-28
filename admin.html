@@ -903,6 +903,14 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-leg-canais .it{display:flex;align-items:center;gap:5px;cursor:pointer;padding:1px 3px;border-radius:5px;}
 .mkt-leg-canais .it:hover{color:var(--text);}
 .mkt-leg-canais .it.on{color:var(--text);font-weight:700;background:rgba(255,117,31,.12);}
+.mkt-rep-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;}
+.mkt-rep-check input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
+.mkt-rep-box{border:1px solid rgba(255,117,31,.35);background:rgba(255,117,31,.05);border-radius:10px;padding:12px 13px;margin-top:9px;}
+.mkt-rep-dias{display:flex;gap:5px;flex-wrap:wrap;}
+.mkt-rep-dias button{font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:7px;padding:5px 9px;cursor:pointer;transition:all .15s;}
+.mkt-rep-dias button.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mkt-rep-info{font-size:12px;font-weight:700;color:var(--orange);margin-top:10px;}
+.mkt-rep-info.aviso{color:#dc2626;}
 .mkt-dia.feriado:not(.hoje){background:#f6f5f2;}
 .mkt-dia .mkt-fer{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7a7068;background:rgba(138,138,130,.16);border-radius:4px;padding:1px 5px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mkt-semg-head .hd .fer{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:#7a7068;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
@@ -8189,11 +8197,71 @@ function mktAbrirPost(id,dataPre){
   mktSyncTipoPat(); mktSyncPatSelect(p?p.patrocinador_id:null);
   mktRenderArte(p?p.arte_url:null);
   document.getElementById('mp-arte-status').textContent='';
+  const repW=document.getElementById('mp-rep-wrap'), repOn=document.getElementById('mp-rep-on');
+  if(repW&&repOn){
+    repOn.checked=false;
+    document.getElementById('mp-rep-box').style.display='none';
+    document.getElementById('mp-rep-ate').value='';
+    document.getElementById('mp-rep-info').textContent='';
+    mktRepDias=[0,1,2,3,4,5,6];
+    mktRepRenderDias();
+    repW.style.display=p?'none':'';   /* editando, não repete */
+  }
   document.getElementById('mp-excluir').style.display=p?'block':'none';
   document.getElementById('mp-aprovacao').style.display=(p&&p.status==='aguardando')?'flex':'none';
   document.getElementById('mkt-post-overlay').classList.add('open');
 }
 function mktFecharPost(){document.getElementById('mkt-post-overlay').classList.remove('open');mktPostAtual=null;}
+/* ── REPETIR EM VÁRIOS DIAS ──
+   0 = segunda … 6 = domingo, na mesma ordem do MKT_DIAS. */
+let mktRepDias=[0,1,2,3,4,5,6];
+function mktRepRenderDias(){
+  let h='';
+  MKT_DIAS.forEach((d,i)=>{h+='<button type="button" class="'+(mktRepDias.indexOf(i)!==-1?'on':'')+'" onclick="mktRepToggleDia('+i+')">'+d+'</button>';});
+  document.getElementById('mp-rep-dias').innerHTML=h;
+}
+function mktRepToggleDia(i){
+  const k=mktRepDias.indexOf(i);
+  if(k===-1)mktRepDias.push(i); else mktRepDias.splice(k,1);
+  mktRepRenderDias(); mktRepContar();
+}
+function mktRepToggle(){
+  const on=document.getElementById('mp-rep-on').checked;
+  document.getElementById('mp-rep-box').style.display=on?'block':'none';
+  if(on){
+    const ate=document.getElementById('mp-rep-ate');
+    if(!ate.value)ate.value=mktAddDias(document.getElementById('mp-data').value||mktHojeISO(),6);
+  }
+  mktRepContar();
+}
+/* devolve todas as datas que vão receber uma cópia */
+function mktRepDatas(){
+  const ini=document.getElementById('mp-data').value;
+  if(!ini)return [];
+  const chk=document.getElementById('mp-rep-on');
+  const fim=document.getElementById('mp-rep-ate').value;
+  if(!chk||!chk.checked||!fim||fim<ini)return [ini];
+  const out=[]; let d=ini, guarda=0;
+  while(d<=fim&&guarda++<400){
+    const wd=(new Date(d+'T12:00:00').getDay()+6)%7;   // 0=seg
+    if(mktRepDias.indexOf(wd)!==-1)out.push(d);
+    d=mktAddDias(d,1);
+  }
+  return out;
+}
+function mktRepContar(){
+  const el=document.getElementById('mp-rep-info');
+  if(!el)return;
+  const chk=document.getElementById('mp-rep-on');
+  if(!chk||!chk.checked){el.textContent='';return;}
+  const n=mktRepDatas().length;
+  const fim=document.getElementById('mp-rep-ate').value;
+  const ini=document.getElementById('mp-data').value;
+  if(fim&&ini&&fim<ini){el.className='mkt-rep-info aviso';el.textContent='A data final é anterior à data inicial.';return;}
+  el.className='mkt-rep-info';
+  el.textContent = n<=1 ? 'Vai criar 1 conteúdo.'
+    : 'Vai criar '+n+' conteúdos iguais, um em cada dia — de '+mktFmtCurta(ini)+' a '+mktFmtCurta(fim)+'.';
+}
 /* ── canal dentro do modal ── */
 function mktMontarSelectCanal(sel){
   let h='';
@@ -8390,43 +8458,73 @@ async function mktSalvarPost(){
   const canal=document.getElementById('mp-canal').value||'instagram';
   if(mktUsaPerfil(canal)&&!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
   const tipo=document.getElementById('mp-tipo').value;
+
+  /* editando = sempre uma data; criando = pode repetir em vários dias */
+  const datas = mktPostAtual ? [data] : mktRepDatas();
+  if(!datas.length){alert('Nenhuma data selecionada.');return;}
+  if(datas.length>1&&!confirm('Criar '+datas.length+' conteúdos iguais, um em cada dia?\nDe '+mktFmtCurta(datas[0])+' a '+mktFmtCurta(datas[datas.length-1])+'.'))return;
+
+  const base={
+    p_evento_id:evId,
+    p_patrocinador_id:(tipo==='patrocinador'?(document.getElementById('mp-pat').value||null):null),
+    p_titulo:titulo,
+    p_tipo:tipo,
+    p_formato:document.getElementById('mp-formato').value,
+    p_perfis:mktPerfisSel.join(','),
+    p_hora:document.getElementById('mp-hora').value||'12:00',
+    p_briefing:document.getElementById('mp-briefing').value.trim()||null,
+    p_status:mktStatusSel,
+    p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
+    p_comentario:document.getElementById('mp-comentario').value.trim()||null
+  };
+
+  const btn=document.getElementById('mp-btn-salvar');
+  const rotulo=btn?btn.textContent:'Salvar';
+  if(btn)btn.disabled=true;
+
+  const ids=[];        // ids devolvidos pela mkt_post_salvar
+  const semId=[];      // datas em que ela não devolveu id
   try{
-    const retorno=await rpc('mkt_post_salvar',{
-      p_id:mktPostAtual?mktPostAtual.id:null,
-      p_evento_id:evId,
-      p_patrocinador_id:(tipo==='patrocinador'?(document.getElementById('mp-pat').value||null):null),
-      p_titulo:titulo,
-      p_tipo:tipo,
-      p_formato:document.getElementById('mp-formato').value,
-      p_perfis:mktPerfisSel.join(','),
-      p_data_post:data,
-      p_hora:document.getElementById('mp-hora').value||'12:00',
-      p_briefing:document.getElementById('mp-briefing').value.trim()||null,
-      p_status:mktStatusSel,
-      p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
-      p_comentario:document.getElementById('mp-comentario').value.trim()||null
-    });
-    /* o canal é gravado à parte, para não mexer na mkt_post_salvar que já existe */
-    let pid=(typeof retorno==='string'&&retorno)?retorno:(mktPostAtual?mktPostAtual.id:null);
-    mktFecharPost();
-    await mktRecarregar();
-    if(!pid){
-      /* conteúdo novo e a mkt_post_salvar não devolveu o id: acha pelo que acabou de ser gravado */
-      const cand=(mktData.posts||[]).filter(x=>x.evento_id===evId&&x.titulo===titulo&&x.data_post===data);
-      if(cand.length===1)pid=cand[0].id;
+    for(let i=0;i<datas.length;i++){
+      if(btn)btn.textContent = datas.length>1 ? ('Salvando '+(i+1)+' de '+datas.length+'…') : 'Salvando…';
+      const r=await rpc('mkt_post_salvar',Object.assign({},base,{
+        p_id: mktPostAtual?mktPostAtual.id:null,
+        p_data_post: datas[i]
+      }));
+      if(typeof r==='string'&&r) ids.push(r);
+      else if(mktPostAtual) ids.push(mktPostAtual.id);
+      else semId.push(datas[i]);
     }
-    if(pid){
-      try{
+  }catch(e){
+    if(btn){btn.disabled=false;btn.textContent=rotulo;}
+    alert('Erro ao salvar: '+e.message+(ids.length?'\n\n'+ids.length+' conteúdo(s) já haviam sido gravados.':''));
+    await mktRecarregar();
+    return;
+  }
+
+  mktFecharPost();
+  await mktRecarregar();
+
+  /* a mkt_post_salvar não foi alterada, então o canal vai numa segunda chamada.
+     Se ela não devolveu o id, localiza o registro recém-criado pela data. */
+  semId.forEach(d=>{
+    const cand=(mktData.posts||[]).filter(x=>x.evento_id===evId&&x.titulo===titulo&&x.data_post===d);
+    if(cand.length===1)ids.push(cand[0].id);
+  });
+  if(ids.length){
+    try{
+      for(const pid of ids){
         await rpc('mkt_post_canal_salvar',{p_id:pid,p_canal:canal});
         const alvo=(mktData.posts||[]).find(x=>x.id===pid);
         if(alvo)alvo.canal=canal;
-        mktRender();
-      }catch(e){
-        console.error(e);
-        if(canal!=='instagram')alert('O conteúdo foi salvo, mas o canal não. Rode o canais.sql no Supabase.');
       }
+      mktRender();
+    }catch(e){
+      console.error(e);
+      if(canal!=='instagram')alert('O conteúdo foi salvo, mas o canal não. Rode o canais.sql no Supabase.');
     }
-  }catch(e){alert('Erro ao salvar: '+e.message);}
+  }
+  if(btn){btn.disabled=false;btn.textContent=rotulo;}
 }
 async function mktAprovacao(novo){
   if(!mktPostAtual)return;
@@ -9150,10 +9248,20 @@ async function reuExcluir(id){
     <div class="mkt-fg" id="mp-pat-wrap" style="display:none;"><label>Patrocinador</label><select id="mp-pat" onchange="mktPostPatChange()"></select></div>
     <div class="mkt-fg"><label>Título *</label><input type="text" id="mp-titulo" placeholder="Ex: Save the Date — Night Run"></div>
     <div class="mkt-row3">
-      <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data"></div>
+      <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data" onchange="mktRepContar()"></div>
       <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora"></div>
       <div class="mkt-fg"><label>Formato *</label>
         <select id="mp-formato" onchange="mktSyncArteBox()"></select>
+      </div>
+    </div>
+    <div class="mkt-fg" id="mp-rep-wrap">
+      <label class="mkt-rep-check"><input type="checkbox" id="mp-rep-on" onchange="mktRepToggle()">Repetir este conteúdo em vários dias</label>
+      <div class="mkt-rep-box" id="mp-rep-box" style="display:none;">
+        <div class="mkt-row2">
+          <div class="mkt-fg"><label>Repetir até</label><input type="date" id="mp-rep-ate" onchange="mktRepContar()"></div>
+          <div class="mkt-fg"><label>Só nestes dias</label><div class="mkt-rep-dias" id="mp-rep-dias"></div></div>
+        </div>
+        <div class="mkt-rep-info" id="mp-rep-info"></div>
       </div>
     </div>
     <div class="mkt-fg" id="mp-perfis-wrap"><label>Perfis de destino *</label><div class="mkt-chips" id="mp-perfis"></div></div>
@@ -9179,7 +9287,7 @@ async function reuExcluir(id){
     <div class="mkt-modal-actions">
       <button class="mkt-btn" id="mp-excluir" style="margin-right:auto;color:#dc2626;" onclick="mktExcluirPost()">Excluir</button>
       <button class="mkt-btn" onclick="mktFecharPost()">Cancelar</button>
-      <button class="mkt-btn primary" onclick="mktSalvarPost()">Salvar</button>
+      <button class="mkt-btn primary" id="mp-btn-salvar" onclick="mktSalvarPost()">Salvar</button>
     </div>
   </div>
 </div>
