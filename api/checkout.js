@@ -274,10 +274,51 @@ async function validarCpfUnico(itens) {
   return null;
 }
 
-// Valida se o pedido é realmente gratuito, consultando o preço publicado do kit.
+// Confere o cupom no servidor, com a mesma RPC que o navegador usa.
+// Devolve o percentual (0 se não existir, estiver expirado ou esgotado).
+// Serve para autorizar o pedido de R$ 0,00 quando o desconto é de 100%:
+// sem isto, um cupom de cortesia era recusado como "Valor inválido".
+async function buscarCupomPct(codigo) {
+  const cod = String(codigo || '').trim();
+  if (!cod) return 0;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/validar_cupom`, {
+      method: 'POST',
+      headers: {
+        'apikey':        SB_SERVICE_KEY,
+        'Authorization': `Bearer ${SB_SERVICE_KEY}`,
+        'Content-Type':  'application/json'
+      },
+      body: JSON.stringify({ p_codigo: cod })
+    });
+    if (!r.ok) {
+      console.error('[checkout] validar_cupom status:', r.status, await r.text());
+      return 0;
+    }
+    const arr = await r.json();
+    if (Array.isArray(arr) && arr.length && arr[0].valido) {
+      return Number(arr[0].percentual) || 0;
+    }
+    return 0;
+  } catch (e) {
+    console.error('[checkout] validar_cupom erro:', e.message);
+    return 0;
+  }
+}
+
+// Valida se o pedido é realmente gratuito.
+// Dois caminhos legítimos para o total zerar:
+//   1. o kit é publicado a R$ 0,00; ou
+//   2. existe um cupom de 100% que o servidor confirmou.
+// Qualquer outro caso é o navegador tentando zerar o valor por conta própria.
 // Retorna null se estiver tudo certo, ou a mensagem de erro.
-async function validarPedidoGratuito(itens) {
+async function validarPedidoGratuito(itens, cupom) {
   const cache = {};
+  const cupomPct = await buscarCupomPct(cupom);
+  const cupomCobreTudo = cupomPct >= 100;
+  if (cupom && !cupomCobreTudo) {
+    console.warn('[checkout] gratuito com cupom que não cobre 100% —', cupom, '| pct:', cupomPct);
+  }
   for (const item of itens) {
     if (Number(item.valor || 0) > 0.009) return 'Valor inválido.';
     if (Array.isArray(item.produtos) && item.produtos.length) {
@@ -315,7 +356,8 @@ async function validarPedidoGratuito(itens) {
       ? kits.find(k => String(k.id) === String(item.kit_id))
       : null;
     if (!kitEscolhido) return 'Kit não localizado para este evento.';
-    if (Number(kitEscolhido.preco || 0) > 0.009) return 'Valor inválido.';
+    // kit pago só passa se o cupom de 100% for válido de verdade
+    if (Number(kitEscolhido.preco || 0) > 0.009 && !cupomCobreTudo) return 'Valor inválido.';
   }
   return null;
 }
@@ -391,7 +433,8 @@ module.exports = async (req, res) => {
   // (kit fora do lote vigente, kit oculto, preço mudou), a inscrição já
   // estava no banco e ficava presa em 'pendente' para sempre.
   if (ehGratuito) {
-    const erroGratuito = await validarPedidoGratuito(itens);
+    console.log('[checkout] pedido gratuito — cupom:', cupom || '(nenhum)');
+    const erroGratuito = await validarPedidoGratuito(itens, cupom);
     if (erroGratuito) {
       console.warn('[checkout] gratuito recusado (nada gravado):', erroGratuito);
       return res.status(400).json({ error: erroGratuito });
