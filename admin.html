@@ -908,7 +908,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-cico.g svg{width:11px;height:11px;}
 .mkt-pill .mkt-cico{background:rgba(0,0,0,.28)!important;}
 .mkt-ok{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:#16a34a;color:#fff;font-size:9px;font-weight:700;line-height:1;flex:none;border:1.5px solid rgba(255,255,255,.85);font-family:'Ubuntu',sans-serif;}
-.mkt-ok.escuro{border-color:rgba(22,163,74,.25);}
+.mkt-ok.escuro{border-color:rgba(0,0,0,.12);}
 .mkt-leg-canais{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#f3f1ee;border:1px solid var(--border);border-radius:9px;padding:6px 11px;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
 .mkt-leg-canais b{color:var(--text);font-weight:700;}
 .mkt-leg-canais .it{display:flex;align-items:center;gap:5px;cursor:pointer;padding:1px 3px;border-radius:5px;}
@@ -7643,6 +7643,7 @@ const MKT_STATUS=[
  {id:'aguardando',label:'Aguardando aprovação',cor:'#d97706'},
  {id:'refazer',label:'Refazer',cor:'#9333ea'},
  {id:'aprovado',label:'Aprovado',cor:'#16a34a'},
+ {id:'programado',label:'Programado',cor:'#0284c7'},
  {id:'postado',label:'Postado',cor:'#6b7280'}
 ];
 const MKT_FORMATOS={
@@ -7880,10 +7881,16 @@ function mktCanalIco(canalId,cls){
   const c=mktCanalInfo(canalId);
   return '<span class="mkt-cico'+(cls?' '+cls:'')+'" style="background:'+c.cor+';" title="'+c.label+'"><svg viewBox="0 0 24 24">'+c.svg+'</svg></span>';
 }
-/* selo de aprovação: só aparece quando a arte já está aprovada */
+/* selo de aprovação: aparece da aprovação em diante e muda de cor
+   verde  = arte aprovada
+   azul   = arte aprovada e post já programado no Instagram
+   cinza  = já postado */
+const MKT_OK_COR={aprovado:'#16a34a',programado:'#0284c7',postado:'#6b7280'};
+const MKT_OK_TIT={aprovado:'Arte aprovada',programado:'Arte aprovada · post programado',postado:'Arte aprovada · já postado'};
 function mktOkHtml(status,cls){
-  if(status!=='aprovado'&&status!=='postado')return '';
-  return '<span class="mkt-ok'+(cls?' '+cls:'')+'" title="Arte aprovada">✓</span>';
+  const cor=MKT_OK_COR[status];
+  if(!cor)return '';
+  return '<span class="mkt-ok'+(cls?' '+cls:'')+'" style="background:'+cor+';" title="'+MKT_OK_TIT[status]+'">✓</span>';
 }
 function mktArtes(p){return (p&&p.arte_url?String(p.arte_url).split('|'):[]).filter(Boolean);}
 function mktArteCapa(p){const a=mktArtes(p);return a.length?a[0]:null;}
@@ -8098,7 +8105,9 @@ function mktRenderLegendaCanais(){
     h+='<span class="it'+(mktFiltro.canal===c.id?' on':'')+'" onclick="mktFiltraPorCanal(\''+c.id+'\')" title="Clique para filtrar">'
       +mktCanalIco(c.id)+c.label+(n?' <span style="opacity:.65;">('+n+')</span>':'')+'</span>';
   });
-  h+='<span style="margin-left:auto;display:flex;align-items:center;gap:5px;"><span class="mkt-ok escuro">✓</span> arte aprovada</span>';
+  h+='<span style="margin-left:auto;display:flex;align-items:center;gap:10px;">'
+    +'<span style="display:flex;align-items:center;gap:5px;"><span class="mkt-ok escuro" style="background:#16a34a;">✓</span> arte aprovada</span>'
+    +'<span style="display:flex;align-items:center;gap:5px;"><span class="mkt-ok escuro" style="background:#0284c7;">✓</span> post programado</span></span>';
   el.innerHTML=h;
 }
 function mktFiltraPorCanal(id){
