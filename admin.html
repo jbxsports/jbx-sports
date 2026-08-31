@@ -237,6 +237,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .status-pendente{background:rgba(180,140,0,.12);color:#a07800;}
 .status-cancelado{background:rgba(100,100,100,.1);color:#777;}
 .status-cancelada{background:rgba(100,100,100,.1);color:#777;}
+.status-reembolsada{background:rgba(220,38,38,.10);color:#b91c1c;}
 .btn-export{display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .btn-export:hover{background:rgba(22,163,74,.18);}
 /* KITS & LOTES */
@@ -1259,7 +1260,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap;">
-            <label class="ig-chk"><input type="checkbox" id="ig-f-canceladas" onchange="igAplicar()"> Incluir canceladas</label>
+            <label class="ig-chk"><input type="checkbox" id="ig-f-canceladas" onchange="igAplicar()"> Incluir canceladas e reembolsadas</label>
             <button class="ig-btn" onclick="igLimparFiltros()">Limpar filtros</button>
           </div>
         </div>
@@ -1438,7 +1439,7 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <span class="inscritos-count" id="inscritos-count"></span>
           <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">
             <input type="checkbox" id="toggle-canceladas" onchange="filtrarInscritos()" style="accent-color:var(--orange);">
-            Mostrar canceladas
+            Mostrar canceladas e reembolsadas
           </label>
           <button class="btn-export" onclick="exportarExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2011,10 +2012,10 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
       <div class="form-g"><label>Cidade</label><input id="d-cidade"></div>
       <div class="form-g"><label>Estado</label><input id="d-estado" maxlength="2" style="text-transform:uppercase"></div>
       <div class="form-g"><label>Status</label>
-        <select id="d-status"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="cancelada">Cancelada</option></select></div>
+        <select id="d-status"><option value="pendente">Pendente</option><option value="pago">Pago</option><option value="cancelada">Cancelada</option><option value="reembolsada">Reembolsada</option></select></div>
       <div class="form-g"><label>Valor (R$)</label>
         <input id="d-valor" type="number" step="0.01" min="0" placeholder="0.00">
-        <small style="font-size:11px;color:var(--muted);">Entra no faturamento apenas quando o status for Pago.</small></div>
+        <small style="font-size:11px;color:var(--muted);">Entra no faturamento apenas quando o status for Pago. <b>Reembolsada</b> tira do faturamento, devolve a vaga do lote e o estoque dos adicionais — o valor continua registrado no histórico do atleta.</small></div>
     </div>
     <div class="drawer-foot">
       <button class="btn-primary-sm" onclick="salvarEdicao()">Salvar</button>
@@ -2028,6 +2029,15 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 const SB_URL='https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
 const ADMIN_HASH='9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd92';
+
+/* ── STATUS QUE NÃO CONTAM COMO INSCRIÇÃO ATIVA ──
+   'cancelada'/'cancelado' (desistiu antes de pagar) e 'reembolsada' (pagou,
+   desistiu, foi estornado no Mercado Pago). Os dois saem das listas, das
+   contagens e do faturamento — no banco a regra já é "vale só o que está pago".
+   Ponto único de verdade: antes cada filtro repetia a comparação na mão e foi
+   assim que o status 'programado' do Social Media passou batido em agosto. */
+function ehStatusInativo(st){ return /^(cancel|reembols)/i.test(String(st || '')); }
+function ehReembolsada(st){ return /^reembols/i.test(String(st || '')); }
 
 let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={};
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
@@ -3060,6 +3070,8 @@ function histMontarHtml(d, nomeFallback){
   const pagas    = insc.filter(i => String(i.status || '').toLowerCase() === 'pago');
   const pend     = insc.filter(i => String(i.status || '').toLowerCase() === 'pendente');
   const canc     = insc.filter(i => histEhCancelada(i.status));
+  const reemb    = insc.filter(i => ehReembolsada(i.status));
+  const totalRee = reemb.reduce((a,i) => a + Number(i.valor || 0), 0);
   const totalPg  = pagas.reduce((a,i) => a + Number(i.valor || 0), 0);
   const datas    = insc.map(i => i.criado_em).filter(Boolean).sort();
   const primeira = datas.length ? fmtDS(String(datas[0]).slice(0,10)) : '—';
@@ -3087,7 +3099,9 @@ function histMontarHtml(d, nomeFallback){
     + histTile('Pagas', pagas.length, 'orange')
     + histTile('Pendentes', pend.length)
     + histTile('Canceladas', canc.length)
+    + (reemb.length ? histTile('Reembolsadas', reemb.length) : '')
     + histTile('Total pago', brl(totalPg), 'orange small')
+    + (reemb.length ? histTile('Total reembolsado', brl(totalRee), 'small') : '')
     + histTile('Primeira', primeira, 'small')
     + histTile('Última', ultima, 'small')
     + '</div>';
@@ -3095,7 +3109,7 @@ function histMontarHtml(d, nomeFallback){
   h += '<div class="hist-lista"><h4>Todas as inscrições</h4>';
   insc.forEach(i => {
     const st = String(i.status || 'pendente').toLowerCase();
-    const cls = histEhCancelada(st) ? ' cancel' : (st === 'pendente' ? ' pend' : '');
+    const cls = ehStatusInativo(st) ? ' cancel' : (st === 'pendente' ? ' pend' : '');
     const meta = [
       i.kit, i.modalidade, i.tamanho_camisa,
       i.lote_nome, i.forma_pagamento,
@@ -3132,10 +3146,13 @@ function histNomeLink(nome, cpf){
 }
 
 function renderInscritos(arr){
-  const canceladas = arr.filter(i => i.status === 'cancelada' || i.status === 'cancelado');
-  const ativos     = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
+  const canceladas   = arr.filter(i => i.status === 'cancelada' || i.status === 'cancelado');
+  const reembolsadas = arr.filter(i => ehReembolsada(i.status));
+  const ativos       = arr.filter(i => !ehStatusInativo(i.status));
   document.getElementById('inscritos-count').textContent =
-    ativos.length + ' inscritos' + (canceladas.length ? ' · ' + canceladas.length + ' cancelada(s)' : '');
+    ativos.length + ' inscritos'
+    + (canceladas.length   ? ' · ' + canceladas.length   + ' cancelada(s)'   : '')
+    + (reembolsadas.length ? ' · ' + reembolsadas.length + ' reembolsada(s)' : '');
   const tb=document.getElementById('inscritos-tbody');
   if(!arr.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
@@ -3156,7 +3173,7 @@ function filtrarInscritos(){
   const q = document.getElementById('search-inscrito').value.toLowerCase();
   const mostrarCanceladas = document.getElementById('toggle-canceladas')?.checked;
   let arr = todosInscritos;
-  if (!mostrarCanceladas) arr = arr.filter(i => i.status !== 'cancelada' && i.status !== 'cancelado');
+  if (!mostrarCanceladas) arr = arr.filter(i => !ehStatusInativo(i.status));
   if (q) arr = arr.filter(i => (i.nome||'').toLowerCase().includes(q) || (i.cpf||'').includes(q));
   renderInscritos(arr);
 }
@@ -3360,7 +3377,7 @@ function igAplicar(){
 
   let arr = igTodos.filter(i=>{
     const st = (i.status||'pendente').toLowerCase();
-    if(!incluirCanc && (st === 'cancelada' || st === 'cancelado')) return false;
+    if(!incluirCanc && ehStatusInativo(st)) return false;
     if(fEvento && (i.evento||'') !== fEvento) return false;
     if(fStatus && (i.status||'') !== fStatus) return false;
     if(fGenero && (i.genero||'') !== fGenero) return false;
@@ -4970,6 +4987,15 @@ function editarInscrito(i){
 function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');}
 async function salvarEdicao(){
   const get=id=>document.getElementById(id)?.value||'';
+  /* reembolso é irreversível do ponto de vista do dinheiro (o estorno já foi feito
+     no Mercado Pago), então vale um passo a mais antes de mexer no faturamento */
+  if(ehReembolsada(get('d-status'))
+     && !confirm('Marcar esta inscrição como REEMBOLSADA?\n\n'
+               + '• o valor sai do faturamento\n'
+               + '• a vaga do lote volta a ficar livre\n'
+               + '• o estoque dos produtos adicionais é devolvido\n'
+               + '• o CPF fica liberado para se inscrever de novo\n\n'
+               + 'O estorno no Mercado Pago precisa ter sido feito por você — o painel não devolve dinheiro.')) return;
   const dados={nome:get('d-nome'),email:get('d-email'),telefone:get('d-tel'),genero:get('d-genero'),kit:get('d-kit'),modalidade:get('d-modalidade'),tamanho_camisa:get('d-camisa'),cidade:get('d-cidade'),estado:get('d-estado').toUpperCase(),status:get('d-status')};
   const vTxt=get('d-valor').trim();
   if(vTxt!=='') dados.valor=Number(String(vTxt).replace(',','.'));
@@ -7439,7 +7465,7 @@ async function crzPessoas(lado){
     await crzGarantirInscritos();
     return crzInscritos
       .filter(function(i){ return String(i.evento || '') === f.evento; })
-      .filter(function(i){ return !/cancel/i.test(String(i.status || '')); })
+      .filter(function(i){ return !ehStatusInativo(i.status); })
       .map(function(i){ return crzPessoa(i.nome, i.cpf, i.telefone, i.email); });
   }
   const m = f.map;
@@ -10047,7 +10073,7 @@ async function patTirarDoFunil(){
         <p style="font-size:13px;color:var(--muted);margin-bottom:18px;max-width:760px;">
           Mostra quem está na <strong>Base A</strong> e <strong>não está</strong> na Base B — para chamar um a um no WhatsApp.
           Cada lado pode ser um evento do sistema, uma <strong>base salva</strong> ou uma planilha avulsa.
-          <strong>Deixar a Base B vazia chama a Base A inteira.</strong> Inscrições canceladas são ignoradas.
+          <strong>Deixar a Base B vazia chama a Base A inteira.</strong> Inscrições canceladas e reembolsadas são ignoradas.
         </p>
         <div class="crz-bs">
           <h4>Bases salvas — planilhas de inscritos guardadas</h4>
