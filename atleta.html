@@ -132,6 +132,19 @@ nav {
 .insc-val { font-weight: 600; color: #2a2520; text-align: right; }
 .insc-val.orange { color: var(--orange); }
 
+.insc-prova { padding: 2px 22px 18px; border-top: 1px solid rgba(42,37,32,0.06); }
+.prova-titulo { font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--orange); margin: 14px 0 2px; }
+.prova-sub { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  color: rgba(42,37,32,0.45); margin: 16px 0 6px; }
+.prova-texto { font-size: 13px; line-height: 1.6; color: rgba(42,37,32,0.75); white-space: pre-wrap;
+  background: rgba(42,37,32,0.03); border-radius: 8px; padding: 12px 14px; }
+.prova-texto.prova-vazio { color: rgba(42,37,32,0.4); font-style: italic; }
+.prova-termo { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 700;
+  color: var(--orange); text-decoration: none; border: 1px solid rgba(255,117,31,0.35);
+  border-radius: 8px; padding: 8px 12px; transition: background 0.2s; }
+.prova-termo:hover { background: rgba(255,117,31,0.08); }
+
 .insc-qr {
   padding: 16px 22px 20px;
   border-top: 1px solid rgba(42,37,32,0.06);
@@ -1076,6 +1089,7 @@ function imprimirInscricao(id) {
   const cupom      = card.dataset.cupom      || '';
   const desconto   = card.dataset.desconto   || '0';
   const data       = card.dataset.data       || '—';
+  const prova      = card.dataset.prova      || '';
   const canvas     = document.getElementById('qr-' + id);
   const qrBase64   = canvas ? canvas.toDataURL('image/png') : null;
   const statusCor   = { pago: '#16a34a', confirmado: '#16a34a', pendente: '#d97706', cancelada: '#dc2626', cancelado: '#dc2626' };
@@ -1124,6 +1138,10 @@ function imprimirInscricao(id) {
   ${valorTaxa ? `<tr><td>Taxa de serviço</td><td>${valorTaxa}</td></tr>` : ''}
   <tr><td>Valor pago</td><td class="destaque">${valor}</td></tr>
 </table>
+${prova ? `<div style="background:#faf9f7;border:1px solid #e8e4e0;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+  <p style="font-size:12px;font-weight:700;color:#ff751f;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">A prova</p>
+  <p style="font-size:13px;line-height:1.6;color:#444;white-space:pre-wrap;">${esc(prova)}</p>
+</div>` : ''}
 ${qrBase64 ? `<div class="qr-box"><p style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;">🎫 QR Code — Retirada do kit</p><img src="${qrBase64}" style="width:150px;height:150px;"><div class="qr-id">${id}</div></div>` : ''}
 <div class="rodape">Documento gerado em ${new Date().toLocaleString('pt-BR')} · jbxsports.com.br</div>
 <script>window.onload=function(){window.print();}<\/script>
@@ -1301,8 +1319,12 @@ async function carregarInscricoes(dados) {
     }
 
     wrap.innerHTML = `<div class="inscricoes-grid">${lista.map(it => renderInscricao(it, cpf)).join('')}</div>`;
-    // Gera QR codes após renderizar
-    lista.forEach(it => gerarQR(it.id));
+    // Gera QR codes após renderizar. Em try próprio: a lib do QR vem de CDN e,
+    // se ela não carregar, o erro subia para o catch de fora e a tela inteira
+    // virava "Erro de conexão" — com as inscrições já carregadas.
+    try { lista.forEach(it => gerarQR(it.id)); } catch(e) { console.warn('QR indisponível:', e); }
+    // Preenche os dados da prova (data, largada, local, retirada de kit)
+    carregarProvas(lista);
 
   } catch(e) {
     wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro de conexão.</div></div>';
@@ -1316,6 +1338,7 @@ function statusBadge(s) {
     pendente:   ['status-pendente',   '⏳ Pendente'],
     cancelada:  ['status-cancelado',  '✕ Cancelada'],
     cancelado:  ['status-cancelado',  '✕ Cancelada'],
+    reembolsada:['status-cancelado',  '↩ Reembolsada'],
   };
   const [cls, txt] = map[String(s||'').toLowerCase()] || ['status-pendente', s];
   return `<span class="insc-status ${cls}">${txt}</span>`;
@@ -1341,6 +1364,109 @@ function mascararNomeAtleta(nome) {
     if (p.length <= 1) return p;
     return p[0] + '*'.repeat(p.length - 1);
   }).join(' ');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DADOS DA PROVA NO CARD DA INSCRIÇÃO
+   Data, horário de largada, local e o texto de retirada de kit —
+   tudo vindo da RPC evento_detalhe, a MESMA que alimenta a aba
+   "Retirada de kit" da página do evento. Nada é digitado duas
+   vezes: o Stephano edita no painel e muda nos dois lugares.
+   ══════════════════════════════════════════════════════════════ */
+const TERMO_URL = 'https://raw.githubusercontent.com/JBXSPORTS/JBX-Sports/main/termo-retirada-terceiros.pdf';
+const _provaCache = {};
+
+function esc(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* 'pago' é o que o banco grava; 'confirmado' ficou de uma versão antiga.
+   Antes só 'confirmado' liberava o QR — ou seja, nunca liberava. */
+function inscPaga(st) {
+  return ['pago','confirmado'].indexOf(String(st || '').toLowerCase()) !== -1;
+}
+
+function fmtDataProva(iso) {
+  const p = String(iso || '').slice(0,10).split('-');
+  if (p.length !== 3) return '';
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho',
+                 'julho','agosto','setembro','outubro','novembro','dezembro'];
+  const semana = ['domingo','segunda-feira','terça-feira','quarta-feira',
+                  'quinta-feira','sexta-feira','sábado'];
+  const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  if (isNaN(d.getTime())) return '';
+  return semana[d.getDay()] + ', ' + Number(p[2]) + ' de ' + meses[Number(p[1]) - 1] + ' de ' + p[0];
+}
+
+function provaLinhas(det) {
+  const l = [];
+  const dt = fmtDataProva(det.data);
+  /* "Data da prova" e não só "Data": o card já tem uma linha "Data",
+     que é a data da INSCRIÇÃO. Duas linhas "Data" confundiriam. */
+  if (dt)         l.push(['Data da prova', dt]);
+  if (det.hora)   l.push(['Largada', det.hora]);
+  if (det.local)  l.push(['Local', det.local]);
+  return l;
+}
+
+function montarProvaHtml(det) {
+  const linhas   = provaLinhas(det);
+  const retirada = String(det.retirada_kit || '').trim();
+  if (!linhas.length && !retirada) return '';   // evento sem nada preenchido: não mostra caixa vazia
+  let h = '<div class="prova-titulo">📍 A prova</div>';
+  h += linhas.map(function(r) {
+    return '<div class="insc-row"><span class="insc-label">' + r[0]
+         + '</span><span class="insc-val">' + esc(r[1]) + '</span></div>';
+  }).join('');
+  h += '<div class="prova-sub">🎒 Retirada do kit</div>';
+  h += retirada
+    ? '<div class="prova-texto">' + esc(retirada) + '</div>'
+    : '<div class="prova-texto prova-vazio">Informações de retirada de kit em breve.</div>';
+  h += '<a class="prova-termo" href="' + TERMO_URL + '" target="_blank" rel="noopener">'
+     + '↓ Termo de retirada para terceiros (PDF)</a>';
+  return h;
+}
+
+/* versão em texto puro, para entrar no comprovante impresso */
+function montarProvaTexto(det) {
+  const linhas = provaLinhas(det).map(function(r) { return r[0] + ': ' + r[1]; });
+  const retirada = String(det.retirada_kit || '').trim();
+  if (retirada) linhas.push('', 'Retirada do kit:', retirada);
+  return linhas.join('\n');
+}
+
+async function buscarProva(eventoId) {
+  if (Object.prototype.hasOwnProperty.call(_provaCache, eventoId)) return _provaCache[eventoId];
+  try {
+    const arr = await rpc('evento_detalhe', { p_id: String(eventoId) });
+    _provaCache[eventoId] = (Array.isArray(arr) ? arr[0] : arr) || null;
+  } catch(e) {
+    _provaCache[eventoId] = null;
+  }
+  return _provaCache[eventoId];
+}
+
+/* uma chamada por EVENTO, não por inscrição: quem tem três inscrições
+   na mesma prova não dispara três requisições iguais */
+async function carregarProvas(lista) {
+  const ids = [];
+  lista.forEach(function(it) {
+    if (it.evento_id && ids.indexOf(it.evento_id) === -1) ids.push(it.evento_id);
+  });
+  await Promise.all(ids.map(buscarProva));
+
+  lista.forEach(function(it) {
+    const el = document.getElementById('prova-' + it.id);
+    if (!el) return;
+    const det  = it.evento_id ? _provaCache[it.evento_id] : null;
+    const html = det ? montarProvaHtml(det) : '';
+    if (!html) { el.remove(); return; }   // sem dados do evento, o bloco some
+    el.innerHTML = html;
+    const card = document.querySelector('[data-insc-id="' + it.id + '"]');
+    if (card) card.dataset.prova = montarProvaTexto(det);
+  });
 }
 
 function renderInscricao(it, cpfTitular) {
@@ -1379,7 +1505,8 @@ function renderInscricao(it, cpfTitular) {
       <div class="insc-row"><span class="insc-label">Valor</span><span class="insc-val orange">${formatarValor(it.valor)}${desconto}</span></div>
       <div class="insc-row"><span class="insc-label">Data</span><span class="insc-val">${formatarData(it.criado_em)}</span></div>
     </div>
-    ${it.status === 'confirmado' ? `
+    <div class="insc-prova" id="prova-${it.id}"></div>
+    ${inscPaga(it.status) ? `
     <div class="insc-qr">
       <div class="insc-qr-titulo">🎫 QR Code — Retirada do kit</div>
       <div class="qr-wrap">
