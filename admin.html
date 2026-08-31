@@ -922,9 +922,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-rep-check{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;}
 .mkt-rep-check input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
 .mkt-rep-box{border:1px solid rgba(255,117,31,.35);background:rgba(255,117,31,.05);border-radius:10px;padding:12px 13px;margin-top:9px;}
-.mkt-rep-dias{display:flex;gap:5px;flex-wrap:wrap;}
-.mkt-rep-dias button{font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--muted);border-radius:7px;padding:5px 9px;cursor:pointer;transition:all .15s;}
-.mkt-rep-dias button.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.mkt-md-add{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;}
+.mkt-md-add .mkt-fg{margin:0;}
+.mkt-md-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--orange);background:var(--orange);color:#fff;border-radius:8px;padding:9px 14px;cursor:pointer;white-space:nowrap;transition:filter .15s;}
+.mkt-md-btn:hover{filter:brightness(1.07);}
+.mkt-md-lista{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px;}
+.mkt-md-item{display:inline-flex;align-items:center;gap:7px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:5px 6px 5px 10px;font-size:12px;font-weight:700;color:var(--text);}
+.mkt-md-item .hh{color:var(--orange);}
+.mkt-md-item.principal{border-color:rgba(255,117,31,.5);background:rgba(255,117,31,.09);}
+.mkt-md-item .tag{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
+.mkt-md-item .x{border:none;background:rgba(42,37,32,.07);color:var(--muted);border-radius:6px;width:20px;height:20px;line-height:1;cursor:pointer;font-size:13px;font-weight:700;font-family:'Ubuntu',sans-serif;padding:0;}
+.mkt-md-item .x:hover{background:rgba(220,38,38,.14);color:#dc2626;}
 .mkt-rep-info{font-size:12px;font-weight:700;color:var(--orange);margin-top:10px;}
 .mkt-rep-info.aviso{color:#dc2626;}
 .mkt-dia.feriado:not(.hoje){background:#f6f5f2;}
@@ -8577,70 +8585,105 @@ function mktAbrirPost(id,dataPre){
   mktDesignerTocadoFlag=false;
   const chkDes=document.getElementById('mp-designer');
   if(chkDes)chkDes.checked = p ? mktEhDesigner(p) : mktDesignerPadrao(canalAtual);
-  const repW=document.getElementById('mp-rep-wrap'), repOn=document.getElementById('mp-rep-on');
-  if(repW&&repOn){
-    repOn.checked=false;
-    document.getElementById('mp-rep-box').style.display='none';
-    document.getElementById('mp-rep-ate').value='';
-    document.getElementById('mp-rep-info').textContent='';
-    mktRepDias=[0,1,2,3,4,5,6];
-    mktRepRenderDias();
-    repW.style.display=p?'none':'';   /* editando, não repete */
+  const repW=document.getElementById('mp-rep-wrap'), mdOn=document.getElementById('mp-md-on');
+  if(repW&&mdOn){
+    mdOn.checked=false;
+    document.getElementById('mp-md-box').style.display='none';
+    document.getElementById('mp-md-data').value='';
+    document.getElementById('mp-md-hora').value='';
+    document.getElementById('mp-md-info').textContent='';
+    document.getElementById('mp-md-lista').innerHTML='';
+    mktMdDatas=[];
+    repW.style.display=p?'none':'';   /* editando, mexe numa data só */
   }
   document.getElementById('mp-excluir').style.display=p?'block':'none';
   document.getElementById('mp-aprovacao').style.display=(p&&p.status==='aguardando')?'flex':'none';
   document.getElementById('mkt-post-overlay').classList.add('open');
 }
 function mktFecharPost(){document.getElementById('mkt-post-overlay').classList.remove('open');mktPostAtual=null;}
-/* ── REPETIR EM VÁRIOS DIAS ──
-   0 = segunda … 6 = domingo, na mesma ordem do MKT_DIAS. */
-let mktRepDias=[0,1,2,3,4,5,6];
-function mktRepRenderDias(){
-  let h='';
-  MKT_DIAS.forEach((d,i)=>{h+='<button type="button" class="'+(mktRepDias.indexOf(i)!==-1?'on':'')+'" onclick="mktRepToggleDia('+i+')">'+d+'</button>';});
-  document.getElementById('mp-rep-dias').innerHTML=h;
+/* ══════════════════════════════════════════════════════════════
+   PROGRAMAR EM VÁRIAS DATAS
+   Substituiu a repetição por intervalo + dias da semana (31/08/2026).
+   Aquela versão só servia para "todo dia útil até tal data" e
+   obrigava todas as cópias a terem a MESMA hora. O uso real é outro:
+   datas espalhadas e escolhidas a dedo — 01/09, depois 20/10, depois
+   15/11 — cada uma com o seu horário.
+   ══════════════════════════════════════════════════════════════ */
+let mktMdDatas=[];   /* extras: [{d:'2026-10-20', h:'09:00'}] */
+
+/* dd/mm, e com o ano quando não for o ano corrente — a lista pode
+   atravessar a virada do ano e "15/11" sozinho seria ambíguo */
+function mktMdFmt(iso){
+  const p=String(iso||'').split('-');
+  if(p.length!==3)return iso||'';
+  const anoAtual=String(new Date().getFullYear());
+  return p[2]+'/'+p[1]+(p[0]===anoAtual?'':'/'+p[0].slice(2));
 }
-function mktRepToggleDia(i){
-  const k=mktRepDias.indexOf(i);
-  if(k===-1)mktRepDias.push(i); else mktRepDias.splice(k,1);
-  mktRepRenderDias(); mktRepContar();
+function mktMdHoraPrinc(){
+  return (document.getElementById('mp-hora').value||'12:00').slice(0,5);
 }
-function mktRepToggle(){
-  const on=document.getElementById('mp-rep-on').checked;
-  document.getElementById('mp-rep-box').style.display=on?'block':'none';
+function mktMdToggle(){
+  const on=document.getElementById('mp-md-on').checked;
+  document.getElementById('mp-md-box').style.display=on?'block':'none';
   if(on){
-    const ate=document.getElementById('mp-rep-ate');
-    if(!ate.value)ate.value=mktAddDias(document.getElementById('mp-data').value||mktHojeISO(),6);
+    const hh=document.getElementById('mp-md-hora');
+    if(!hh.value)hh.value=mktMdHoraPrinc();
   }
-  mktRepContar();
+  mktMdRender();
 }
-/* devolve todas as datas que vão receber uma cópia */
-function mktRepDatas(){
-  const ini=document.getElementById('mp-data').value;
-  if(!ini)return [];
-  const chk=document.getElementById('mp-rep-on');
-  const fim=document.getElementById('mp-rep-ate').value;
-  if(!chk||!chk.checked||!fim||fim<ini)return [ini];
-  const out=[]; let d=ini, guarda=0;
-  while(d<=fim&&guarda++<400){
-    const wd=(new Date(d+'T12:00:00').getDay()+6)%7;   // 0=seg
-    if(mktRepDias.indexOf(wd)!==-1)out.push(d);
-    d=mktAddDias(d,1);
+function mktMdAdd(){
+  const dd=document.getElementById('mp-md-data'), hh=document.getElementById('mp-md-hora');
+  const d=dd.value;
+  if(!d){alert('Escolha a data que quer acrescentar.');dd.focus();return;}
+  const h=(hh.value||mktMdHoraPrinc()).slice(0,5);
+  if(d===document.getElementById('mp-data').value&&h===mktMdHoraPrinc()){
+    alert('Essa é a data principal do conteúdo — já está na lista.');return;
   }
+  if(mktMdDatas.some(x=>x.d===d&&x.h===h)){alert('Essa data e hora já estão na lista.');return;}
+  mktMdDatas.push({d:d,h:h});
+  dd.value='';            /* libera o campo para a próxima; a hora fica */
+  mktMdRender();
+  dd.focus();
+}
+function mktMdRemover(i){ mktMdDatas.splice(i,1); mktMdRender(); }
+
+/* tudo o que vai ser criado: a data principal + as extras,
+   sem repetidas e em ordem cronológica */
+function mktMdTodas(){
+  const d=document.getElementById('mp-data').value;
+  if(!d)return [];
+  const out=[{d:d,h:mktMdHoraPrinc()}];
+  const on=document.getElementById('mp-md-on');
+  if(on&&on.checked){
+    mktMdDatas.forEach(x=>{ if(!out.some(o=>o.d===x.d&&o.h===x.h))out.push(x); });
+  }
+  out.sort((a,b)=>(a.d+a.h).localeCompare(b.d+b.h));
   return out;
 }
-function mktRepContar(){
-  const el=document.getElementById('mp-rep-info');
+function mktMdRender(){
+  const lista=document.getElementById('mp-md-lista');
+  if(!lista)return;
+  const princD=document.getElementById('mp-data').value, princH=mktMdHoraPrinc();
+  let h='';
+  mktMdTodas().forEach(x=>{
+    const ehPrinc = x.d===princD && x.h===princH;
+    const i = mktMdDatas.findIndex(y=>y.d===x.d&&y.h===x.h);
+    h+='<span class="mkt-md-item'+(ehPrinc?' principal':'')+'"'
+      + (ehPrinc?' title="Data principal — mude nos campos Data e Hora acima"':'')+'>'
+      + mktMdFmt(x.d)+' <span class="hh">'+x.h+'</span>'
+      + (ehPrinc ? '<span class="tag">principal</span>'
+                 : '<button type="button" class="x" onclick="mktMdRemover('+i+')" title="Tirar da lista">×</button>')
+      + '</span>';
+  });
+  lista.innerHTML=h;
+  const el=document.getElementById('mp-md-info');
   if(!el)return;
-  const chk=document.getElementById('mp-rep-on');
-  if(!chk||!chk.checked){el.textContent='';return;}
-  const n=mktRepDatas().length;
-  const fim=document.getElementById('mp-rep-ate').value;
-  const ini=document.getElementById('mp-data').value;
-  if(fim&&ini&&fim<ini){el.className='mkt-rep-info aviso';el.textContent='A data final é anterior à data inicial.';return;}
-  el.className='mkt-rep-info';
-  el.textContent = n<=1 ? 'Vai criar 1 conteúdo.'
-    : 'Vai criar '+n+' conteúdos iguais, um em cada dia — de '+mktFmtCurta(ini)+' a '+mktFmtCurta(fim)+'.';
+  const on=document.getElementById('mp-md-on');
+  if(!on||!on.checked){el.textContent='';return;}
+  const n=mktMdTodas().length;
+  if(!princD){el.className='mkt-rep-info aviso';el.textContent='Preencha a data principal ali em cima.';}
+  else if(n<=1){el.className='mkt-rep-info';el.textContent='Só a data principal por enquanto — acrescente outras acima.';}
+  else {el.className='mkt-rep-info';el.textContent='Vai criar '+n+' conteúdos iguais, um em cada data da lista.';}
 }
 /* ── canal dentro do modal ── */
 function mktMontarSelectCanal(sel){
@@ -8847,10 +8890,14 @@ async function mktSalvarPost(){
   if(mktUsaPerfil(canal)&&!mktPerfisSel.length){alert('Selecione ao menos um perfil de destino.');return;}
   const tipo=document.getElementById('mp-tipo').value;
 
-  /* editando = sempre uma data; criando = pode repetir em vários dias */
-  const datas = mktPostAtual ? [data] : mktRepDatas();
-  if(!datas.length){alert('Nenhuma data selecionada.');return;}
-  if(datas.length>1&&!confirm('Criar '+datas.length+' conteúdos iguais, um em cada dia?\nDe '+mktFmtCurta(datas[0])+' a '+mktFmtCurta(datas[datas.length-1])+'.'))return;
+  /* editando = uma data só; criando = pode ir para várias datas avulsas.
+     Cada item carrega a própria hora — é a diferença para a repetição antiga. */
+  const itens = mktPostAtual
+    ? [{d:data, h:mktMdHoraPrinc()}]
+    : mktMdTodas();
+  if(!itens.length){alert('Nenhuma data selecionada.');return;}
+  if(itens.length>1&&!confirm('Criar '+itens.length+' conteúdos iguais?\n\n'
+      +itens.map(x=>'• '+mktMdFmt(x.d)+' às '+x.h).join('\n')))return;
 
   const base={
     p_evento_id:evId,
@@ -8859,7 +8906,7 @@ async function mktSalvarPost(){
     p_tipo:tipo,
     p_formato:document.getElementById('mp-formato').value,
     p_perfis:mktPerfisSel.join(','),
-    p_hora:document.getElementById('mp-hora').value||'12:00',
+    /* p_hora não entra aqui: vai por item, junto com a data */
     p_briefing:document.getElementById('mp-briefing').value.trim()||null,
     p_status:mktStatusSel,
     p_arte_url:mktArtesSel.length?mktArtesSel.join('|'):null,
@@ -8871,17 +8918,18 @@ async function mktSalvarPost(){
   if(btn)btn.disabled=true;
 
   const ids=[];        // ids devolvidos pela mkt_post_salvar
-  const semId=[];      // datas em que ela não devolveu id
+  const semId=[];      // itens em que ela não devolveu id
   try{
-    for(let i=0;i<datas.length;i++){
-      if(btn)btn.textContent = datas.length>1 ? ('Salvando '+(i+1)+' de '+datas.length+'…') : 'Salvando…';
+    for(let i=0;i<itens.length;i++){
+      if(btn)btn.textContent = itens.length>1 ? ('Salvando '+(i+1)+' de '+itens.length+'…') : 'Salvando…';
       const r=await rpc('mkt_post_salvar',Object.assign({},base,{
         p_id: mktPostAtual?mktPostAtual.id:null,
-        p_data_post: datas[i]
+        p_data_post: itens[i].d,
+        p_hora: itens[i].h
       }));
       if(typeof r==='string'&&r) ids.push(r);
       else if(mktPostAtual) ids.push(mktPostAtual.id);
-      else semId.push(datas[i]);
+      else semId.push(itens[i]);
     }
   }catch(e){
     if(btn){btn.disabled=false;btn.textContent=rotulo;}
@@ -8895,8 +8943,11 @@ async function mktSalvarPost(){
 
   /* a mkt_post_salvar não foi alterada, então o canal vai numa segunda chamada.
      Se ela não devolveu o id, localiza o registro recém-criado pela data. */
-  semId.forEach(d=>{
-    const cand=(mktData.posts||[]).filter(x=>x.evento_id===evId&&x.titulo===titulo&&x.data_post===d);
+  /* casa por data E hora: duas cópias podem cair no mesmo dia em horários
+     diferentes, e só a data deixaria de identificar qual é qual */
+  semId.forEach(it=>{
+    const cand=(mktData.posts||[]).filter(x=>x.evento_id===evId&&x.titulo===titulo
+      &&x.data_post===it.d&&String(x.hora||'').slice(0,5)===it.h);
     if(cand.length===1)ids.push(cand[0].id);
   });
   if(ids.length){
@@ -10177,20 +10228,22 @@ async function patTirarDoFunil(){
     <div class="mkt-fg" id="mp-pat-wrap" style="display:none;"><label>Patrocinador</label><select id="mp-pat" onchange="mktPostPatChange()"></select></div>
     <div class="mkt-fg"><label>Título *</label><input type="text" id="mp-titulo" placeholder="Ex: Save the Date — Night Run"></div>
     <div class="mkt-row3">
-      <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data" onchange="mktRepContar()"></div>
-      <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora"></div>
+      <div class="mkt-fg"><label>Data *</label><input type="date" id="mp-data" onchange="mktMdRender()"></div>
+      <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-hora" onchange="mktMdRender()"></div>
       <div class="mkt-fg"><label>Formato *</label>
         <select id="mp-formato" onchange="mktSyncArteBox()"></select>
       </div>
     </div>
     <div class="mkt-fg" id="mp-rep-wrap">
-      <label class="mkt-rep-check"><input type="checkbox" id="mp-rep-on" onchange="mktRepToggle()">Repetir este conteúdo em vários dias</label>
-      <div class="mkt-rep-box" id="mp-rep-box" style="display:none;">
-        <div class="mkt-row2">
-          <div class="mkt-fg"><label>Repetir até</label><input type="date" id="mp-rep-ate" onchange="mktRepContar()"></div>
-          <div class="mkt-fg"><label>Só nestes dias</label><div class="mkt-rep-dias" id="mp-rep-dias"></div></div>
+      <label class="mkt-rep-check"><input type="checkbox" id="mp-md-on" onchange="mktMdToggle()">Programar este conteúdo em várias datas</label>
+      <div class="mkt-rep-box" id="mp-md-box" style="display:none;">
+        <div class="mkt-md-add">
+          <div class="mkt-fg"><label>Data</label><input type="date" id="mp-md-data" onkeydown="if(event.key==='Enter'){event.preventDefault();mktMdAdd();}"></div>
+          <div class="mkt-fg"><label>Hora</label><input type="time" id="mp-md-hora" onkeydown="if(event.key==='Enter'){event.preventDefault();mktMdAdd();}"></div>
+          <button type="button" class="mkt-md-btn" onclick="mktMdAdd()">+ Acrescentar</button>
         </div>
-        <div class="mkt-rep-info" id="mp-rep-info"></div>
+        <div class="mkt-md-lista" id="mp-md-lista"></div>
+        <div class="mkt-rep-info" id="mp-md-info"></div>
       </div>
     </div>
     <div class="mkt-fg" id="mp-perfis-wrap"><label>Perfis de destino *</label><div class="mkt-chips" id="mp-perfis"></div></div>
