@@ -547,8 +547,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
      deu entrada, cheio quando finalizou. O amarelo saiu porque lia como
      pendência num estágio em que não há nada a fazer além de esperar. */
   .cal-status-sel.s-nao      {background:#fee2e2;color:#991b1b;}
-  .cal-status-sel.s-abrir     {background:#ffedd5;color:#9a3412;}
-  .cal-status-sel.s-andamento{background:#dcfce7;color:#15803d;}
+  .cal-status-sel.s-abrir    {background:#fee2e2;color:#991b1b;}
+  .cal-status-sel.s-and1     {background:#dcfce7;color:#15803d;}
+  .cal-status-sel.s-and2     {background:#86efac;color:#14532d;}
   .cal-status-sel.s-ok       {background:#dcfce7;color:#166534;}
   /* verde cheio só no alvará finalizado — o Percurso/Arena continua
      com o verde claro de sempre */
@@ -6754,8 +6755,41 @@ const CAL_STATUS_KEY='jbx_cal_status';
 function calStatusLoad(){try{return JSON.parse(localStorage.getItem(CAL_STATUS_KEY)||'{}');}catch(e){return{};}}
 function calStatusSave(d){localStorage.setItem(CAL_STATUS_KEY,JSON.stringify(d));}
 function calStatusGet(key,campo,def){const d=calStatusLoad();return(d[key]&&d[key][campo])||def;}
+/* ══════════════════════════════════════════════════════════════
+   ALVARÁ — as etapas reais do processo (31/08/2026)
+   Vermelho = precisa abrir. Do "Entrada" em diante é verde, clareando
+   para escuro conforme avança, porque a partir dali não há mais o que
+   fazer além de acompanhar.
+
+   'nao' e 'andamento' são valores antigos gravados na base: 'nao'
+   significava a mesma coisa que ABRIR e 'andamento' a mesma coisa que
+   Entrada. São lidos como os novos, e a linha se normaliza sozinha na
+   primeira vez que você mexer no seletor. Nenhum dado se perde.
+   ══════════════════════════════════════════════════════════════ */
+const CAL_ALVARA_OPCOES = [
+  {v:'abrir',        l:'ABRIR',         c:'s-abrir'},
+  {v:'entrada',      l:'Entrada',       c:'s-and1'},
+  {v:'sec_esportes', l:'Sec. Esportes', c:'s-and1'},
+  {v:'transito',     l:'Trânsito',      c:'s-and1'},
+  {v:'reserva_data', l:'Reserva data',  c:'s-and2'},
+  {v:'ok',           l:'Finalizado',    c:'s-ok s-forte'}
+];
+const CAL_ALVARA_LEGADO = {nao:'abrir', andamento:'entrada'};
+function calAlvaraNorm(v){
+  const t=String(v||'').trim().toLowerCase();
+  return CAL_ALVARA_LEGADO[t] || (CAL_ALVARA_OPCOES.some(o=>o.v===t) ? t : 'abrir');
+}
+function calAlvaraOpcoesHtml(val){
+  const atual=calAlvaraNorm(val);
+  return CAL_ALVARA_OPCOES.map(o=>
+    '<option value="'+o.v+'"'+(o.v===atual?' selected':'')+'>'+o.l+'</option>').join('');
+}
+
 function calStatusCls(val,tipo){
-  if(tipo==='alvara'){if(val==='ok')return 's-ok s-forte';if(val==='andamento')return 's-andamento';if(val==='abrir')return 's-abrir';return 's-nao';}
+  if(tipo==='alvara'){
+    const a=calAlvaraNorm(val);
+    return (CAL_ALVARA_OPCOES.find(o=>o.v===a)||CAL_ALVARA_OPCOES[0]).c;
+  }
   return val==='ok'?'s-ok':'s-nao';
 }
 function calStatusChange(sel,key,campo){
@@ -6783,10 +6817,6 @@ function calBuildLista(){
     const mesAbrev = CAL_MESES_ABREV[parseInt(mi,10)-1];
     const datafmt = e.historico ? mesAbrev+"/"+anoFull
       : (e.inicio===e.fim ? di+"/"+mi+"/"+ano : di+"–"+e.fim.slice(8,10)+"/"+mi+"/"+ano);
-    const tipoTxt = {corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo];
-    const pill = e.realizado
-      ? '<span class="cal-tipo-pill" style="background:#e8e6e2;color:#9a9690;">✓ Realizado</span>'
-      : '<span class="cal-tipo-pill '+CAL_BG[e.tipo]+'">'+tipoTxt+'</span>';
     const pub = e.publico ? e.publico.toLocaleString('pt-BR') : '—';
     const trStyle = e.realizado ? ' style="opacity:.55;"' : '';
     const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
@@ -6797,10 +6827,7 @@ function calBuildLista(){
     const alvVal=calStatusGet(eKey,'alvara','nao'),alvCls=calStatusCls(alvVal,'alvara');
     const perVal=calStatusGet(eKey,'percurso','nao'),perCls=calStatusCls(perVal,'percurso');
     const alvSel='<select class="cal-status-sel '+alvCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'alvara\')" onclick="event.stopPropagation()">'
-      +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
-      +'<option value="abrir"'+(alvVal==='abrir'?' selected':'')+'>ABRIR</option>'
-      +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
-      +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
+      +calAlvaraOpcoesHtml(alvVal)
       +'</select>';
     const perSel='<select class="cal-status-sel '+perCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'percurso\')" onclick="event.stopPropagation()">'
       +'<option value="nao"'+(perVal==='nao'?' selected':'')+'>Não definido</option>'
@@ -6814,13 +6841,13 @@ function calBuildLista(){
       +'<td class="col-conf">'+confTxt+'</td>'
       +'<td class="col-lanc">'+lancBtn+'</td>'
       +'<td class="col-status">'+alvSel+'</td>'
-      +'<td>'+pill+'</td><td>'+pub+'</td>'
+      +'<td>'+pub+'</td>'
       +'<td>'+(e.horario||'—')+'</td>'
       +'<td class="col-check">'+idvBtn+'</td>'
       +'<td class="col-status">'+perSel+'</td>'
       +'</tr>';
   }).join('');
-  return '<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  return '<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 // ── Lista 100% editável (modo Supabase) ──
@@ -6839,15 +6866,9 @@ function calBuildListaDB(){
       "calLancToggleDB('"+id+"',this)", "calLancDataDB('"+id+"',this)");
     const alvVal=e.alvara||'nao';
     const alvSel='<select class="cal-status-sel '+calStatusCls(alvVal,'alvara')+'" onchange="calEdit(\''+id+'\',\'alvara\',this.value,this)" onclick="event.stopPropagation()">'
-      +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
-      +'<option value="abrir"'+(alvVal==='abrir'?' selected':'')+'>ABRIR</option>'
-      +'<option value="andamento"'+(alvVal==='andamento'?' selected':'')+'>Entrada</option>'
-      +'<option value="ok"'+(alvVal==='ok'?' selected':'')+'>Finalizado</option>'
+      +calAlvaraOpcoesHtml(alvVal)
       +'</select>'
       +'<input type="text" class="cal-alv-emp" value="'+calEsc(e.alvara_empresa||'')+'" placeholder="Empresa / CNPJ" title="Em qual CNPJ o alvará está alocado" onchange="calAlvaraEmpresa(\''+id+'\',this.value)" onclick="event.stopPropagation()">';
-    const tipoSel='<select class="cal-edit-sel" onchange="calEdit(\''+id+'\',\'tipo\',this.value)" onclick="event.stopPropagation()">'
-      +(e.tipo==='especial'?['corrida','beach','especial','hyrox']:['corrida','beach','hyrox']).map(t=>'<option value="'+t+'"'+((e.tipo||'corrida')===t?' selected':'')+'>'+({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[t])+'</option>').join('')
-      +'</select>';
     const pubInp='<input type="number" min="0" class="cal-edit-num" style="width:64px;" value="'+calEsc(e.publico||0)+'" onchange="calEdit(\''+id+'\',\'publico\',this.value)" onclick="event.stopPropagation()">';
     const larInp='<input type="text" class="cal-edit-input" style="width:48px;text-align:center;" value="'+calEsc(e.horario||'')+'" placeholder="—" onchange="calEdit(\''+id+'\',\'horario\',this.value)" onclick="event.stopPropagation()">';
     const idvBtn='<button class="cal-check-btn'+(e.idvisual?' checked':'')+'" onclick="calToggleCampo(\''+id+'\',\'idvisual\',this)" title="ID. Visual">'+(e.idvisual?'✓':'')+'</button>';
@@ -6880,7 +6901,6 @@ function calBuildListaDB(){
       +'<td class="col-conf">'+confInp+'</td>'
       +'<td class="col-lanc">'+lancBtn+'</td>'
       +'<td class="col-status">'+alvSel+'</td>'
-      +'<td>'+tipoSel+'</td>'
       +'<td>'+pubInp+'</td>'
       +'<td>'+larInp+'</td>'
       +'<td class="col-check">'+idvBtn+'</td>'
@@ -6894,12 +6914,12 @@ function calBuildListaDB(){
   }).join('');
   return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
     +'<button onclick="calAdicionarEvento()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Adicionar evento</button></div>'
-    +'<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function _filtrarOrdenado(){ return [...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio)); }
 
 /* ── EXCEL: Calendário (formato Lista) ── */
-const CAL_ALVARA_LABEL={nao:'Não iniciou',abrir:'ABRIR',andamento:'Entrada',ok:'Finalizado'};
+const CAL_ALVARA_LABEL=CAL_ALVARA_OPCOES.reduce((m,o)=>{m[o.v]=o.l;return m;},{});
 const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
 function exportarCalendarioExcel(){
   try{
@@ -6922,7 +6942,7 @@ function exportarCalendarioExcel(){
       const metaVal=Number(e.meta_patrocinio)||0;
       const capVal=Number(e.captado)||0;
       const pctVal=metaVal>0 ? Math.round((capVal/metaVal)*100)+'%' : '—';
-      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,lancVal,CAL_ALVARA_LABEL[alvVal]||alvVal,e.alvara_empresa||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal,metaVal,capVal,pctVal,e.drive_url||'']);
+      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,lancVal,CAL_ALVARA_LABEL[calAlvaraNorm(alvVal)]||alvVal,e.alvara_empresa||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal,metaVal,capVal,pctVal,e.drive_url||'']);
     });
     const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
     ws['!cols']=ws_data[0].map((_,i)=>({wch:i===1?30:i===2?18:i===4?28:14}));
