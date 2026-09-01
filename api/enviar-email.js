@@ -169,6 +169,50 @@ function htmlPagamentoRecusado(nome, eventoNome, motivo) {
   `);
 }
 
+// ── E-mail 4: Carrinho abandonado ──
+// Disparado pelo banco (função disparar_abandono_carrinho, cron a cada 30 min),
+// 30 a 60 minutos depois de uma inscrição ficar pendente. Um por inscrição —
+// a trava é a coluna abandono_notificado.
+function htmlCarrinhoAbandonado(nome, item) {
+  const primeiroNome = (nome || 'Atleta').split(' ')[0];
+  const evento = (item && item.evento) || 'JBX Sports';
+  const linha = (label, valor) => valor
+    ? `<tr><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:rgba(255,255,255,0.45);font-size:13px;">${label}</span></td><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;"><span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:600;">${valor}</span></td></tr>`
+    : '';
+  return templateBase(`
+    <div style="text-align:center;margin-bottom:30px;">
+      <div style="font-size:52px;margin-bottom:16px;">⏳</div>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:700;margin:0 0 8px;">Sua inscrição ficou pela metade</h1>
+      <p style="color:rgba(255,255,255,0.5);font-size:15px;margin:0;">Falta só o pagamento para garantir sua vaga</p>
+    </div>
+    <p style="color:#ffffff;font-size:16px;margin:0 0 16px;">Olá, <strong>${primeiroNome}</strong>!</p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.8;margin:0 0 26px;">
+      Você começou sua inscrição no <strong style="color:#ff751f;">${evento}</strong>, mas o pagamento não chegou a ser concluído.
+      Sua vaga <strong>ainda não está garantida</strong> — e as vagas de cada lote são limitadas.
+    </p>
+
+    <div style="background:#0a0a0a;border:1px solid rgba(255,117,31,0.25);border-radius:10px;overflow:hidden;margin-bottom:26px;">
+      <div style="background:rgba(255,117,31,0.12);padding:12px 20px;border-bottom:1px solid rgba(255,117,31,0.15);">
+        <p style="color:#ff751f;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin:0;">Inscrição em aberto</p>
+      </div>
+      <table width="100%" cellpadding="0" cellspacing="0" style="padding:8px 0;">
+        ${linha('Evento', evento)}
+        ${linha('Modalidade', item && item.modalidade)}
+        ${linha('Kit', item && item.kit)}
+      </table>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="https://jbxsports.com.br" style="display:inline-block;background:#ff751f;color:#ffffff;padding:14px 36px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:700;letter-spacing:0.3px;">Concluir minha inscrição →</a>
+    </div>
+
+    <p style="color:rgba(255,255,255,0.3);font-size:12px;text-align:center;margin-top:26px;line-height:1.7;">
+      Teve algum problema no pagamento? Fale com a gente no Instagram <strong>@jbx.sports</strong>.<br>
+      Se você já concluiu ou não tem mais interesse, é só ignorar este e-mail.
+    </p>
+  `);
+}
+
 // ── Handler ──
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -187,6 +231,11 @@ module.exports = async (req, res) => {
 
     if (tipo === 'confirmacao_inscricao') {
       await enviarResend(email, `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`, htmlConfirmacaoInscricao(item, data_evento));
+      return res.status(200).json({ ok: true });
+    }
+
+    if (tipo === 'carrinho_abandonado') {
+      await enviarResend(email, `Falta pouco para garantir sua vaga — ${item?.evento || 'JBX Sports'} ⏳`, htmlCarrinhoAbandonado(nome, item));
       return res.status(200).json({ ok: true });
     }
 
