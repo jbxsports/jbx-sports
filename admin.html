@@ -542,10 +542,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
     font-family:'Ubuntu',sans-serif;outline:none;
     width:100%;
   }
+  /* Alvará: vermelho e laranja = precisa de ação sua. Do "Entrada" em
+     diante já está resolvido, então a escala vira verde — claro quando
+     deu entrada, cheio quando finalizou. O amarelo saiu porque lia como
+     pendência num estágio em que não há nada a fazer além de esperar. */
   .cal-status-sel.s-nao      {background:#fee2e2;color:#991b1b;}
-  .cal-status-sel.s-andamento{background:#fef9c3;color:#854d0e;}
   .cal-status-sel.s-abrir     {background:#ffedd5;color:#9a3412;}
+  .cal-status-sel.s-andamento{background:#dcfce7;color:#15803d;}
   .cal-status-sel.s-ok       {background:#dcfce7;color:#166534;}
+  /* verde cheio só no alvará finalizado — o Percurso/Arena continua
+     com o verde claro de sempre */
+  .cal-status-sel.s-forte    {background:#15803d;color:#fff;}
   table.cal-lista th.col-status{font-size:9px;min-width:120px;text-align:center;}
   table.cal-lista td.col-status{text-align:center;padding:8px 10px;}
   table.cal-lista th.col-check{font-size:9px;width:80px;text-align:center;}
@@ -606,7 +613,15 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
     box-shadow:0 1px 7px rgba(124,58,237,.38);
   }
   .cal-lanc-btn.on:hover{background:#6d28d9;border-color:#6d28d9;color:#fff;}
-  table.cal-lista th.col-lanc{font-size:9px;min-width:132px;text-align:center;}
+  .cal-lanc-wrap{display:inline-flex;align-items:center;gap:5px;}
+  .cal-lanc-data{width:114px;}
+  .cal-lanc-mini{
+    width:28px;height:28px;border-radius:6px;padding:0;line-height:1;font-size:13px;
+    border:2px dashed rgba(124,58,237,.45);background:#fff;color:#7c3aed;
+    cursor:pointer;transition:all .15s;font-family:'Ubuntu',sans-serif;
+  }
+  .cal-lanc-mini:hover{background:#7c3aed;color:#fff;border-style:solid;}
+  table.cal-lista th.col-lanc{font-size:9px;min-width:158px;text-align:center;}
   table.cal-lista td.col-lanc{text-align:center;padding:7px 8px;}
 /* ══ SOCIAL MEDIA — CALENDÁRIO MKT ══ */
 .mkt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
@@ -6649,32 +6664,80 @@ function calBuildCompleto(){
    É o mesmo padrão de 'alvara' e 'percurso', que também são códigos
    curtos guardados em coluna de texto.
    ══════════════════════════════════════════════════════════════ */
-function calEhLancado(e){ return String((e&&e.status)||'').trim().toLowerCase()==='lancado'; }
-function calLancHtml(on, onclick){
-  return '<button class="cal-lanc-btn'+(on?' on':'')+'" '+onclick
-    +' title="'+(on?'Evento lançado — clique para desmarcar':'Ainda não lançado — clique quando lançar')+'">'
-    +(on?'🚀 Lançado':'Não lançado')+'</button>';
+/* Um texto só guarda as duas informações, para não precisar de coluna
+   nova no banco:
+     ''                    → nada definido
+     '2026-10-15'          → data prevista de lançamento, ainda não lançou
+     'lancado'             → lançado
+     'lancado:2026-10-15'  → lançado, e a data prevista fica no histórico  */
+function calLancParse(raw){
+  const t = String(raw==null?'':raw).trim();
+  const m = t.match(/(\d{4}-\d{2}-\d{2})/);
+  return { on: /^lancado/i.test(t), data: m ? m[1] : '' };
 }
-function calLancPinta(btn,on){
-  btn.classList.toggle('on', on);
-  btn.textContent = on ? '🚀 Lançado' : 'Não lançado';
-  btn.title = on ? 'Evento lançado — clique para desmarcar' : 'Ainda não lançado — clique quando lançar';
+function calLancMontar(on, data){
+  if(on) return data ? 'lancado:'+data : 'lancado';
+  return data || '';
+}
+function calDataBR(iso){
+  const p=String(iso||'').split('-');
+  return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : (iso||'');
+}
+function calEhLancado(e){ return calLancParse((e&&e.status)||'').on; }
+
+/* Lançado → pílula roxa. Não lançado → campo de data em branco para
+   escrever quando pretende lançar, mais o botãozinho 🚀 que marca. */
+function calLancCelHtml(raw, cbToggle, cbData){
+  const st = calLancParse(raw);
+  if(st.on){
+    return '<button class="cal-lanc-btn on" onclick="event.stopPropagation();'+cbToggle+'" title="'
+      + (st.data ? 'Lançado (previsto para '+calDataBR(st.data)+') — clique para desmarcar'
+                 : 'Evento lançado — clique para desmarcar')
+      + '">🚀 Lançado</button>';
+  }
+  return '<span class="cal-lanc-wrap">'
+    + '<input type="date" class="cal-edit-date cal-lanc-data" value="'+calEsc(st.data)+'" '
+    +   'title="Data em que pretende lançar as inscrições" '
+    +   'onchange="event.stopPropagation();'+cbData+'" onclick="event.stopPropagation()">'
+    + '<button class="cal-lanc-mini" onclick="event.stopPropagation();'+cbToggle+'" '
+    +   'title="Marcar como lançado">🚀</button>'
+    + '</span>';
+}
+function calLancRedesenha(el, raw, ref, local){
+  const td = el.closest('td'); if(!td) return;
+  td.innerHTML = local
+    ? calLancCelHtml(raw, "calLancToggleLocal('"+ref+"',this)", "calLancDataLocal('"+ref+"',this)")
+    : calLancCelHtml(raw, "calLancToggleDB('"+ref+"',this)",   "calLancDataDB('"+ref+"',this)");
 }
 /* modo Supabase */
-function calLancamentoToggle(id, btn){
+function calLancToggleDB(id, el){
   const ev=_calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
-  const on = !calEhLancado(ev);
-  ev.status = on ? 'lancado' : '';
-  if(btn) calLancPinta(btn, on);
+  const st=calLancParse(ev.status);
+  ev.status=calLancMontar(!st.on, st.data);
+  calPersistir(ev);
+  calLancRedesenha(el, ev.status, id, false);
+}
+function calLancDataDB(id, el){
+  const ev=_calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  const st=calLancParse(ev.status);
+  ev.status=calLancMontar(st.on, el.value||'');
   calPersistir(ev);
 }
-/* modo local (sem Supabase): fica no localStorage, como o ID. Visual */
-function calLancamentoLocal(btn, key){
-  const d = calStatusLoad();
-  if(!d[key]) d[key]={};
-  d[key]['lancado'] = !d[key]['lancado'];
-  calStatusSave(d);
-  calLancPinta(btn, !!d[key]['lancado']);
+/* modo local (sem Supabase): localStorage, como o ID. Visual */
+function calLancLocalGet(key){ return calStatusGet(key,'lanc',''); }
+function calLancLocalSet(key, valor){
+  const d=calStatusLoad(); if(!d[key])d[key]={};
+  d[key]['lanc']=valor; calStatusSave(d);
+}
+function calLancToggleLocal(key, el){
+  const st=calLancParse(calLancLocalGet(key));
+  const novo=calLancMontar(!st.on, st.data);
+  calLancLocalSet(key,novo);
+  calLancRedesenha(el, novo, key, true);
+}
+function calLancDataLocal(key, el){
+  const st=calLancParse(calLancLocalGet(key));
+  calLancLocalSet(key, calLancMontar(st.on, el.value||''));
 }
 
 function calIdVisualToggle(btn, key){
@@ -6692,7 +6755,7 @@ function calStatusLoad(){try{return JSON.parse(localStorage.getItem(CAL_STATUS_K
 function calStatusSave(d){localStorage.setItem(CAL_STATUS_KEY,JSON.stringify(d));}
 function calStatusGet(key,campo,def){const d=calStatusLoad();return(d[key]&&d[key][campo])||def;}
 function calStatusCls(val,tipo){
-  if(tipo==='alvara'){if(val==='ok')return 's-ok';if(val==='andamento')return 's-andamento';if(val==='abrir')return 's-abrir';return 's-nao';}
+  if(tipo==='alvara'){if(val==='ok')return 's-ok s-forte';if(val==='andamento')return 's-andamento';if(val==='abrir')return 's-abrir';return 's-nao';}
   return val==='ok'?'s-ok':'s-nao';
 }
 function calStatusChange(sel,key,campo){
@@ -6729,8 +6792,8 @@ function calBuildLista(){
     const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
     const confVal = e.confianca!=null ? e.confianca : null;
     const confTxt = confVal!=null ? '<span class="cal-conf-pill '+calConfCls(confVal)+'">'+confVal+'%</span>' : '—';
-    const lancVal = !!calStatusGet(eKey,'lancado', calEhLancado(e));
-    const lancBtn = calLancHtml(lancVal,'onclick="event.stopPropagation();calLancamentoLocal(this,\''+eKey+'\')"');
+    const lancBtn = calLancCelHtml(calStatusGet(eKey,'lanc', e.status||''),
+      "calLancToggleLocal('"+eKey+"',this)", "calLancDataLocal('"+eKey+"',this)");
     const alvVal=calStatusGet(eKey,'alvara','nao'),alvCls=calStatusCls(alvVal,'alvara');
     const perVal=calStatusGet(eKey,'percurso','nao'),perCls=calStatusCls(perVal,'percurso');
     const alvSel='<select class="cal-status-sel '+alvCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'alvara\')" onclick="event.stopPropagation()">'
@@ -6772,7 +6835,8 @@ function calBuildListaDB(){
     const evInp='<input type="text" class="cal-edit-input" style="min-width:150px;font-weight:600;" value="'+calEsc(e.evento)+'" onchange="calEdit(\''+id+'\',\'evento\',this.value)" onclick="event.stopPropagation()">';
     const cidInp='<input type="text" class="cal-edit-input" style="min-width:110px;" value="'+calEsc(e.cidade)+'" onchange="calEdit(\''+id+'\',\'cidade\',this.value)" onclick="event.stopPropagation()">';
     const confInp='<span style="display:inline-flex;align-items:center;gap:2px;"><input type="number" min="0" max="100" step="5" class="cal-edit-num" value="'+(e.confianca==null?'':calEsc(e.confianca))+'" placeholder="—" onchange="calEdit(\''+id+'\',\'confianca\',this.value,this)" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--muted);">%</span></span>';
-    const lancBtn=calLancHtml(calEhLancado(e),'onclick="event.stopPropagation();calLancamentoToggle(\''+id+'\',this)"');
+    const lancBtn=calLancCelHtml(e.status||'',
+      "calLancToggleDB('"+id+"',this)", "calLancDataDB('"+id+"',this)");
     const alvVal=e.alvara||'nao';
     const alvSel='<select class="cal-status-sel '+calStatusCls(alvVal,'alvara')+'" onchange="calEdit(\''+id+'\',\'alvara\',this.value,this)" onclick="event.stopPropagation()">'
       +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
@@ -6850,7 +6914,8 @@ function exportarCalendarioExcel(){
       const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo]||e.tipo||'');
       const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
       const confVal=e.confianca!=null?e.confianca+'%':'—';
-      const lancVal=(_calDB ? calEhLancado(e) : !!calStatusGet(eKey,'lancado', calEhLancado(e))) ? 'Lançado' : 'Não lançado';
+      const lancSt=calLancParse(_calDB ? (e.status||'') : calStatusGet(eKey,'lanc', e.status||''));
+      const lancVal=lancSt.on ? 'Lançado' : (lancSt.data ? 'Previsto '+calDataBR(lancSt.data) : 'Não lançado');
       const alvVal=_calDB ? (e.alvara||'nao') : calStatusGet(eKey,'alvara','nao');
       const perVal=_calDB ? (e.percurso||'nao') : calStatusGet(eKey,'percurso','nao');
       const idvVal=_calDB ? !!e.idvisual : calStatusGet(eKey,'idvisual',false);
