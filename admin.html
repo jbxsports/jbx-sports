@@ -229,6 +229,30 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .search-input{background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:'Ubuntu',sans-serif;width:220px;}
 .search-input:focus{outline:none;border-color:var(--orange);background:#fff;}
 .inscritos-count{font-size:13px;color:var(--muted);}
+/* ── RECUPERAÇÃO DE ABANDONO ── */
+.ab-topo{display:flex;align-items:center;gap:14px;background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.22);border-radius:12px;padding:14px 18px;margin-bottom:16px;flex-wrap:wrap;}
+.ab-topo .ico{width:38px;height:38px;border-radius:50%;background:rgba(22,163,74,.16);color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;}
+.ab-topo .lb{font-size:12px;color:var(--muted);font-weight:600;}
+.ab-topo .vl{font-size:24px;font-weight:700;color:#16a34a;line-height:1.15;}
+.ab-topo .sb{font-size:12px;color:var(--muted);}
+.ab-topo .sep{width:1px;height:34px;background:rgba(42,37,32,.12);}
+.ab-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.ab-bar select,.ab-bar input[type=text]{font-family:'Ubuntu',sans-serif;font-size:13px;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;}
+.ab-msg{background:#f5f3f0;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+.ab-msg label{display:block;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+.ab-msg textarea{width:100%;background:var(--card);border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 13px;font-size:13.5px;font-family:'Ubuntu',sans-serif;line-height:1.6;resize:vertical;}
+.ab-msg .dica{font-size:11.5px;color:var(--muted);margin-top:7px;}
+.ab-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.ab-novo{background:rgba(180,140,0,.13);color:#a07800;}
+.ab-abordado{background:rgba(37,99,235,.12);color:#2563eb;}
+.ab-recuperado{background:rgba(22,163,74,.14);color:#16a34a;}
+.ab-num{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:rgba(42,37,32,.07);font-size:11px;font-weight:700;color:var(--muted);}
+.ab-num.on{background:rgba(255,117,31,.16);color:var(--orange);}
+.ab-acao{display:inline-flex;align-items:center;gap:5px;background:rgba(37,211,102,.12);color:#128c7e;border:1px solid rgba(37,211,102,.35);border-radius:7px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;text-decoration:none;white-space:nowrap;}
+.ab-acao:hover{background:rgba(37,211,102,.2);}
+.ab-acao.desfazer{background:none;color:var(--muted);border-color:var(--border);}
+.ab-acao.desfazer:hover{background:rgba(42,37,32,.06);color:var(--text);}
+.ab-sem{color:var(--muted);font-size:12px;}
 .data-table .edit-btn{background:none;border:1px solid rgba(42,37,32,.12);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;}
 .data-table .edit-btn:hover{border-color:var(--orange);color:var(--orange);}
 .status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
@@ -1453,6 +1477,11 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
           <div class="chart-card"><h3>Top Cidades</h3><div class="chart-wrap"><canvas id="chart-cidade"></canvas></div></div>
           <div class="chart-card"><h3>Inscrições – Últimos 15 dias</h3><div class="chart-wrap"><canvas id="chart-diario"></canvas></div></div>
         </div>
+        <div class="ig-subtabs" style="margin-top:24px;">
+          <button class="ig-sub active" id="ev-sub-inscritos" onclick="evSubTab('inscritos')">Inscritos</button>
+          <button class="ig-sub" id="ev-sub-abandono" onclick="evSubTab('abandono')">Recuperação de abandono</button>
+        </div>
+        <div id="ev-view-inscritos">
         <div class="inscritos-bar">
           <h2 style="font-size:18px;font-weight:700;">Inscritos</h2>
           <input class="search-input" id="search-inscrito" placeholder="Buscar por nome, CPF…" oninput="filtrarInscritos()">
@@ -1471,6 +1500,40 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
             <thead><tr><th>Nome</th><th>CPF</th><th>Kit</th><th>Lote</th><th>Modalidade</th><th>Camiseta</th><th>Inscrição</th><th>Taxa</th><th>Total</th><th>Status</th><th>Inscrito em</th><th></th></tr></thead>
             <tbody id="inscritos-tbody"></tbody>
           </table>
+        </div>
+        </div>
+
+        <!-- RECUPERAÇÃO DE ABANDONO — por evento -->
+        <div id="ev-view-abandono" style="display:none;">
+          <div class="ab-topo" id="ab-topo"></div>
+          <div class="ab-msg">
+            <label>Mensagem do WhatsApp</label>
+            <textarea id="ab-msg" rows="4" oninput="abSalvarMsg()"></textarea>
+            <div class="dica">Use <b>{primeiro}</b>, <b>{nome}</b>, <b>{evento}</b>, <b>{modalidade}</b> e <b>{kit}</b> — trocados por pessoa na hora de abrir a conversa. O texto fica salvo neste navegador.</div>
+          </div>
+          <div class="ab-bar">
+            <input type="text" id="ab-f-busca" placeholder="Buscar por nome, CPF, e-mail…" oninput="abRender()" style="min-width:240px;flex:1;">
+            <select id="ab-f-status" onchange="abRender()">
+              <option value="">Todos os status</option>
+              <option value="novo">A abordar</option>
+              <option value="abordado">Em progresso</option>
+              <option value="recuperado">Recuperado</option>
+            </select>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;">
+              <input type="checkbox" id="ab-f-tel" onchange="abRender()" style="accent-color:var(--orange);"> Só com WhatsApp
+            </label>
+            <span class="inscritos-count" id="ab-contagem"></span>
+            <button class="btn-export" onclick="abExportar()" style="margin-left:auto;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar Excel
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Cliente</th><th>E-mail</th><th>Telefone</th><th>Modalidade / Kit</th><th>Valor</th><th>Último abandono</th><th>Status</th><th>Tent.</th><th>Contatos</th><th>Ações</th></tr></thead>
+              <tbody id="ab-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -2068,7 +2131,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'admin_reunioes_listar','admin_reuniao_salvar','admin_reuniao_excluir',
   'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir',
   'pat_contato_salvar','pat_contato_excluir',
-  'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir'];
+  'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir',
+  'admin_carrinhos_abandonados','admin_carrinho_contato'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2848,6 +2912,10 @@ async function abrirEvento(id,nome,status,data){
       <div class="stat-card"><div class="sc-label">Ticket Médio</div><div class="sc-val">${brl(es.ticket_medio)}</div></div>`;
     renderCharts(cd||{});todosInscritos=inscritos||[];renderInscritos(todosInscritos);
   }catch(e){console.error(e);}
+  /* cada evento tem a sua lista de abandono: zera o que ficou do anterior */
+  abLista=[];abResumo=null;
+  const abTb=document.getElementById('ab-tbody'); if(abTb)abTb.innerHTML='';
+  evSubTab('inscritos');
 }
 /* ══════════════════════════════════════════════════════════════
    GRÁFICOS DO EVENTO
@@ -4989,6 +5057,197 @@ function leadRender(){
   if(rod) rod.textContent = leadFiltrados.length > IG_LIMITE_TELA
     ? 'Mostrando os ' + IG_LIMITE_TELA + ' primeiros de ' + fmt(leadFiltrados.length) + '. A exportação leva todos.'
     : '';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RECUPERAÇÃO DE CARRINHO ABANDONADO — por evento
+   Fica dentro da tela do evento, não no Inscritos Geral: cada prova
+   tem a sua lista, do seu jeito.
+
+   A lista NÃO sai das inscrições pendentes. Sai da tabela
+   carrinhos_abandonados, porque o gatilho limpar_pendentes_apos_pagamento
+   apaga a linha pendente quando a pessoa volta e paga — e é justamente
+   aí que ela vira "Recuperado". Se o registro fosse a pendente, o
+   recuperado nunca apareceria.
+
+   Disparo automático de e-mail (30–60 min) é outra coisa, roda no banco.
+   Aqui é a abordagem manual, com corte de 2 horas.
+   ══════════════════════════════════════════════════════════════ */
+let abLista = [], abResumo = null, abCarregando = false;
+
+const AB_MSG_PADRAO = 'Oi {primeiro}, tudo bem? Aqui é da JBX Sports 🙂\n\n'
+  + 'Vi que você começou a inscrição no {evento} ({modalidade}) mas o pagamento não chegou a ser concluído. '
+  + 'Deu algum problema na hora de finalizar?\n\nSe quiser, eu te ajudo a concluir por aqui mesmo. É rapidinho!';
+
+function evSubTab(nome){
+  ['inscritos','abandono'].forEach(n=>{
+    const v=document.getElementById('ev-view-'+n), b=document.getElementById('ev-sub-'+n);
+    if(v)v.style.display=(n===nome)?'':'none';
+    if(b)b.classList.toggle('active',n===nome);
+  });
+  if(nome==='abandono')abCarregar();
+}
+
+function abCarregarMsg(){
+  const el=document.getElementById('ab-msg');
+  if(!el||el.value)return;
+  let salvo=null;
+  try{ salvo=localStorage.getItem('jbx_ab_msg'); }catch(e){}
+  el.value=salvo||AB_MSG_PADRAO;
+}
+function abSalvarMsg(){
+  const el=document.getElementById('ab-msg');
+  if(!el)return;
+  try{ localStorage.setItem('jbx_ab_msg',el.value); }catch(e){}
+}
+
+async function abCarregar(){
+  if(!currentEvento||abCarregando)return;
+  abCarregarMsg();
+  const tb=document.getElementById('ab-tbody');
+  abCarregando=true;
+  if(tb)tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">Carregando…</td></tr>';
+  try{
+    const r=await rpc('admin_carrinhos_abandonados',{p_evento_id:currentEvento.id});
+    abLista=(r&&r.lista)||[]; abResumo=(r&&r.resumo)||null;
+    abRender();
+  }catch(e){
+    console.error(e);
+    if(tb)tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:#dc2626;">Erro ao carregar: '
+      +(e.message||'')+'<br><span style="font-size:12px;color:var(--muted);">Se falar em função inexistente, rode o abandono.sql no Supabase.</span></td></tr>';
+  }finally{ abCarregando=false; }
+}
+
+function abFiltrada(){
+  const q=(document.getElementById('ab-f-busca')?.value||'').trim().toLowerCase();
+  const st=document.getElementById('ab-f-status')?.value||'';
+  const soTel=!!document.getElementById('ab-f-tel')?.checked;
+  return abLista.filter(c=>{
+    if(st&&c.situacao!==st)return false;
+    if(soTel&&!wppNumero(c.telefone))return false;
+    if(q){
+      const alvo=((c.nome||'')+' '+(c.cpf||'')+' '+(c.email||'')+' '+(c.telefone||'')).toLowerCase();
+      if(alvo.indexOf(q)===-1)return false;
+    }
+    return true;
+  });
+}
+
+function abPill(s){
+  if(s==='recuperado')return '<span class="ab-pill ab-recuperado">Recuperado</span>';
+  if(s==='abordado')  return '<span class="ab-pill ab-abordado">Em progresso</span>';
+  return '<span class="ab-pill ab-novo">A abordar</span>';
+}
+
+function abMensagem(c){
+  const modelo=document.getElementById('ab-msg')?.value||AB_MSG_PADRAO;
+  const nome=(c.nome||'').trim();
+  return modelo
+    .split('{primeiro}').join(nome.split(' ')[0]||'atleta')
+    .split('{nome}').join(nome)
+    .split('{evento}').join(currentEvento?currentEvento.nome:'')
+    .split('{modalidade}').join(c.modalidade||'')
+    .split('{kit}').join(c.kit||'');
+}
+
+function abRender(){
+  const tb=document.getElementById('ab-tbody');
+  const topo=document.getElementById('ab-topo');
+  if(!tb)return;
+
+  if(topo){
+    const r=abResumo||{total:0,recuperados:0,abordados:0,taxa:0};
+    topo.innerHTML='<div class="ico">✓</div>'
+      +'<div><div class="lb">Taxa de recuperação</div>'
+      +'<div class="vl">'+(Number(r.taxa)||0).toString().replace('.',',')+'%</div>'
+      +'<div class="sb">'+fmt(r.recuperados)+' recuperados de '+fmt(r.total)+' carrinhos</div></div>'
+      +'<div class="sep"></div>'
+      +'<div><div class="lb">Em progresso</div><div class="vl" style="color:#2563eb;">'+fmt(r.abordados)+'</div>'
+      +'<div class="sb">já abordados, ainda sem compra</div></div>'
+      +'<div class="sep"></div>'
+      +'<div><div class="lb">A abordar</div><div class="vl" style="color:#a07800;">'
+      +fmt(Math.max(0,(r.total||0)-(r.recuperados||0)-(r.abordados||0)))+'</div>'
+      +'<div class="sb">ninguém falou com essas pessoas</div></div>';
+  }
+
+  const arr=abFiltrada();
+  const cont=document.getElementById('ab-contagem');
+  if(cont)cont.textContent=arr.length===abLista.length
+    ? fmt(arr.length)+' carrinho(s)'
+    : fmt(arr.length)+' de '+fmt(abLista.length);
+
+  if(!arr.length){
+    tb.innerHTML='<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--muted);">'
+      +(abLista.length?'Ninguém nessa situação com os filtros atuais.'
+        :'Nenhum carrinho abandonado neste evento. Só entra quem ficou pendente há mais de 2 horas.')
+      +'</td></tr>';
+    return;
+  }
+
+  tb.innerHTML=arr.map(c=>{
+    const num=wppNumero(c.telefone);
+    const zap=num
+      ? '<a class="ab-acao" target="_blank" rel="noopener" href="https://wa.me/'+num+'?text='
+        +encodeURIComponent(abMensagem(c))+'" onclick="abMarcar(\''+c.id+'\')">💬 '
+        +(Number(c.contatos)>0?'Abordar de novo':'Abordar')+'</a>'
+      : '<span class="ab-sem">sem WhatsApp</span>';
+    const desf=Number(c.contatos)>0
+      ? ' <button class="ab-acao desfazer" onclick="abMarcar(\''+c.id+'\',true)" title="Tirar um contato — cliquei sem querer">↺</button>'
+      : '';
+    return '<tr'+(c.situacao==='recuperado'?' style="opacity:.72;"':'')+'>'
+      +'<td style="font-weight:600;">'+histNomeLink(c.nome,c.cpf)+'</td>'
+      +'<td style="font-size:12px;color:var(--muted);">'+(c.email||'—')+'</td>'
+      +'<td style="font-size:12px;">'+(c.telefone||'—')+'</td>'
+      +'<td style="font-size:12px;">'+[c.modalidade,c.kit].filter(Boolean).join(' · ')+'</td>'
+      +'<td style="color:var(--orange);font-weight:700;">'+(c.valor?brl(c.valor):'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--muted);">'+fmtData(c.ultimo_abandono)+'</td>'
+      +'<td>'+abPill(c.situacao)+'</td>'
+      +'<td><span class="ab-num'+(Number(c.abandonos)>1?' on':'')+'" title="Quantas vezes abandonou">'+fmt(c.abandonos)+'</span></td>'
+      +'<td><span class="ab-num'+(Number(c.contatos)>0?' on':'')+'" title="'
+        +(c.ultimo_contato?'Último contato em '+fmtData(c.ultimo_contato):'Nunca abordado')+'">'+fmt(c.contatos)+'</span></td>'
+      +'<td style="white-space:nowrap;">'+zap+desf+'</td>'
+    +'</tr>';
+  }).join('');
+}
+
+/* marca (ou desfaz) o contato. O link do WhatsApp abre em outra aba
+   pelo próprio href — aqui só registra, sem travar a navegação. */
+async function abMarcar(id,desfazer){
+  const c=abLista.find(x=>x.id===id);
+  if(c){
+    c.contatos=Math.max(0,Number(c.contatos||0)+(desfazer?-1:1));
+    if(desfazer&&c.contatos===0)c.ultimo_contato=null;
+    else if(!desfazer)c.ultimo_contato=new Date().toISOString();
+    if(c.situacao!=='recuperado')c.situacao=c.contatos>0?'abordado':'novo';
+    if(abResumo){
+      abResumo.abordados=abLista.filter(x=>Number(x.contatos)>0&&!x.recuperado_em).length;
+    }
+    abRender();
+  }
+  try{
+    await rpc('admin_carrinho_contato',{p_id:id,p_desfazer:!!desfazer});
+  }catch(e){
+    console.error(e);
+    alert('Não consegui registrar o contato no banco. A tela vai recarregar.');
+    abCarregar();
+  }
+}
+
+function abExportar(){
+  const arr=abFiltrada();
+  if(!arr.length){alert('Nenhum carrinho para exportar com os filtros atuais.');return;}
+  const rot={novo:'A abordar',abordado:'Em progresso',recuperado:'Recuperado'};
+  const linhas=[['Cliente','CPF','E-mail','Telefone','Modalidade','Kit','Valor','Primeiro abandono','Último abandono','Tentativas','Contatos','Último contato','Status','Recuperado em']];
+  arr.forEach(c=>linhas.push([
+    c.nome||'', c.cpf||'', c.email||'', c.telefone||'', c.modalidade||'', c.kit||'',
+    Number(c.valor||0), c.primeiro_abandono?fmtData(c.primeiro_abandono):'', fmtData(c.ultimo_abandono),
+    Number(c.abandonos||0), Number(c.contatos||0), c.ultimo_contato?fmtData(c.ultimo_contato):'',
+    rot[c.situacao]||c.situacao, c.recuperado_em?fmtData(c.recuperado_em):''
+  ]));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(linhas),'Abandonos');
+  const nome=(currentEvento?currentEvento.nome:'evento').replace(/[^a-z0-9]/gi,'_').slice(0,28);
+  XLSX.writeFile(wb,'abandonos_'+nome+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 
 /* ── DRAWER INSCRITO ── */
