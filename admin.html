@@ -589,6 +589,25 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   }
   .cal-check-btn.checked{background:#dcfce7;border-color:#16a34a;color:#16a34a;}
   .cal-check-btn:not(.checked){color:transparent;}
+  /* ── FLAG DE LANÇAMENTO ──
+     Roxo cheio quando lançado, contorno tracejado cinza quando não.
+     Cor E forma diferentes do ✓ verde do ID. Visual de propósito: bate o
+     olho na coluna e dá para varrer a lista inteira sem ler nada. */
+  .cal-lanc-btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:5px;
+    min-width:112px;padding:6px 12px;border-radius:20px;cursor:pointer;
+    font-family:'Ubuntu',sans-serif;font-size:11.5px;font-weight:700;
+    letter-spacing:.02em;line-height:1.2;transition:all .15s;
+    border:2px dashed rgba(42,37,32,.22);background:#fff;color:#a29b93;
+  }
+  .cal-lanc-btn:hover{border-color:#7c3aed;color:#7c3aed;}
+  .cal-lanc-btn.on{
+    border:2px solid #7c3aed;background:#7c3aed;color:#fff;
+    box-shadow:0 1px 7px rgba(124,58,237,.38);
+  }
+  .cal-lanc-btn.on:hover{background:#6d28d9;border-color:#6d28d9;color:#fff;}
+  table.cal-lista th.col-lanc{font-size:9px;min-width:132px;text-align:center;}
+  table.cal-lista td.col-lanc{text-align:center;padding:7px 8px;}
 /* ══ SOCIAL MEDIA — CALENDÁRIO MKT ══ */
 .mkt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
 .mkt-toolbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -6619,6 +6638,45 @@ function calBuildCompleto(){
 }
 
 // ── ID Visual: toggle checkbox ──
+/* ══════════════════════════════════════════════════════════════
+   LANÇAMENTO DO EVENTO
+   Entrou no lugar da coluna Status (campo de texto livre que ninguém
+   usava — estava vazio em todas as linhas).
+
+   No modo Supabase o valor é gravado NA PRÓPRIA coluna 'status', com
+   o valor fixo 'lancado' ou vazio. Assim não precisa de coluna nova
+   nem de mexer na admin_calendario_salvar, cujo corpo não temos.
+   É o mesmo padrão de 'alvara' e 'percurso', que também são códigos
+   curtos guardados em coluna de texto.
+   ══════════════════════════════════════════════════════════════ */
+function calEhLancado(e){ return String((e&&e.status)||'').trim().toLowerCase()==='lancado'; }
+function calLancHtml(on, onclick){
+  return '<button class="cal-lanc-btn'+(on?' on':'')+'" '+onclick
+    +' title="'+(on?'Evento lançado — clique para desmarcar':'Ainda não lançado — clique quando lançar')+'">'
+    +(on?'🚀 Lançado':'Não lançado')+'</button>';
+}
+function calLancPinta(btn,on){
+  btn.classList.toggle('on', on);
+  btn.textContent = on ? '🚀 Lançado' : 'Não lançado';
+  btn.title = on ? 'Evento lançado — clique para desmarcar' : 'Ainda não lançado — clique quando lançar';
+}
+/* modo Supabase */
+function calLancamentoToggle(id, btn){
+  const ev=_calDados.find(x=>String(x.id)===String(id)); if(!ev) return;
+  const on = !calEhLancado(ev);
+  ev.status = on ? 'lancado' : '';
+  if(btn) calLancPinta(btn, on);
+  calPersistir(ev);
+}
+/* modo local (sem Supabase): fica no localStorage, como o ID. Visual */
+function calLancamentoLocal(btn, key){
+  const d = calStatusLoad();
+  if(!d[key]) d[key]={};
+  d[key]['lancado'] = !d[key]['lancado'];
+  calStatusSave(d);
+  calLancPinta(btn, !!d[key]['lancado']);
+}
+
 function calIdVisualToggle(btn, key){
   const d = calStatusLoad();
   if(!d[key]) d[key]={};
@@ -6671,9 +6729,8 @@ function calBuildLista(){
     const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
     const confVal = e.confianca!=null ? e.confianca : null;
     const confTxt = confVal!=null ? '<span class="cal-conf-pill '+calConfCls(confVal)+'">'+confVal+'%</span>' : '—';
-    const statusVal = calStatusGet(eKey,'status', e.status||'');
-    const statusInput = '<input type="text" class="cal-status-input" value="'+statusVal.replace(/"/g,'&quot;')+'" '
-      +'placeholder="Escrever…" onchange="calStatusChangeText(this,\''+eKey+'\',\'status\')" onclick="event.stopPropagation()">';
+    const lancVal = !!calStatusGet(eKey,'lancado', calEhLancado(e));
+    const lancBtn = calLancHtml(lancVal,'onclick="event.stopPropagation();calLancamentoLocal(this,\''+eKey+'\')"');
     const alvVal=calStatusGet(eKey,'alvara','nao'),alvCls=calStatusCls(alvVal,'alvara');
     const perVal=calStatusGet(eKey,'percurso','nao'),perCls=calStatusCls(perVal,'percurso');
     const alvSel='<select class="cal-status-sel '+alvCls+'" onchange="calStatusChange(this,\''+eKey+'\',\'alvara\')" onclick="event.stopPropagation()">'
@@ -6692,7 +6749,7 @@ function calBuildLista(){
       +'title="ID. Visual">'+(idvVal?'✓':'')+'</button>';
     return '<tr'+trStyle+'><td>'+datafmt+'</td><td class="cal-col-evt">'+e.evento+'</td><td>'+e.cidade+'</td>'
       +'<td class="col-conf">'+confTxt+'</td>'
-      +'<td class="col-statustxt">'+statusInput+'</td>'
+      +'<td class="col-lanc">'+lancBtn+'</td>'
       +'<td class="col-status">'+alvSel+'</td>'
       +'<td>'+pill+'</td><td>'+pub+'</td>'
       +'<td>'+(e.horario||'—')+'</td>'
@@ -6700,7 +6757,7 @@ function calBuildLista(){
       +'<td class="col-status">'+perSel+'</td>'
       +'</tr>';
   }).join('');
-  return '<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  return '<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class=\"col-check\">ID. Visual</th><th class=\"col-status\">Percurso/Arena</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
 // ── Lista 100% editável (modo Supabase) ──
@@ -6715,7 +6772,7 @@ function calBuildListaDB(){
     const evInp='<input type="text" class="cal-edit-input" style="min-width:150px;font-weight:600;" value="'+calEsc(e.evento)+'" onchange="calEdit(\''+id+'\',\'evento\',this.value)" onclick="event.stopPropagation()">';
     const cidInp='<input type="text" class="cal-edit-input" style="min-width:110px;" value="'+calEsc(e.cidade)+'" onchange="calEdit(\''+id+'\',\'cidade\',this.value)" onclick="event.stopPropagation()">';
     const confInp='<span style="display:inline-flex;align-items:center;gap:2px;"><input type="number" min="0" max="100" step="5" class="cal-edit-num" value="'+(e.confianca==null?'':calEsc(e.confianca))+'" placeholder="—" onchange="calEdit(\''+id+'\',\'confianca\',this.value,this)" onclick="event.stopPropagation()"><span style="font-size:10px;color:var(--muted);">%</span></span>';
-    const statusInp='<input type="text" class="cal-status-input" value="'+calEsc(e.status)+'" placeholder="Escrever…" onchange="calEdit(\''+id+'\',\'status\',this.value)" onclick="event.stopPropagation()">';
+    const lancBtn=calLancHtml(calEhLancado(e),'onclick="event.stopPropagation();calLancamentoToggle(\''+id+'\',this)"');
     const alvVal=e.alvara||'nao';
     const alvSel='<select class="cal-status-sel '+calStatusCls(alvVal,'alvara')+'" onchange="calEdit(\''+id+'\',\'alvara\',this.value,this)" onclick="event.stopPropagation()">'
       +'<option value="nao"'+(alvVal==='nao'?' selected':'')+'>Não iniciou</option>'
@@ -6757,7 +6814,7 @@ function calBuildListaDB(){
       +'<td class="cal-col-evt">'+evInp+'</td>'
       +'<td>'+cidInp+'</td>'
       +'<td class="col-conf">'+confInp+'</td>'
-      +'<td class="col-statustxt">'+statusInp+'</td>'
+      +'<td class="col-lanc">'+lancBtn+'</td>'
       +'<td class="col-status">'+alvSel+'</td>'
       +'<td>'+tipoSel+'</td>'
       +'<td>'+pubInp+'</td>'
@@ -6773,7 +6830,7 @@ function calBuildListaDB(){
   }).join('');
   return '<div style="display:flex;justify-content:flex-end;margin-bottom:10px;">'
     +'<button onclick="calAdicionarEvento()" style="font-family:\'Ubuntu\',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:1px dashed var(--orange);border-radius:6px;padding:7px 16px;cursor:pointer;">+ Adicionar evento</button></div>'
-    +'<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-statustxt">Status</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    +'<div class="cal-tab-wrap"><table class="cal-lista"><thead><tr><th>Data</th><th>Evento</th><th>Cidade</th><th class="col-conf">Confiança</th><th class="col-lanc">Lançamento</th><th class="col-status">Alvará</th><th>Tipo</th><th>Público</th><th>Largada</th><th class="col-check">ID. Visual</th><th class="col-status">Percurso/Arena</th><th>Meta Patrocínio</th><th>Captado</th><th>Fotos/Vídeos</th><th class="col-check">Realizado</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 function _filtrarOrdenado(){ return [...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio)); }
 
@@ -6783,7 +6840,7 @@ const CAL_PERCURSO_LABEL={nao:'Não definido',ok:'Definido'};
 function exportarCalendarioExcel(){
   try{
     const ord=[...calFiltrarEventos()].sort((a,b)=>a.inicio.localeCompare(b.inicio));
-    const ws_data=[['Data','Evento','Cidade','Confiança','Status','Alvará','Alvará (empresa)','Tipo','Público','Largada','ID. Visual','Percurso/Arena','Meta Patrocínio','Captado','% da Meta','Fotos/Vídeos']];
+    const ws_data=[['Data','Evento','Cidade','Confiança','Lançamento','Alvará','Alvará (empresa)','Tipo','Público','Largada','ID. Visual','Percurso/Arena','Meta Patrocínio','Captado','% da Meta','Fotos/Vídeos']];
     ord.forEach(e=>{
       const [anoFull,mi,di]=e.inicio.split("-");
       const ano=anoFull.slice(2);
@@ -6793,14 +6850,14 @@ function exportarCalendarioExcel(){
       const tipoTxt=e.realizado ? 'Realizado' : ({corrida:'Corrida',beach:'Beach',especial:'Especial',hyrox:'Hyrox'}[e.tipo]||e.tipo||'');
       const eKey=(e.inicio+e.evento).replace(/[^a-zA-Z0-9]/g,'_').slice(0,40);
       const confVal=e.confianca!=null?e.confianca+'%':'—';
-      const statusVal=_calDB ? (e.status||'') : calStatusGet(eKey,'status', e.status||'');
+      const lancVal=(_calDB ? calEhLancado(e) : !!calStatusGet(eKey,'lancado', calEhLancado(e))) ? 'Lançado' : 'Não lançado';
       const alvVal=_calDB ? (e.alvara||'nao') : calStatusGet(eKey,'alvara','nao');
       const perVal=_calDB ? (e.percurso||'nao') : calStatusGet(eKey,'percurso','nao');
       const idvVal=_calDB ? !!e.idvisual : calStatusGet(eKey,'idvisual',false);
       const metaVal=Number(e.meta_patrocinio)||0;
       const capVal=Number(e.captado)||0;
       const pctVal=metaVal>0 ? Math.round((capVal/metaVal)*100)+'%' : '—';
-      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,statusVal,CAL_ALVARA_LABEL[alvVal]||alvVal,e.alvara_empresa||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal,metaVal,capVal,pctVal,e.drive_url||'']);
+      ws_data.push([datafmt,e.evento||'',e.cidade||'',confVal,lancVal,CAL_ALVARA_LABEL[alvVal]||alvVal,e.alvara_empresa||'',tipoTxt,e.publico||0,e.horario||'—',idvVal?'Sim':'Não',CAL_PERCURSO_LABEL[perVal]||perVal,metaVal,capVal,pctVal,e.drive_url||'']);
     });
     const wb=XLSX.utils.book_new();const ws=XLSX.utils.aoa_to_sheet(ws_data);
     ws['!cols']=ws_data[0].map((_,i)=>({wch:i===1?30:i===2?18:i===4?28:14}));
