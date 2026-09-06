@@ -1133,6 +1133,49 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .pt-ct-novo button{font-family:inherit;font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border:none;border-radius:7px;padding:0 14px;cursor:pointer;}
 @media(max-width:900px){.pt-funil{grid-template-columns:1fr;}.pt-lixo{position:static;}.pt-ct-novo{grid-template-columns:1fr;}}
 
+/* ── CHECKLIST PRÉ-EVENTO (Calendário) ──
+   Lista mestra de material que vai para toda prova. Por evento, marca-se
+   o que vai e a quantidade; a impressão sai em retrato, só com o que vai,
+   com coluna de conferência para a equipe que separa. */
+.ck-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.ck-bar select{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;min-width:260px;}
+.ck-bar .ck-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;}
+.ck-bar .ck-btn:hover{border-color:var(--orange);color:var(--orange);}
+.ck-bar .ck-btn.print{background:var(--orange);border-color:var(--orange);color:#fff;}
+.ck-bar .ck-btn.print:hover{filter:brightness(1.07);color:#fff;}
+.ck-bar .ck-count{font-size:12px;color:var(--muted);font-weight:600;}
+.ck-bar .ck-count b{color:var(--orange);font-size:15px;}
+.ck-bar .ck-status{font-size:11px;font-weight:600;margin-left:auto;}
+.ck-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f5f3f0;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;}
+.ck-add input{font-family:'Ubuntu',sans-serif;font-size:13px;border:1px solid rgba(42,37,32,.15);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;}
+.ck-add input:focus{outline:none;border-color:var(--orange);}
+.ck-add .nome{flex:1;min-width:220px;}
+.ck-add .qtd{width:90px;}
+.ck-add button{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 16px;cursor:pointer;}
+.ck-add .dica{font-size:11px;color:var(--muted);width:100%;}
+table.ck-tab{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+table.ck-tab th{background:#f5f3f0;padding:10px 12px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:left;}
+table.ck-tab td{padding:8px 12px;font-size:13.5px;border-top:1px solid var(--border);color:var(--text);vertical-align:middle;}
+table.ck-tab tr.off td{color:var(--muted);}
+table.ck-tab tr.off td.ck-nome{text-decoration:line-through;opacity:.55;}
+table.ck-tab td.ck-vai{width:46px;text-align:center;}
+table.ck-tab td.ck-vai input{width:18px;height:18px;accent-color:#16a34a;cursor:pointer;}
+table.ck-tab td.ck-nome{font-weight:700;cursor:text;}
+table.ck-tab td.ck-qtd{width:110px;}
+table.ck-tab td.ck-qtd input{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;width:86px;border:1px solid var(--border);background:#faf9f7;color:var(--text);border-radius:7px;padding:6px 9px;text-align:center;}
+table.ck-tab td.ck-qtd input:focus{outline:none;border-color:var(--orange);background:#fff;}
+table.ck-tab td.ck-qtd input.padrao{color:var(--muted);font-weight:400;}
+table.ck-tab td.ck-acs{width:110px;text-align:right;white-space:nowrap;}
+table.ck-tab td.ck-acs button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);opacity:.5;padding:3px 5px;font-family:'Ubuntu',sans-serif;}
+table.ck-tab td.ck-acs button:hover:not(:disabled){opacity:1;color:var(--orange);}
+table.ck-tab td.ck-acs button:disabled{opacity:.12;cursor:default;}
+table.ck-tab td.ck-acs button.del:hover{color:#dc2626;}
+.ck-obs{margin-top:14px;}
+.ck-obs label{display:block;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.ck-obs textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'Ubuntu',sans-serif;line-height:1.5;resize:vertical;min-height:56px;}
+.ck-obs textarea:focus{outline:none;border-color:var(--orange);}
+@media(max-width:760px){.ck-bar select{min-width:0;width:100%;}.ck-bar .ck-status{margin-left:0;}table.ck-tab td.ck-acs{width:auto;}}
+
 </style>
 </head>
 <body>
@@ -2167,7 +2210,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'pat_dados','pat_marca_salvar','pat_marca_excluir','pat_oport_salvar','pat_oport_mover','pat_oport_excluir',
   'pat_contato_salvar','pat_contato_excluir',
   'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir',
-  'admin_carrinhos_abandonados','admin_carrinho_contato'];
+  'admin_carrinhos_abandonados','admin_carrinho_contato',
+  'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir','admin_checklist_marcar','admin_checklist_marcar_todos','admin_checklist_obs_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -7408,7 +7452,7 @@ function calUpdateStats(){
 
 function calSetView(view){
   document.querySelectorAll('.cal-view-btn[data-view]').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
-  ['lista','resumido','prazos','tarefas','completo'].forEach(v=>{
+  ['lista','resumido','prazos','tarefas','checklist','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
   document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
@@ -7422,6 +7466,7 @@ function calSetView(view){
   }
   if(view==='prazos'){ calPrazosInit(); } // sempre reconstruir (barato; mantém em sincronia com edições de datas)
   if(view==='tarefas'){ calTarefasInit(); }
+  if(view==='checklist'){ calChecklistInit(); }
   calUpdateStats(); // atualiza stats em qualquer view
 }
 
@@ -7452,6 +7497,224 @@ function calSetYear(year){
 }
 
 
+
+/* ── CHECKLIST PRÉ-EVENTO ──
+   Uma lista mestra (checklist_itens) vale para todas as provas. O que muda por
+   evento — vai / não vai, quantidade e observações — fica em checklist_evento,
+   chaveado pelo id do evento do calendário ('geral' = sem evento, só a mestra).
+   Migração: checklist_pre_evento.sql. */
+let _ckItens=[];          // [{id,nome,qtd_padrao,ordem,vai,qtd}] já mesclado com o evento
+let _ckObs='';
+let _ckEvento='';         // id do evento selecionado ('geral' quando nenhum)
+const CK_GERAL='geral';
+
+function ckEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function ckStatus(msg,cor){const el=document.getElementById('ck-status');if(!el)return;el.textContent=msg||'';el.style.color=cor||'var(--muted)';}
+function ckOk(){ckStatus('✓ Salvo','#22c55e');setTimeout(()=>ckStatus(''),1500);}
+
+// Eventos do calendário que fazem sentido no seletor: dos últimos 7 dias em diante, em ordem de data.
+function ckEventosOpcoes(){
+  const lim=new Date(); lim.setDate(lim.getDate()-7);
+  const limS=lim.toISOString().slice(0,10);
+  return [..._calDados].filter(e=>e.id!=null && String(e.inicio)>=limS && !e.realizado)
+    .sort((a,b)=>String(a.inicio).localeCompare(String(b.inicio)));
+}
+function ckEventoAtual(){ return _calDados.find(e=>String(e.id)===String(_ckEvento))||null; }
+
+async function calChecklistInit(){
+  const pane=document.getElementById('cal-pane-checklist');
+  if(!_ckEvento){
+    const ops=ckEventosOpcoes();
+    _ckEvento = ops.length ? String(ops[0].id) : CK_GERAL; // abre já na próxima prova
+  }
+  pane.innerHTML='<div class="empty-state">Carregando checklist…</div>';
+  await ckCarregar();
+}
+
+async function ckCarregar(){
+  const pane=document.getElementById('cal-pane-checklist');
+  try{
+    const r=await rpc('admin_checklist_listar',{p_evento_id:_ckEvento})||{};
+    _ckItens=(r.itens||[]).map(i=>({...i, vai: i.vai==null ? true : !!i.vai}));
+    _ckObs=r.obs||'';
+    ckRender();
+  }catch(e){
+    console.error(e);
+    pane.innerHTML='<div class="empty-state">Erro ao carregar o checklist. Confira se a migração checklist_pre_evento.sql foi executada no Supabase.</div>';
+  }
+}
+
+function ckOrdenados(){ return [..._ckItens].sort((a,b)=>((a.ordem||0)-(b.ordem||0))||String(a.nome).localeCompare(String(b.nome),'pt-BR')); }
+function ckQtdEfetiva(i){ return (i.qtd!=null && String(i.qtd).trim()!=='') ? String(i.qtd) : String(i.qtd_padrao||''); }
+
+function ckRender(){
+  const pane=document.getElementById('cal-pane-checklist');
+  const itens=ckOrdenados();
+  const vao=itens.filter(i=>i.vai).length;
+  let html='<div class="ck-bar">';
+  html+='<select id="ck-evento" onchange="ckTrocarEvento(this.value)">';
+  html+='<option value="'+CK_GERAL+'"'+(_ckEvento===CK_GERAL?' selected':'')+'>Lista geral (sem evento)</option>';
+  for(const e of ckEventosOpcoes()){
+    html+='<option value="'+ckEsc(e.id)+'"'+(String(e.id)===String(_ckEvento)?' selected':'')+'>'+fmtDS(e.inicio)+' · '+ckEsc(e.evento)+' · '+ckEsc(e.cidade)+'</option>';
+  }
+  html+='</select>';
+  html+='<span class="ck-count"><b>'+vao+'</b>/'+itens.length+(itens.length===1?' item vai':' itens vão')+'</span>';
+  html+='<button class="ck-btn" onclick="ckMarcarTodos(true)">Marcar todos</button>';
+  html+='<button class="ck-btn" onclick="ckMarcarTodos(false)">Desmarcar todos</button>';
+  html+='<button class="ck-btn print" onclick="ckImprimir()">🖨 Imprimir para a equipe</button>';
+  html+='<span class="ck-status" id="ck-status"></span>';
+  html+='</div>';
+
+  html+='<div class="ck-add">';
+  html+='<input class="nome" id="ck-novo-nome" placeholder="Novo item (ex: 2 coxos)" onkeydown="if(event.key===\'Enter\')ckAddItem()">';
+  html+='<input class="qtd" id="ck-novo-qtd" placeholder="Qtd padrão" onkeydown="if(event.key===\'Enter\')ckAddItem()">';
+  html+='<button onclick="ckAddItem()">＋ Adicionar</button>';
+  html+='<span class="dica">O item entra na lista mestra e passa a aparecer em todos os eventos. Duplo clique no nome edita. A quantidade em cinza é a padrão; digite outra para valer só neste evento.</span>';
+  html+='</div>';
+
+  if(!itens.length){
+    html+='<div class="empty-state">Lista vazia. Adicione o primeiro item acima.</div>';
+    pane.innerHTML=html; return;
+  }
+  html+='<table class="ck-tab"><thead><tr><th style="text-align:center;">Vai</th><th style="text-align:center;">Qtd</th><th>Item</th><th></th></tr></thead><tbody>';
+  itens.forEach((i,idx)=>{
+    const propria=(i.qtd!=null && String(i.qtd).trim()!=='');
+    html+='<tr class="'+(i.vai?'':'off')+'" data-id="'+i.id+'">';
+    html+='<td class="ck-vai"><input type="checkbox"'+(i.vai?' checked':'')+' onchange="ckToggle(\''+i.id+'\',this.checked)"></td>';
+    html+='<td class="ck-qtd"><input type="text" class="'+(propria?'':'padrao')+'" value="'+ckEsc(ckQtdEfetiva(i))+'" placeholder="—" title="'+(propria?'Quantidade deste evento (padrão: '+ckEsc(i.qtd_padrao||'—')+')':'Quantidade padrão — digite para mudar só neste evento')+'" onfocus="if(this.classList.contains(\'padrao\'))this.select()" onchange="ckSetQtd(\''+i.id+'\',this.value)"></td>';
+    html+='<td class="ck-nome" ondblclick="ckEditarNome(\''+i.id+'\')" title="Duplo clique para editar">'+ckEsc(i.nome)+'</td>';
+    html+='<td class="ck-acs">';
+    html+='<button onclick="ckMover(\''+i.id+'\',-1)" title="Subir"'+(idx===0?' disabled':'')+'>▲</button>';
+    html+='<button onclick="ckMover(\''+i.id+'\',1)" title="Descer"'+(idx===itens.length-1?' disabled':'')+'>▼</button>';
+    html+='<button onclick="ckEditarPadrao(\''+i.id+'\')" title="Alterar quantidade padrão (vale para todos os eventos)">qtd padrão</button>';
+    html+='<button class="del" onclick="ckDelItem(\''+i.id+'\')" title="Excluir da lista mestra">✕</button>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table>';
+
+  html+='<div class="ck-obs"><label>Observações para a equipe'+(_ckEvento===CK_GERAL?' (lista geral)':' (só este evento)')+'</label>';
+  html+='<textarea id="ck-obs" placeholder="Ex: lonas já buscadas; pegar as caixas de água no depósito 2…" onchange="ckSalvarObs(this.value)">'+ckEsc(_ckObs)+'</textarea></div>';
+  pane.innerHTML=html;
+}
+
+async function ckTrocarEvento(v){ _ckEvento=v; await ckCarregar(); }
+
+async function ckAddItem(){
+  const n=document.getElementById('ck-novo-nome'), q=document.getElementById('ck-novo-qtd');
+  const nome=n.value.trim(); if(!nome)return;
+  const ordem=(_ckItens.length?Math.max(..._ckItens.map(i=>i.ordem||0)):0)+1;
+  try{
+    await rpc('admin_checklist_item_salvar',{p_id:null,p_nome:nome,p_qtd_padrao:q.value.trim()||null,p_ordem:ordem});
+    n.value=''; q.value='';
+    await ckCarregar(); ckOk();
+    const el=document.getElementById('ck-novo-nome'); if(el)el.focus();
+  }catch(e){console.error(e);alert('Erro ao adicionar item.');}
+}
+
+async function ckEditarNome(id){
+  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+  const v=prompt('Nome do item:',i.nome); if(v===null||!v.trim())return;
+  try{ await rpc('admin_checklist_item_salvar',{p_id:id,p_nome:v.trim(),p_qtd_padrao:i.qtd_padrao||null,p_ordem:i.ordem||0}); i.nome=v.trim(); ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao editar item.');}
+}
+
+async function ckEditarPadrao(id){
+  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+  const v=prompt('Quantidade padrão de "'+i.nome+'" (vale para todos os eventos):',i.qtd_padrao||''); if(v===null)return;
+  try{ await rpc('admin_checklist_item_salvar',{p_id:id,p_nome:i.nome,p_qtd_padrao:v.trim()||null,p_ordem:i.ordem||0}); i.qtd_padrao=v.trim()||null; ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao salvar quantidade padrão.');}
+}
+
+async function ckDelItem(id){
+  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+  if(!confirm('Excluir "'+i.nome+'" da lista mestra? Sai de todos os eventos.'))return;
+  try{ await rpc('admin_checklist_item_excluir',{p_id:id}); _ckItens=_ckItens.filter(x=>x.id!==id); ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao excluir item.');}
+}
+
+async function ckMover(id,dir){
+  const lista=ckOrdenados();
+  const a=lista.findIndex(i=>i.id===id), b=a+dir;
+  if(a<0||b<0||b>=lista.length)return;
+  [lista[a],lista[b]]=[lista[b],lista[a]];
+  lista.forEach((i,idx)=>{i.ordem=idx+1;});
+  ckRender(); ckStatus('Salvando ordem…');
+  try{
+    for(const i of lista){ await rpc('admin_checklist_item_salvar',{p_id:i.id,p_nome:i.nome,p_qtd_padrao:i.qtd_padrao||null,p_ordem:i.ordem}); }
+    ckOk();
+  }catch(e){console.error(e);ckStatus('Erro ao salvar a ordem.','#ff6b6b');}
+}
+
+async function ckToggle(id,vai){
+  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+  i.vai=!!vai; ckRender();
+  try{ await rpc('admin_checklist_marcar',{p_evento_id:_ckEvento,p_item_id:id,p_vai:i.vai,p_qtd:(i.qtd!=null&&String(i.qtd).trim()!=='')?String(i.qtd):null}); ckOk(); }
+  catch(e){console.error(e);i.vai=!vai;ckRender();ckStatus('Erro ao salvar.','#ff6b6b');}
+}
+
+async function ckSetQtd(id,val){
+  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+  const v=String(val||'').trim();
+  // igual ao padrão (ou vazio) = volta a seguir o padrão
+  i.qtd=(v==='' || v===String(i.qtd_padrao||'')) ? null : v;
+  ckRender();
+  try{ await rpc('admin_checklist_marcar',{p_evento_id:_ckEvento,p_item_id:id,p_vai:i.vai,p_qtd:i.qtd}); ckOk(); }
+  catch(e){console.error(e);ckStatus('Erro ao salvar quantidade.','#ff6b6b');}
+}
+
+async function ckMarcarTodos(vai){
+  _ckItens.forEach(i=>{i.vai=vai;}); ckRender(); ckStatus('Salvando…');
+  try{ await rpc('admin_checklist_marcar_todos',{p_evento_id:_ckEvento,p_vai:vai}); ckOk(); }
+  catch(e){console.error(e);ckStatus('Erro ao salvar.','#ff6b6b');await ckCarregar();}
+}
+
+async function ckSalvarObs(v){
+  _ckObs=v;
+  try{ await rpc('admin_checklist_obs_salvar',{p_evento_id:_ckEvento,p_obs:v||null}); ckOk(); }
+  catch(e){console.error(e);ckStatus('Erro ao salvar observações.','#ff6b6b');}
+}
+
+/* Impressão: retrato, só o que vai, com caixa de conferência para quem separa
+   e uma para quem carrega o caminhão. Usa o mesmo iframe do Social Media. */
+function ckImprimir(){
+  const ev=ckEventoAtual();
+  const itens=ckOrdenados().filter(i=>i.vai);
+  if(!itens.length){alert('Nenhum item marcado para ir.');return;}
+  const titulo = ev ? ckEsc(ev.evento) : 'Lista geral';
+  const sub = ev ? fmtDS(ev.inicio)+(ev.horario?' · largada '+ckEsc(ev.horario):'')+' · '+ckEsc(ev.cidade) : 'Sem evento vinculado';
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  const css='@page{size:A4 portrait;margin:14mm 14mm 16mm;}'
+    +'body{font-family:Ubuntu,Arial,Helvetica,sans-serif;color:#2a2520;margin:0;}'
+    +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #ff751f;padding-bottom:10px;margin-bottom:14px;}'
+    +'.hd .k{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff751f;font-weight:700;}'
+    +'.hd h1{font-size:24px;margin:2px 0 0;line-height:1.1;}'
+    +'.hd .sub{font-size:13px;color:#6b635b;margin-top:3px;}'
+    +'.hd .r{text-align:right;font-size:11px;color:#6b635b;line-height:1.5;}'
+    +'.hd .r b{display:block;font-size:13px;color:#2a2520;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#6b635b;text-align:left;padding:6px 8px;border-bottom:2px solid #2a2520;}'
+    +'td{padding:9px 8px;border-bottom:1px solid #d9d4ce;font-size:14px;vertical-align:middle;}'
+    +'tr:nth-child(even) td{background:#faf9f7;}'
+    +'.bx{display:inline-block;width:16px;height:16px;border:2px solid #2a2520;border-radius:3px;vertical-align:middle;}'
+    +'td.c{text-align:center;width:70px;}'
+    +'td.q{font-weight:700;width:80px;text-align:center;font-size:15px;}'
+    +'td.n{font-weight:700;text-transform:uppercase;letter-spacing:.2px;}'
+    +'.obs{margin-top:16px;border:1px solid #d9d4ce;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.5;white-space:pre-wrap;}'
+    +'.obs b{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#6b635b;margin-bottom:4px;}'
+    +'.ass{display:flex;gap:24px;margin-top:28px;font-size:11px;color:#6b635b;}'
+    +'.ass div{flex:1;border-top:1px solid #2a2520;padding-top:5px;}'
+    +'tr{page-break-inside:avoid;}';
+  let body='<div class="hd"><div><div class="k">Checklist pré-evento · JBX Sports</div><h1>'+titulo+'</h1><div class="sub">'+sub+'</div></div>'
+    +'<div class="r"><b>'+itens.length+(itens.length===1?' item':' itens')+'</b>impresso em '+hoje+'</div></div>';
+  body+='<table><thead><tr><th style="text-align:center;">Separado</th><th style="text-align:center;">Carregado</th><th style="text-align:center;">Qtd</th><th>Item</th></tr></thead><tbody>';
+  for(const i of itens){
+    body+='<tr><td class="c"><span class="bx"></span></td><td class="c"><span class="bx"></span></td><td class="q">'+ckEsc(ckQtdEfetiva(i)||'—')+'</td><td class="n">'+ckEsc(i.nome)+'</td></tr>';
+  }
+  body+='</tbody></table>';
+  if(_ckObs && _ckObs.trim()) body+='<div class="obs"><b>Observações</b>'+ckEsc(_ckObs)+'</div>';
+  body+='<div class="ass"><div>Separado por</div><div>Conferido por</div><div>Data / hora</div></div>';
+  mktPrintDoc(css,body,'Checklist — '+titulo);
+}
 
 /* ══ USUÁRIOS ══ */
 let usrLista=[], usrAtual=null;
@@ -8872,13 +9135,13 @@ function mktRenderTempo(){
 }
 
 /* ── IMPRESSÃO (todas as vistas, paisagem, fundo branco) ── */
-function mktPrintDoc(css,bodyHtml){
+function mktPrintDoc(css,bodyHtml,titulo){
   const ifr=document.createElement('iframe');
   ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
   document.body.appendChild(ifr);
   const doc=ifr.contentDocument;
   doc.open();
-  doc.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Social Media — JBX</title><style>'+css+'</style></head><body>'+bodyHtml+'</body></html>');
+  doc.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+(titulo||'Social Media — JBX')+'</title><style>'+css+'</style></head><body>'+bodyHtml+'</body></html>');
   doc.close();
   setTimeout(function(){
     try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){alert('Não foi possível abrir a impressão.');}
@@ -10467,6 +10730,7 @@ async function patTirarDoFunil(){
           <button class="cal-view-btn" data-view="resumido" onclick="calSetView('resumido')">Resumido</button>
           <button class="cal-view-btn" data-view="prazos" onclick="calSetView('prazos')">Prazos</button>
           <button class="cal-view-btn" data-view="tarefas" onclick="calSetView('tarefas')">Tarefas</button>
+          <button class="cal-view-btn" data-view="checklist" onclick="calSetView('checklist')">Checklist pré-evento</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
           <span id="cal-save-ind" style="align-self:center;font-size:11px;font-weight:600;margin-left:auto;"></span>
           <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
@@ -10475,6 +10739,7 @@ async function patTirarDoFunil(){
         <div id="cal-pane-resumido" style="display:none;"></div>
         <div id="cal-pane-prazos" style="display:none;"></div>
         <div id="cal-pane-tarefas" style="display:none;"></div>
+        <div id="cal-pane-checklist" style="display:none;"></div>
         <div id="cal-pane-completo">
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
         </div>
