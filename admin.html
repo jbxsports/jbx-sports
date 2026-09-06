@@ -1134,47 +1134,62 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 @media(max-width:900px){.pt-funil{grid-template-columns:1fr;}.pt-lixo{position:static;}.pt-ct-novo{grid-template-columns:1fr;}}
 
 /* ── CHECKLIST PRÉ-EVENTO (Calendário) ──
-   Lista mestra de material que vai para toda prova. Por evento, marca-se
-   o que vai e a quantidade; a impressão sai em retrato, só com o que vai,
-   com coluna de conferência para a equipe que separa. */
-.ck-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
-.ck-bar select{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;min-width:260px;}
-.ck-bar .ck-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;}
+   Grade: item nas linhas, evento nas colunas. A coluna é criada na mão
+   (nome livre), então serve de histórico — o que foi para cada prova e
+   quanto. A célula vazia = o item não foi. O botão 🖨 do cabeçalho imprime
+   a coluna daquele evento para a equipe separar. */
+.ck-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.ck-bar .ck-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .ck-bar .ck-btn:hover{border-color:var(--orange);color:var(--orange);}
-.ck-bar .ck-btn.print{background:var(--orange);border-color:var(--orange);color:#fff;}
-.ck-bar .ck-btn.print:hover{filter:brightness(1.07);color:#fff;}
-.ck-bar .ck-count{font-size:12px;color:var(--muted);font-weight:600;}
-.ck-bar .ck-count b{color:var(--orange);font-size:15px;}
-.ck-bar .ck-status{font-size:11px;font-weight:600;margin-left:auto;}
+.ck-bar .ck-btn.novo{background:var(--orange);border-color:var(--orange);color:#fff;}
+.ck-bar .ck-btn.novo:hover{filter:brightness(1.07);color:#fff;}
+.ck-bar .dica{font-size:11.5px;color:var(--muted);}
+.ck-bar .ck-status{font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap;}
 .ck-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#f5f3f0;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:14px;}
-.ck-add input{font-family:'Ubuntu',sans-serif;font-size:13px;border:1px solid rgba(42,37,32,.15);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;}
+.ck-add input{font-family:'Ubuntu',sans-serif;font-size:13px;border:1px solid rgba(42,37,32,.15);background:var(--card);color:var(--text);border-radius:8px;padding:8px 11px;flex:1;min-width:220px;}
 .ck-add input:focus{outline:none;border-color:var(--orange);}
-.ck-add .nome{flex:1;min-width:220px;}
-.ck-add .qtd{width:90px;}
-.ck-add button{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 16px;cursor:pointer;}
+.ck-add button{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 16px;cursor:pointer;white-space:nowrap;}
 .ck-add .dica{font-size:11px;color:var(--muted);width:100%;}
-table.ck-tab{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-table.ck-tab th{background:#f5f3f0;padding:10px 12px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);text-align:left;}
-table.ck-tab td{padding:8px 12px;font-size:13.5px;border-top:1px solid var(--border);color:var(--text);vertical-align:middle;}
-table.ck-tab tr.off td{color:var(--muted);}
-table.ck-tab tr.off td.ck-nome{text-decoration:line-through;opacity:.55;}
-table.ck-tab td.ck-vai{width:46px;text-align:center;}
-table.ck-tab td.ck-vai input{width:18px;height:18px;accent-color:#16a34a;cursor:pointer;}
-table.ck-tab td.ck-nome{font-weight:700;cursor:text;}
-table.ck-tab td.ck-qtd{width:110px;}
-table.ck-tab td.ck-qtd input{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;width:86px;border:1px solid var(--border);background:#faf9f7;color:var(--text);border-radius:7px;padding:6px 9px;text-align:center;}
-table.ck-tab td.ck-qtd input:focus{outline:none;border-color:var(--orange);background:#fff;}
-table.ck-tab td.ck-qtd input.padrao{color:var(--muted);font-weight:400;}
-table.ck-tab td.ck-acs{width:110px;text-align:right;white-space:nowrap;}
-table.ck-tab td.ck-acs button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);opacity:.5;padding:3px 5px;font-family:'Ubuntu',sans-serif;}
-table.ck-tab td.ck-acs button:hover:not(:disabled){opacity:1;color:var(--orange);}
-table.ck-tab td.ck-acs button:disabled{opacity:.12;cursor:default;}
-table.ck-tab td.ck-acs button.del:hover{color:#dc2626;}
-.ck-obs{margin-top:14px;}
-.ck-obs label{display:block;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
-.ck-obs textarea{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'Ubuntu',sans-serif;line-height:1.5;resize:vertical;min-height:56px;}
-.ck-obs textarea:focus{outline:none;border-color:var(--orange);}
-@media(max-width:760px){.ck-bar select{min-width:0;width:100%;}.ck-bar .ck-status{margin-left:0;}table.ck-tab td.ck-acs{width:auto;}}
+/* rolagem horizontal: a coluna do item fica fixa à esquerda */
+.ck-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+table.ck-grid{border-collapse:separate;border-spacing:0;min-width:100%;}
+table.ck-grid th,table.ck-grid td{border-bottom:1px solid var(--border);padding:8px 10px;font-size:13px;color:var(--text);vertical-align:middle;}
+table.ck-grid thead th{background:#f5f3f0;position:sticky;top:0;z-index:3;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);text-align:center;border-bottom:2px solid var(--border);}
+table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;min-width:280px;box-shadow:1px 0 0 var(--border);}
+table.ck-grid thead th.ck-c1{z-index:4;background:#f5f3f0;}
+table.ck-grid tbody tr:hover td{background:#fdfbf9;}
+table.ck-grid tbody tr:hover td.ck-c1{background:#fdfbf9;}
+table.ck-grid td.ck-c1{font-weight:700;}
+.ck-nome{cursor:text;}
+.ck-c1 .acs{float:right;opacity:0;transition:opacity .12s;white-space:nowrap;}
+table.ck-grid tbody tr:hover .ck-c1 .acs{opacity:1;}
+.ck-c1 .acs button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);padding:2px 4px;font-family:'Ubuntu',sans-serif;}
+.ck-c1 .acs button:hover:not(:disabled){color:var(--orange);}
+.ck-c1 .acs button:disabled{opacity:.15;cursor:default;}
+.ck-c1 .acs button.del:hover{color:#dc2626;}
+/* cabeçalho de coluna de evento */
+.ck-col-hd{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:118px;}
+.ck-col-hd .nm{font-size:12px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;line-height:1.25;cursor:pointer;max-width:150px;}
+.ck-col-hd .qt{font-size:10px;color:var(--muted);font-weight:600;}
+.ck-col-hd .acs{display:flex;gap:1px;align-items:center;}
+.ck-col-hd .acs button{background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);opacity:.55;padding:2px 3px;font-family:'Ubuntu',sans-serif;line-height:1;}
+.ck-col-hd .acs button:hover:not(:disabled){opacity:1;color:var(--orange);}
+.ck-col-hd .acs button:disabled{opacity:.12;cursor:default;}
+.ck-col-hd .acs button.del:hover{color:#dc2626;}
+.ck-col-hd .acs button.print{font-size:12px;}
+/* célula de quantidade */
+table.ck-grid td.ck-cel{text-align:center;padding:5px 7px;}
+table.ck-grid td.ck-cel input{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;width:78px;border:1px solid transparent;background:#faf9f7;color:var(--text);border-radius:7px;padding:6px 6px;text-align:center;transition:border-color .12s,background .12s;}
+table.ck-grid td.ck-cel input::placeholder{color:#cfc9c2;font-weight:400;}
+table.ck-grid td.ck-cel input:hover{border-color:var(--border);}
+table.ck-grid td.ck-cel input:focus{outline:none;border-color:var(--orange);background:#fff;}
+table.ck-grid td.ck-cel input.vazio{background:transparent;}
+table.ck-grid tfoot td{background:#faf9f7;border-top:2px solid var(--border);border-bottom:none;vertical-align:top;}
+table.ck-grid tfoot td.ck-c1{background:#faf9f7;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);}
+table.ck-grid tfoot textarea{width:100%;min-width:118px;background:var(--card);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:12px;font-family:'Ubuntu',sans-serif;line-height:1.45;resize:vertical;min-height:46px;color:var(--text);}
+table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
+.ck-vazio{padding:26px;text-align:center;color:var(--muted);font-size:13px;}
+@media(max-width:760px){table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{min-width:190px;}.ck-bar .ck-status{margin-left:0;}}
 
 </style>
 </head>
@@ -2211,7 +2226,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'pat_contato_salvar','pat_contato_excluir',
   'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir',
   'admin_carrinhos_abandonados','admin_carrinho_contato',
-  'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir','admin_checklist_marcar','admin_checklist_marcar_todos','admin_checklist_obs_salvar'];
+  'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir',
+  'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -7499,44 +7515,30 @@ function calSetYear(year){
 
 
 /* ── CHECKLIST PRÉ-EVENTO ──
-   Uma lista mestra (checklist_itens) vale para todas as provas. O que muda por
-   evento — vai / não vai, quantidade e observações — fica em checklist_evento,
-   chaveado pelo id do evento do calendário ('geral' = sem evento, só a mestra).
+   Grade de histórico: item nas linhas (checklist_itens), evento nas colunas
+   (checklist_colunas, nome digitado à mão) e a quantidade na célula
+   (checklist_valores). Célula vazia = o item não foi naquele evento — é isso
+   que faz o histórico servir para montar a próxima lista.
    Migração: checklist_pre_evento.sql. */
-let _ckItens=[];          // [{id,nome,qtd_padrao,ordem,vai,qtd}] já mesclado com o evento
-let _ckObs='';
-let _ckEvento='';         // id do evento selecionado ('geral' quando nenhum)
-const CK_GERAL='geral';
+let _ckItens=[];   // [{id,nome,ordem}]
+let _ckCols=[];    // [{id,nome,ordem,obs}]
+let _ckVals={};    // {coluna_id:{item_id:'qtd'}}
 
 function ckEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function ckStatus(msg,cor){const el=document.getElementById('ck-status');if(!el)return;el.textContent=msg||'';el.style.color=cor||'var(--muted)';}
-function ckOk(){ckStatus('✓ Salvo','#22c55e');setTimeout(()=>ckStatus(''),1500);}
-
-// Eventos do calendário que fazem sentido no seletor: dos últimos 7 dias em diante, em ordem de data.
-function ckEventosOpcoes(){
-  const lim=new Date(); lim.setDate(lim.getDate()-7);
-  const limS=lim.toISOString().slice(0,10);
-  return [..._calDados].filter(e=>e.id!=null && String(e.inicio)>=limS && !e.realizado)
-    .sort((a,b)=>String(a.inicio).localeCompare(String(b.inicio)));
-}
-function ckEventoAtual(){ return _calDados.find(e=>String(e.id)===String(_ckEvento))||null; }
+function ckOk(){ckStatus('✓ Salvo','#22c55e');setTimeout(()=>{const el=document.getElementById('ck-status');if(el&&el.textContent==='✓ Salvo')ckStatus('');},1500);}
+function ckVal(cid,iid){const c=_ckVals[cid];return (c&&c[iid]!=null)?String(c[iid]):'';}
+function ckTemItem(cid,iid){return ckVal(cid,iid).trim()!=='';}
+function ckColItens(cid){return _ckItens.filter(i=>ckTemItem(cid,i.id));}
+function ckOrdenados(){return [..._ckItens].sort((a,b)=>((a.ordem||0)-(b.ordem||0))||String(a.nome).localeCompare(String(b.nome),'pt-BR'));}
+function ckColsOrd(){return [..._ckCols].sort((a,b)=>((a.ordem||0)-(b.ordem||0))||String(a.nome).localeCompare(String(b.nome),'pt-BR'));}
 
 async function calChecklistInit(){
   const pane=document.getElementById('cal-pane-checklist');
-  if(!_ckEvento){
-    const ops=ckEventosOpcoes();
-    _ckEvento = ops.length ? String(ops[0].id) : CK_GERAL; // abre já na próxima prova
-  }
   pane.innerHTML='<div class="empty-state">Carregando checklist…</div>';
-  await ckCarregar();
-}
-
-async function ckCarregar(){
-  const pane=document.getElementById('cal-pane-checklist');
   try{
-    const r=await rpc('admin_checklist_listar',{p_evento_id:_ckEvento})||{};
-    _ckItens=(r.itens||[]).map(i=>({...i, vai: i.vai==null ? true : !!i.vai}));
-    _ckObs=r.obs||'';
+    const r=await rpc('admin_checklist_listar')||{};
+    _ckItens=r.itens||[]; _ckCols=r.colunas||[]; _ckVals=r.valores||{};
     ckRender();
   }catch(e){
     console.error(e);
@@ -7544,95 +7546,157 @@ async function ckCarregar(){
   }
 }
 
-function ckOrdenados(){ return [..._ckItens].sort((a,b)=>((a.ordem||0)-(b.ordem||0))||String(a.nome).localeCompare(String(b.nome),'pt-BR')); }
-function ckQtdEfetiva(i){ return (i.qtd!=null && String(i.qtd).trim()!=='') ? String(i.qtd) : String(i.qtd_padrao||''); }
-
 function ckRender(){
   const pane=document.getElementById('cal-pane-checklist');
-  const itens=ckOrdenados();
-  const vao=itens.filter(i=>i.vai).length;
+  const itens=ckOrdenados(), cols=ckColsOrd();
   let html='<div class="ck-bar">';
-  html+='<select id="ck-evento" onchange="ckTrocarEvento(this.value)">';
-  html+='<option value="'+CK_GERAL+'"'+(_ckEvento===CK_GERAL?' selected':'')+'>Lista geral (sem evento)</option>';
-  for(const e of ckEventosOpcoes()){
-    html+='<option value="'+ckEsc(e.id)+'"'+(String(e.id)===String(_ckEvento)?' selected':'')+'>'+fmtDS(e.inicio)+' · '+ckEsc(e.evento)+' · '+ckEsc(e.cidade)+'</option>';
-  }
-  html+='</select>';
-  html+='<span class="ck-count"><b>'+vao+'</b>/'+itens.length+(itens.length===1?' item vai':' itens vão')+'</span>';
-  html+='<button class="ck-btn" onclick="ckMarcarTodos(true)">Marcar todos</button>';
-  html+='<button class="ck-btn" onclick="ckMarcarTodos(false)">Desmarcar todos</button>';
-  html+='<button class="ck-btn print" onclick="ckImprimir()">🖨 Imprimir para a equipe</button>';
+  html+='<button class="ck-btn novo" onclick="ckAddColuna()">＋ Novo evento (coluna)</button>';
+  if(cols.length) html+='<button class="ck-btn" onclick="ckAddColuna(true)">＋ Novo copiando de outro</button>';
+  html+='<span class="dica">Digite a quantidade na célula. Vazio = o item não vai. Sem número definido, use <b>x</b>. Duplo clique no nome do item ou do evento para renomear.</span>';
   html+='<span class="ck-status" id="ck-status"></span>';
   html+='</div>';
 
   html+='<div class="ck-add">';
-  html+='<input class="nome" id="ck-novo-nome" placeholder="Novo item (ex: 2 coxos)" onkeydown="if(event.key===\'Enter\')ckAddItem()">';
-  html+='<input class="qtd" id="ck-novo-qtd" placeholder="Qtd padrão" onkeydown="if(event.key===\'Enter\')ckAddItem()">';
-  html+='<button onclick="ckAddItem()">＋ Adicionar</button>';
-  html+='<span class="dica">O item entra na lista mestra e passa a aparecer em todos os eventos. Duplo clique no nome edita. A quantidade em cinza é a padrão; digite outra para valer só neste evento.</span>';
+  html+='<input id="ck-novo-item" placeholder="Novo item da lista (ex: Pórtico inflável + extensão elétrica)" onkeydown="if(event.key===\'Enter\')ckAddItem()">';
+  html+='<button onclick="ckAddItem()">＋ Adicionar item</button>';
+  html+='<span class="dica">O item entra na lista e passa a valer para todos os eventos — é só preencher a quantidade na coluna de cada prova.</span>';
   html+='</div>';
 
-  if(!itens.length){
-    html+='<div class="empty-state">Lista vazia. Adicione o primeiro item acima.</div>';
+  if(!itens.length && !cols.length){
+    html+='<div class="ck-vazio">Lista vazia. Adicione o primeiro item acima e crie a coluna do primeiro evento.</div>';
     pane.innerHTML=html; return;
   }
-  html+='<table class="ck-tab"><thead><tr><th style="text-align:center;">Vai</th><th style="text-align:center;">Qtd</th><th>Item</th><th></th></tr></thead><tbody>';
-  itens.forEach((i,idx)=>{
-    const propria=(i.qtd!=null && String(i.qtd).trim()!=='');
-    html+='<tr class="'+(i.vai?'':'off')+'" data-id="'+i.id+'">';
-    html+='<td class="ck-vai"><input type="checkbox"'+(i.vai?' checked':'')+' onchange="ckToggle(\''+i.id+'\',this.checked)"></td>';
-    html+='<td class="ck-qtd"><input type="text" class="'+(propria?'':'padrao')+'" value="'+ckEsc(ckQtdEfetiva(i))+'" placeholder="—" title="'+(propria?'Quantidade deste evento (padrão: '+ckEsc(i.qtd_padrao||'—')+')':'Quantidade padrão — digite para mudar só neste evento')+'" onfocus="if(this.classList.contains(\'padrao\'))this.select()" onchange="ckSetQtd(\''+i.id+'\',this.value)"></td>';
-    html+='<td class="ck-nome" ondblclick="ckEditarNome(\''+i.id+'\')" title="Duplo clique para editar">'+ckEsc(i.nome)+'</td>';
-    html+='<td class="ck-acs">';
-    html+='<button onclick="ckMover(\''+i.id+'\',-1)" title="Subir"'+(idx===0?' disabled':'')+'>▲</button>';
-    html+='<button onclick="ckMover(\''+i.id+'\',1)" title="Descer"'+(idx===itens.length-1?' disabled':'')+'>▼</button>';
-    html+='<button onclick="ckEditarPadrao(\''+i.id+'\')" title="Alterar quantidade padrão (vale para todos os eventos)">qtd padrão</button>';
-    html+='<button class="del" onclick="ckDelItem(\''+i.id+'\')" title="Excluir da lista mestra">✕</button>';
-    html+='</td></tr>';
-  });
-  html+='</tbody></table>';
 
-  html+='<div class="ck-obs"><label>Observações para a equipe'+(_ckEvento===CK_GERAL?' (lista geral)':' (só este evento)')+'</label>';
-  html+='<textarea id="ck-obs" placeholder="Ex: lonas já buscadas; pegar as caixas de água no depósito 2…" onchange="ckSalvarObs(this.value)">'+ckEsc(_ckObs)+'</textarea></div>';
+  html+='<div class="ck-wrap"><table class="ck-grid"><thead><tr>';
+  html+='<th class="ck-c1">Item</th>';
+  cols.forEach((c,ci)=>{
+    const n=ckColItens(c.id).length;
+    html+='<th><div class="ck-col-hd">';
+    html+='<span class="nm" ondblclick="ckRenomearColuna(\''+c.id+'\')" title="Duplo clique para renomear">'+ckEsc(c.nome)+'</span>';
+    html+='<span class="qt">'+n+(n===1?' item':' itens')+'</span>';
+    html+='<span class="acs">';
+    html+='<button onclick="ckMoverColuna(\''+c.id+'\',-1)" title="Mover para a esquerda"'+(ci===0?' disabled':'')+'>◀</button>';
+    html+='<button class="print" onclick="ckImprimir(\''+c.id+'\')" title="Imprimir esta lista para a equipe">🖨</button>';
+    html+='<button onclick="ckMoverColuna(\''+c.id+'\',1)" title="Mover para a direita"'+(ci===cols.length-1?' disabled':'')+'>▶</button>';
+    html+='<button class="del" onclick="ckDelColuna(\''+c.id+'\')" title="Excluir evento">✕</button>';
+    html+='</span></div></th>';
+  });
+  if(!cols.length) html+='<th><div class="ck-col-hd"><span class="qt" style="text-transform:none;letter-spacing:0;">Crie a coluna do primeiro evento →</span></div></th>';
+  html+='</tr></thead><tbody>';
+
+  itens.forEach((i,idx)=>{
+    html+='<tr><td class="ck-c1"><span class="ck-nome" ondblclick="ckEditarItem(\''+i.id+'\')" title="Duplo clique para renomear">'+ckEsc(i.nome)+'</span>';
+    html+='<span class="acs">';
+    html+='<button onclick="ckMoverItem(\''+i.id+'\',-1)" title="Subir"'+(idx===0?' disabled':'')+'>▲</button>';
+    html+='<button onclick="ckMoverItem(\''+i.id+'\',1)" title="Descer"'+(idx===itens.length-1?' disabled':'')+'>▼</button>';
+    html+='<button class="del" onclick="ckDelItem(\''+i.id+'\')" title="Excluir item de todos os eventos">✕</button>';
+    html+='</span></td>';
+    cols.forEach(c=>{
+      const v=ckVal(c.id,i.id);
+      html+='<td class="ck-cel"><input type="text" class="'+(v.trim()===''?'vazio':'')+'" value="'+ckEsc(v)+'" placeholder="—"'
+        +' title="'+ckEsc(i.nome)+' · '+ckEsc(c.nome)+'"'
+        +' onchange="ckSetValor(\''+c.id+'\',\''+i.id+'\',this.value)"></td>';
+    });
+    if(!cols.length) html+='<td class="ck-cel"></td>';
+    html+='</tr>';
+  });
+  html+='</tbody>';
+
+  if(cols.length){
+    html+='<tfoot><tr><td class="ck-c1">Observações da prova</td>';
+    cols.forEach(c=>{
+      html+='<td><textarea placeholder="Ex: lonas já buscadas…" onchange="ckSalvarObs(\''+c.id+'\',this.value)">'+ckEsc(c.obs||'')+'</textarea></td>';
+    });
+    html+='</tr></tfoot>';
+  }
+  html+='</table></div>';
   pane.innerHTML=html;
 }
 
-async function ckTrocarEvento(v){ _ckEvento=v; await ckCarregar(); }
+/* ── Colunas (eventos) ── */
+async function ckAddColuna(copiar){
+  const cols=ckColsOrd();
+  const nome=prompt(copiar?'Nome do novo evento (as quantidades serão copiadas):':'Nome do evento (ex: Savegnago 2026):','');
+  if(nome===null||!nome.trim())return;
+  let origem=null;
+  if(copiar && cols.length){
+    const lista=cols.map((c,i)=>(i+1)+' — '+c.nome).join('\n');
+    const esc=prompt('Copiar as quantidades de qual evento?\n\n'+lista+'\n\nDigite o número:',String(cols.length));
+    if(esc===null)return;
+    const idx=parseInt(esc,10)-1;
+    if(!(idx>=0&&idx<cols.length)){alert('Número inválido.');return;}
+    origem=cols[idx].id;
+  }
+  const ordem=(cols.length?Math.max(...cols.map(c=>c.ordem||0)):0)+1;
+  ckStatus('Criando…');
+  try{
+    await rpc('admin_checklist_coluna_salvar',{p_id:null,p_nome:nome.trim(),p_ordem:ordem,p_obs:null,p_copiar_de:origem});
+    await calChecklistInit(); ckOk();
+  }catch(e){console.error(e);alert('Erro ao criar o evento.');}
+}
 
+async function ckRenomearColuna(cid){
+  const c=_ckCols.find(x=>x.id===cid); if(!c)return;
+  const v=prompt('Nome do evento:',c.nome); if(v===null||!v.trim())return;
+  try{ await rpc('admin_checklist_coluna_salvar',{p_id:cid,p_nome:v.trim(),p_ordem:c.ordem||0,p_obs:c.obs||null,p_copiar_de:null}); c.nome=v.trim(); ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao renomear o evento.');}
+}
+
+async function ckDelColuna(cid){
+  const c=_ckCols.find(x=>x.id===cid); if(!c)return;
+  if(!confirm('Excluir o evento "'+c.nome+'" e as quantidades dele? Os itens da lista continuam.'))return;
+  try{ await rpc('admin_checklist_coluna_excluir',{p_id:cid}); _ckCols=_ckCols.filter(x=>x.id!==cid); delete _ckVals[cid]; ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao excluir o evento.');}
+}
+
+async function ckMoverColuna(cid,dir){
+  const lista=ckColsOrd();
+  const a=lista.findIndex(c=>c.id===cid), b=a+dir;
+  if(a<0||b<0||b>=lista.length)return;
+  [lista[a],lista[b]]=[lista[b],lista[a]];
+  lista.forEach((c,i)=>{c.ordem=i+1;});
+  ckRender(); ckStatus('Salvando ordem…');
+  try{
+    for(const c of lista){ await rpc('admin_checklist_coluna_salvar',{p_id:c.id,p_nome:c.nome,p_ordem:c.ordem,p_obs:c.obs||null,p_copiar_de:null}); }
+    ckOk();
+  }catch(e){console.error(e);ckStatus('Erro ao salvar a ordem.','#ff6b6b');}
+}
+
+async function ckSalvarObs(cid,v){
+  const c=_ckCols.find(x=>x.id===cid); if(!c)return;
+  const antes=c.obs; c.obs=v;
+  try{ await rpc('admin_checklist_coluna_salvar',{p_id:cid,p_nome:c.nome,p_ordem:c.ordem||0,p_obs:v||null,p_copiar_de:null}); ckOk(); }
+  catch(e){console.error(e);c.obs=antes;ckStatus('Erro ao salvar as observações.','#ff6b6b');}
+}
+
+/* ── Itens (linhas) ── */
 async function ckAddItem(){
-  const n=document.getElementById('ck-novo-nome'), q=document.getElementById('ck-novo-qtd');
-  const nome=n.value.trim(); if(!nome)return;
+  const inp=document.getElementById('ck-novo-item');
+  const nome=inp.value.trim(); if(!nome)return;
   const ordem=(_ckItens.length?Math.max(..._ckItens.map(i=>i.ordem||0)):0)+1;
   try{
-    await rpc('admin_checklist_item_salvar',{p_id:null,p_nome:nome,p_qtd_padrao:q.value.trim()||null,p_ordem:ordem});
-    n.value=''; q.value='';
-    await ckCarregar(); ckOk();
-    const el=document.getElementById('ck-novo-nome'); if(el)el.focus();
+    await rpc('admin_checklist_item_salvar',{p_id:null,p_nome:nome,p_ordem:ordem});
+    inp.value='';
+    await calChecklistInit(); ckOk();
+    const el=document.getElementById('ck-novo-item'); if(el)el.focus();
   }catch(e){console.error(e);alert('Erro ao adicionar item.');}
 }
 
-async function ckEditarNome(id){
+async function ckEditarItem(id){
   const i=_ckItens.find(x=>x.id===id); if(!i)return;
   const v=prompt('Nome do item:',i.nome); if(v===null||!v.trim())return;
-  try{ await rpc('admin_checklist_item_salvar',{p_id:id,p_nome:v.trim(),p_qtd_padrao:i.qtd_padrao||null,p_ordem:i.ordem||0}); i.nome=v.trim(); ckRender(); ckOk(); }
-  catch(e){console.error(e);alert('Erro ao editar item.');}
-}
-
-async function ckEditarPadrao(id){
-  const i=_ckItens.find(x=>x.id===id); if(!i)return;
-  const v=prompt('Quantidade padrão de "'+i.nome+'" (vale para todos os eventos):',i.qtd_padrao||''); if(v===null)return;
-  try{ await rpc('admin_checklist_item_salvar',{p_id:id,p_nome:i.nome,p_qtd_padrao:v.trim()||null,p_ordem:i.ordem||0}); i.qtd_padrao=v.trim()||null; ckRender(); ckOk(); }
-  catch(e){console.error(e);alert('Erro ao salvar quantidade padrão.');}
+  try{ await rpc('admin_checklist_item_salvar',{p_id:id,p_nome:v.trim(),p_ordem:i.ordem||0}); i.nome=v.trim(); ckRender(); ckOk(); }
+  catch(e){console.error(e);alert('Erro ao renomear o item.');}
 }
 
 async function ckDelItem(id){
   const i=_ckItens.find(x=>x.id===id); if(!i)return;
-  if(!confirm('Excluir "'+i.nome+'" da lista mestra? Sai de todos os eventos.'))return;
+  if(!confirm('Excluir "'+i.nome+'" da lista? Sai de todos os eventos, inclusive do histórico.'))return;
   try{ await rpc('admin_checklist_item_excluir',{p_id:id}); _ckItens=_ckItens.filter(x=>x.id!==id); ckRender(); ckOk(); }
-  catch(e){console.error(e);alert('Erro ao excluir item.');}
+  catch(e){console.error(e);alert('Erro ao excluir o item.');}
 }
 
-async function ckMover(id,dir){
+async function ckMoverItem(id,dir){
   const lista=ckOrdenados();
   const a=lista.findIndex(i=>i.id===id), b=a+dir;
   if(a<0||b<0||b>=lista.length)return;
@@ -7640,55 +7704,37 @@ async function ckMover(id,dir){
   lista.forEach((i,idx)=>{i.ordem=idx+1;});
   ckRender(); ckStatus('Salvando ordem…');
   try{
-    for(const i of lista){ await rpc('admin_checklist_item_salvar',{p_id:i.id,p_nome:i.nome,p_qtd_padrao:i.qtd_padrao||null,p_ordem:i.ordem}); }
+    for(const i of lista){ await rpc('admin_checklist_item_salvar',{p_id:i.id,p_nome:i.nome,p_ordem:i.ordem}); }
     ckOk();
   }catch(e){console.error(e);ckStatus('Erro ao salvar a ordem.','#ff6b6b');}
 }
 
-async function ckToggle(id,vai){
-  const i=_ckItens.find(x=>x.id===id); if(!i)return;
-  i.vai=!!vai; ckRender();
-  try{ await rpc('admin_checklist_marcar',{p_evento_id:_ckEvento,p_item_id:id,p_vai:i.vai,p_qtd:(i.qtd!=null&&String(i.qtd).trim()!=='')?String(i.qtd):null}); ckOk(); }
-  catch(e){console.error(e);i.vai=!vai;ckRender();ckStatus('Erro ao salvar.','#ff6b6b');}
-}
-
-async function ckSetQtd(id,val){
-  const i=_ckItens.find(x=>x.id===id); if(!i)return;
+/* ── Célula ── */
+async function ckSetValor(cid,iid,val){
   const v=String(val||'').trim();
-  // igual ao padrão (ou vazio) = volta a seguir o padrão
-  i.qtd=(v==='' || v===String(i.qtd_padrao||'')) ? null : v;
+  const antes=ckVal(cid,iid);
+  if(!_ckVals[cid])_ckVals[cid]={};
+  if(v==='') delete _ckVals[cid][iid]; else _ckVals[cid][iid]=v;
   ckRender();
-  try{ await rpc('admin_checklist_marcar',{p_evento_id:_ckEvento,p_item_id:id,p_vai:i.vai,p_qtd:i.qtd}); ckOk(); }
-  catch(e){console.error(e);ckStatus('Erro ao salvar quantidade.','#ff6b6b');}
+  try{ await rpc('admin_checklist_valor_salvar',{p_coluna_id:cid,p_item_id:iid,p_qtd:v||null}); ckOk(); }
+  catch(e){
+    console.error(e);
+    if(antes==='') delete _ckVals[cid][iid]; else _ckVals[cid][iid]=antes;
+    ckRender(); ckStatus('Erro ao salvar a quantidade.','#ff6b6b');
+  }
 }
 
-async function ckMarcarTodos(vai){
-  _ckItens.forEach(i=>{i.vai=vai;}); ckRender(); ckStatus('Salvando…');
-  try{ await rpc('admin_checklist_marcar_todos',{p_evento_id:_ckEvento,p_vai:vai}); ckOk(); }
-  catch(e){console.error(e);ckStatus('Erro ao salvar.','#ff6b6b');await ckCarregar();}
-}
-
-async function ckSalvarObs(v){
-  _ckObs=v;
-  try{ await rpc('admin_checklist_obs_salvar',{p_evento_id:_ckEvento,p_obs:v||null}); ckOk(); }
-  catch(e){console.error(e);ckStatus('Erro ao salvar observações.','#ff6b6b');}
-}
-
-/* Impressão: retrato, só o que vai, com caixa de conferência para quem separa
-   e uma para quem carrega o caminhão. Usa o mesmo iframe do Social Media. */
-function ckImprimir(){
-  const ev=ckEventoAtual();
-  const itens=ckOrdenados().filter(i=>i.vai);
-  if(!itens.length){alert('Nenhum item marcado para ir.');return;}
-  const titulo = ev ? ckEsc(ev.evento) : 'Lista geral';
-  const sub = ev ? fmtDS(ev.inicio)+(ev.horario?' · largada '+ckEsc(ev.horario):'')+' · '+ckEsc(ev.cidade) : 'Sem evento vinculado';
+/* ── Impressão de uma coluna: retrato, só o que vai, com conferência ── */
+function ckImprimir(cid){
+  const c=_ckCols.find(x=>x.id===cid); if(!c)return;
+  const itens=ckOrdenados().filter(i=>ckTemItem(cid,i.id));
+  if(!itens.length){alert('Nenhum item preenchido para "'+c.nome+'".');return;}
   const hoje=new Date().toLocaleDateString('pt-BR');
   const css='@page{size:A4 portrait;margin:14mm 14mm 16mm;}'
     +'body{font-family:Ubuntu,Arial,Helvetica,sans-serif;color:#2a2520;margin:0;}'
     +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #ff751f;padding-bottom:10px;margin-bottom:14px;}'
     +'.hd .k{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#ff751f;font-weight:700;}'
     +'.hd h1{font-size:24px;margin:2px 0 0;line-height:1.1;}'
-    +'.hd .sub{font-size:13px;color:#6b635b;margin-top:3px;}'
     +'.hd .r{text-align:right;font-size:11px;color:#6b635b;line-height:1.5;}'
     +'.hd .r b{display:block;font-size:13px;color:#2a2520;}'
     +'table{width:100%;border-collapse:collapse;}'
@@ -7704,16 +7750,18 @@ function ckImprimir(){
     +'.ass{display:flex;gap:24px;margin-top:28px;font-size:11px;color:#6b635b;}'
     +'.ass div{flex:1;border-top:1px solid #2a2520;padding-top:5px;}'
     +'tr{page-break-inside:avoid;}';
-  let body='<div class="hd"><div><div class="k">Checklist pré-evento · JBX Sports</div><h1>'+titulo+'</h1><div class="sub">'+sub+'</div></div>'
+  let body='<div class="hd"><div><div class="k">Checklist pré-evento · JBX Sports</div><h1>'+ckEsc(c.nome)+'</h1></div>'
     +'<div class="r"><b>'+itens.length+(itens.length===1?' item':' itens')+'</b>impresso em '+hoje+'</div></div>';
   body+='<table><thead><tr><th style="text-align:center;">Separado</th><th style="text-align:center;">Carregado</th><th style="text-align:center;">Qtd</th><th>Item</th></tr></thead><tbody>';
   for(const i of itens){
-    body+='<tr><td class="c"><span class="bx"></span></td><td class="c"><span class="bx"></span></td><td class="q">'+ckEsc(ckQtdEfetiva(i)||'—')+'</td><td class="n">'+ckEsc(i.nome)+'</td></tr>';
+    const q=ckVal(cid,i.id).trim();
+    body+='<tr><td class="c"><span class="bx"></span></td><td class="c"><span class="bx"></span></td>'
+      +'<td class="q">'+(/^x$/i.test(q)?'—':ckEsc(q))+'</td><td class="n">'+ckEsc(i.nome)+'</td></tr>';
   }
   body+='</tbody></table>';
-  if(_ckObs && _ckObs.trim()) body+='<div class="obs"><b>Observações</b>'+ckEsc(_ckObs)+'</div>';
+  if(c.obs && c.obs.trim()) body+='<div class="obs"><b>Observações</b>'+ckEsc(c.obs)+'</div>';
   body+='<div class="ass"><div>Separado por</div><div>Conferido por</div><div>Data / hora</div></div>';
-  mktPrintDoc(css,body,'Checklist — '+titulo);
+  mktPrintDoc(css,body,'Checklist — '+c.nome);
 }
 
 /* ══ USUÁRIOS ══ */
