@@ -190,6 +190,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .tipo-carrinho{background:rgba(255,117,31,.14);color:#c2410c;}
 .tipo-cadastro{background:rgba(42,37,32,.08);color:var(--muted);}
 .ig-filtros{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+/* ── KPIs da aba Inscritos (geral no topo, filtrado na caixa de filtros) ── */
+.kpi-strip{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 14px;min-width:104px;box-shadow:0 1px 3px rgba(42,37,32,.05);}
+.kpi .l{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:800;white-space:nowrap;}
+.kpi .n{font-size:19px;font-weight:800;line-height:1.2;color:var(--text);}
+.kpi .s{font-size:11px;color:var(--muted);font-weight:600;}
+.kpi.destaque .n{color:var(--orange);}
+.kpi.fem .n{color:#db2777;}
+.kpi.masc .n{color:#2563eb;}
+.kpi-strip.filtrado .kpi{background:rgba(255,117,31,.05);border-color:rgba(255,117,31,.28);}
+.kpi-strip.filtrado .kpi .n{font-size:17px;}
 .ig-btn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .ig-btn:hover{border-color:var(--orange);color:var(--orange);}
 .ig-btn-xls{background:var(--orange);color:#fff;border-color:var(--orange);}
@@ -1272,7 +1283,8 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
       <div class="inner-screen" id="screen-inscritos">
         <div class="page-hd">
           <h1>Inscritos — todos os eventos</h1>
-          <span id="ig-resumo" style="font-size:13px;color:var(--muted);margin-left:6px;">—</span>
+          <span id="ig-resumo" style="font-size:13px;color:var(--muted);margin-left:6px;"></span>
+          <div id="ig-kpi-geral" class="kpi-strip" style="margin-left:18px;"></div>
           <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
             <button class="ig-btn" onclick="igRecarregar()">↻ Atualizar</button>
             <button class="ig-btn" id="ig-btn-msg" onclick="igToggleMsg()">💬 Mensagem</button>
@@ -1399,6 +1411,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
           <div style="display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap;">
             <label class="ig-chk"><input type="checkbox" id="ig-f-canceladas" onchange="igAplicar()"> Incluir canceladas e reembolsadas</label>
             <button class="ig-btn" onclick="igLimparFiltros()">Limpar filtros</button>
+            <div id="ig-kpi-filtro" class="kpi-strip filtrado" style="margin-left:auto;"></div>
           </div>
         </div>
 
@@ -3614,6 +3627,49 @@ function igCelula(i, col){
   return String(v);
 }
 
+/* ── KPIs: totais, divisão por gênero e nº de eventos ──────────────
+   O de cima ignora todos os filtros (a base inteira); o da caixa de
+   filtros acompanha exatamente o que está filtrado na tela. */
+function igKpiCalc(arr){
+  let f = 0, m = 0;
+  const eventos = {};
+  (arr || []).forEach(function(i){
+    const g = String(i.genero || '').trim().toLowerCase();
+    if(g.charAt(0) === 'f') f++;
+    else if(g.charAt(0) === 'm') m++;
+    const ev = i.evento || '';
+    if(ev) eventos[ev] = true;
+  });
+  const total = (arr || []).length;
+  const base = f + m;   /* quem tem gênero informado — o % sai sobre ele */
+  const pct = function(n){ return base ? (Math.round(n * 1000 / base) / 10).toFixed(1).replace('.', ',') + '%' : '—'; };
+  return { total: total, f: f, m: m, pctF: pct(f), pctM: pct(m), eventos: Object.keys(eventos).length, semGenero: total - base };
+}
+function igKpiCard(rotulo, numero, sub, classe){
+  return '<div class="kpi ' + (classe || '') + '"><div class="l">' + rotulo + '</div>'
+       + '<div class="n">' + numero + '</div>'
+       + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>';
+}
+function igRenderKpis(){
+  const geral = document.getElementById('ig-kpi-geral');
+  if(geral){
+    const k = igKpiCalc(igTodos);
+    geral.innerHTML =
+        igKpiCard('Total inscritos', fmt(k.total), k.semGenero ? fmt(k.semGenero) + ' sem gênero' : 'base completa', 'destaque')
+      + igKpiCard('Feminino',  k.pctF, fmt(k.f), 'fem')
+      + igKpiCard('Masculino', k.pctM, fmt(k.m), 'masc')
+      + igKpiCard('Eventos',   fmt(k.eventos), '');
+  }
+  const filtro = document.getElementById('ig-kpi-filtro');
+  if(filtro){
+    const k = igKpiCalc(igFiltrados);
+    filtro.innerHTML =
+        igKpiCard('Filtrado', fmt(k.total), 'inscritos', 'destaque')
+      + igKpiCard('Feminino',  k.pctF, fmt(k.f), 'fem')
+      + igKpiCard('Masculino', k.pctM, fmt(k.m), 'masc');
+  }
+}
+
 function igRenderTabela(){
   const cols = IG_COLS.filter(c=>igColsSel.indexOf(c.k) > -1);
   const th = document.getElementById('ig-thead');
@@ -3628,7 +3684,8 @@ function igRenderTabela(){
   th.innerHTML = colSel + (cols.map(c=>'<th>' + c.l + '</th>').join('') || '<th>—</th>');
 
   const totalValor = igFiltrados.reduce((a,i)=>a + Number(i.valor||0), 0);
-  if(resumo) resumo.textContent = fmt(igFiltrados.length) + ' inscrição(ões) · ' + brl(totalValor) + ' · ' + fmt(igTodos.length) + ' no total';
+  if(resumo) resumo.textContent = totalValor > 0 ? brl(totalValor) : '';
+  igRenderKpis();
 
   if(!cols.length){
     tb.innerHTML = '<tr><td style="text-align:center;padding:32px;color:var(--muted);">Selecione ao menos uma coluna.</td></tr>';
@@ -4923,12 +4980,19 @@ function igSubTab(nome){
 
   if(nome === 'cadastros'){ if(!cadCarregado) cadCarregar(); else cadAplicar(); }
   if(nome === 'leads'){ leadCarregarMsg(); if(!leadCarregado) leadCarregar(); else leadAplicar(); }
-  if(nome === 'inscricoes') igRenderTabela();
+  if(nome === 'inscricoes'){
+    const g = document.getElementById('ig-kpi-geral');
+    if(g) g.style.display = '';
+    igRenderTabela();
+  }
 }
 
 function igResumoTopo(txt){
   const el = document.getElementById('ig-resumo');
   if(el) el.textContent = txt;
+  /* as faixas de KPI são da sub-aba Inscrições; nas outras somem */
+  const g = document.getElementById('ig-kpi-geral');
+  if(g) g.style.display = 'none';
 }
 
 /* ── telefone / whatsapp ── */
