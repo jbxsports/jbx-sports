@@ -8177,12 +8177,61 @@ function cmpEditar(){
 function cmpModalLista(){
   const el = document.getElementById('cmp-modal-lista');
   if(!el) return;
-  el.innerHTML = cmpPendenteLista
-    ? '<div class="cmp-aviso">Esta tarefa vai receber <strong>' + cmpPendenteLista.pessoas.length +
-      ' pessoa(s)</strong>' + (cmpPendenteLista.origem ? ' — ' + cmpEsc(cmpPendenteLista.origem) : '') +
-      '.<br>Quem estiver na lista de descadastro, ou tiver sido chamado dentro do prazo de repetição, é descartado automaticamente.</div>'
-    : '';
+  if(!cmpPendenteLista){ el.innerHTML = ''; return; }
+  const n = cmpPendenteLista.pessoas.length;
+  el.innerHTML =
+    '<div class="cmp-aviso">' +
+      'Lista selecionada: <strong>' + fmt(n) + ' pessoa(s)</strong>' +
+      (cmpPendenteLista.origem ? ' — ' + cmpEsc(cmpPendenteLista.origem) : '') + '.' +
+      '<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;">' +
+        '<div style="flex:0 0 130px;">' +
+          '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Usar quantas</label>' +
+          '<input type="number" min="1" max="' + n + '" id="cmp-m-qtd" placeholder="todas" oninput="cmpQtdInfo()" ' +
+            'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+        '</div>' +
+        '<div style="flex:1;min-width:170px;">' +
+          '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Quais</label>' +
+          '<select id="cmp-m-modo" onchange="cmpQtdInfo()" ' +
+            'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+            '<option value="primeiras">As primeiras da lista</option>' +
+            '<option value="aleatorias">Sorteadas ao acaso</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div id="cmp-qtd-info" style="margin-top:8px;font-size:11px;"></div>' +
+    '</div>';
+  cmpQtdInfo();
 }
+
+/* diz, antes de salvar, exatamente o que vai entrar na tarefa */
+function cmpQtdInfo(){
+  const box = document.getElementById('cmp-qtd-info');
+  if(!box || !cmpPendenteLista) return;
+  const n = cmpPendenteLista.pessoas.length;
+  const q = parseInt((document.getElementById('cmp-m-qtd') || {}).value) || 0;
+  const modo = ((document.getElementById('cmp-m-modo') || {}).value) || 'primeiras';
+  if(q > 0 && q < n){
+    box.innerHTML = '→ vão entrar <strong>' + q + '</strong> ' +
+      (modo === 'aleatorias' ? 'pessoas sorteadas' : 'primeiras pessoas') +
+      ', escolhidas <strong>depois</strong> de tirar descadastrados e quem já foi chamado há pouco. ' +
+      'As outras ' + fmt(n - q) + ' ficam de fora — refaça a seleção depois para pegar as próximas.';
+    const m = document.getElementById('cmp-m-meta');
+    if(m && !m.value) m.placeholder = q;
+  } else {
+    box.innerHTML = '→ vai entrar a lista inteira (' + fmt(n) + ').';
+  }
+}
+
+/* embaralha sem mexer no array original (Fisher-Yates) */
+function cmpSortear(arr){
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
 function cmpFechar(){ document.getElementById('cmp-modal').classList.remove('open'); }
 
 async function cmpSalvar(){
@@ -8201,8 +8250,20 @@ async function cmpSalvar(){
       p_origem: cmpPendenteLista ? cmpPendenteLista.origem : null, p_por: cmpQuem()});
 
     if(cmpPendenteLista){
+      const n = cmpPendenteLista.pessoas.length;
+      const qtd = parseInt((document.getElementById('cmp-m-qtd') || {}).value) || 0;
+      const modo = ((document.getElementById('cmp-m-modo') || {}).value) || 'primeiras';
+      const cortar = qtd > 0 && qtd < n;
+      let pes = cmpPendenteLista.pessoas;
+      if(cortar){
+        if(modo === 'aleatorias') pes = cmpSortear(pes);
+        /* manda uma folga em vez da lista inteira: o banco corta em `qtd`
+           DEPOIS de tirar descadastro e cooldown, e a folga garante que dê
+           para completar sem trafegar 18 mil pessoas */
+        pes = pes.slice(0, Math.min(pes.length, qtd * 5 + 200));
+      }
       const r = await rpc('admin_camp_alvos_definir',
-        {p_tarefa_id: id, p_pessoas: cmpPendenteLista.pessoas, p_substituir: true});
+        {p_tarefa_id: id, p_pessoas: pes, p_substituir: true, p_limite: cortar ? qtd : null});
       cmpPendenteLista = null;
       fb.style.color = '#16a34a';
       fb.textContent = '✓ ' + r.inseridos + ' pessoa(s) na lista' +
