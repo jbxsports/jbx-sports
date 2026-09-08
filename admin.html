@@ -243,6 +243,19 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .cmp-f label{display:block;font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
 .cmp-f input,.cmp-f select,.cmp-f textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font-family:'Ubuntu',sans-serif;font-size:13px;}
 .cmp-aviso{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:10px 12px;font-size:12px;margin-bottom:12px;}
+.cmp-modos{display:flex;gap:6px;margin:10px 0;}
+.cmp-modo{flex:1;padding:8px 10px;border:1px solid var(--border);background:var(--card);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;color:var(--muted);}
+.cmp-modo.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.cmp-pick{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px;margin-top:8px;}
+.cmp-pick-hd{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:6px;}
+.cmp-pick-hd b{font-size:12px;text-transform:capitalize;min-width:130px;text-align:center;}
+.cmp-pick-nav{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;color:var(--muted);font-size:13px;line-height:1;}
+.cmp-pick-g{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cmp-pick-d{aspect-ratio:1;border:1px solid var(--border);background:var(--card);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:var(--text);font-family:'Ubuntu',sans-serif;padding:0;}
+.cmp-pick-d.off{visibility:hidden;}
+.cmp-pick-d.pas{opacity:.35;}
+.cmp-pick-d.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.cmp-pick-d.dow{border:none;background:none;color:var(--muted);font-size:9px;text-transform:uppercase;cursor:default;}
 .ig-btn{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;transition:all .2s;}
 .ig-btn:hover{border-color:var(--orange);color:var(--orange);}
 .ig-btn-xls{background:var(--orange);color:#fff;border-color:var(--orange);}
@@ -2281,6 +2294,7 @@ let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 /* ── HELPERS ── */
 const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_camp_tarefas_listar','admin_camp_tarefa_salvar','admin_camp_tarefa_excluir',
+  'admin_camp_lote_criar',
   'admin_camp_alvos_definir','admin_camp_alvos_listar','admin_camp_marcar',
   'admin_camp_optout_add','admin_camp_optout_listar','admin_camp_optout_remover',
   'admin_calendario_extra_listar','admin_calendario_extra_salvar',
@@ -7899,6 +7913,8 @@ const CMP_SIT = {pendente:'A chamar', enviado:'Enviado', recusou:'Não quer rece
 let cmpTarefas = [], cmpMes = null, cmpAtual = null, cmpAlvos = [];
 let cmpSoPendentes = true;
 let cmpPendenteLista = null;   // lista vinda de Inscritos/Cruzamento esperando virar tarefa
+let cmpModo = 'uma';           // 'uma' = uma tarefa; 'lote' = dividir em vários dias
+let cmpDiasSel = [], cmpPickMes = new Date();
 
 /* Só o master monta as tarefas. O funcionário executa. */
 function cmpPodeEditar(){ return !!(admUser && admUser.master); }
@@ -8144,7 +8160,7 @@ async function cmpSalvarMsg(){
     await rpc('admin_camp_tarefa_salvar', {
       p_id: cmpAtual.id, p_data: cmpAtual.data, p_titulo: cmpAtual.titulo,
       p_objetivo: cmpAtual.objetivo, p_mensagem: el.value, p_meta: cmpAtual.meta,
-      p_responsavel: cmpAtual.responsavel, p_cooldown: cmpAtual.cooldown_dias,
+      p_responsavel: cmpAtual.responsavel, p_cooldown: cmpAtual.cooldown_dias || 3,
       p_status: cmpAtual.status, p_por: cmpQuem()});
   }catch(e){ alert('Não consegui salvar a mensagem: ' + (e.message||'')); }
 }
@@ -8152,11 +8168,12 @@ async function cmpSalvarMsg(){
 /* ── criar / editar ──────────────────────────────────────────── */
 function cmpNova(pessoas, origem){
   cmpPendenteLista = pessoas && pessoas.length ? {pessoas: pessoas, origem: origem || ''} : null;
+  cmpModo = 'uma'; cmpDiasSel = []; cmpPickMes = new Date();
   const set = function(id, v){ const e = document.getElementById(id); if(e) e.value = v; };
   document.getElementById('cmp-modal-tit').textContent = 'Nova tarefa';
   set('cmp-m-id',''); set('cmp-m-data', cmpISO(new Date())); set('cmp-m-titulo','');
   set('cmp-m-objetivo',''); set('cmp-m-resp',''); set('cmp-m-meta','');
-  set('cmp-m-cool','0'); set('cmp-m-status','ativa');
+  set('cmp-m-cool','3'); set('cmp-m-status','ativa');
   set('cmp-m-msg','Oi {primeiro}, tudo bem?\nAqui é da *JBX Sports* 🙂\n\n');
   cmpModalLista();
   document.getElementById('cmp-modal-fb').textContent = '';
@@ -8164,12 +8181,12 @@ function cmpNova(pessoas, origem){
 }
 function cmpEditar(){
   if(!cmpAtual) return;
-  cmpPendenteLista = null;
+  cmpPendenteLista = null; cmpModo = 'uma';
   const t = cmpAtual, set = function(id, v){ const e = document.getElementById(id); if(e) e.value = v == null ? '' : v; };
   document.getElementById('cmp-modal-tit').textContent = 'Editar tarefa';
   set('cmp-m-id', t.id); set('cmp-m-data', t.data); set('cmp-m-titulo', t.titulo);
   set('cmp-m-objetivo', t.objetivo); set('cmp-m-resp', t.responsavel); set('cmp-m-meta', t.meta);
-  set('cmp-m-cool', t.cooldown_dias); set('cmp-m-status', t.status); set('cmp-m-msg', t.mensagem);
+  set('cmp-m-cool', t.cooldown_dias || 3); set('cmp-m-status', t.status); set('cmp-m-msg', t.mensagem);
   cmpModalLista();
   document.getElementById('cmp-modal-fb').textContent = '';
   document.getElementById('cmp-modal').classList.add('open');
@@ -8177,30 +8194,110 @@ function cmpEditar(){
 function cmpModalLista(){
   const el = document.getElementById('cmp-modal-lista');
   if(!el) return;
-  if(!cmpPendenteLista){ el.innerHTML = ''; return; }
+  if(!cmpPendenteLista){ el.innerHTML = ''; cmpMostrarCamposDia(true); return; }
   const n = cmpPendenteLista.pessoas.length;
+  const lote = cmpModo === 'lote';
   el.innerHTML =
     '<div class="cmp-aviso">' +
       'Lista selecionada: <strong>' + fmt(n) + ' pessoa(s)</strong>' +
       (cmpPendenteLista.origem ? ' — ' + cmpEsc(cmpPendenteLista.origem) : '') + '.' +
-      '<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:10px;">' +
-        '<div style="flex:0 0 130px;">' +
-          '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Usar quantas</label>' +
-          '<input type="number" min="1" max="' + n + '" id="cmp-m-qtd" placeholder="todas" oninput="cmpQtdInfo()" ' +
-            'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
-        '</div>' +
-        '<div style="flex:1;min-width:170px;">' +
-          '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Quais</label>' +
-          '<select id="cmp-m-modo" onchange="cmpQtdInfo()" ' +
-            'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
-            '<option value="primeiras">As primeiras da lista</option>' +
-            '<option value="aleatorias">Sorteadas ao acaso</option>' +
-          '</select>' +
-        '</div>' +
+      '<div class="cmp-modos">' +
+        '<button type="button" class="cmp-modo' + (lote ? '' : ' on') + '" onclick="cmpSetModo(\'uma\')">Uma tarefa só</button>' +
+        '<button type="button" class="cmp-modo' + (lote ? ' on' : '') + '" onclick="cmpSetModo(\'lote\')">Dividir em vários dias</button>' +
       '</div>' +
+
+      (lote
+        ? '<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">' +
+            '<div style="flex:0 0 150px;">' +
+              '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Pessoas por dia</label>' +
+              '<input type="number" min="1" id="cmp-m-qtd" value="20" oninput="cmpQtdInfo()" ' +
+                'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+            '</div>' +
+            '<div style="flex:1;min-width:170px;">' +
+              '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Sorteio</label>' +
+              '<select id="cmp-m-modo" onchange="cmpQtdInfo()" ' +
+                'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+                '<option value="aleatorias">Sortear ao acaso</option>' +
+                '<option value="primeiras">Seguir a ordem da lista</option>' +
+              '</select>' +
+            '</div>' +
+          '</div>' +
+          '<div style="margin-top:10px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;">Dias — clique para marcar</div>' +
+          '<div id="cmp-pick"></div>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">' +
+            '<button type="button" class="cmp-acao" onclick="cmpDiasSeguidos(10,false)">próximos 10 dias</button>' +
+            '<button type="button" class="cmp-acao" onclick="cmpDiasSeguidos(10,true)">10 dias úteis</button>' +
+            '<button type="button" class="cmp-acao" onclick="cmpDiasSel=[];cmpModalLista();">limpar</button>' +
+          '</div>'
+        : '<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">' +
+            '<div style="flex:0 0 130px;">' +
+              '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Usar quantas</label>' +
+              '<input type="number" min="1" max="' + n + '" id="cmp-m-qtd" placeholder="todas" oninput="cmpQtdInfo()" ' +
+                'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+            '</div>' +
+            '<div style="flex:1;min-width:170px;">' +
+              '<label style="display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Quais</label>' +
+              '<select id="cmp-m-modo" onchange="cmpQtdInfo()" ' +
+                'style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:Ubuntu,sans-serif;font-size:13px;">' +
+                '<option value="primeiras">As primeiras da lista</option>' +
+                '<option value="aleatorias">Sorteadas ao acaso</option>' +
+              '</select>' +
+            '</div>' +
+          '</div>') +
+
       '<div id="cmp-qtd-info" style="margin-top:8px;font-size:11px;"></div>' +
     '</div>';
+  if(lote) cmpPickRender();
+  cmpMostrarCamposDia(!lote);
   cmpQtdInfo();
+}
+
+/* no modo lote os dias vêm do calendário, então o campo "Dia" some */
+function cmpMostrarCamposDia(mostrar){
+  const c = document.getElementById('cmp-m-data');
+  if(c && c.parentElement) c.parentElement.style.display = mostrar ? '' : 'none';
+}
+function cmpSetModo(m){ cmpModo = m; cmpModalLista(); }
+
+/* ── seletor de vários dias ─────────────────────────────────── */
+function cmpPickRender(){
+  const box = document.getElementById('cmp-pick');
+  if(!box) return;
+  const ini = new Date(cmpPickMes.getFullYear(), cmpPickMes.getMonth(), 1);
+  const dias = new Date(cmpPickMes.getFullYear(), cmpPickMes.getMonth()+1, 0).getDate();
+  const hoje = cmpISO(new Date());
+  let g = CMP_DOW.map(function(d){ return '<button type="button" class="cmp-pick-d dow" disabled>' + d + '</button>'; }).join('');
+  for(let i = 0; i < ini.getDay(); i++) g += '<span class="cmp-pick-d off"></span>';
+  for(let d = 1; d <= dias; d++){
+    const iso = cmpISO(new Date(cmpPickMes.getFullYear(), cmpPickMes.getMonth(), d));
+    const on = cmpDiasSel.indexOf(iso) > -1;
+    g += '<button type="button" class="cmp-pick-d' + (on ? ' on' : '') + (iso < hoje ? ' pas' : '') +
+         '" onclick="cmpPickDia(\'' + iso + '\')">' + d + '</button>';
+  }
+  box.innerHTML =
+    '<div class="cmp-pick"><div class="cmp-pick-hd">' +
+      '<button type="button" class="cmp-pick-nav" onclick="cmpPickNav(-1)">‹</button>' +
+      '<b>' + CMP_MESES[cmpPickMes.getMonth()] + ' ' + cmpPickMes.getFullYear() + '</b>' +
+      '<button type="button" class="cmp-pick-nav" onclick="cmpPickNav(1)">›</button>' +
+    '</div><div class="cmp-pick-g">' + g + '</div></div>';
+}
+function cmpPickNav(n){ cmpPickMes = new Date(cmpPickMes.getFullYear(), cmpPickMes.getMonth()+n, 1); cmpPickRender(); }
+function cmpPickDia(iso){
+  const i = cmpDiasSel.indexOf(iso);
+  if(i > -1) cmpDiasSel.splice(i,1); else cmpDiasSel.push(iso);
+  cmpDiasSel.sort();
+  cmpPickRender(); cmpQtdInfo();
+}
+function cmpDiasSeguidos(n, soUteis){
+  cmpDiasSel = [];
+  const d = new Date();
+  while(cmpDiasSel.length < n){
+    const dow = d.getDay();
+    if(!soUteis || (dow !== 0 && dow !== 6)) cmpDiasSel.push(cmpISO(d));
+    d.setDate(d.getDate()+1);
+  }
+  cmpPickMes = new Date(cmpDiasSel[0].slice(0,4), parseInt(cmpDiasSel[0].slice(5,7))-1, 1);
+  cmpModalLista();
 }
 
 /* diz, antes de salvar, exatamente o que vai entrar na tarefa */
@@ -8210,6 +8307,19 @@ function cmpQtdInfo(){
   const n = cmpPendenteLista.pessoas.length;
   const q = parseInt((document.getElementById('cmp-m-qtd') || {}).value) || 0;
   const modo = ((document.getElementById('cmp-m-modo') || {}).value) || 'primeiras';
+
+  if(cmpModo === 'lote'){
+    const d = cmpDiasSel.length;
+    if(!d){ box.innerHTML = '<span style="color:#9a3412;">Escolha os dias no calendário acima.</span>'; return; }
+    if(!q){ box.innerHTML = '<span style="color:#9a3412;">Informe quantas pessoas por dia.</span>'; return; }
+    const precisa = d * q;
+    box.innerHTML = '→ <strong>' + d + ' tarefa(s)</strong> × ' + q + ' pessoas = <strong>' + fmt(precisa) + '</strong>, ' +
+      (modo === 'aleatorias' ? 'sorteadas' : 'na ordem da lista') + '. Ninguém se repete entre os dias.' +
+      (precisa > n
+        ? '<br><span style="color:#9a3412;">A lista tem ' + fmt(n) + ' — os últimos dias vão ficar com menos gente.</span>'
+        : (precisa < n ? '<br>Sobram ' + fmt(n - precisa) + ' para uma próxima leva.' : ''));
+    return;
+  }
   if(q > 0 && q < n){
     box.innerHTML = '→ vão entrar <strong>' + q + '</strong> ' +
       (modo === 'aleatorias' ? 'pessoas sorteadas' : 'primeiras pessoas') +
@@ -8238,6 +8348,7 @@ async function cmpSalvar(){
   const get = function(id){ const e = document.getElementById(id); return e ? e.value.trim() : ''; };
   const fb = document.getElementById('cmp-modal-fb');
   if(!get('cmp-m-titulo')){ fb.style.color = '#dc2626'; fb.textContent = 'Dê um título para a tarefa.'; return; }
+  if(cmpPendenteLista && cmpModo === 'lote') return cmpSalvarLote();
   if(!get('cmp-m-data')){ fb.style.color = '#dc2626'; fb.textContent = 'Escolha o dia.'; return; }
   fb.style.color = 'var(--muted)'; fb.textContent = 'Salvando…';
   try{
@@ -8246,7 +8357,7 @@ async function cmpSalvar(){
       p_objetivo: get('cmp-m-objetivo') || null, p_mensagem: get('cmp-m-msg'),
       p_meta: get('cmp-m-meta') ? parseInt(get('cmp-m-meta')) : null,
       p_responsavel: get('cmp-m-resp') || null,
-      p_cooldown: parseInt(get('cmp-m-cool')) || 0, p_status: get('cmp-m-status'),
+      p_cooldown: parseInt(get('cmp-m-cool')) || 3, p_status: get('cmp-m-status'),
       p_origem: cmpPendenteLista ? cmpPendenteLista.origem : null, p_por: cmpQuem()});
 
     if(cmpPendenteLista){
@@ -8276,6 +8387,45 @@ async function cmpSalvar(){
     cmpMes = new Date(parseInt(dt.slice(0,4)), parseInt(dt.slice(5,7))-1, 1);
     await cmpCarregar();
     setTimeout(function(){ cmpFechar(); cmpAbrir(id); }, 900);
+  }catch(e){ fb.style.color = '#dc2626'; fb.textContent = 'Erro: ' + (e.message || ''); }
+}
+
+/* uma lista, N dias, X por dia — tudo numa chamada só.
+   A divisão é feita no banco: cada pessoa cai em um dia só, e o
+   cooldown de 3 dias vale contra o que já foi enviado antes. */
+async function cmpSalvarLote(){
+  const get = function(id){ const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+  const fb = document.getElementById('cmp-modal-fb');
+  const qtd = parseInt(get('cmp-m-qtd')) || 0;
+  const modo = get('cmp-m-modo') || 'aleatorias';
+  if(!cmpDiasSel.length){ fb.style.color = '#dc2626'; fb.textContent = 'Escolha os dias no calendário.'; return; }
+  if(qtd < 1){ fb.style.color = '#dc2626'; fb.textContent = 'Informe quantas pessoas por dia.'; return; }
+
+  let pes = cmpPendenteLista.pessoas;
+  if(modo === 'aleatorias') pes = cmpSortear(pes);
+  /* folga sobre o necessário, para o banco conseguir completar todos os
+     dias mesmo depois de tirar descadastro e cooldown */
+  const precisa = cmpDiasSel.length * qtd;
+  pes = pes.slice(0, Math.min(pes.length, precisa * 2 + 200));
+
+  fb.style.color = 'var(--muted)';
+  fb.textContent = 'Criando ' + cmpDiasSel.length + ' tarefas…';
+  try{
+    const r = await rpc('admin_camp_lote_criar', {
+      p_dias: cmpDiasSel, p_qtd: qtd, p_pessoas: pes,
+      p_titulo: get('cmp-m-titulo'), p_objetivo: get('cmp-m-objetivo') || null,
+      p_mensagem: get('cmp-m-msg'), p_responsavel: get('cmp-m-resp') || null,
+      p_origem: cmpPendenteLista.origem || null, p_por: cmpQuem(), p_cooldown: 3});
+    cmpPendenteLista = null; cmpModo = 'uma';
+    fb.style.color = '#16a34a';
+    fb.textContent = '✓ ' + r.tarefas + ' tarefa(s) criadas com ' + r.inseridos + ' pessoa(s) no total' +
+      (r.descartados_optout ? ' · ' + r.descartados_optout + ' descadastrada(s)' : '') +
+      (r.descartados_cooldown ? ' · ' + r.descartados_cooldown + ' chamada(s) nos últimos 3 dias' : '') +
+      (r.sobraram ? ' · ' + r.sobraram + ' sobraram para depois' : '') + '.';
+    const d0 = cmpDiasSel[0];
+    cmpMes = new Date(parseInt(d0.slice(0,4)), parseInt(d0.slice(5,7))-1, 1);
+    await cmpCarregar();
+    setTimeout(cmpFechar, 1600);
   }catch(e){ fb.style.color = '#dc2626'; fb.textContent = 'Erro: ' + (e.message || ''); }
 }
 
@@ -11475,7 +11625,9 @@ async function patTirarDoFunil(){
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
             <div class="cmp-f"><label>Meta de envios</label><input type="number" min="1" id="cmp-m-meta" placeholder="a lista toda"></div>
-            <div class="cmp-f"><label>Não repetir por (dias)</label><input type="number" min="0" id="cmp-m-cool" value="0"></div>
+            <div class="cmp-f"><label>Não repetir</label>
+              <input value="3 dias — fixo" disabled style="background:#f8fafc;color:var(--muted);">
+              <input type="hidden" id="cmp-m-cool" value="3"></div>
             <div class="cmp-f"><label>Situação</label>
               <select id="cmp-m-status"><option value="ativa">Ativa</option><option value="pausada">Pausada</option><option value="concluida">Concluída</option></select>
             </div>
