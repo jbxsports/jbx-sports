@@ -2214,6 +2214,9 @@ const ADMIN_HASH='9d63dfff715ec85ef4b6c2df68d6b1e882d47731d5ca98bd1e6555401b42cd
    assim que o status 'programado' do Social Media passou batido em agosto. */
 function ehStatusInativo(st){ return /^(cancel|reembols)/i.test(String(st || '')); }
 function ehReembolsada(st){ return /^reembols/i.test(String(st || '')); }
+/* inscrição que conta como 'dentro' do evento: paga, confirmada ou isenta/cortesia.
+   Pendente, expirada, cancelada e reembolsada ficam de fora (usado no Cruzamento). */
+function ehStatusConfirmado(st){ return /^(pago|paga|confirmad|isent|cortesia|gratuit)/i.test(String(st || '')); }
 
 let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={};
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
@@ -8197,7 +8200,7 @@ async function crzPessoas(lado){
     await crzGarantirInscritos();
     return crzInscritos
       .filter(function(i){ return String(i.evento || '') === f.evento; })
-      .filter(function(i){ return !ehStatusInativo(i.status); })
+      .filter(function(i){ return ehStatusConfirmado(i.status); })
       .map(function(i){ return crzPessoa(i.nome, i.cpf, i.telefone, i.email); });
   }
   const m = f.map;
@@ -10850,7 +10853,7 @@ async function patTirarDoFunil(){
         <p style="font-size:13px;color:var(--muted);margin-bottom:18px;max-width:760px;">
           Mostra quem está na <strong>Base A</strong> e <strong>não está</strong> na Base B — para chamar um a um no WhatsApp.
           Cada lado pode ser um evento do sistema, uma <strong>base salva</strong> ou uma planilha avulsa.
-          <strong>Deixar a Base B vazia chama a Base A inteira.</strong> Inscrições canceladas e reembolsadas são ignoradas.
+          <strong>Deixar a Base B vazia chama a Base A inteira.</strong> Só entram inscrições pagas, confirmadas ou isentas — pendentes, expiradas, canceladas e reembolsadas são ignoradas.
         </p>
         <div class="crz-bs">
           <h4>Bases salvas — planilhas de inscritos guardadas</h4>
