@@ -264,6 +264,7 @@
   }
   input[type=password]:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-color:transparent}
   .skeleton{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
+  td.aviso-td{text-align:center;color:var(--muted);padding:26px 16px}
 </style>
 
 <style>*{box-sizing:border-box}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -404,13 +405,17 @@
 
   <section class="admin" id="admin" hidden>
     <h2>Painel da organização</h2>
-    <p class="sub">Visível só com <b>#admin</b> no fim do link. Digite a senha, edite o status e os usos direto na tabela acima.</p>
-    <div class="field">
-      <label for="senha">Senha do painel</label>
-      <input type="password" id="senha" autocomplete="current-password" placeholder="••••••••">
+    <p class="sub">Para ativar um cupom, clique no botão <b>INATIVO</b> na coluna Status da tabela acima. Para lançar vendas, digite na coluna Usos. Tudo salva sozinho.</p>
+    <div id="caixa-senha">
+      <div class="field">
+        <label for="senha">Senha do painel</label>
+        <input type="password" id="senha" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <div class="btns" style="margin-bottom:10px">
+        <button type="button" class="b-primary" id="entrar">Entrar</button>
+      </div>
     </div>
     <div class="btns">
-      <button type="button" class="b-primary" id="entrar">Entrar</button>
       <button type="button" class="b-ghost" id="atualizar">Atualizar lista</button>
     </div>
     <p class="msg" id="admin-msg" role="status"></p>
@@ -434,9 +439,12 @@
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
   /* ====================== */
 
-  var ADMIN = location.hash.toLowerCase().indexOf('admin') > -1;
+  var HASH = decodeURIComponent(location.hash || '');
+  var ADMIN = HASH.toLowerCase().indexOf('admin') > -1;
   var LISTA = [];
   var SENHA = '';
+  var mSenha = HASH.match(/admin[-\/](.+)$/i);
+  if(mSenha) SENHA = mSenha[1].trim();
 
   var tb = document.getElementById('tb-cupons');
   var vazio = document.getElementById('cupons-vazio');
@@ -537,6 +545,13 @@
     return tr;
   }
 
+  function linhaAviso(txt){
+    var tr = document.createElement('tr');
+    var c = document.createElement('td');
+    c.colSpan = 6; c.className = 'aviso-td'; c.textContent = txt;
+    tr.appendChild(c);
+    return tr;
+  }
   function pintar(){
     var q = norm(busca.value).trim();
     var vis = LISTA.filter(function(d){
@@ -544,28 +559,27 @@
       return norm(d.nome).indexOf(q) > -1 || norm(d.instagram).indexOf(q) > -1 || norm(d.cupom).indexOf(q) > -1;
     });
     tb.textContent = '';
-    vis.forEach(function(d){ tb.appendChild(linha(d)); });
-    if(thAdm) thAdm.hidden = !(ADMIN && SENHA);
-    scroll.hidden = !LISTA.length;
-    searchBox.hidden = !LISTA.length;
-    if(!LISTA.length){
-      vazio.textContent = 'Nenhum divulgador cadastrado ainda. Seja o primeiro.';
-      vazio.hidden = false;
-    } else if(!vis.length){
-      vazio.textContent = 'Nenhum divulgador encontrado com “' + busca.value + '”.';
-      vazio.hidden = false;
+    if(!vis.length){
+      tb.appendChild(linhaAviso(LISTA.length
+        ? 'Nenhum divulgador encontrado com “' + busca.value + '”.'
+        : 'Nenhum divulgador cadastrado ainda. Seja o primeiro.'));
     } else {
-      vazio.hidden = true;
+      vis.forEach(function(d){ tb.appendChild(linha(d)); });
     }
+    if(thAdm) thAdm.hidden = !(ADMIN && SENHA);
+    scroll.hidden = false;
+    searchBox.hidden = false;
+    vazio.hidden = true;
   }
 
   function carregar(){
     return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo&order=usos.desc,nome.asc')
       .then(function(rows){ LISTA = rows || []; pintar(); })
       .catch(function(){
-        vazio.textContent = 'Não consegui carregar a lista agora. Recarregue a página.';
-        vazio.hidden = false;
-        scroll.hidden = true;
+        tb.textContent = '';
+        tb.appendChild(linhaAviso('Não consegui carregar a lista agora. Recarregue a página.'));
+        scroll.hidden = false;
+        vazio.hidden = true;
       });
   }
 
@@ -658,20 +672,19 @@
 
   if(ADMIN){
     var painel = document.getElementById('admin');
+    var caixaSenha = document.getElementById('caixa-senha');
     painel.hidden = false;
+    if(SENHA){
+      caixaSenha.hidden = true;
+      msg(elAdminMsg, 'Painel liberado. Na tabela acima, clique no botão INATIVO para ativar o cupom e digite os usos.', 'ok');
+    }
     var elSenha = document.getElementById('senha');
     document.getElementById('entrar').addEventListener('click', function(){
       SENHA = elSenha.value || '';
       if(!SENHA){ msg(elAdminMsg, 'Digite a senha.', 'err'); return; }
-      if(!LISTA.length){
-        msg(elAdminMsg, 'Sem cadastros ainda. A senha será conferida na primeira alteração.', 'info');
-        pintar(); return;
-      }
-      var alvo = LISTA[0];
-      salvar(alvo, {ativo: alvo.ativo}).then(function(){
-        msg(elAdminMsg, 'Painel liberado. Edite direto na tabela.', 'ok');
-        pintar();
-      }).catch(function(){ SENHA = ''; pintar(); });
+      caixaSenha.hidden = true;
+      msg(elAdminMsg, 'Painel liberado. Na tabela acima, clique no botão INATIVO para ativar o cupom e digite os usos.', 'ok');
+      pintar();
     });
     document.getElementById('atualizar').addEventListener('click', function(){
       carregar().then(function(){ msg(elAdminMsg, 'Lista atualizada.', 'ok'); });
