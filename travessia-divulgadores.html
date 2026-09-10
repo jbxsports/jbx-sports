@@ -253,6 +253,13 @@
   .b-flag{border:1px solid var(--line-2);background:rgba(255,255,255,.05);color:var(--muted)}
   .b-flag.on{border-color:rgba(121,202,42,.45);background:rgba(121,202,42,.16);color:var(--green-2)}
   .b-del{border:1px solid var(--line-2);background:transparent;color:var(--muted);padding:6px 10px;line-height:1}
+  a.b-arte{
+    display:inline-block;text-decoration:none;border:1px solid rgba(121,202,42,.45);
+    background:rgba(121,202,42,.16);color:var(--green-2);
+  }
+  a.b-arte:hover{background:var(--green);color:#0B1005}
+  td.arte{white-space:nowrap}
+  td.arte button{margin-left:6px}
   input.uso-in{
     width:72px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
     color:var(--ink);font-family:var(--f-mono);font-size:14px;font-weight:700;padding:6px 9px;text-align:right;
@@ -436,7 +443,7 @@
       <div class="cupons-scroll">
         <table class="cupons">
           <thead>
-            <tr><th class="adm" hidden>Foto</th><th>Nome</th><th>@ Instagram</th><th>Cupom</th><th>Status</th><th class="num">Usos</th><th class="adm" hidden></th></tr>
+            <tr><th class="adm foto-col" hidden>Foto</th><th>Nome</th><th>@ Instagram</th><th>Cupom</th><th>Status</th><th class="num">Usos</th><th>Arte</th><th class="adm del-col" hidden></th></tr>
           </thead>
           <tbody id="tb-cupons"></tbody>
         </table>
@@ -483,9 +490,11 @@
 
   var HASH = decodeURIComponent(location.hash || '');
   var ADMIN = HASH.toLowerCase().indexOf('admin') > -1;
+  var ARTE = HASH.toLowerCase().indexOf('arte') > -1;
+  var PAINEL = ADMIN || ARTE;
   var LISTA = [];
   var SENHA = '';
-  var mSenha = HASH.match(/admin[-\/](.+)$/i);
+  var mSenha = HASH.match(/(?:admin|arte)[-\/](.+)$/i);
   if(mSenha) SENHA = mSenha[1].trim();
 
   var tb = document.getElementById('tb-cupons');
@@ -493,7 +502,8 @@
   var busca = document.getElementById('busca');
   var scroll = document.querySelector('.cupons-scroll');
   var searchBox = document.querySelector('.cupons-search');
-  var thsAdm = document.querySelectorAll('th.adm');
+  var thFoto = document.querySelector('th.foto-col');
+  var thDel = document.querySelector('th.del-col');
   var elAdminMsg = document.getElementById('admin-msg');
 
   function headers(extra){
@@ -530,7 +540,7 @@
   function linhaAviso(txt){
     var tr = document.createElement('tr');
     var c = document.createElement('td');
-    c.colSpan = 7; c.className = 'aviso-td'; c.textContent = txt;
+    c.colSpan = 8; c.className = 'aviso-td'; c.textContent = txt;
     tr.appendChild(c);
     return tr;
   }
@@ -540,7 +550,7 @@
     var tr = document.createElement('tr');
 
     var c0 = td('adm');
-    if(editando){
+    if(PAINEL && SENHA){
       if(d.foto_url){
         var a = document.createElement('a');
         a.href = d.foto_url; a.target = '_blank'; a.rel = 'noopener'; a.title = 'Abrir foto';
@@ -598,8 +608,11 @@
       c5.textContent = d.usos || 0;
     }
 
+    var c65 = td('arte');
+    montarArte(c65, d);
+
     var c6 = td('adm');
-    if(editando){
+    if(editando && ADMIN){
       var del = document.createElement('button');
       del.type = 'button'; del.className = 'b-mini b-del'; del.textContent = '✕';
       del.title = 'Remover da lista';
@@ -611,8 +624,67 @@
       c6.appendChild(del);
     } else { c6.hidden = true; }
 
-    [c0,c1,c2,c3,c4,c5,c6].forEach(function(c){ tr.appendChild(c); });
+    [c0,c1,c2,c3,c4,c5,c65,c6].forEach(function(c){ tr.appendChild(c); });
     return tr;
+  }
+
+  function montarArte(cel, d){
+    cel.textContent = '';
+    var podeSubir = SENHA && (ADMIN || ARTE);
+
+    if(d.arte_url){
+      var a = document.createElement('a');
+      a.className = 'b-mini b-arte';
+      a.href = d.arte_url + '?download=' + encodeURIComponent(d.cupom + '-travessia.jpg');
+      a.target = '_blank'; a.rel = 'noopener';
+      a.textContent = 'BAIXAR';
+      cel.appendChild(a);
+    } else if(!podeSubir){
+      var sp = document.createElement('span');
+      sp.className = 'sem-foto'; sp.textContent = 'em produção';
+      cel.appendChild(sp);
+    }
+
+    if(podeSubir){
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'image/*';
+      var bt = document.createElement('button');
+      bt.type = 'button';
+      bt.className = 'b-mini ' + (d.arte_url ? 'b-del' : 'b-flag');
+      bt.textContent = d.arte_url ? 'TROCAR' : 'SUBIR ARTE';
+      bt.addEventListener('click', function(){ inp.click(); });
+      inp.addEventListener('change', function(){
+        var f = inp.files && inp.files[0];
+        if(!f) return;
+        bt.disabled = true; bt.textContent = 'ENVIANDO…';
+        subirArte(f, d.cupom).then(function(url){
+          return salvar(d, {arte: url}).then(function(){
+            d.arte_url = url;
+            bt.disabled = false;
+            montarArte(cel, d);
+          });
+        }).catch(function(){
+          bt.disabled = false;
+          bt.textContent = d.arte_url ? 'TROCAR' : 'SUBIR ARTE';
+          msg(elAdminMsg, 'Não consegui enviar a arte. Tente de novo.', 'err');
+        });
+      });
+      cel.appendChild(inp);
+      cel.appendChild(bt);
+    }
+  }
+
+  function subirArte(file, cupom){
+    var ext = (file.type === 'image/png') ? 'png' : 'jpg';
+    var caminho = 'artes/' + cupom + '-' + Date.now() + '.' + ext;
+    return fetch(SUPABASE_URL + '/storage/v1/object/' + BUCKET + '/' + caminho, {
+      method: 'POST',
+      headers: headers({'Content-Type': file.type || 'image/jpeg', 'x-upsert': 'true'}),
+      body: file
+    }).then(function(r){
+      if(!r.ok) throw new Error('upload');
+      return SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + caminho;
+    });
   }
 
   function pintar(){
@@ -630,7 +702,8 @@
     } else {
       vis.forEach(function(d){ tb.appendChild(linha(d)); });
     }
-    Array.prototype.forEach.call(thsAdm, function(th){ th.hidden = !(ADMIN && SENHA); });
+    if(thFoto) thFoto.hidden = !(PAINEL && SENHA);
+    if(thDel) thDel.hidden = !(ADMIN && SENHA);
     scroll.hidden = false;
     if(searchBox && searchBox.isConnected) searchBox.hidden = false;
     vazio.hidden = true;
@@ -808,15 +881,18 @@
       p_id: d.id,
       p_ativo: ('ativo' in campos) ? campos.ativo : null,
       p_usos: ('usos' in campos) ? campos.usos : null,
-      p_remover: !!campos.remover
+      p_remover: !!campos.remover,
+      p_arte: ('arte' in campos) ? campos.arte : null
     };
     msg(elAdminMsg, 'Salvando…', 'info');
     return api('rpc/jbx_travessia_admin', {method: 'POST', body: JSON.stringify(body)})
       .then(function(res){
         if(res && res.ok === false){
           msg(elAdminMsg, res.erro === 'senha'
-            ? 'Senha do painel incorreta. Confira o link de administração.'
-            : 'Não salvou. Tente de novo.', 'err');
+            ? 'Senha do painel incorreta. Confira o seu link de acesso.'
+            : (res.erro === 'permissao'
+               ? 'Esse acesso só permite subir arte.'
+               : 'Não salvou. Tente de novo.'), 'err');
           throw new Error('recusado');
         }
         msg(elAdminMsg, 'Salvo.', 'ok');
@@ -846,13 +922,17 @@
     pintar();
   }
 
-  if(ADMIN){
+  if(PAINEL){
     var painel = document.getElementById('admin');
     var caixaSenha = document.getElementById('caixa-senha');
     var elSenha = document.getElementById('senha');
     var btnEntrar = document.getElementById('entrar');
     var btnAtualizar = document.getElementById('atualizar');
     painel.hidden = false;
+    if(ARTE && !ADMIN){
+      painel.querySelector('h2').textContent = 'Painel do designer';
+      painel.querySelector('.sub').textContent = 'Suba a arte de cada divulgador na coluna Arte. A foto enviada por eles fica na primeira coluna.';
+    }
     if(btnEntrar){
       btnEntrar.addEventListener('click', function(){
         SENHA = (elSenha && elSenha.value) || '';
