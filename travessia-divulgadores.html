@@ -259,6 +259,12 @@
   }
   a.b-arte:hover{background:var(--green);color:#0B1005}
   td.arte{white-space:nowrap}
+  table.cupons td.who small{
+    display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px;
+  }
+  body.admin-mode table.cupons{font-size:14px}
+  body.admin-mode table.cupons th,body.admin-mode table.cupons td{padding:10px}
+  body.admin-mode input.uso-in{width:58px}
   td.arte button{margin-left:6px}
   input.uso-in{
     width:72px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
@@ -443,7 +449,7 @@
       <div class="cupons-scroll">
         <table class="cupons">
           <thead>
-            <tr><th class="adm foto-col" hidden>Foto</th><th>Nome</th><th>@ Instagram</th><th>Cupom</th><th>Status</th><th class="num">Usos</th><th>Arte</th><th class="adm del-col" hidden></th></tr>
+            <tr><th class="adm foto-col" hidden>Foto</th><th>Nome</th><th class="insta-col">@ Instagram</th><th>Cupom</th><th>Status</th><th class="num">Usos</th><th>Arte</th><th class="adm del-col" hidden></th></tr>
           </thead>
           <tbody id="tb-cupons"></tbody>
         </table>
@@ -503,6 +509,7 @@
   var scroll = document.querySelector('.cupons-scroll');
   var searchBox = document.querySelector('.cupons-search');
   var thFoto = document.querySelector('th.foto-col');
+  var thInsta = document.querySelector('th.insta-col');
   var thDel = document.querySelector('th.del-col');
   var elAdminMsg = document.getElementById('admin-msg');
 
@@ -540,7 +547,7 @@
   function linhaAviso(txt){
     var tr = document.createElement('tr');
     var c = document.createElement('td');
-    c.colSpan = 8; c.className = 'aviso-td'; c.textContent = txt;
+    c.colSpan = document.querySelectorAll('table.cupons thead th:not([hidden])').length || 6; c.className = 'aviso-td'; c.textContent = txt;
     tr.appendChild(c);
     return tr;
   }
@@ -564,8 +571,16 @@
       }
     } else { c0.hidden = true; }
 
-    var c1 = td(); c1.textContent = d.nome;
-    var c2 = td('at'); c2.textContent = d.instagram;
+    var juntos = PAINEL && SENHA;
+    var c1 = td('who');
+    c1.appendChild(document.createTextNode(d.nome));
+    if(juntos){
+      var sm = document.createElement('small');
+      sm.textContent = d.instagram;
+      c1.appendChild(sm);
+    }
+    var c2 = null;
+    if(!juntos){ c2 = td('at'); c2.textContent = d.instagram; }
     var c3 = td('code'); c3.textContent = d.cupom;
 
     var c4 = td();
@@ -624,7 +639,7 @@
       c6.appendChild(del);
     } else { c6.hidden = true; }
 
-    [c0,c1,c2,c3,c4,c5,c65,c6].forEach(function(c){ tr.appendChild(c); });
+    [c0,c1,c2,c3,c4,c5,c65,c6].forEach(function(c){ if(c) tr.appendChild(c); });
     return tr;
   }
 
@@ -703,6 +718,7 @@
       vis.forEach(function(d){ tb.appendChild(linha(d)); });
     }
     if(thFoto) thFoto.hidden = !(PAINEL && SENHA);
+    if(thInsta) thInsta.hidden = !!(PAINEL && SENHA);
     if(thDel) thDel.hidden = !(ADMIN && SENHA);
     scroll.hidden = false;
     if(searchBox && searchBox.isConnected) searchBox.hidden = false;
@@ -710,7 +726,7 @@
   }
 
   function carregar(){
-    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,foto_url&order=usos.desc,nome.asc')
+    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,foto_url,arte_url&order=usos.desc,nome.asc')
       .then(function(rows){ LISTA = rows || []; pintar(); })
       .catch(function(){
         tb.textContent = '';
