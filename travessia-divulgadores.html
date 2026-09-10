@@ -700,10 +700,21 @@
       p_remover: !!campos.remover
     };
     msg(elAdminMsg, 'Salvando…', 'info');
-    return api('rpc/admin_divulgador', {method: 'POST', body: JSON.stringify(body)})
-      .then(function(){ msg(elAdminMsg, 'Salvo.', 'ok'); })
+    return api('rpc/jbx_travessia_admin', {method: 'POST', body: JSON.stringify(body)})
+      .then(function(res){
+        if(res && res.ok === false){
+          msg(elAdminMsg, res.erro === 'senha'
+            ? 'Senha do painel incorreta. Confira o link de administração.'
+            : 'Não salvou. Tente de novo.', 'err');
+          throw new Error('recusado');
+        }
+        msg(elAdminMsg, 'Salvo.', 'ok');
+      })
       .catch(function(e){
-        msg(elAdminMsg, 'Não salvou — confira a senha e tente de novo.', 'err');
+        if(e && e.message !== 'recusado'){
+          var det = e && e.body && e.body.message ? ' (' + e.body.message + ')' : '';
+          msg(elAdminMsg, 'Não salvou' + det + '. Tente de novo.', 'err');
+        }
         throw e;
       });
   }
