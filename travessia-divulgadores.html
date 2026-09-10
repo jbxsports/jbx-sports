@@ -265,6 +265,14 @@
   input[type=password]:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-color:transparent}
   .skeleton{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
   td.aviso-td{text-align:center;color:var(--muted);padding:26px 16px}
+  body.admin-mode .hero,
+  body.admin-mode main > section:not(#cupons),
+  body.admin-mode footer,
+  body.admin-mode #cupons .sec-head,
+  body.admin-mode #cupons .sec-sub,
+  body.admin-mode .cupons-search{display:none !important}
+  body.admin-mode main{padding-block:20px 40px}
+  body.admin-mode #cupons{margin-top:0}
   .b-link{
     display:block;margin-top:12px;padding:0;background:none;border:0;
     color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;font-weight:400;
@@ -690,20 +698,28 @@
       });
   }
 
+  function soTabela(){
+    document.body.classList.add('admin-mode');
+    var sec = document.getElementById('cupons');
+    sec.appendChild(elAdminMsg);
+    document.getElementById('admin').hidden = true;
+    msg(elAdminMsg, '', 'info');
+  }
+
   if(ADMIN){
     var painel = document.getElementById('admin');
     var caixaSenha = document.getElementById('caixa-senha');
     painel.hidden = false;
     if(SENHA){
       caixaSenha.hidden = true;
-      msg(elAdminMsg, 'Painel liberado. Na tabela acima, clique no botão INATIVO para ativar o cupom e digite os usos.', 'ok');
+      soTabela();
     }
     var elSenha = document.getElementById('senha');
     document.getElementById('entrar').addEventListener('click', function(){
       SENHA = elSenha.value || '';
       if(!SENHA){ msg(elAdminMsg, 'Digite a senha.', 'err'); return; }
       caixaSenha.hidden = true;
-      msg(elAdminMsg, 'Painel liberado. Na tabela acima, clique no botão INATIVO para ativar o cupom e digite os usos.', 'ok');
+      soTabela();
       pintar();
     });
     document.getElementById('atualizar').addEventListener('click', function(){
