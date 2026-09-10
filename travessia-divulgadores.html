@@ -272,6 +272,10 @@
   body.admin-mode .cupons-search{display:none !important}
   body.admin-mode main{padding-block:32px 48px}
   body.admin-mode #cupons{margin-top:0}
+  body.admin-mode table.cupons{min-width:0}
+  body.admin-mode table.cupons th,
+  body.admin-mode table.cupons td{padding-left:12px;padding-right:12px}
+  body.admin-mode .b-del{padding:6px 10px;font-size:13px;line-height:1}
   .b-link{
     display:block;margin-top:12px;padding:0;background:none;border:0;
     color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;font-weight:400;
@@ -548,7 +552,8 @@
     var c6 = td('adm');
     if(ADMIN && SENHA){
       var del = document.createElement('button');
-      del.type = 'button'; del.className = 'b-mini b-del'; del.textContent = 'Remover';
+      del.type = 'button'; del.className = 'b-mini b-del'; del.textContent = '\u2715';
+      del.title = 'Remover da lista'; del.setAttribute('aria-label', 'Remover da lista');
       del.addEventListener('click', function(){
         del.disabled = true;
         salvar(d, {remover: true}).then(function(){ carregar(); }).catch(function(){ del.disabled = false; });
@@ -568,7 +573,8 @@
     return tr;
   }
   function pintar(){
-    var q = norm(busca.value).trim();
+    var temBusca = busca && busca.isConnected;
+    var q = temBusca ? norm(busca.value).trim() : '';
     var vis = LISTA.filter(function(d){
       if(!q) return true;
       return norm(d.nome).indexOf(q) > -1 || norm(d.instagram).indexOf(q) > -1 || norm(d.cupom).indexOf(q) > -1;
@@ -583,7 +589,7 @@
     }
     if(thAdm) thAdm.hidden = !(ADMIN && SENHA);
     scroll.hidden = false;
-    searchBox.hidden = false;
+    if(searchBox && searchBox.isConnected) searchBox.hidden = false;
     vazio.hidden = true;
   }
 
@@ -702,33 +708,47 @@
       });
   }
 
+  function tirar(el){ if(el && el.parentNode) el.parentNode.removeChild(el); }
+
   function soTabela(){
     document.body.classList.add('admin-mode');
     var sec = document.getElementById('cupons');
     sec.appendChild(elAdminMsg);
-    document.getElementById('admin').hidden = true;
+    // Tira do DOM tudo que nao e a tabela: campos escondidos atraem o
+    // preenchimento automatico do navegador e sujam o filtro da lista.
+    if(busca) busca.value = '';
+    tirar(searchBox);
+    tirar(document.getElementById('admin'));
+    tirar(document.querySelector('footer'));
+    Array.prototype.slice.call(document.querySelectorAll('main > section')).forEach(function(el){
+      if(el.id !== 'cupons') tirar(el);
+    });
     msg(elAdminMsg, '', 'info');
+    pintar();
   }
 
   if(ADMIN){
     var painel = document.getElementById('admin');
     var caixaSenha = document.getElementById('caixa-senha');
-    painel.hidden = false;
-    if(SENHA){
-      caixaSenha.hidden = true;
-      soTabela();
-    }
     var elSenha = document.getElementById('senha');
-    document.getElementById('entrar').addEventListener('click', function(){
-      SENHA = elSenha.value || '';
-      if(!SENHA){ msg(elAdminMsg, 'Digite a senha.', 'err'); return; }
-      caixaSenha.hidden = true;
-      soTabela();
-      pintar();
-    });
-    document.getElementById('atualizar').addEventListener('click', function(){
-      carregar().then(function(){ msg(elAdminMsg, 'Lista atualizada.', 'ok'); });
-    });
+    var btnEntrar = document.getElementById('entrar');
+    var btnAtualizar = document.getElementById('atualizar');
+    painel.hidden = false;
+
+    if(btnEntrar){
+      btnEntrar.addEventListener('click', function(){
+        SENHA = (elSenha && elSenha.value) || '';
+        if(!SENHA){ msg(elAdminMsg, 'Digite a senha.', 'err'); return; }
+        soTabela();
+      });
+    }
+    if(btnAtualizar){
+      btnAtualizar.addEventListener('click', function(){
+        carregar().then(function(){ msg(elAdminMsg, 'Lista atualizada.', 'ok'); });
+      });
+    }
+
+    if(SENHA) soTabela();
   }
 
   busca.addEventListener('input', pintar);
