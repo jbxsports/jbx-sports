@@ -467,15 +467,15 @@
     <div class="form-card">
       <div class="field">
         <label for="nome">Nome completo</label>
-        <input type="text" id="nome" name="nome" autocomplete="name" placeholder="Maria Souza Lima">
+        <input type="text" id="nome" name="nome_divulgador" autocomplete="off" autocapitalize="words" placeholder="Maria Souza Lima">
       </div>
       <div class="field">
         <label for="insta">@ do Instagram</label>
-        <input type="text" id="insta" name="insta" autocomplete="off" placeholder="@seuperfil">
+        <input type="text" id="insta" name="insta_divulgador" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="@seuperfil">
       </div>
       <div class="field">
         <label for="cupom">Nome do cupom</label>
-        <input type="text" id="cupom" name="cupom" autocomplete="off" placeholder="MARIA10" maxlength="16">
+        <input type="text" id="cupom" name="cupom_divulgador" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="MARIA10" maxlength="16">
         <span class="hint">Sem espaço e sem acento. Ex.: primeiro nome + 10.</span>
       </div>
       <div class="field">
@@ -498,7 +498,7 @@
         <b class="code" id="feito-cupom"></b>
         <span>Cadastro feito. Seu cupom começa como INATIVO e a JBX Sports libera em seguida. Acompanhe na tabela abaixo.</span>
         <div class="btns" style="margin-top:14px">
-          <button type="button" class="b-ghost" id="outro">Cadastrar outra pessoa neste aparelho</button>
+          <button type="button" class="b-ghost" id="outro">Fazer outro cadastro</button>
         </div>
       </div>
     </div>
@@ -510,7 +510,7 @@
     <div class="cupons-box">
       <div class="cupons-search">
         <label for="busca">Buscar por nome, @ ou cupom</label>
-        <input type="text" id="busca" name="busca" placeholder="Digite seu nome" autocomplete="off">
+        <input type="text" id="busca" name="busca_lista" placeholder="Digite seu nome" autocomplete="off" spellcheck="false">
       </div>
       <div class="cupons-scroll">
         <table class="cupons">
@@ -574,6 +574,11 @@
   var busca = document.getElementById('busca');
   var scroll = document.querySelector('.cupons-scroll');
   var searchBox = document.querySelector('.cupons-search');
+  if(!PAINEL){
+    var painelFora = document.getElementById('admin');
+    if(painelFora && painelFora.parentNode) painelFora.parentNode.removeChild(painelFora);
+  }
+
   var thFoto = document.querySelector('th.foto-col');
   var thInsta = document.querySelector('th.insta-col');
   var thDel = document.querySelector('th.del-col');
@@ -876,22 +881,7 @@
   var btn = document.getElementById('enviar');
   var jaEnviou = false;
 
-  if(HASH.toLowerCase().indexOf('novo') > -1){
-    try { localStorage.removeItem('travessia_divulgador'); } catch(e){}
-  }
-  try {
-    var salvo = localStorage.getItem('travessia_divulgador');
-    if(salvo){
-      jaEnviou = true;
-      elFeitoCupom.textContent = salvo;
-      elFeito.hidden = false;
-      btn.textContent = 'Você já está cadastrado';
-      btn.disabled = true;
-    }
-  } catch(e){}
-
   function liberarAparelho(){
-    try { localStorage.removeItem('travessia_divulgador'); } catch(e){}
     jaEnviou = false;
     elFeito.hidden = true;
     btn.disabled = false;
@@ -942,7 +932,6 @@
     }).then(function(res){
       if(res && res.ok){
         jaEnviou = true;
-        try { localStorage.setItem('travessia_divulgador', res.cupom); } catch(e){}
         elFeitoCupom.textContent = res.cupom;
         elFeito.hidden = false;
         btn.textContent = 'Você já está cadastrado';
