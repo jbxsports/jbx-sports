@@ -265,6 +265,11 @@
   input[type=password]:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-color:transparent}
   .skeleton{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
   td.aviso-td{text-align:center;color:var(--muted);padding:26px 16px}
+  .b-link{
+    display:block;margin-top:12px;padding:0;background:none;border:0;
+    color:var(--muted);font-size:13px;text-decoration:underline;cursor:pointer;font-weight:400;
+  }
+  .b-link:hover{color:var(--ink)}
 </style>
 
 <style>*{box-sizing:border-box}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -379,6 +384,7 @@
       <div class="card-ok" id="feito" hidden>
         <b id="feito-cupom"></b>
         <span>Cadastro feito. Seu cupom começa como <b style="display:inline;font-size:14px">INATIVO</b> e a JBX Sports libera em seguida. Acompanhe na tabela abaixo.</span>
+        <button type="button" class="b-link" id="outro">Não é você? Cadastrar outra pessoa neste aparelho</button>
       </div>
     </div>
   </section>
@@ -616,6 +622,20 @@
     cupom_existe: 'Esse nome de cupom já está sendo usado. Escolha outro.',
     instagram_existe: 'Esse Instagram já tem cadastro. Um cadastro por pessoa.'
   };
+
+  function liberarAparelho(){
+    try { localStorage.removeItem('travessia_divulgador'); } catch(e){}
+    jaEnviou = false;
+    elFeito.hidden = true;
+    btn.disabled = false;
+    btn.textContent = 'Fazer meu cadastro';
+    elNome.value = ''; elInsta.value = ''; elCupom.value = '';
+    delete elCupom.dataset.tocado;
+    msg(elMsg, '', 'info');
+    elNome.focus();
+  }
+  var btnOutro = document.getElementById('outro');
+  if(btnOutro) btnOutro.addEventListener('click', liberarAparelho);
 
   btn.addEventListener('click', function(){
     if(jaEnviou) return;
