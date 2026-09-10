@@ -392,7 +392,9 @@
       <div class="card-ok" id="feito" hidden>
         <b id="feito-cupom"></b>
         <span>Cadastro feito. Seu cupom começa como <b style="display:inline;font-size:14px">INATIVO</b> e a JBX Sports libera em seguida. Acompanhe na tabela abaixo.</span>
-        <button type="button" class="b-link" id="outro">Não é você? Cadastrar outra pessoa neste aparelho</button>
+        <div class="btns" style="margin-top:14px">
+          <button type="button" class="b-ghost" id="outro">Cadastrar outra pessoa neste aparelho</button>
+        </div>
       </div>
     </div>
   </section>
@@ -607,6 +609,9 @@
   var btn = document.getElementById('enviar');
   var jaEnviou = false;
 
+  if(HASH.toLowerCase().indexOf('novo') > -1){
+    try { localStorage.removeItem('travessia_divulgador'); } catch(e){}
+  }
   try {
     var salvo = localStorage.getItem('travessia_divulgador');
     if(salvo){
