@@ -262,6 +262,8 @@
   table.cupons td.who small{
     display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px;
   }
+  table.cupons td.who small.so-mobile{display:none}
+  @media (max-width:640px){table.cupons td.who small.so-mobile{display:block}}
   body.admin-mode table.cupons{font-size:14px}
   body.admin-mode table.cupons th,body.admin-mode table.cupons td{padding:10px}
   body.admin-mode input.uso-in{width:58px}
@@ -271,6 +273,70 @@
     color:var(--ink);font-family:var(--f-mono);font-size:14px;font-weight:700;padding:6px 9px;text-align:right;
   }
   .skeleton{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
+
+  /* ---- celular: tabela compacta, cabe inteira na tela ---- */
+  @media (max-width:640px){
+    .cupons-scroll{overflow-x:visible}
+    table.cupons{min-width:0;font-size:12px;table-layout:fixed;width:100%}
+    table.cupons th{font-size:9px;letter-spacing:.04em;padding:8px 4px}
+    table.cupons td{padding:8px 4px;vertical-align:middle}
+    table.cupons th.insta-col,table.cupons td.at{display:none}
+    table.cupons td.who{font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+    table.cupons td.who small{display:block;font-size:9.5px;margin-top:2px}
+    table.cupons td.code{font-size:10.5px;letter-spacing:0;white-space:nowrap}
+    table.cupons th.nome-col{width:26%}
+    table.cupons th.cupom-col{width:26%}
+    table.cupons th.status-col{width:19%}
+    table.cupons th.usos-col{width:11%}
+    table.cupons th.arte-col{width:17%}
+    body.admin-mode table.cupons th.foto-col{width:9%}
+    body.admin-mode table.cupons th.nome-col{width:22%}
+    body.admin-mode table.cupons th.cupom-col{width:22%}
+    body.admin-mode table.cupons th.status-col{width:16%}
+    body.admin-mode table.cupons th.usos-col{width:10%}
+    body.admin-mode table.cupons th.arte-col{width:15%}
+    body.admin-mode table.cupons th.del-col{width:6%}
+    .pill{font-size:9px;padding:3px 6px;letter-spacing:.02em}
+    .b-mini,a.b-arte{font-size:9px;padding:5px 6px;letter-spacing:.02em}
+    .b-del{padding:4px 6px}
+    td.arte{white-space:normal}
+    td.arte button{margin-left:0;margin-top:4px}
+    input.uso-in{width:40px;font-size:12px;padding:4px 5px}
+    .foto-mini{width:28px;height:28px}
+    .cupons-search{padding:12px 14px}
+    /* painel no celular: cada divulgador vira um cartao */
+    body.admin-mode table.cupons{display:block;table-layout:auto;font-size:14px}
+    body.admin-mode table.cupons thead{display:none}
+    body.admin-mode table.cupons tbody{display:block}
+    body.admin-mode table.cupons tr{
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
+      padding:14px 16px;border-bottom:1px solid var(--line);
+    }
+    body.admin-mode table.cupons tr:last-child{border-bottom:0}
+    body.admin-mode table.cupons td{
+      display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+      padding:0;border:0;overflow:visible;width:auto;
+    }
+    body.admin-mode table.cupons td::before{
+      content:attr(data-label);font-family:var(--f-mono);font-size:9px;
+      letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    }
+    body.admin-mode table.cupons td:not([data-label])::before{content:none}
+    body.admin-mode table.cupons td.foto-td{order:1}
+    body.admin-mode .foto-mini{width:46px;height:46px;border-radius:8px}
+    body.admin-mode table.cupons td.who{order:2;flex:1 1 150px;font-size:15px;font-weight:700}
+    body.admin-mode table.cupons td.who small{font-size:11px}
+    body.admin-mode table.cupons td.code{order:3;width:100%;font-size:16px;white-space:normal}
+    body.admin-mode table.cupons td[data-label]{order:4}
+    body.admin-mode table.cupons td.adm:not(.foto-td){order:9;margin-left:auto}
+    body.admin-mode table.cupons td.aviso-td{width:100%;align-items:center}
+    body.admin-mode table.cupons td.aviso-td::before{content:none}
+    body.admin-mode .pill,body.admin-mode .b-mini,body.admin-mode a.b-arte{font-size:11px;padding:6px 10px;white-space:nowrap}
+    body.admin-mode td.arte{flex-direction:column}
+    body.admin-mode td.arte button{display:inline-block;width:auto;margin:4px 0 0}
+    body.admin-mode a.b-arte{display:inline-block}
+    body.admin-mode input.uso-in{width:56px;font-size:14px;padding:5px 7px}
+  }
 
   /* painel */
   .admin{margin-top:46px;background:var(--raised);border:1px solid var(--line-2);border-radius:var(--radius);padding:22px}
@@ -449,7 +515,7 @@
       <div class="cupons-scroll">
         <table class="cupons">
           <thead>
-            <tr><th class="adm foto-col" hidden>Foto</th><th>Nome</th><th class="insta-col">@ Instagram</th><th>Cupom</th><th>Status</th><th class="num">Usos</th><th>Arte</th><th class="adm del-col" hidden></th></tr>
+            <tr><th class="adm foto-col" hidden>Foto</th><th class="nome-col">Nome</th><th class="insta-col">@ Instagram</th><th class="cupom-col">Cupom</th><th class="status-col">Status</th><th class="num usos-col">Usos</th><th class="arte-col">Arte</th><th class="adm del-col" hidden></th></tr>
           </thead>
           <tbody id="tb-cupons"></tbody>
         </table>
@@ -556,7 +622,7 @@
     var editando = ADMIN && SENHA;
     var tr = document.createElement('tr');
 
-    var c0 = td('adm');
+    var c0 = td('adm foto-td');
     if(PAINEL && SENHA){
       if(d.foto_url){
         var a = document.createElement('a');
@@ -574,16 +640,16 @@
     var juntos = PAINEL && SENHA;
     var c1 = td('who');
     c1.appendChild(document.createTextNode(d.nome));
-    if(juntos){
-      var sm = document.createElement('small');
-      sm.textContent = d.instagram;
-      c1.appendChild(sm);
-    }
+    var sm = document.createElement('small');
+    sm.textContent = d.instagram;
+    if(!juntos) sm.className = 'so-mobile';
+    c1.appendChild(sm);
     var c2 = null;
     if(!juntos){ c2 = td('at'); c2.textContent = d.instagram; }
     var c3 = td('code'); c3.textContent = d.cupom;
 
     var c4 = td();
+    c4.dataset.label = 'Status';
     if(editando){
       var flag = document.createElement('button');
       flag.type = 'button';
@@ -608,6 +674,7 @@
     }
 
     var c5 = td('num');
+    c5.dataset.label = 'Usos';
     if(editando){
       var uso = document.createElement('input');
       uso.type = 'number'; uso.min = '0'; uso.step = '1';
@@ -624,6 +691,7 @@
     }
 
     var c65 = td('arte');
+    c65.dataset.label = 'Arte';
     montarArte(c65, d);
 
     var c6 = td('adm');
