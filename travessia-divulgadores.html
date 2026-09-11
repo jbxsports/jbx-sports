@@ -265,6 +265,8 @@
   .pill{display:inline-block;font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.06em;padding:4px 10px;border-radius:999px;white-space:nowrap}
   .pill.on{background:rgba(121,202,42,.16);color:var(--green-2);border:1px solid rgba(121,202,42,.42)}
   .pill.wait{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--line-2)}
+  .pill.off{background:rgba(255,107,107,.13);color:var(--danger);border:1px solid rgba(255,107,107,.38)}
+  .b-flag.off{border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.14);color:var(--danger)}
   .b-mini{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;padding:6px 11px;border-radius:8px;font-weight:700}
   .b-flag{border:1px solid var(--line-2);background:rgba(255,255,255,.05);color:var(--muted)}
   .b-flag.on{border-color:rgba(121,202,42,.45);background:rgba(121,202,42,.16);color:var(--green-2)}
@@ -656,6 +658,24 @@
   /* ---------------- tabela ---------------- */
   function td(cls){ var c = document.createElement('td'); if(cls) c.className = cls; return c; }
 
+  var ESTADOS = [
+    {chave:'inativo',   texto:'INATIVO',   classe:'wait'},
+    {chave:'ativo',     texto:'ATIVO',     classe:'on'},
+    {chave:'reprovado', texto:'REPROVADO', classe:'off'}
+  ];
+  function estadoDe(d){
+    if(d.reprovado) return ESTADOS[2];
+    if(d.ativo) return ESTADOS[1];
+    return ESTADOS[0];
+  }
+  function proximoEstado(d){
+    var i = ESTADOS.indexOf(estadoDe(d));
+    return ESTADOS[(i + 1) % ESTADOS.length];
+  }
+  function camposDoEstado(e){
+    return {ativo: e.chave === 'ativo', reprovado: e.chave === 'reprovado'};
+  }
+
   function linkInsta(handle){
     var limpo = (handle || '').trim().replace(/^@+/, '').replace(/\s+/g, '');
     var a = document.createElement('a');
@@ -713,23 +733,30 @@
     if(editando){
       var flag = document.createElement('button');
       flag.type = 'button';
-      flag.className = 'b-mini b-flag' + (d.ativo ? ' on' : '');
-      flag.textContent = d.ativo ? 'ATIVO' : 'INATIVO';
+      flag.title = 'Clique para alternar: inativo, ativo, reprovado';
+      var pinta = function(){
+        var e = estadoDe(d);
+        flag.className = 'b-mini b-flag b-status ' + e.classe;
+        flag.textContent = e.texto;
+      };
+      pinta();
       flag.addEventListener('click', function(){
-        var novo = !d.ativo;
+        var novo = proximoEstado(d);
+        var campos = camposDoEstado(novo);
         flag.disabled = true;
-        salvar(d, {ativo: novo}).then(function(){
-          d.ativo = novo;
-          flag.className = 'b-mini b-flag' + (novo ? ' on' : '');
-          flag.textContent = novo ? 'ATIVO' : 'INATIVO';
+        salvar(d, campos).then(function(){
+          d.ativo = campos.ativo;
+          d.reprovado = campos.reprovado;
+          pinta();
           flag.disabled = false;
         }).catch(function(){ flag.disabled = false; });
       });
       c4.appendChild(flag);
     } else {
+      var e = estadoDe(d);
       var pill = document.createElement('span');
-      pill.className = 'pill ' + (d.ativo ? 'on' : 'wait');
-      pill.textContent = d.ativo ? 'ATIVO' : 'INATIVO';
+      pill.className = 'pill ' + e.classe;
+      pill.textContent = e.texto;
       c4.appendChild(pill);
     }
 
@@ -831,17 +858,29 @@
   }
 
   function pintar(){
+    var soDesigner = ARTE && !ADMIN && SENHA;
+    var base = soDesigner ? LISTA.filter(function(d){ return !!d.ativo; }) : LISTA;
+    if(soDesigner){
+      base = base.slice().sort(function(a,b){
+        var fa = a.arte_url ? 1 : 0, fb = b.arte_url ? 1 : 0;
+        if(fa !== fb) return fa - fb;
+        return (a.nome||'').localeCompare(b.nome||'');
+      });
+    }
     var temBusca = busca && busca.isConnected;
     var q = temBusca ? norm(busca.value).trim() : '';
-    var vis = LISTA.filter(function(d){
+    var vis = base.filter(function(d){
       if(!q) return true;
       return norm(d.nome).indexOf(q) > -1 || norm(d.instagram).indexOf(q) > -1 || norm(d.cupom).indexOf(q) > -1;
     });
     tb.textContent = '';
     if(!vis.length){
-      tb.appendChild(linhaAviso(LISTA.length
-        ? 'Nenhum divulgador encontrado com “' + busca.value + '”.'
-        : 'Nenhum divulgador cadastrado ainda. Seja o primeiro.'));
+      tb.appendChild(linhaAviso(
+        soDesigner
+          ? 'Nenhum divulgador aprovado ainda. Assim que a JBX Sports aprovar, eles aparecem aqui.'
+          : (LISTA.length
+              ? 'Nenhum divulgador encontrado com “' + busca.value + '”.'
+              : 'Nenhum divulgador cadastrado ainda. Seja o primeiro.')));
     } else {
       vis.forEach(function(d){ tb.appendChild(linha(d)); });
     }
@@ -854,7 +893,7 @@
   }
 
   function carregar(){
-    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,foto_url,arte_url&order=usos.desc,nome.asc')
+    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,reprovado,foto_url,arte_url&order=usos.desc,nome.asc')
       .then(function(rows){ LISTA = rows || []; pintar(); })
       .catch(function(){
         tb.textContent = '';
@@ -1008,6 +1047,7 @@
       p_senha: SENHA,
       p_id: d.id,
       p_ativo: ('ativo' in campos) ? campos.ativo : null,
+      p_reprovado: ('reprovado' in campos) ? campos.reprovado : null,
       p_usos: ('usos' in campos) ? campos.usos : null,
       p_remover: !!campos.remover,
       p_arte: ('arte' in campos) ? campos.arte : null
@@ -1059,7 +1099,7 @@
     painel.hidden = false;
     if(ARTE && !ADMIN){
       painel.querySelector('h2').textContent = 'Painel do designer';
-      painel.querySelector('.sub').textContent = 'Suba a arte de cada divulgador na coluna Arte. A foto enviada por eles fica na primeira coluna.';
+      painel.querySelector('.sub').textContent = 'Aqui aparecem só os divulgadores já aprovados pela JBX Sports. Quem ainda não tem arte vem primeiro na lista. A foto enviada por cada um está na primeira coluna.';
     }
     if(btnEntrar){
       btnEntrar.addEventListener('click', function(){
