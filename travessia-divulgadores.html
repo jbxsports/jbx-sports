@@ -246,8 +246,25 @@
   .cupons-box{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
   .cupons-search{padding:16px 18px;border-bottom:1px solid var(--line)}
   .cupons-search label{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
-  .cupons-scroll{overflow-x:auto}
-  table.cupons{border-collapse:collapse;width:100%;min-width:540px;font-size:15px}
+  .cupons-scroll{overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+  .cupons-scroll::-webkit-scrollbar{display:none}
+  table.cupons{border-collapse:collapse;width:100%;table-layout:fixed;font-size:15px}
+  table.cupons th,table.cupons td{overflow:hidden}
+  table.cupons th.nome-col{width:23%}
+  table.cupons th.insta-col{width:17%}
+  table.cupons th.cupom-col{width:16%}
+  table.cupons th.aprov-col{width:14%}
+  table.cupons th.status-col{width:13%}
+  table.cupons th.usos-col{width:7%}
+  table.cupons th.arte-col{width:10%}
+  body.admin-mode table.cupons th.foto-col{width:6%}
+  body.admin-mode table.cupons th.nome-col{width:21%}
+  body.admin-mode table.cupons th.cupom-col{width:15%}
+  body.admin-mode table.cupons th.aprov-col{width:14%}
+  body.admin-mode table.cupons th.status-col{width:13%}
+  body.admin-mode table.cupons th.usos-col{width:9%}
+  body.admin-mode table.cupons th.arte-col{width:14%}
+  body.admin-mode table.cupons th.del-col{width:8%}
   table.cupons th{
     text-align:left;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--muted);font-weight:400;padding:12px 18px;border-bottom:1px solid var(--line);white-space:nowrap;
@@ -256,8 +273,8 @@
   table.cupons tr:last-child td{border-bottom:0}
   table.cupons th.num,table.cupons td.num{text-align:right;font-variant-numeric:tabular-nums}
   table.cupons td.num{font-family:var(--f-mono);font-weight:700}
-  table.cupons td.code{font-family:var(--f-mono);font-weight:700;color:var(--green-2);white-space:nowrap}
-  table.cupons td.at{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap}
+  table.cupons td.code{font-family:var(--f-mono);font-weight:700;color:var(--green-2);overflow-wrap:anywhere}
+  table.cupons td.at{font-family:var(--f-mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
   table.cupons th.adm,table.cupons td.adm{width:1%;white-space:nowrap}
   td.aviso-td{text-align:center;color:var(--muted);padding:26px 16px}
   .foto-mini{width:34px;height:34px;border-radius:6px;object-fit:cover;border:1px solid var(--line);display:block}
@@ -276,14 +293,18 @@
     background:rgba(121,202,42,.16);color:var(--green-2);
   }
   a.b-arte:hover{background:var(--green);color:#0B1005}
-  td.arte{white-space:nowrap}
+  td.arte{white-space:normal}
+  .arte-acoes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  td.arte a.b-arte{display:inline-block;text-align:center}
+  table.cupons td.who{overflow-wrap:anywhere}
   table.cupons td.who small{
     display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px;
+    overflow-wrap:anywhere;
   }
   a.insta-link{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.28)}
   a.insta-link:hover{color:var(--green-2);border-bottom-color:var(--green-2)}
   table.cupons td.who small.so-mobile{display:none}
-  @media (max-width:640px){table.cupons td.who small.so-mobile{display:block}}
+
   body.admin-mode table.cupons{font-size:14px}
   body.admin-mode table.cupons th,body.admin-mode table.cupons td{padding:9px 6px}
   body.admin-mode .b-mini,body.admin-mode a.b-arte{font-size:10px;padding:5px 8px}
@@ -297,96 +318,66 @@
   body.admin-mode input.uso-in{width:58px}
   td.arte button{margin-left:6px}
   input.cupom-in{
-    width:104px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
+    width:100%;max-width:118px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
     color:var(--green-2);font-family:var(--f-mono);font-size:13px;font-weight:700;
     letter-spacing:.04em;text-transform:uppercase;padding:6px 8px;
   }
   input.cupom-in:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-  .insta-edit{display:inline-flex;align-items:center;gap:6px}
+  .insta-edit{display:flex;align-items:center;gap:5px;max-width:100%}
   input.insta-in{
-    width:112px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:7px;
+    width:100%;max-width:118px;min-width:0;background:#0B0F1C;border:1px solid var(--line-2);border-radius:7px;
     color:var(--muted);font-family:var(--f-mono);font-size:11px;padding:4px 7px;
   }
   input.insta-in:focus-visible{outline:2px solid var(--green);outline-offset:2px;color:var(--ink)}
   a.insta-ir{text-decoration:none;color:var(--muted);font-size:13px;line-height:1}
   a.insta-ir:hover{color:var(--green-2)}
   input.uso-in{
-    width:72px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
+    width:100%;max-width:72px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
     color:var(--ink);font-family:var(--f-mono);font-size:14px;font-weight:700;padding:6px 9px;text-align:right;
   }
   .skeleton{padding:28px 20px;text-align:center;color:var(--muted);font-size:15px}
 
-  /* ---- celular: tabela compacta, cabe inteira na tela ---- */
+  /* ---- celular: cada divulgador vira um cartao ---- */
   @media (max-width:640px){
     .cupons-scroll{overflow-x:visible}
-    table.cupons{min-width:0;font-size:12px;table-layout:fixed;width:100%}
-    table.cupons th{font-size:9px;letter-spacing:.04em;padding:8px 4px}
-    table.cupons td{padding:8px 4px;vertical-align:middle;overflow:hidden}
-    .b-mini,a.b-arte{font-size:8px;padding:4px 5px;white-space:normal;line-height:1.1}
-    .sem-foto{font-size:9px}
-    table.cupons th.insta-col,table.cupons td.at{display:none}
-    table.cupons td.who{font-size:12px;line-height:1.25;overflow-wrap:anywhere}
-    table.cupons td.who small{display:block;font-size:9.5px;margin-top:2px}
-    table.cupons td.code{font-size:10.5px;letter-spacing:0;white-space:nowrap}
-    table.cupons th.nome-col{width:21%}
-    table.cupons th.cupom-col{width:20%}
-    table.cupons th.aprov-col{width:19%}
-    table.cupons th.status-col{width:16%}
-    table.cupons th.usos-col{width:9%}
-    table.cupons th.arte-col{width:15%}
-    table.cupons td.code{font-size:9.5px}
-    .pill{font-size:8px;padding:3px 5px}
-    table.cupons th{font-size:8.5px;letter-spacing:0}
-    body.admin-mode table.cupons th.foto-col{width:9%}
-    body.admin-mode table.cupons th.nome-col{width:22%}
-    body.admin-mode table.cupons th.cupom-col{width:22%}
-    body.admin-mode table.cupons th.aprov-col{width:16%}
-    body.admin-mode table.cupons th.status-col{width:14%}
-    body.admin-mode table.cupons th.usos-col{width:10%}
-    body.admin-mode table.cupons th.arte-col{width:15%}
-    body.admin-mode table.cupons th.del-col{width:6%}
-    .pill{font-size:9px;padding:3px 6px;letter-spacing:.02em}
-    .b-mini,a.b-arte{font-size:9px;padding:5px 6px;letter-spacing:.02em}
-    .b-del{padding:4px 6px}
-    td.arte{white-space:normal}
-    td.arte button{margin-left:0;margin-top:4px}
-    input.uso-in{width:40px;font-size:12px;padding:4px 5px}
-    .foto-mini{width:28px;height:28px}
-    .cupons-search{padding:12px 14px}
-    /* painel no celular: cada divulgador vira um cartao */
-    body.admin-mode table.cupons{display:block;table-layout:auto;font-size:14px}
-    body.admin-mode table.cupons thead{display:none}
-    body.admin-mode table.cupons tbody{display:block}
-    body.admin-mode table.cupons tr{
-      display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;
-      padding:14px 16px;border-bottom:1px solid var(--line);
+    table.cupons{display:block;table-layout:auto;font-size:14px}
+    table.cupons thead{display:none}
+    table.cupons tbody{display:block}
+    table.cupons tr{
+      display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
+      padding:16px;border-bottom:1px solid var(--line);
     }
-    body.admin-mode table.cupons tr:last-child{border-bottom:0}
-    body.admin-mode table.cupons td{
-      display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+    table.cupons tr:last-child{border-bottom:0}
+    table.cupons td{
+      display:flex;flex-direction:column;align-items:flex-start;gap:4px;
       padding:0;border:0;overflow:visible;width:auto;
     }
-    body.admin-mode table.cupons td::before{
+    table.cupons td::before{
       content:attr(data-label);font-family:var(--f-mono);font-size:9px;
       letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
     }
-    body.admin-mode table.cupons td:not([data-label])::before{content:none}
-    body.admin-mode table.cupons td.foto-td{order:1}
-    body.admin-mode .foto-mini{width:46px;height:46px;border-radius:8px}
-    body.admin-mode table.cupons td.who{order:2;flex:1 1 150px;font-size:15px;font-weight:700}
-    body.admin-mode table.cupons td.who small{font-size:11px}
-    body.admin-mode table.cupons td.code{order:3;width:100%;font-size:16px;white-space:normal}
-    body.admin-mode table.cupons td[data-label]{order:4}
-    body.admin-mode table.cupons td.adm:not(.foto-td){order:9;margin-left:auto}
-    body.admin-mode table.cupons td.aviso-td{width:100%;align-items:center}
-    body.admin-mode table.cupons td.aviso-td::before{content:none}
-    body.admin-mode .pill,body.admin-mode .b-mini,body.admin-mode a.b-arte{font-size:11px;padding:6px 10px;white-space:nowrap}
-    body.admin-mode td.arte{flex-direction:column}
-    body.admin-mode td.arte button{display:inline-block;width:auto;margin:4px 0 0}
-    body.admin-mode a.b-arte{display:inline-block}
-    body.admin-mode input.uso-in{width:56px;font-size:14px;padding:5px 7px}
-    body.admin-mode input.cupom-in{width:100%;font-size:14px}
-    body.admin-mode input.insta-in{width:120px}
+    table.cupons td:not([data-label])::before{content:none}
+
+    table.cupons td.foto-td{order:1}
+    .foto-mini{width:46px;height:46px;border-radius:8px}
+    table.cupons td.who{order:2;flex:1 1 150px;font-size:16px;font-weight:700;line-height:1.25}
+    table.cupons td.who small{font-size:11.5px;margin-top:4px}
+    table.cupons td.who small.so-mobile{display:none}
+    table.cupons td.at{order:3;width:100%;margin-top:-6px;font-size:12px}
+    table.cupons td.code{order:4;width:100%;font-size:18px;letter-spacing:.04em}
+    table.cupons td[data-label]{order:5}
+    table.cupons td.arte{order:6}
+    table.cupons td.adm:not(.foto-td){order:9;margin-left:auto;align-self:flex-start}
+    table.cupons td.aviso-td{width:100%;align-items:center;padding:22px 0;text-align:center}
+    table.cupons td.aviso-td::before{content:none}
+
+    .pill,.b-mini,a.b-arte{font-size:11px;padding:6px 10px;white-space:nowrap}
+    .arte-acoes{gap:8px}
+    input.cupom-in{max-width:200px;font-size:15px}
+    input.insta-in{width:100%;max-width:none;font-size:12px}
+    .insta-edit{width:100%;max-width:230px}
+    input.uso-in{max-width:56px;font-size:14px;padding:5px 7px}
+    .cupons-search{padding:14px 16px}
   }
 
   /* painel */
@@ -925,6 +916,9 @@
   function montarArte(cel, d){
     cel.textContent = '';
     var podeSubir = SENHA && (ADMIN || ARTE);
+    var caixa = document.createElement('span');
+    caixa.className = 'arte-acoes';
+    cel.appendChild(caixa);
 
     if(d.arte_url){
       var a = document.createElement('a');
@@ -932,11 +926,11 @@
       a.href = d.arte_url + '?download=' + encodeURIComponent(d.cupom + '-travessia.jpg');
       a.target = '_blank'; a.rel = 'noopener';
       a.textContent = 'BAIXAR';
-      cel.appendChild(a);
+      caixa.appendChild(a);
     } else if(!podeSubir){
       var sp = document.createElement('span');
       sp.className = 'sem-foto'; sp.textContent = 'em produção';
-      cel.appendChild(sp);
+      caixa.appendChild(sp);
     }
 
     if(podeSubir){
@@ -963,8 +957,8 @@
           msg(elAdminMsg, 'Não consegui enviar a arte. Tente de novo.', 'err');
         });
       });
-      cel.appendChild(inp);
-      cel.appendChild(bt);
+      caixa.appendChild(inp);
+      caixa.appendChild(bt);
     }
   }
 
