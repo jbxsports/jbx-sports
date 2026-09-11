@@ -278,6 +278,8 @@
   table.cupons td.who small{
     display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:2px;
   }
+  a.insta-link{color:inherit;text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.28)}
+  a.insta-link:hover{color:var(--green-2);border-bottom-color:var(--green-2)}
   table.cupons td.who small.so-mobile{display:none}
   @media (max-width:640px){table.cupons td.who small.so-mobile{display:block}}
   body.admin-mode table.cupons{font-size:14px}
@@ -654,6 +656,20 @@
   /* ---------------- tabela ---------------- */
   function td(cls){ var c = document.createElement('td'); if(cls) c.className = cls; return c; }
 
+  function linkInsta(handle){
+    var limpo = (handle || '').trim().replace(/^@+/, '').replace(/\s+/g, '');
+    var a = document.createElement('a');
+    a.className = 'insta-link';
+    a.textContent = '@' + limpo;
+    if(limpo){
+      a.href = 'https://www.instagram.com/' + encodeURIComponent(limpo) + '/';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.title = 'Abrir o perfil no Instagram';
+    }
+    return a;
+  }
+
   function linhaAviso(txt){
     var tr = document.createElement('tr');
     var c = document.createElement('td');
@@ -685,11 +701,11 @@
     var c1 = td('who');
     c1.appendChild(document.createTextNode(d.nome));
     var sm = document.createElement('small');
-    sm.textContent = d.instagram;
+    sm.appendChild(linkInsta(d.instagram));
     if(!juntos) sm.className = 'so-mobile';
     c1.appendChild(sm);
     var c2 = null;
-    if(!juntos){ c2 = td('at'); c2.textContent = d.instagram; }
+    if(!juntos){ c2 = td('at'); c2.appendChild(linkInsta(d.instagram)); }
     var c3 = td('code'); c3.textContent = d.cupom;
 
     var c4 = td();
