@@ -180,6 +180,22 @@
   .data dd.url{font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
   .note{font-size:14px;color:var(--muted);margin-top:12px}
 
+  /* materiais */
+  .drive{
+    display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--green);
+    border-radius:var(--radius);padding:22px 24px;
+  }
+  .drive-txt{flex:1 1 240px}
+  .drive-txt b{display:block;font-size:17px;margin-bottom:2px}
+  .drive-txt span{color:var(--muted);font-size:14px}
+  a.drive-btn{
+    display:inline-block;text-decoration:none;font-weight:700;font-size:15px;
+    padding:13px 22px;border-radius:10px;color:#0B1005;
+  }
+  a.drive-btn:hover{filter:brightness(1.08)}
+  .drive-off{color:var(--muted);font-size:14px}
+
   /* formulario */
   .form-card{background:var(--raised);border:1px solid var(--line-2);border-radius:var(--radius);padding:24px}
   .field{display:grid;gap:6px;margin-bottom:18px}
@@ -388,6 +404,7 @@
     <a href="#ganha">O que você ganha</a>
     <a href="#regras">Regras</a>
     <a href="#prova" class="destaque">A prova</a>
+    <a href="#materiais">Materiais</a>
     <a href="#cadastro">Cadastro</a>
     <a href="#cupons">Cupons</a>
   </div>
@@ -461,8 +478,21 @@
     <p class="note">Valores e kit do atleta: em breve. Não divulgue antes.</p>
   </section>
 
+  <section id="materiais">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Materiais de divulgação</h2></div>
+    <p class="sec-sub">Artes, vídeos e legendas prontas da prova. É daqui que sai tudo o que você publica.</p>
+    <div class="drive">
+      <div class="drive-txt">
+        <b>Drive oficial da Travessia</b>
+        <span>Artes para feed e stories, vídeos curtos e legendas. Sua arte personalizada fica na tabela de cupons.</span>
+      </div>
+      <a class="b-primary drive-btn" id="drive-link" href="#" target="_blank" rel="noopener">Abrir o drive</a>
+      <span class="drive-off" id="drive-off" hidden>Link em breve, aqui mesmo.</span>
+    </div>
+  </section>
+
   <section id="cadastro">
-    <div class="sec-head"><span class="sec-num">05</span><h2>Cadastro</h2></div>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Cadastro</h2></div>
     <p class="sec-sub">Preencha e envie. Seu cupom entra na lista na hora, como INATIVO, e a JBX Sports libera.</p>
     <div class="form-card">
       <div class="field">
@@ -505,7 +535,7 @@
   </section>
 
   <section id="cupons">
-    <div class="sec-head"><span class="sec-num">06</span><h2>Cupons liberados</h2></div>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Cupons liberados</h2></div>
     <p class="sec-sub">Ranking por usos do cupom. <b>ATIVO</b> = pode divulgar. <b>INATIVO</b> = aguarde a liberação.</p>
     <div class="cupons-box">
       <div class="cupons-search">
@@ -558,6 +588,7 @@
   var SUPABASE_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
   var BUCKET = 'divulgadores';
+  var DRIVE_URL = 'https://drive.google.com/drive/folders/1ycFcuCVfGGBpRilP9XVnTFc5JZmHKfpZ';
   /* ====================== */
 
   var HASH = decodeURIComponent(location.hash || '');
@@ -574,6 +605,14 @@
   var busca = document.getElementById('busca');
   var scroll = document.querySelector('.cupons-scroll');
   var searchBox = document.querySelector('.cupons-search');
+  (function(){
+    var lk = document.getElementById('drive-link');
+    var off = document.getElementById('drive-off');
+    if(!lk) return;
+    if(DRIVE_URL){ lk.href = DRIVE_URL; }
+    else { lk.hidden = true; off.hidden = false; }
+  })();
+
   if(!PAINEL){
     var painelFora = document.getElementById('admin');
     if(painelFora && painelFora.parentNode) painelFora.parentNode.removeChild(painelFora);
