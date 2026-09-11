@@ -285,9 +285,31 @@
   table.cupons td.who small.so-mobile{display:none}
   @media (max-width:640px){table.cupons td.who small.so-mobile{display:block}}
   body.admin-mode table.cupons{font-size:14px}
-  body.admin-mode table.cupons th,body.admin-mode table.cupons td{padding:10px}
+  body.admin-mode table.cupons th,body.admin-mode table.cupons td{padding:9px 6px}
+  body.admin-mode .b-mini,body.admin-mode a.b-arte{font-size:10px;padding:5px 8px}
+  body.admin-mode input.cupom-in{width:92px;font-size:12px;padding:5px 6px}
+  body.admin-mode input.insta-in{width:104px;font-size:10px}
+  body.admin-mode input.uso-in{width:52px;font-size:13px;padding:5px 6px}
+  body.admin-mode .foto-mini{width:30px;height:30px}
+  body.admin-mode td.arte{white-space:normal}
+  body.admin-mode td.arte a.b-arte{display:block;text-align:center}
+  body.admin-mode td.arte button{display:block;width:100%;margin:4px 0 0}
   body.admin-mode input.uso-in{width:58px}
   td.arte button{margin-left:6px}
+  input.cupom-in{
+    width:104px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
+    color:var(--green-2);font-family:var(--f-mono);font-size:13px;font-weight:700;
+    letter-spacing:.04em;text-transform:uppercase;padding:6px 8px;
+  }
+  input.cupom-in:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .insta-edit{display:inline-flex;align-items:center;gap:6px}
+  input.insta-in{
+    width:112px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:7px;
+    color:var(--muted);font-family:var(--f-mono);font-size:11px;padding:4px 7px;
+  }
+  input.insta-in:focus-visible{outline:2px solid var(--green);outline-offset:2px;color:var(--ink)}
+  a.insta-ir{text-decoration:none;color:var(--muted);font-size:13px;line-height:1}
+  a.insta-ir:hover{color:var(--green-2)}
   input.uso-in{
     width:72px;background:#0B0F1C;border:1px solid var(--line-2);border-radius:8px;
     color:var(--ink);font-family:var(--f-mono);font-size:14px;font-weight:700;padding:6px 9px;text-align:right;
@@ -299,20 +321,27 @@
     .cupons-scroll{overflow-x:visible}
     table.cupons{min-width:0;font-size:12px;table-layout:fixed;width:100%}
     table.cupons th{font-size:9px;letter-spacing:.04em;padding:8px 4px}
-    table.cupons td{padding:8px 4px;vertical-align:middle}
+    table.cupons td{padding:8px 4px;vertical-align:middle;overflow:hidden}
+    .b-mini,a.b-arte{font-size:8px;padding:4px 5px;white-space:normal;line-height:1.1}
+    .sem-foto{font-size:9px}
     table.cupons th.insta-col,table.cupons td.at{display:none}
     table.cupons td.who{font-size:12px;line-height:1.25;overflow-wrap:anywhere}
     table.cupons td.who small{display:block;font-size:9.5px;margin-top:2px}
     table.cupons td.code{font-size:10.5px;letter-spacing:0;white-space:nowrap}
-    table.cupons th.nome-col{width:26%}
-    table.cupons th.cupom-col{width:26%}
-    table.cupons th.status-col{width:19%}
-    table.cupons th.usos-col{width:11%}
-    table.cupons th.arte-col{width:17%}
+    table.cupons th.nome-col{width:21%}
+    table.cupons th.cupom-col{width:20%}
+    table.cupons th.aprov-col{width:19%}
+    table.cupons th.status-col{width:16%}
+    table.cupons th.usos-col{width:9%}
+    table.cupons th.arte-col{width:15%}
+    table.cupons td.code{font-size:9.5px}
+    .pill{font-size:8px;padding:3px 5px}
+    table.cupons th{font-size:8.5px;letter-spacing:0}
     body.admin-mode table.cupons th.foto-col{width:9%}
     body.admin-mode table.cupons th.nome-col{width:22%}
     body.admin-mode table.cupons th.cupom-col{width:22%}
-    body.admin-mode table.cupons th.status-col{width:16%}
+    body.admin-mode table.cupons th.aprov-col{width:16%}
+    body.admin-mode table.cupons th.status-col{width:14%}
     body.admin-mode table.cupons th.usos-col{width:10%}
     body.admin-mode table.cupons th.arte-col{width:15%}
     body.admin-mode table.cupons th.del-col{width:6%}
@@ -356,6 +385,8 @@
     body.admin-mode td.arte button{display:inline-block;width:auto;margin:4px 0 0}
     body.admin-mode a.b-arte{display:inline-block}
     body.admin-mode input.uso-in{width:56px;font-size:14px;padding:5px 7px}
+    body.admin-mode input.cupom-in{width:100%;font-size:14px}
+    body.admin-mode input.insta-in{width:120px}
   }
 
   /* painel */
@@ -540,7 +571,7 @@
 
   <section id="cupons">
     <div class="sec-head"><span class="sec-num">07</span><h2>Cupons liberados</h2></div>
-    <p class="sec-sub">Ranking por usos do cupom. <b>ATIVO</b> = pode divulgar. <b>INATIVO</b> = aguarde a liberação.</p>
+    <p class="sec-sub">Ranking por usos do cupom. Só dá pra divulgar quando a <b>aprovação</b> sai e o <b>cupom</b> fica ATIVO.</p>
     <div class="cupons-box">
       <div class="cupons-search">
         <label for="busca">Buscar por nome, @ ou cupom</label>
@@ -549,7 +580,7 @@
       <div class="cupons-scroll">
         <table class="cupons">
           <thead>
-            <tr><th class="adm foto-col" hidden>Foto</th><th class="nome-col">Nome</th><th class="insta-col">@ Instagram</th><th class="cupom-col">Cupom</th><th class="status-col">Status</th><th class="num usos-col">Usos</th><th class="arte-col">Arte</th><th class="adm del-col" hidden></th></tr>
+            <tr><th class="adm foto-col" hidden>Foto</th><th class="nome-col">Nome</th><th class="insta-col">@ Instagram</th><th class="cupom-col">Cupom</th><th class="aprov-col">Aprovação</th><th class="status-col">Liberado</th><th class="num usos-col">Usos</th><th class="arte-col">Arte</th><th class="adm del-col" hidden></th></tr>
           </thead>
           <tbody id="tb-cupons"></tbody>
         </table>
@@ -560,7 +591,7 @@
 
   <section class="admin" id="admin" hidden>
     <h2>Painel da organização</h2>
-    <p class="sub">Clique no status para ativar o cupom e digite os usos direto na tabela. Tudo salva sozinho.</p>
+    <p class="sub">Na tabela: a coluna <b>Aprovação</b> alterna entre pendente, aprovado e reprovado; a coluna <b>Cupom</b> libera o cupom. Cupom e @ podem ser corrigidos ali mesmo. Tudo salva sozinho.</p>
     <div id="caixa-senha">
       <div class="field">
         <label for="senha">Senha do painel</label>
@@ -658,22 +689,60 @@
   /* ---------------- tabela ---------------- */
   function td(cls){ var c = document.createElement('td'); if(cls) c.className = cls; return c; }
 
-  var ESTADOS = [
-    {chave:'inativo',   texto:'INATIVO',   classe:'wait'},
-    {chave:'ativo',     texto:'ATIVO',     classe:'on'},
+  var APROVACAO = [
+    {chave:'pendente',  texto:'PENDENTE',  classe:'wait'},
+    {chave:'aprovado',  texto:'APROVADO',  classe:'on'},
     {chave:'reprovado', texto:'REPROVADO', classe:'off'}
   ];
-  function estadoDe(d){
-    if(d.reprovado) return ESTADOS[2];
-    if(d.ativo) return ESTADOS[1];
-    return ESTADOS[0];
+  function aprovacaoDe(d){
+    if(d.reprovado) return APROVACAO[2];
+    if(d.aprovado) return APROVACAO[1];
+    return APROVACAO[0];
   }
-  function proximoEstado(d){
-    var i = ESTADOS.indexOf(estadoDe(d));
-    return ESTADOS[(i + 1) % ESTADOS.length];
+  function proximaAprovacao(d){
+    var i = APROVACAO.indexOf(aprovacaoDe(d));
+    return APROVACAO[(i + 1) % APROVACAO.length];
   }
-  function camposDoEstado(e){
-    return {ativo: e.chave === 'ativo', reprovado: e.chave === 'reprovado'};
+  function cupomDe(d){
+    return d.ativo
+      ? {texto:'ATIVO', classe:'on'}
+      : {texto:'AGUARDE', classe:'wait'};
+  }
+
+  function campoInsta(d){
+    var cx = document.createElement('span');
+    cx.className = 'insta-edit';
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'insta-in';
+    inp.value = d.instagram;
+    inp.title = 'Corrigir o @ do Instagram';
+    var ir = document.createElement('a');
+    ir.className = 'insta-ir';
+    ir.textContent = '\u2197';
+    ir.target = '_blank'; ir.rel = 'noopener';
+    ir.title = 'Abrir o perfil';
+    var aponta = function(){
+      var limpo = (d.instagram || '').replace(/^@+/, '').replace(/\s+/g, '');
+      ir.href = limpo ? 'https://www.instagram.com/' + encodeURIComponent(limpo) + '/' : '#';
+    };
+    aponta();
+    inp.addEventListener('change', function(){
+      var novo = (inp.value || '').trim();
+      if(!novo || novo === d.instagram){ inp.value = d.instagram; return; }
+      inp.disabled = true;
+      salvar(d, {instagram: novo}).then(function(res){
+        d.instagram = (res && res.instagram) || novo;
+        inp.value = d.instagram;
+        aponta();
+        inp.disabled = false;
+      }).catch(function(){
+        inp.value = d.instagram;
+        inp.disabled = false;
+      });
+    });
+    cx.appendChild(inp); cx.appendChild(ir);
+    return cx;
   }
 
   function linkInsta(handle){
@@ -721,43 +790,98 @@
     var c1 = td('who');
     c1.appendChild(document.createTextNode(d.nome));
     var sm = document.createElement('small');
-    sm.appendChild(linkInsta(d.instagram));
+    if(editando){ sm.appendChild(campoInsta(d)); }
+    else { sm.appendChild(linkInsta(d.instagram)); }
     if(!juntos) sm.className = 'so-mobile';
     c1.appendChild(sm);
     var c2 = null;
     if(!juntos){ c2 = td('at'); c2.appendChild(linkInsta(d.instagram)); }
-    var c3 = td('code'); c3.textContent = d.cupom;
+    var c3 = td('code');
+    if(editando){
+      var inpCupom = document.createElement('input');
+      inpCupom.type = 'text';
+      inpCupom.className = 'cupom-in';
+      inpCupom.value = d.cupom;
+      inpCupom.maxLength = 16;
+      inpCupom.title = 'Corrigir o cupom';
+      inpCupom.addEventListener('change', function(){
+        var novo = slug(inpCupom.value);
+        if(!novo || novo === d.cupom){ inpCupom.value = d.cupom; return; }
+        inpCupom.disabled = true;
+        salvar(d, {cupom: novo}).then(function(res){
+          d.cupom = (res && res.cupom) || novo;
+          inpCupom.value = d.cupom;
+          inpCupom.disabled = false;
+        }).catch(function(){
+          inpCupom.value = d.cupom;
+          inpCupom.disabled = false;
+        });
+      });
+      c3.appendChild(inpCupom);
+    } else {
+      c3.textContent = d.cupom;
+    }
+
+    var cAp = td();
+    cAp.dataset.label = 'Aprovação';
+    if(editando){
+      var bAp = document.createElement('button');
+      bAp.type = 'button';
+      bAp.title = 'Clique para alternar: pendente, aprovado, reprovado';
+      var pintaAp = function(){
+        var e = aprovacaoDe(d);
+        bAp.className = 'b-mini b-flag b-status ' + e.classe;
+        bAp.textContent = e.texto;
+      };
+      pintaAp();
+      bAp.addEventListener('click', function(){
+        var novo = proximaAprovacao(d);
+        var campos = {aprovado: novo.chave === 'aprovado', reprovado: novo.chave === 'reprovado'};
+        bAp.disabled = true;
+        salvar(d, campos).then(function(){
+          d.aprovado = campos.aprovado;
+          d.reprovado = campos.reprovado;
+          pintaAp();
+          bAp.disabled = false;
+        }).catch(function(){ bAp.disabled = false; });
+      });
+      cAp.appendChild(bAp);
+    } else {
+      var eAp = aprovacaoDe(d);
+      var pAp = document.createElement('span');
+      pAp.className = 'pill ' + eAp.classe;
+      pAp.textContent = eAp.texto;
+      cAp.appendChild(pAp);
+    }
 
     var c4 = td();
-    c4.dataset.label = 'Status';
+    c4.dataset.label = 'Liberado';
     if(editando){
-      var flag = document.createElement('button');
-      flag.type = 'button';
-      flag.title = 'Clique para alternar: inativo, ativo, reprovado';
-      var pinta = function(){
-        var e = estadoDe(d);
-        flag.className = 'b-mini b-flag b-status ' + e.classe;
-        flag.textContent = e.texto;
+      var bCp = document.createElement('button');
+      bCp.type = 'button';
+      bCp.title = 'Clique para ativar ou voltar a aguardar';
+      var pintaCp = function(){
+        var e = cupomDe(d);
+        bCp.className = 'b-mini b-flag b-status ' + e.classe;
+        bCp.textContent = e.texto;
       };
-      pinta();
-      flag.addEventListener('click', function(){
-        var novo = proximoEstado(d);
-        var campos = camposDoEstado(novo);
-        flag.disabled = true;
-        salvar(d, campos).then(function(){
-          d.ativo = campos.ativo;
-          d.reprovado = campos.reprovado;
-          pinta();
-          flag.disabled = false;
-        }).catch(function(){ flag.disabled = false; });
+      pintaCp();
+      bCp.addEventListener('click', function(){
+        var novo = !d.ativo;
+        bCp.disabled = true;
+        salvar(d, {ativo: novo}).then(function(){
+          d.ativo = novo;
+          pintaCp();
+          bCp.disabled = false;
+        }).catch(function(){ bCp.disabled = false; });
       });
-      c4.appendChild(flag);
+      c4.appendChild(bCp);
     } else {
-      var e = estadoDe(d);
-      var pill = document.createElement('span');
-      pill.className = 'pill ' + e.classe;
-      pill.textContent = e.texto;
-      c4.appendChild(pill);
+      var eCp = cupomDe(d);
+      var pCp = document.createElement('span');
+      pCp.className = 'pill ' + eCp.classe;
+      pCp.textContent = eCp.texto;
+      c4.appendChild(pCp);
     }
 
     var c5 = td('num');
@@ -794,7 +918,7 @@
       c6.appendChild(del);
     } else { c6.hidden = true; }
 
-    [c0,c1,c2,c3,c4,c5,c65,c6].forEach(function(c){ if(c) tr.appendChild(c); });
+    [c0,c1,c2,c3,cAp,c4,c5,c65,c6].forEach(function(c){ if(c) tr.appendChild(c); });
     return tr;
   }
 
@@ -859,7 +983,7 @@
 
   function pintar(){
     var soDesigner = ARTE && !ADMIN && SENHA;
-    var base = soDesigner ? LISTA.filter(function(d){ return !!d.ativo; }) : LISTA;
+    var base = soDesigner ? LISTA.filter(function(d){ return !!d.aprovado; }) : LISTA;
     if(soDesigner){
       base = base.slice().sort(function(a,b){
         var fa = a.arte_url ? 1 : 0, fb = b.arte_url ? 1 : 0;
@@ -893,7 +1017,7 @@
   }
 
   function carregar(){
-    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,reprovado,foto_url,arte_url&order=usos.desc,nome.asc')
+    return api('divulgadores?select=id,nome,instagram,cupom,usos,ativo,aprovado,reprovado,foto_url,arte_url&order=usos.desc,nome.asc')
       .then(function(rows){ LISTA = rows || []; pintar(); })
       .catch(function(){
         tb.textContent = '';
@@ -1047,23 +1171,31 @@
       p_senha: SENHA,
       p_id: d.id,
       p_ativo: ('ativo' in campos) ? campos.ativo : null,
+      p_aprovado: ('aprovado' in campos) ? campos.aprovado : null,
       p_reprovado: ('reprovado' in campos) ? campos.reprovado : null,
       p_usos: ('usos' in campos) ? campos.usos : null,
       p_remover: !!campos.remover,
-      p_arte: ('arte' in campos) ? campos.arte : null
+      p_arte: ('arte' in campos) ? campos.arte : null,
+      p_cupom: ('cupom' in campos) ? campos.cupom : null,
+      p_instagram: ('instagram' in campos) ? campos.instagram : null
     };
     msg(elAdminMsg, 'Salvando…', 'info');
     return api('rpc/jbx_travessia_admin', {method: 'POST', body: JSON.stringify(body)})
       .then(function(res){
         if(res && res.ok === false){
-          msg(elAdminMsg, res.erro === 'senha'
-            ? 'Senha do painel incorreta. Confira o seu link de acesso.'
-            : (res.erro === 'permissao'
-               ? 'Esse acesso só permite subir arte.'
-               : 'Não salvou. Tente de novo.'), 'err');
+          var textos = {
+            senha: 'Senha do painel incorreta. Confira o seu link de acesso.',
+            permissao: 'Esse acesso só permite subir arte.',
+            cupom_existe: 'Já existe outro divulgador com esse cupom.',
+            cupom_curto: 'O cupom precisa de pelo menos 3 caracteres.',
+            instagram_existe: 'Esse @ já está em outro cadastro.',
+            instagram_curto: 'O @ precisa de pelo menos 2 caracteres.'
+          };
+          msg(elAdminMsg, textos[res.erro] || 'Não salvou. Tente de novo.', 'err');
           throw new Error('recusado');
         }
         msg(elAdminMsg, 'Salvo.', 'ok');
+        return res;
       })
       .catch(function(e){
         if(e && e.message !== 'recusado'){
