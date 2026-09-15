@@ -9375,15 +9375,18 @@ async function crzComparar(){
     const vistos = {};
     crzResultado = [];
     let semChaveA = 0, duplicados = 0;
+    const elTipo = document.getElementById('crz-tipo');
+    const tipo = elTipo ? elTipo.value : 'fora';
     A.forEach(function(p){
       const k = crzChave(p, modo);
       if(!k){ semChaveA++; return; }
-      if(setB[k]) return;
+      if(tipo === 'dentro'){ if(!setB[k]) return; }
+      else { if(setB[k]) return; }
       if(vistos[k]){ duplicados++; return; }
       vistos[k] = true;
       crzResultado.push(p);
     });
-    crzStats = { a:A.length, b:B.length, semChaveA:semChaveA, semChaveB:semChaveB, duplicados:duplicados, modo:modo };
+    crzStats = { a:A.length, b:B.length, semChaveA:semChaveA, semChaveB:semChaveB, duplicados:duplicados, modo:modo, tipo:tipo };
     crzRenderResultado();
   } finally {
     btn.disabled = false; btn.textContent = crzFonte.B && (crzFonte.B.evento||crzFonte.B.base||crzFonte.B.linhas.length) ? '🔍 Comparar bases' : '🔍 Listar a Base A inteira';
@@ -9466,7 +9469,8 @@ function crzRenderResultado(){
             jaChamados + ' já chamada(s) em rodadas anteriores' +
           '</div>'
         : '') +
-      '<div style="font-size:12px;color:var(--muted);">Base A: ' + s.a + ' · Base B: ' + s.b + ' · por ' + s.modo +
+      '<div style="font-size:12px;color:var(--muted);">' + (s.tipo === 'dentro' ? 'Nas duas bases' : 'Só na Base A') +
+        ' · Base A: ' + s.a + ' · Base B: ' + s.b + ' · por ' + s.modo +
         (s.duplicados ? ' · ' + s.duplicados + ' duplicado(s) na A' : '') + '</div>' +
       '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;margin-left:auto;">' +
         '<input type="checkbox"' + (crzSoNaoChamados ? ' checked' : '') + ' onchange="crzToggleFiltro(this)"> Esconder quem já chamei' +
@@ -12091,6 +12095,13 @@ async function patTirarDoFunil(){
               <option value="cpf">CPF (mais confiável)</option>
               <option value="telefone">Telefone</option>
               <option value="email">E-mail</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px;">Quero a lista de</label>
+            <select id="crz-tipo" style="border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:inherit;background:#fff;min-width:260px;">
+              <option value="fora">Quem está na A e NÃO está na B</option>
+              <option value="dentro">Quem está nas DUAS bases</option>
             </select>
           </div>
           <button type="button" id="crz-btn-comparar" class="btn-upload" onclick="crzComparar()" style="padding:11px 20px;">🔍 Comparar bases</button>
