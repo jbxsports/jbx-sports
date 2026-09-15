@@ -1293,6 +1293,39 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
   .div-in-cupom{width:100px}
   .div-kpi{flex:1 1 calc(50% - 10px)}
 }
+/* ══ MAPAS MENTAIS ══ */
+.map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.map-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .15s;box-shadow:0 1px 4px rgba(42,37,32,.06);position:relative;}
+.map-card:hover{border-color:rgba(255,117,31,.5);transform:translateY(-2px);box-shadow:0 6px 18px rgba(42,37,32,.10);}
+.map-card h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;padding-right:26px;line-height:1.25;}
+.map-card p{font-size:12.5px;color:var(--muted);line-height:1.4;min-height:18px;}
+.map-card .map-card-meta{font-size:11.5px;color:var(--muted);margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;gap:8px;}
+.map-card-x{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:6px;border:none;background:rgba(42,37,32,.06);color:var(--muted);cursor:pointer;font-size:14px;line-height:1;font-family:'Ubuntu',sans-serif;}
+.map-card-x:hover{background:#fee2e2;color:#dc2626;}
+.map-card-novo{border:1.5px dashed rgba(255,117,31,.45);background:rgba(255,117,31,.04);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--orange);font-weight:700;font-size:14px;min-height:130px;}
+.map-topo{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.map-nome{font-family:'Ubuntu',sans-serif;font-size:19px;font-weight:700;color:var(--text);border:1px solid transparent;background:transparent;border-radius:8px;padding:6px 10px;min-width:180px;max-width:340px;flex:1;}
+.map-nome:hover{border-color:var(--border);}
+.map-nome:focus{outline:none;border-color:var(--orange);background:var(--card);}
+.map-status{font-size:12px;color:var(--muted);white-space:nowrap;}
+.map-barra{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:12px;}
+.map-barra .sep{width:1px;height:20px;background:var(--border);}
+.map-cor{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--border);cursor:pointer;padding:0;}
+.map-cor:hover{transform:scale(1.12);}
+.map-rot{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
+.map-palco{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;height:calc(100vh - 300px);min-height:420px;overflow:hidden;background-image:radial-gradient(rgba(42,37,32,.10) 1px,transparent 1px);background-size:22px 22px;}
+.map-palco svg{width:100%;height:100%;display:block;cursor:grab;}
+.map-palco svg.arrastando{cursor:grabbing;}
+.map-no-cx{cursor:pointer;}
+.map-edit{display:none;position:absolute;z-index:5;font-family:'Ubuntu',sans-serif;font-weight:600;border:2px solid var(--orange);border-radius:8px;padding:6px 10px;resize:none;outline:none;line-height:1.3;color:var(--text);background:#fff;box-shadow:0 6px 18px rgba(42,37,32,.18);}
+.map-dica{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.88);border:1px solid var(--border);border-radius:20px;padding:5px 12px;pointer-events:none;}
+.map-vazio{text-align:center;color:var(--muted);font-size:14px;padding:40px 12px;}
+@media(max-width:640px){
+  .map-palco{height:calc(100vh - 340px);min-height:340px;}
+  .map-nome{font-size:16px;min-width:120px;}
+  .map-dica{display:none;}
+}
+
 </style>
 </head>
 <body>
@@ -1331,6 +1364,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
         <button class="nav-btn" id="nav-funil" onclick="showInner('funil')">Funil de Patrocínio</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
+        <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;" id="hd-usuario">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -2343,7 +2377,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir',
   'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar',
   'div_adm_campanhas','div_adm_campanha_salvar','div_adm_campanha_excluir',
-  'div_adm_lista','div_adm_salvar'];
+  'div_adm_lista','div_adm_salvar',
+  'map_listar','map_abrir','map_salvar','map_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2363,7 +2398,7 @@ const ADM_ABAS=[
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'marcas',label:'Marcas'},{id:'funil',label:'Funil de Patrocínio'},
  {id:'cruzar',label:'Cruzamento'},{id:'campanhas',label:'Campanhas'},{id:'reunioes',label:'Reuniões'},
- {id:'divulgadores',label:'Divulgadores'}
+ {id:'divulgadores',label:'Divulgadores'},{id:'mapas',label:'Mapas'}
 ];
 let admUser=null, admToken=null;
 function admTemAba(id){
@@ -2453,6 +2488,7 @@ function showInner(name){
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
   if(name==='divulgadores'){document.getElementById('nav-divulgadores').classList.add('active');divInit();}
+  if(name==='mapas'){document.getElementById('nav-mapas').classList.add('active');mapInit();}
 }
 
 /* ══════════════ DIVULGADORES ══════════════ */
@@ -11822,6 +11858,379 @@ async function patTirarDoFunil(){
   catch(e){alert('Erro: '+e.message);}
 }
 
+/* ══════════════ MAPAS MENTAIS ══════════════ */
+const MAP_CORES=['#ff751f','#2563eb','#16a34a','#dc2626','#9333ea','#0891b2','#ca8a04','#475569'];
+const MAP_GAPX=66, MAP_GAPY=16;
+let mapLista=[], mapAtual=null, mapSel=null, mapZoom=1, mapTx=60, mapTy=60;
+let mapTimer=null, mapArrasto=null, mapSalvando=false;
+
+function mapInit(){ mapVoltar(); }
+
+function mapStatus(txt,cor){ const e=document.getElementById('map-status'); if(e){e.textContent=txt||''; e.style.color=cor||'var(--muted)';} }
+function mapEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function mapErro(e){ let t=(e&&e.message)||String(e||''); try{const j=JSON.parse(t); t=j.message||j.erro||j.hint||t;}catch(x){} return String(t).replace(/\s+/g,' ').trim().slice(0,160); }
+function mapUid(){ return 'n'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ── LISTA ── */
+function mapVoltar(){
+  mapAtual=null; mapSel=null;
+  const le=document.getElementById('map-edit'); if(le) le.style.display='none';
+  document.getElementById('map-tela-lista').style.display='';
+  document.getElementById('map-tela-editor').style.display='none';
+  mapCarregarLista();
+}
+
+async function mapCarregarLista(){
+  const alvo=document.getElementById('map-cards'), msg=document.getElementById('map-lista-msg');
+  msg.textContent='Carregando…'; alvo.innerHTML='';
+  try{
+    const r=await rpc('map_listar',{});
+    if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
+    mapLista=r.mapas||[];
+    if(!mapLista.length){ msg.textContent='Nenhum mapa ainda. Clique em “Novo mapa” para começar.'; return; }
+    msg.textContent='';
+    alvo.innerHTML=mapLista.map(function(m){
+      const d=m.atualizado_em?new Date(m.atualizado_em).toLocaleDateString('pt-BR'):'—';
+      return '<div class="map-card" onclick="mapAbrir(\''+m.id+'\')">'
+        +'<button class="map-card-x" title="Excluir" onclick="event.stopPropagation();mapExcluir(\''+m.id+'\',\''+mapEsc(m.nome).replace(/'/g,"\\'")+'\')">✕</button>'
+        +'<h3>'+mapEsc(m.nome)+'</h3>'
+        +'<p>'+mapEsc(m.descricao||'')+'</p>'
+        +'<div class="map-card-meta"><span>'+(m.nos||0)+' balões</span><span>'+d+'</span></div>'
+        +'</div>';
+    }).join('');
+  }catch(e){ msg.textContent='Erro ao carregar: '+mapErro(e); }
+}
+
+async function mapNovo(){
+  const nome=prompt('Nome do mapa:','Novo mapa');
+  if(!nome||nome.trim().length<2) return;
+  const raiz={id:mapUid(),pai:null,txt:nome.trim(),cor:MAP_CORES[0]};
+  try{
+    const r=await rpc('map_salvar',{p_id:null,p_nome:nome.trim(),p_descricao:null,p_dados:{nos:[raiz]}});
+    if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
+    await mapAbrir(r.id);
+  }catch(e){ alert('Erro ao criar: '+mapErro(e)); }
+}
+
+async function mapExcluir(id,nome){
+  if(!confirm('Excluir o mapa "'+nome+'"? Não dá para desfazer.')) return;
+  try{ await rpc('map_excluir',{p_id:id}); mapCarregarLista(); }
+  catch(e){ alert('Erro ao excluir: '+mapErro(e)); }
+}
+
+/* ── ABRIR ── */
+async function mapAbrir(id){
+  try{
+    const r=await rpc('map_abrir',{p_id:id});
+    if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
+    const dados=r.dados||{};
+    let nos=Array.isArray(dados.nos)?dados.nos.slice():[];
+    if(!nos.length) nos=[{id:mapUid(),pai:null,txt:r.nome||'Mapa',cor:MAP_CORES[0]}];
+    mapAtual={id:r.id,nome:r.nome||'',descricao:r.descricao||'',nos:nos};
+    mapSel=(mapRaiz()||nos[0]).id;
+    document.getElementById('map-nome').value=mapAtual.nome;
+    document.getElementById('map-tela-lista').style.display='none';
+    document.getElementById('map-tela-editor').style.display='';
+    mapPintarCores();
+    mapRender(); mapAjustar(); mapStatus('Salvo');
+  }catch(e){ alert('Erro ao abrir: '+mapErro(e)); }
+}
+
+/* ── ÁRVORE ── */
+function mapNo(id){ return mapAtual?mapAtual.nos.find(function(n){return n.id===id;}):null; }
+function mapRaiz(){ return mapAtual?mapAtual.nos.find(function(n){return !n.pai;}):null; }
+function mapFilhos(id){ return mapAtual?mapAtual.nos.filter(function(n){return n.pai===id;}):[]; }
+
+function mapQuebra(txt,max){
+  const pal=String(txt||'').trim().split(/\s+/), out=[]; let l='';
+  pal.forEach(function(p){
+    while(p.length>max){ if(l){out.push(l);l='';} out.push(p.slice(0,max)); p=p.slice(max); }
+    if(!p) return;
+    if((l?l.length+1:0)+p.length>max){ if(l)out.push(l); l=p; } else l=l?l+' '+p:p;
+  });
+  if(l) out.push(l);
+  return out.length?out:[' '];
+}
+
+function mapCaixa(n){
+  const raiz=!n.pai, max=raiz?18:22, fs=raiz?16:14;
+  const lin=mapQuebra(n.txt,max);
+  const maior=lin.reduce(function(a,l){return Math.max(a,l.length);},0);
+  const w=Math.max(raiz?150:112, Math.min(275, Math.round(maior*fs*0.6)+36));
+  const h=lin.length*(fs+8)+18;
+  return {lin:lin,fs:fs,w:w,h:h,raiz:raiz};
+}
+
+function mapMedir(id){
+  const n=mapNo(id); if(!n) return 0;
+  n._c=mapCaixa(n);
+  const fs=mapFilhos(id);
+  if(!fs.length){ n._alt=n._c.h; return n._alt; }
+  let tot=0;
+  fs.forEach(function(f,i){ tot+=mapMedir(f.id); if(i) tot+=MAP_GAPY; });
+  n._alt=Math.max(n._c.h,tot);
+  return n._alt;
+}
+
+function mapPosicionar(id,x,topo){
+  const n=mapNo(id); if(!n) return;
+  n._x=x; n._y=topo+n._alt/2;
+  const fs=mapFilhos(id);
+  if(!fs.length) return;
+  let soma=0; fs.forEach(function(f,i){ soma+=f._alt+(i?MAP_GAPY:0); });
+  let y=topo+(n._alt-soma)/2;
+  fs.forEach(function(f){ mapPosicionar(f.id,x+n._c.w+MAP_GAPX,y); y+=f._alt+MAP_GAPY; });
+}
+
+function mapCalcular(){
+  const r=mapRaiz(); if(!r) return null;
+  mapMedir(r.id); mapPosicionar(r.id,0,0);
+  let x1=1e9,x2=-1e9,y1=1e9,y2=-1e9;
+  mapAtual.nos.forEach(function(n){
+    if(n._x==null) return;
+    x1=Math.min(x1,n._x); x2=Math.max(x2,n._x+n._c.w);
+    y1=Math.min(y1,n._y-n._c.h/2); y2=Math.max(y2,n._y+n._c.h/2);
+  });
+  return {x1:x1,x2:x2,y1:y1,y2:y2,w:x2-x1,h:y2-y1};
+}
+
+/* ── DESENHO ── */
+function mapCorpo(comSel){
+  let ligacoes='', caixas='';
+  mapAtual.nos.forEach(function(n){
+    if(n._x==null) return;
+    const p=n.pai?mapNo(n.pai):null;
+    if(p&&p._x!=null){
+      const xa=p._x+p._c.w, ya=p._y, xb=n._x, yb=n._y, d=Math.max(18,(xb-xa)/2);
+      ligacoes+='<path d="M '+xa+' '+ya+' C '+(xa+d)+' '+ya+', '+(xb-d)+' '+yb+', '+xb+' '+yb+'" fill="none" stroke="'+(n.cor||MAP_CORES[0])+'" stroke-width="2" stroke-opacity="0.55" stroke-linecap="round"/>';
+    }
+    const c=n._c, cor=n.cor||MAP_CORES[0], sel=(comSel!==false)&&(n.id===mapSel);
+    const x=n._x, y=n._y-c.h/2;
+    const fundo=c.raiz?cor:'#ffffff';
+    const texto=c.raiz?'#ffffff':'#2a2520';
+    let g='<g class="map-no-cx" data-no="'+n.id+'">';
+    if(sel) g+='<rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(c.w+8)+'" height="'+(c.h+8)+'" rx="14" fill="none" stroke="'+cor+'" stroke-width="2" stroke-dasharray="5 4" stroke-opacity="0.9"/>';
+    g+='<rect x="'+x+'" y="'+y+'" width="'+c.w+'" height="'+c.h+'" rx="10" fill="'+fundo+'" stroke="'+cor+'" stroke-width="'+(c.raiz?2:1.6)+'"/>';
+    if(!c.raiz) g+='<rect x="'+x+'" y="'+y+'" width="5" height="'+c.h+'" rx="2.5" fill="'+cor+'"/>';
+    const fy=y+c.h/2-((c.lin.length-1)*(c.fs+8))/2+c.fs*0.35;
+    c.lin.forEach(function(l,i){
+      g+='<text x="'+(x+c.w/2)+'" y="'+(fy+i*(c.fs+8))+'" text-anchor="middle" font-family="Ubuntu, Arial, sans-serif" font-size="'+c.fs+'" font-weight="'+(c.raiz?700:600)+'" fill="'+texto+'">'+mapEsc(l)+'</text>';
+    });
+    g+='</g>';
+    caixas+=g;
+  });
+  return ligacoes+caixas;
+}
+
+function mapRender(){
+  if(!mapAtual) return;
+  const b=mapCalcular(); if(!b) return;
+  const svg=document.getElementById('map-svg');
+  svg.innerHTML='<g id="map-g" transform="translate('+mapTx+','+mapTy+') scale('+mapZoom+')">'+mapCorpo(true)+'</g>';
+  svg.querySelectorAll('[data-no]').forEach(function(g){
+    g.addEventListener('click',function(ev){ ev.stopPropagation(); mapSel=g.getAttribute('data-no'); mapRender(); });
+    g.addEventListener('dblclick',function(ev){ ev.stopPropagation(); mapSel=g.getAttribute('data-no'); mapRender(); mapRenomear(); });
+  });
+}
+
+function mapAplicarTransform(){
+  const g=document.getElementById('map-g');
+  if(g) g.setAttribute('transform','translate('+mapTx+','+mapTy+') scale('+mapZoom+')');
+}
+
+function mapAjustar(){
+  const b=mapCalcular(); if(!b) return;
+  const p=document.getElementById('map-palco');
+  const W=p.clientWidth||900, H=p.clientHeight||500;
+  const z=Math.min(1.2,Math.max(0.25,Math.min((W-80)/Math.max(b.w,1),(H-80)/Math.max(b.h,1))));
+  mapZoom=z;
+  mapTx=(W-b.w*z)/2-b.x1*z;
+  mapTy=(H-b.h*z)/2-b.y1*z;
+  mapAplicarTransform();
+}
+
+function mapZoomar(dir){
+  const p=document.getElementById('map-palco');
+  const cx=(p.clientWidth||900)/2, cy=(p.clientHeight||500)/2;
+  const novo=Math.min(2.5,Math.max(0.2,mapZoom*(dir>0?1.18:1/1.18)));
+  mapTx=cx-(cx-mapTx)*(novo/mapZoom); mapTy=cy-(cy-mapTy)*(novo/mapZoom);
+  mapZoom=novo; mapAplicarTransform();
+}
+
+/* ── EDIÇÃO ── */
+function mapMarcarSujo(){
+  if(!mapAtual) return;
+  mapStatus('Salvando…');
+  clearTimeout(mapTimer);
+  mapTimer=setTimeout(function(){ mapSalvar(false); },1200);
+}
+
+function mapAddFilho(){
+  if(!mapAtual) return;
+  const pai=mapSel||(mapRaiz()||{}).id; if(!pai) return;
+  const p=mapNo(pai);
+  const cor=p&&p.pai?p.cor:MAP_CORES[(mapFilhos(pai).length)%MAP_CORES.length];
+  const n={id:mapUid(),pai:pai,txt:'Novo item',cor:cor};
+  mapAtual.nos.push(n); mapSel=n.id; mapRender(); mapMarcarSujo(); mapRenomear();
+}
+
+function mapAddIrmao(){
+  if(!mapAtual||!mapSel) return;
+  const s=mapNo(mapSel); if(!s) return;
+  if(!s.pai){ mapAddFilho(); return; }
+  const n={id:mapUid(),pai:s.pai,txt:'Novo item',cor:s.cor};
+  const i=mapAtual.nos.indexOf(s);
+  mapAtual.nos.splice(i+1,0,n);
+  mapSel=n.id; mapRender(); mapMarcarSujo(); mapRenomear();
+}
+
+function mapDescendentes(id,acc){
+  acc=acc||[];
+  mapFilhos(id).forEach(function(f){ acc.push(f.id); mapDescendentes(f.id,acc); });
+  return acc;
+}
+
+function mapExcluirNo(){
+  if(!mapAtual||!mapSel) return;
+  const n=mapNo(mapSel); if(!n) return;
+  if(!n.pai){ alert('O balão central não pode ser excluído.'); return; }
+  const filhos=mapDescendentes(n.id);
+  if(filhos.length && !confirm('Excluir "'+n.txt+'" e os '+filhos.length+' itens ligados a ele?')) return;
+  const fora=[n.id].concat(filhos);
+  const pai=n.pai;
+  mapAtual.nos=mapAtual.nos.filter(function(x){ return fora.indexOf(x.id)===-1; });
+  mapSel=pai; mapRender(); mapMarcarSujo();
+}
+
+function mapCorNo(cor){
+  if(!mapAtual||!mapSel) return;
+  const n=mapNo(mapSel); if(!n) return;
+  n.cor=cor;
+  mapDescendentes(n.id).forEach(function(id){ const f=mapNo(id); if(f) f.cor=cor; });
+  mapRender(); mapMarcarSujo();
+}
+
+function mapPintarCores(){
+  const alvo=document.getElementById('map-cores'); if(!alvo) return;
+  alvo.innerHTML=MAP_CORES.map(function(c){
+    return '<button class="map-cor" style="background:'+c+'" title="'+c+'" onclick="mapCorNo(\''+c+'\')"></button>';
+  }).join(' ');
+}
+
+function mapRenomear(){
+  if(!mapAtual||!mapSel) return;
+  const n=mapNo(mapSel); if(!n||n._x==null) return;
+  const ta=document.getElementById('map-edit');
+  const larg=Math.max(140,n._c.w*mapZoom), alt=Math.max(38,n._c.h*mapZoom);
+  ta.style.display='block';
+  ta.style.left=Math.round(mapTx+n._x*mapZoom)+'px';
+  ta.style.top=Math.round(mapTy+(n._y-n._c.h/2)*mapZoom)+'px';
+  ta.style.width=larg+'px'; ta.style.height=alt+'px';
+  ta.style.fontSize=Math.max(11,Math.round(n._c.fs*mapZoom))+'px';
+  ta.dataset.no=n.id; ta.value=n.txt;
+  ta.focus(); ta.select();
+}
+
+function mapFecharEdicao(salvar){
+  const ta=document.getElementById('map-edit');
+  if(!ta||ta.style.display==='none') return;
+  const n=mapNo(ta.dataset.no);
+  ta.style.display='none';
+  if(salvar&&n){
+    const novo=ta.value.replace(/\s+/g,' ').trim();
+    if(novo&&novo!==n.txt){ n.txt=novo; mapRender(); mapMarcarSujo(); return; }
+  }
+  mapRender();
+}
+
+/* ── SALVAR ── */
+async function mapSalvar(manual){
+  if(!mapAtual||mapSalvando) return;
+  clearTimeout(mapTimer);
+  const nome=(document.getElementById('map-nome').value||'').trim();
+  if(nome.length<2){ mapStatus('Dê um nome ao mapa','#dc2626'); return; }
+  mapAtual.nome=nome;
+  const limpo=mapAtual.nos.map(function(n){ return {id:n.id,pai:n.pai||null,txt:n.txt,cor:n.cor||MAP_CORES[0]}; });
+  mapSalvando=true; mapStatus('Salvando…');
+  try{
+    const r=await rpc('map_salvar',{p_id:mapAtual.id,p_nome:nome,p_descricao:mapAtual.descricao||null,p_dados:{nos:limpo}});
+    if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
+    mapStatus('Salvo '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
+  }catch(e){ mapStatus('Erro ao salvar: '+mapErro(e),'#dc2626'); if(manual) alert('Erro ao salvar: '+mapErro(e)); }
+  mapSalvando=false;
+}
+
+/* ── PNG ── */
+function mapPNG(){
+  if(!mapAtual) return;
+  const b=mapCalcular(); if(!b) return;
+  const pad=40, W=Math.round(b.w+pad*2), H=Math.round(b.h+pad*2), esc=2;
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'">'
+    +'<rect width="'+W+'" height="'+H+'" fill="#ffffff"/>'
+    +'<g transform="translate('+(pad-b.x1)+','+(pad-b.y1)+')">'+mapCorpo(false)+'</g></svg>';
+  const img=new Image();
+  img.onload=function(){
+    const cv=document.createElement('canvas'); cv.width=W*esc; cv.height=H*esc;
+    const ctx=cv.getContext('2d'); ctx.scale(esc,esc); ctx.drawImage(img,0,0);
+    cv.toBlob(function(bl){
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(bl);
+      a.download=(mapAtual.nome||'mapa').replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.png';
+      a.click(); setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+    });
+  };
+  img.onerror=function(){ alert('Não consegui gerar o PNG.'); };
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+}
+
+/* ── MOUSE / TECLADO ── */
+document.addEventListener('DOMContentLoaded',function(){
+  const svg=document.getElementById('map-svg'), palco=document.getElementById('map-palco'), ta=document.getElementById('map-edit');
+  if(!svg||!palco||!ta) return;
+
+  svg.addEventListener('mousedown',function(ev){
+    if(ev.target.closest('[data-no]')) return;
+    mapArrasto={x:ev.clientX,y:ev.clientY,tx:mapTx,ty:mapTy};
+    svg.classList.add('arrastando');
+    mapFecharEdicao(true);
+  });
+  window.addEventListener('mousemove',function(ev){
+    if(!mapArrasto) return;
+    mapTx=mapArrasto.tx+(ev.clientX-mapArrasto.x);
+    mapTy=mapArrasto.ty+(ev.clientY-mapArrasto.y);
+    mapAplicarTransform();
+  });
+  window.addEventListener('mouseup',function(){ mapArrasto=null; svg.classList.remove('arrastando'); });
+
+  palco.addEventListener('wheel',function(ev){
+    if(!mapAtual) return;
+    ev.preventDefault();
+    const r=palco.getBoundingClientRect(), cx=ev.clientX-r.left, cy=ev.clientY-r.top;
+    const novo=Math.min(2.5,Math.max(0.2,mapZoom*(ev.deltaY<0?1.12:1/1.12)));
+    mapTx=cx-(cx-mapTx)*(novo/mapZoom); mapTy=cy-(cy-mapTy)*(novo/mapZoom);
+    mapZoom=novo; mapAplicarTransform();
+  },{passive:false});
+
+  ta.addEventListener('keydown',function(ev){
+    if(ev.key==='Enter'&&!ev.shiftKey){ ev.preventDefault(); mapFecharEdicao(true); }
+    if(ev.key==='Escape'){ ev.preventDefault(); mapFecharEdicao(false); }
+    ev.stopPropagation();
+  });
+  ta.addEventListener('blur',function(){ mapFecharEdicao(true); });
+
+  document.addEventListener('keydown',function(ev){
+    const tela=document.getElementById('screen-mapas');
+    if(!tela||!tela.classList.contains('active')||!mapAtual) return;
+    if(document.getElementById('map-tela-editor').style.display==='none') return;
+    const alvo=ev.target&&ev.target.tagName;
+    if(alvo==='INPUT'||alvo==='TEXTAREA') return;
+    if(ev.key==='Tab'){ ev.preventDefault(); mapAddFilho(); }
+    else if(ev.key==='Enter'){ ev.preventDefault(); mapAddIrmao(); }
+    else if(ev.key==='F2'){ ev.preventDefault(); mapRenomear(); }
+    else if(ev.key==='Delete'||ev.key==='Backspace'){ ev.preventDefault(); mapExcluirNo(); }
+  });
+});
+
 </script>
 <!-- CONFIRMAR LANÇAMENTO — modal confiável -->
 <div class="modal-overlay2" id="confirmar-overlay" onclick="if(event.target===this)fecharConfirmarDialog()">
@@ -12553,6 +12962,52 @@ async function patTirarDoFunil(){
             <tbody id="div-tbody"></tbody>
           </table>
         </div>
+      </div>
+
+
+      <!-- TELA: MAPAS MENTAIS -->
+      <div class="inner-screen" id="screen-mapas">
+
+        <div id="map-tela-lista">
+          <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+            <h1>Mapas mentais</h1>
+            <button class="mkt-btn primary" onclick="mapNovo()">＋ Novo mapa</button>
+          </div>
+          <div class="map-cards" id="map-cards"></div>
+          <div id="map-lista-msg" class="map-vazio"></div>
+        </div>
+
+        <div id="map-tela-editor" style="display:none;">
+          <div class="map-topo">
+            <button class="mkt-btn sm" onclick="mapVoltar()">← Mapas</button>
+            <input id="map-nome" class="map-nome" placeholder="Nome do mapa" oninput="mapMarcarSujo()">
+            <span class="map-status" id="map-status"></span>
+          </div>
+
+          <div class="map-barra">
+            <button class="mkt-btn sm primary" onclick="mapAddFilho()">＋ Filho</button>
+            <button class="mkt-btn sm" onclick="mapAddIrmao()">＋ Irmão</button>
+            <button class="mkt-btn sm" onclick="mapRenomear()">Renomear</button>
+            <button class="mkt-btn sm" onclick="mapExcluirNo()">Excluir</button>
+            <div class="sep"></div>
+            <span class="map-rot">Cor</span>
+            <span id="map-cores"></span>
+            <div class="sep"></div>
+            <button class="mkt-btn sm" onclick="mapZoomar(-1)">−</button>
+            <button class="mkt-btn sm" onclick="mapAjustar()">Ajustar</button>
+            <button class="mkt-btn sm" onclick="mapZoomar(1)">＋</button>
+            <div class="sep"></div>
+            <button class="mkt-btn sm" onclick="mapPNG()">Baixar PNG</button>
+            <button class="mkt-btn sm primary" onclick="mapSalvar(true)">Salvar</button>
+          </div>
+
+          <div class="map-palco" id="map-palco">
+            <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+            <textarea id="map-edit" class="map-edit" rows="1"></textarea>
+            <div class="map-dica">Clique num balão · Tab = filho · Enter = irmão · F2 = renomear · Del = excluir · arraste o fundo para mover</div>
+          </div>
+        </div>
+
       </div>
 
 <!-- MODAL: REUNIÃO -->
