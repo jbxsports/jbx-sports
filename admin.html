@@ -2342,8 +2342,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'admin_carrinhos_abandonados','admin_carrinho_contato',
   'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir',
   'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar',
-  'admin_div_campanhas','admin_div_campanha_salvar','admin_div_campanha_excluir',
-  'admin_div_lista','admin_div_salvar'];
+  'div_adm_campanhas','div_adm_campanha_salvar','div_adm_campanha_excluir',
+  'div_adm_lista','div_adm_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2459,13 +2459,19 @@ function showInner(name){
 let divCamps=[], divCampAtual=null, divLista=[], divCampEdit=null;
 
 function divMsg(el,txt,cor){const e=document.getElementById(el);if(!e)return;e.textContent=txt||'';e.style.color=cor||'var(--muted)';}
+function divDetalhe(e){
+  let t=(e&&e.message)||'';
+  try{const j=JSON.parse(t); t=(j.message||j.erro||j.hint||t);}catch(x){}
+  t=String(t).replace(/\s+/g,' ').trim();
+  return t?(' — '+t.slice(0,160)):'';
+}
 
 async function divInit(){
   try{
-    const r=await rpc('admin_div_campanhas',{});
+    const r=await rpc('div_adm_campanhas',{});
     if(!r||!r.ok){divMsg('div-feedback','Sem permissão para esta aba.','#e74c3c');return;}
     divCamps=r.campanhas||[];
-  }catch(e){divMsg('div-feedback','Não consegui carregar as campanhas.','#e74c3c');return;}
+  }catch(e){divMsg('div-feedback','Não consegui carregar as campanhas'+divDetalhe(e),'#e74c3c');return;}
   divRenderSelect();
   if(divCamps.length){
     if(!divCampAtual||!divCamps.some(c=>c.id===divCampAtual)) divCampAtual=divCamps[0].id;
@@ -2497,10 +2503,10 @@ async function divCarregarLista(){
   if(!divCampAtual)return;
   divMsg('div-feedback','Carregando…');
   try{
-    const r=await rpc('admin_div_lista',{p_campanha:divCampAtual});
+    const r=await rpc('div_adm_lista',{p_campanha:divCampAtual});
     if(!r||!r.ok){divMsg('div-feedback','Sem permissão.','#e74c3c');return;}
     divLista=r.lista||[];
-  }catch(e){divMsg('div-feedback','Não consegui carregar a lista.','#e74c3c');return;}
+  }catch(e){divMsg('div-feedback','Não consegui carregar a lista'+divDetalhe(e),'#e74c3c');return;}
   divRenderLista();
   divMsg('div-feedback','');
 }
@@ -2687,7 +2693,13 @@ const DIV_ERROS={sem_permissao:'Sem permissão para esta aba.',cupom_existe:'Já
 
 async function divSalvar(d,campos){
   divMsg('div-feedback','Salvando…');
-  const r=await rpc('admin_div_salvar',{p_id:d.id,p_campos:campos});
+  let r;
+  try{
+    r=await rpc('div_adm_salvar',{p_id:d.id,p_campos:campos});
+  }catch(e){
+    divMsg('div-feedback','Não salvou'+divDetalhe(e),'#e74c3c');
+    throw e;
+  }
   if(!r||!r.ok){divMsg('div-feedback',DIV_ERROS[r&&r.erro]||'Não salvou. Tente de novo.','#e74c3c');throw new Error('recusado');}
   divMsg('div-feedback','Salvo.','#2ecc71');
   return r;
@@ -2766,20 +2778,20 @@ async function divSalvarCampanha(){
   if(dados.nome.length<3){divMsg('div-camp-feedback','Dê um nome ao evento.','#e74c3c');return;}
   divMsg('div-camp-feedback','Salvando…');
   try{
-    const r=await rpc('admin_div_campanha_salvar',{p_id:divCampEdit,p_dados:dados});
+    const r=await rpc('div_adm_campanha_salvar',{p_id:divCampEdit,p_dados:dados});
     if(!r||!r.ok){divMsg('div-camp-feedback',DIV_ERROS[r&&r.erro]||'Não salvou.','#e74c3c');return;}
     divCampAtual=r.id;
     divFecharForm();
     await divInit();
     document.getElementById('div-sel-camp').value=divCampAtual;
-  }catch(e){divMsg('div-camp-feedback','Não salvou. Tente de novo.','#e74c3c');}
+  }catch(e){divMsg('div-camp-feedback','Não salvou'+divDetalhe(e),'#e74c3c');}
 }
 
 async function divExcluirCampanha(){
   if(!divCampEdit)return;
   if(!confirm('Excluir esta campanha? Só é possível se ela não tiver nenhum divulgador.'))return;
   try{
-    const r=await rpc('admin_div_campanha_excluir',{p_id:divCampEdit});
+    const r=await rpc('div_adm_campanha_excluir',{p_id:divCampEdit});
     if(!r||!r.ok){divMsg('div-camp-feedback',DIV_ERROS[r&&r.erro]||'Não excluiu.','#e74c3c');return;}
     divCampAtual=null;divFecharForm();divInit();
   }catch(e){divMsg('div-camp-feedback','Não excluiu.','#e74c3c');}
