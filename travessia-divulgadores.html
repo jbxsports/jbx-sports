@@ -35,7 +35,7 @@
   header.topo{background:var(--laranja);position:relative;overflow:hidden}
   header.topo::before{
     content:"";position:absolute;inset:0;
-    background-image:var(--topo-img);background-size:560px;opacity:.3;
+    background-image:var(--topo-img);background-size:720px;opacity:.13;
   }
   .topo-in{position:relative;max-width:780px;margin:0 auto;padding-inline:20px;padding-block:32px 34px}
   .topo img{width:132px;height:auto;display:block}
@@ -121,11 +121,23 @@
 
   /* ── CUPOM ── */
   .cupom-box{position:relative;overflow:hidden;background:var(--laranja);border-radius:var(--raio);padding:22px 20px;margin-top:16px;text-align:center}
-  .cupom-box::before{content:"";position:absolute;inset:0;background-image:var(--topo-img);background-size:460px;opacity:.28}
+  .cupom-box::before{content:"";position:absolute;inset:0;background-image:var(--topo-img);background-size:560px;opacity:.16}
   .cupom-box > *{position:relative}
   .cupom-box .rot{font-family:var(--f);font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.9)}
   .cupom-box .cod{font-family:var(--f);font-size:clamp(28px,7.5vw,38px);font-weight:700;color:var(--branco);letter-spacing:.06em;margin:8px 0 4px;overflow-wrap:anywhere}
   .cupom-box .obs{font-size:14px;color:rgba(255,255,255,.95);font-weight:600}
+
+  /* ── O QUE VOCÊ GANHA ── */
+  .ganha-lista{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:12px}
+  .ganha-lista li{display:flex;gap:12px;align-items:flex-start}
+  .ganha-lista .ic{flex:none;width:26px;height:26px;border-radius:50%;background:var(--laranja);color:var(--branco);display:grid;place-items:center;font-family:var(--f);font-weight:700;font-size:13px;line-height:1}
+  .ganha-lista b{display:block;font-family:var(--f);font-size:15.5px}
+  .ganha-lista i{display:block;font-style:normal;color:var(--tinta-2);font-size:14px;line-height:1.4}
+  .premio{margin-top:18px;background:var(--roxo);border-radius:10px;padding:17px 19px;color:var(--branco)}
+  .premio .rot{font-family:var(--f);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+  .premio ul{list-style:none;padding:0;margin:11px 0 0;display:grid;gap:8px}
+  .premio li{display:flex;gap:10px;font-size:14.5px;font-weight:600;line-height:1.35}
+  .premio li::before{content:"★";opacity:.7;flex:none}
 
   /* ── RANKING ── */
   .rank{margin-top:14px;background:var(--papel);border:1px solid var(--borda);border-radius:var(--raio);overflow:hidden}
@@ -192,6 +204,8 @@
     <div class="card" style="margin-top:18px">
       <dl class="linha" id="cad-dados" style="margin:0;display:grid;gap:8px"></dl>
     </div>
+
+    <div id="cad-ganha"></div>
 
     <div class="card">
       <div class="field">
@@ -336,9 +350,44 @@
       var dd=document.createElement('dd');dd.style.margin='0';dd.textContent=it[1];
       l.appendChild(dt);l.appendChild(dd);dl.appendChild(l);
     });
+    montarGanha(CAMP,$('cad-ganha'));
     limparForm();
     carregarRanking(CAMP.id,$('cad-ranking'),null);
     telas('tela-cadastro');
+  }
+
+  /* ── o que o divulgador ganha ── */
+  function montarGanha(c,destino){
+    destino.textContent='';
+    var card=document.createElement('div');card.className='card';
+    var h=document.createElement('h3');h.textContent='O que você ganha';card.appendChild(h);
+
+    var ul=document.createElement('ul');ul.className='ganha-lista';
+    function item(ic,tit,txt){
+      var li=document.createElement('li');
+      var s=document.createElement('span');s.className='ic';s.textContent=ic;
+      var d=document.createElement('div');
+      var b=document.createElement('b');b.textContent=tit;
+      var i=document.createElement('i');i.textContent=txt;
+      d.appendChild(b);d.appendChild(i);li.appendChild(s);li.appendChild(d);ul.appendChild(li);
+    }
+    item('%', c.desconto_pct+'% de desconto no cupom','Seu público economiza usando o seu nome.');
+    item('+', '1 inscrição cortesia a cada '+c.usos_cortesia+' usos','Acumula: 20 usos = 2 cortesias, e por aí vai.');
+    item('#', 'Sua arte personalizada','Nosso designer cria a peça do evento com a sua foto.');
+    card.appendChild(ul);
+
+    var linhas=String(c.premiacao||'').split(/\r?\n|;/).map(function(x){return x.trim();}).filter(Boolean);
+    if(linhas.length){
+      var box=document.createElement('div');box.className='premio';
+      var rot=document.createElement('div');rot.className='rot';
+      rot.textContent='Top 5 divulgadores do evento';
+      box.appendChild(rot);
+      var lp=document.createElement('ul');
+      linhas.forEach(function(t){var li=document.createElement('li');li.textContent=t;lp.appendChild(li);});
+      box.appendChild(lp);
+      card.appendChild(box);
+    }
+    destino.appendChild(card);
   }
 
   /* ── ranking ── */
