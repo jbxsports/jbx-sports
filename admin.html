@@ -1273,6 +1273,17 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .div-pill.on{background:rgba(46,204,113,.16);color:#2ecc71;border-color:rgba(46,204,113,.4)}
 .div-pill.off{background:rgba(231,76,60,.14);color:#e74c3c;border-color:rgba(231,76,60,.4)}
 .div-acoes{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.div-aprov{display:flex;gap:6px;flex-wrap:wrap}
+.div-btn-aprov,.div-btn-reprov{
+  font:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;padding:6px 10px;
+  border-radius:8px;cursor:pointer;background:transparent;
+  border:1px solid rgba(120,130,150,.35);color:var(--muted,#8a93a6);
+}
+.div-btn-aprov:hover{border-color:rgba(46,204,113,.6);color:#2ecc71}
+.div-btn-reprov:hover{border-color:rgba(231,76,60,.6);color:#e74c3c}
+.div-btn-aprov.on{background:rgba(46,204,113,.16);border-color:rgba(46,204,113,.5);color:#2ecc71}
+.div-btn-reprov.on{background:rgba(231,76,60,.14);border-color:rgba(231,76,60,.5);color:#e74c3c}
+.div-btn-aprov[disabled],.div-btn-reprov[disabled]{opacity:.5;cursor:default}
 .div-campanha-form{display:none}
 .div-campanha-form.aberto{display:block}
 .div-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:999;padding:24px}
@@ -2571,16 +2582,37 @@ function divRenderLista(){
     tdC.appendChild(inC);
     tr.appendChild(tdC);
 
-    /* aprovacao */
+    /* aprovacao: dois botoes diretos */
     const tdA=document.createElement('td');
-    const estado=d.reprovado?'reprovado':(d.aprovado?'aprovado':'analise');
-    const rotulos={analise:['EM ANÁLISE','wait'],aprovado:['APROVADO','on'],reprovado:['REPROVADO','off']};
-    const pA=divPill(rotulos[estado][0],rotulos[estado][1],'Clique para alternar: em análise, aprovado, reprovado',function(){
-      const seq=['analise','aprovado','reprovado'];
-      const prox=seq[(seq.indexOf(estado)+1)%3];
-      divSalvar(d,{aprovado:prox==='aprovado',reprovado:prox==='reprovado'}).then(divCarregarLista);
+    const grupo=document.createElement('div');grupo.className='div-aprov';
+    const bSim=document.createElement('button');
+    bSim.type='button';
+    bSim.className='div-btn-aprov'+(d.aprovado?' on':'');
+    bSim.textContent='Aprovar';
+    bSim.title=d.aprovado?'Aprovado. Clique para voltar para em análise.':'Aprovar este divulgador';
+    bSim.addEventListener('click',function(){
+      const novo=!d.aprovado;
+      bSim.disabled=true;
+      divSalvar(d,{aprovado:novo,reprovado:false}).then(divCarregarLista).catch(function(){bSim.disabled=false;});
     });
-    tdA.appendChild(pA);
+    const bNao=document.createElement('button');
+    bNao.type='button';
+    bNao.className='div-btn-reprov'+(d.reprovado?' on':'');
+    bNao.textContent='Reprovar';
+    bNao.title=d.reprovado?'Reprovado. Clique para voltar para em análise.':'Reprovar este divulgador';
+    bNao.addEventListener('click',function(){
+      const novo=!d.reprovado;
+      bNao.disabled=true;
+      divSalvar(d,{reprovado:novo,aprovado:false}).then(divCarregarLista).catch(function(){bNao.disabled=false;});
+    });
+    grupo.appendChild(bSim);grupo.appendChild(bNao);
+    tdA.appendChild(grupo);
+    if(!d.aprovado&&!d.reprovado){
+      const em=document.createElement('div');
+      em.style.cssText='font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:4px';
+      em.textContent='em análise';
+      tdA.appendChild(em);
+    }
     tr.appendChild(tdA);
 
     /* cupom liberado */
@@ -12448,6 +12480,7 @@ async function patTirarDoFunil(){
         </div>
 
         <div class="div-kpis" id="div-kpis"></div>
+        <div class="form-feedback" id="div-feedback" style="min-height:22px;margin-bottom:8px;"></div>
 
         <div class="table-wrap">
           <table class="data-table" id="div-tabela">
@@ -12456,7 +12489,7 @@ async function patTirarDoFunil(){
                 <th style="width:52px;">Foto</th>
                 <th>Divulgador</th>
                 <th style="width:126px;">Cupom</th>
-                <th style="width:118px;">Aprovação</th>
+                <th style="width:152px;">Aprovação</th>
                 <th style="width:110px;">Liberado</th>
                 <th style="width:78px;">Usos</th>
                 <th style="width:150px;">Arte</th>
@@ -12466,7 +12499,6 @@ async function patTirarDoFunil(){
             <tbody id="div-tbody"></tbody>
           </table>
         </div>
-        <div class="form-feedback" id="div-feedback"></div>
       </div>
 
 <!-- MODAL: REUNIÃO -->
