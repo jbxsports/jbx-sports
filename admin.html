@@ -1361,7 +1361,6 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
-        <button class="nav-btn" id="nav-funil" onclick="showInner('funil')">Funil de Patrocínio</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
@@ -2396,7 +2395,7 @@ function tagLabel(s){return s==='open'?'Aberto':s==='closed'?'Encerrado':'Em bre
 const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
- {id:'marcas',label:'Marcas'},{id:'funil',label:'Funil de Patrocínio'},
+ {id:'marcas',label:'Marcas'},
  {id:'cruzar',label:'Cruzamento'},{id:'campanhas',label:'Campanhas'},{id:'reunioes',label:'Reuniões'},
  {id:'divulgadores',label:'Divulgadores'},{id:'mapas',label:'Mapas'}
 ];
@@ -2461,7 +2460,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'){if(!admUser||!admUser.master)return;}
   else if(!admTemAba(abaReq))return;
@@ -2482,7 +2481,7 @@ function showInner(name){
   if(name==='calendario'){document.getElementById('nav-calendario').classList.add('active');calInitCalendario();}
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
   if(name==='marcas'){document.getElementById('nav-marcas').classList.add('active');patInit('marcas');}
-  if(name==='funil'){document.getElementById('nav-funil').classList.add('active');patInit('funil');}
+  if(name==='funil'){document.getElementById('nav-marcas').classList.add('active');patInit('funil');}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
@@ -12740,7 +12739,10 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="inner-screen" id="screen-marcas">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
           <h1>Marcas</h1>
-          <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="mkt-btn" onclick="showInner('funil')">Funil de Patrocínio →</button>
+            <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
+          </div>
         </div>
 
         <div class="pt-form" id="pt-form-rapido" style="display:none;">
@@ -12802,7 +12804,10 @@ document.addEventListener('DOMContentLoaded',function(){
       <!-- TELA: FUNIL DE PATROCÍNIO -->
       <div class="inner-screen" id="screen-funil">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-          <h1>Funil de Patrocínio</h1>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
+            <h1>Funil de Patrocínio</h1>
+          </div>
           <select class="pt-sel grande" id="pt-evento" onchange="patTrocarEvento()"></select>
         </div>
         <div class="pt-kpis" id="pt-kpis"></div>
