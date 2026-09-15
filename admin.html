@@ -2797,6 +2797,36 @@ async function divExcluirCampanha(){
   }catch(e){divMsg('div-camp-feedback','Não excluiu.','#e74c3c');}
 }
 
+function divExportar(){
+  if(!divLista.length){divMsg('div-feedback','Nada para exportar nesta campanha.','#e74c3c');return;}
+  const c=divCampanhaAtual();
+  const nomeCamp=c?c.nome:'campanha';
+  const cortesia=c?(c.usos_cortesia||10):10;
+  const linhas=[['Nome','Instagram','Cupom','Aprovação','Cupom liberado','Usos','Cortesias','Arte','Cadastro']];
+  divLista.slice().sort(function(a,b){return (b.usos||0)-(a.usos||0)||String(a.nome).localeCompare(String(b.nome));})
+    .forEach(function(d){
+      linhas.push([
+        d.nome,
+        d.instagram,
+        d.cupom,
+        d.reprovado?'Reprovado':(d.aprovado?'Aprovado':'Em análise'),
+        d.ativo?'Ativo':'Aguardando',
+        Number(d.usos||0),
+        Math.floor(Number(d.usos||0)/cortesia),
+        d.arte_url?'Pronta':'Pendente',
+        d.criado_em?new Date(d.criado_em).toLocaleDateString('pt-BR'):''
+      ]);
+    });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols']=[{wch:30},{wch:22},{wch:16},{wch:14},{wch:15},{wch:8},{wch:10},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws,'Divulgadores');
+  const arq='divulgadores_'+nomeCamp.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Za-z0-9]+/g,'_').toLowerCase()
+    +'_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  XLSX.writeFile(wb,arq);
+  divMsg('div-feedback','Excel gerado: '+arq,'#2ecc71');
+}
+
 function divCopiarLink(){
   const c=divCampanhaAtual();
   const url=location.origin+'/divulgadores.html'+(c?('?e='+c.id):'');
@@ -12489,6 +12519,7 @@ async function patTirarDoFunil(){
           <button class="btn-ghost" onclick="divFormCampanha(divCampAtual)">Editar campanha</button>
           <button class="btn-ghost" onclick="divCarregarLista()">Atualizar lista</button>
           <button class="btn-ghost" onclick="divCopiarLink()">Copiar link público</button>
+          <button class="btn-ghost" onclick="divExportar()">Exportar Excel</button>
         </div>
 
         <div class="div-kpis" id="div-kpis"></div>
