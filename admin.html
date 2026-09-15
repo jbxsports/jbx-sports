@@ -1257,6 +1257,31 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .ck-vazio{padding:26px;text-align:center;color:var(--muted);font-size:13px;}
 @media(max-width:760px){table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{min-width:190px;}.ck-bar .ck-status{margin-left:0;}}
 
+/* ── DIVULGADORES ── */
+.div-top{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px}
+.div-top .form-g{margin:0;min-width:240px;flex:1 1 240px}
+.div-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.div-kpi{background:var(--card,#141821);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 16px;min-width:110px}
+.div-kpi b{display:block;font-size:22px;line-height:1.1}
+.div-kpi span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#8a93a6)}
+.div-foto{width:38px;height:38px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.06);border:0;display:block;cursor:zoom-in}
+.div-foto-vazia{width:38px;height:38px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted,#8a93a6)}
+.div-in-cupom{width:106px;text-transform:uppercase;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.div-in-usos{width:62px;text-align:right}
+.div-pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;cursor:pointer;border:1px solid transparent;white-space:nowrap}
+.div-pill.wait{background:rgba(255,255,255,.06);color:var(--muted,#8a93a6);border-color:rgba(255,255,255,.14)}
+.div-pill.on{background:rgba(46,204,113,.16);color:#2ecc71;border-color:rgba(46,204,113,.4)}
+.div-pill.off{background:rgba(231,76,60,.14);color:#e74c3c;border-color:rgba(231,76,60,.4)}
+.div-acoes{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.div-campanha-form{display:none}
+.div-campanha-form.aberto{display:block}
+.div-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:999;padding:24px}
+.div-lightbox.aberto{display:flex}
+.div-lightbox img{max-width:min(92vw,700px);max-height:88vh;border-radius:12px}
+@media(max-width:820px){
+  .div-in-cupom{width:100px}
+  .div-kpi{flex:1 1 calc(50% - 10px)}
+}
 </style>
 </head>
 <body>
@@ -1294,6 +1319,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
         <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
         <button class="nav-btn" id="nav-funil" onclick="showInner('funil')">Funil de Patrocínio</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
+        <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;" id="hd-usuario">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -2304,7 +2330,9 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'crz_bases_listar','crz_base_pessoas','crz_base_salvar','crz_base_excluir',
   'admin_carrinhos_abandonados','admin_carrinho_contato',
   'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir',
-  'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar'];
+  'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar',
+  'admin_div_campanhas','admin_div_campanha_salvar','admin_div_campanha_excluir',
+  'admin_div_lista','admin_div_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2323,7 +2351,8 @@ const ADM_ABAS=[
  {id:'dash',label:'Dashboard'},{id:'inscritos',label:'Inscritos'},{id:'planos',label:'Plano de Evento'},{id:'cupons',label:'Cupons'},{id:'financeiro',label:'Financeiro'},
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'marcas',label:'Marcas'},{id:'funil',label:'Funil de Patrocínio'},
- {id:'cruzar',label:'Cruzamento'},{id:'campanhas',label:'Campanhas'},{id:'reunioes',label:'Reuniões'}
+ {id:'cruzar',label:'Cruzamento'},{id:'campanhas',label:'Campanhas'},{id:'reunioes',label:'Reuniões'},
+ {id:'divulgadores',label:'Divulgadores'}
 ];
 let admUser=null, admToken=null;
 function admTemAba(id){
@@ -2412,7 +2441,326 @@ function showInner(name){
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
+  if(name==='divulgadores'){document.getElementById('nav-divulgadores').classList.add('active');divInit();}
 }
+
+/* ══════════════ DIVULGADORES ══════════════ */
+let divCamps=[], divCampAtual=null, divLista=[], divCampEdit=null;
+
+function divMsg(el,txt,cor){const e=document.getElementById(el);if(!e)return;e.textContent=txt||'';e.style.color=cor||'var(--muted)';}
+
+async function divInit(){
+  try{
+    const r=await rpc('admin_div_campanhas',{});
+    if(!r||!r.ok){divMsg('div-feedback','Sem permissão para esta aba.','#e74c3c');return;}
+    divCamps=r.campanhas||[];
+  }catch(e){divMsg('div-feedback','Não consegui carregar as campanhas.','#e74c3c');return;}
+  divRenderSelect();
+  if(divCamps.length){
+    if(!divCampAtual||!divCamps.some(c=>c.id===divCampAtual)) divCampAtual=divCamps[0].id;
+    document.getElementById('div-sel-camp').value=divCampAtual;
+    divCarregarLista();
+  } else {
+    document.getElementById('div-tbody').innerHTML='';
+    document.getElementById('div-kpis').innerHTML='';
+    divMsg('div-feedback','Nenhuma campanha criada ainda. Clique em "Nova campanha".');
+  }
+}
+
+function divRenderSelect(){
+  const sel=document.getElementById('div-sel-camp');
+  sel.innerHTML='';
+  divCamps.forEach(c=>{
+    const o=document.createElement('option');
+    o.value=c.id;
+    o.textContent=c.nome+(c.aberta?'':' (fechada)')+' — '+c.total+' cadastro'+(c.total==1?'':'s');
+    sel.appendChild(o);
+  });
+}
+
+function divTrocarCampanha(id){divCampAtual=id;divCarregarLista();}
+
+function divCampanhaAtual(){return divCamps.find(c=>c.id===divCampAtual)||null;}
+
+async function divCarregarLista(){
+  if(!divCampAtual)return;
+  divMsg('div-feedback','Carregando…');
+  try{
+    const r=await rpc('admin_div_lista',{p_campanha:divCampAtual});
+    if(!r||!r.ok){divMsg('div-feedback','Sem permissão.','#e74c3c');return;}
+    divLista=r.lista||[];
+  }catch(e){divMsg('div-feedback','Não consegui carregar a lista.','#e74c3c');return;}
+  divRenderLista();
+  divMsg('div-feedback','');
+}
+
+function divKpis(){
+  const box=document.getElementById('div-kpis');
+  const analise=divLista.filter(d=>!d.aprovado&&!d.reprovado).length;
+  const aprov=divLista.filter(d=>d.aprovado).length;
+  const ativos=divLista.filter(d=>d.ativo).length;
+  const semArte=divLista.filter(d=>d.aprovado&&!d.arte_url).length;
+  const usos=divLista.reduce((a,d)=>a+(d.usos||0),0);
+  const dados=[['Cadastrados',divLista.length],['Em análise',analise],['Aprovados',aprov],
+               ['Cupons ativos',ativos],['Sem arte',semArte],['Usos no total',usos]];
+  box.innerHTML='';
+  dados.forEach(function(d){
+    const k=document.createElement('div');k.className='div-kpi';
+    const b=document.createElement('b');b.textContent=d[1];
+    const s=document.createElement('span');s.textContent=d[0];
+    k.appendChild(b);k.appendChild(s);box.appendChild(k);
+  });
+}
+
+function divPill(texto,classe,titulo,onclick){
+  const b=document.createElement('span');
+  b.className='div-pill '+classe;
+  b.textContent=texto;
+  if(titulo)b.title=titulo;
+  if(onclick)b.addEventListener('click',onclick);
+  return b;
+}
+
+function divRenderLista(){
+  const tb=document.getElementById('div-tbody');
+  tb.innerHTML='';
+  divKpis();
+  if(!divLista.length){
+    const tr=document.createElement('tr');const td=document.createElement('td');
+    td.colSpan=8;td.className='empty-state';td.textContent='Nenhum divulgador cadastrado nesta campanha ainda.';
+    tr.appendChild(td);tb.appendChild(tr);return;
+  }
+  divLista.forEach(function(d){
+    const tr=document.createElement('tr');
+
+    /* foto */
+    const tdF=document.createElement('td');
+    if(d.foto_path){
+      const img=document.createElement('img');
+      img.className='div-foto';img.alt='Foto de '+d.nome;img.title='Ver foto';
+      divFotoSrc(d.foto_path).then(function(u){if(u)img.src=u;});
+      img.addEventListener('click',function(){divAbrirFoto(img.src);});
+      tdF.appendChild(img);
+    } else {
+      const v=document.createElement('div');v.className='div-foto-vazia';v.textContent='—';tdF.appendChild(v);
+    }
+    tr.appendChild(tdF);
+
+    /* nome + @ */
+    const tdN=document.createElement('td');
+    const nome=document.createElement('div');nome.style.fontWeight='600';nome.textContent=d.nome;
+    const a=document.createElement('a');
+    a.href='https://www.instagram.com/'+encodeURIComponent(String(d.instagram||'').replace(/^@+/,''))+'/';
+    a.target='_blank';a.rel='noopener';a.textContent=d.instagram;
+    a.style.cssText='font-size:12px;color:var(--muted);text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.25)';
+    tdN.appendChild(nome);tdN.appendChild(a);
+    tr.appendChild(tdN);
+
+    /* cupom editavel */
+    const tdC=document.createElement('td');
+    const inC=document.createElement('input');
+    inC.className='div-in-cupom';inC.value=d.cupom;inC.maxLength=16;inC.title='Corrigir o cupom';
+    inC.addEventListener('change',function(){
+      const novo=String(inC.value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+      if(!novo||novo===d.cupom){inC.value=d.cupom;return;}
+      inC.disabled=true;
+      divSalvar(d,{cupom:novo}).then(function(r){
+        d.cupom=(r&&r.cupom)||novo;inC.value=d.cupom;inC.disabled=false;
+      }).catch(function(){inC.value=d.cupom;inC.disabled=false;});
+    });
+    tdC.appendChild(inC);
+    tr.appendChild(tdC);
+
+    /* aprovacao */
+    const tdA=document.createElement('td');
+    const estado=d.reprovado?'reprovado':(d.aprovado?'aprovado':'analise');
+    const rotulos={analise:['EM ANÁLISE','wait'],aprovado:['APROVADO','on'],reprovado:['REPROVADO','off']};
+    const pA=divPill(rotulos[estado][0],rotulos[estado][1],'Clique para alternar: em análise, aprovado, reprovado',function(){
+      const seq=['analise','aprovado','reprovado'];
+      const prox=seq[(seq.indexOf(estado)+1)%3];
+      divSalvar(d,{aprovado:prox==='aprovado',reprovado:prox==='reprovado'}).then(divCarregarLista);
+    });
+    tdA.appendChild(pA);
+    tr.appendChild(tdA);
+
+    /* cupom liberado */
+    const tdL=document.createElement('td');
+    if(d.aprovado){
+      const pL=divPill(d.ativo?'ATIVO':'AGUARDE',d.ativo?'on':'wait','Clique para liberar ou travar o cupom',function(){
+        divSalvar(d,{ativo:!d.ativo}).then(divCarregarLista);
+      });
+      tdL.appendChild(pL);
+    } else {
+      const t=document.createElement('span');t.className='div-pill wait';t.style.cursor='default';
+      t.textContent='—';t.title='Aprove o divulgador antes de liberar o cupom';
+      tdL.appendChild(t);
+    }
+    tr.appendChild(tdL);
+
+    /* usos */
+    const tdU=document.createElement('td');
+    const inU=document.createElement('input');
+    inU.type='number';inU.min='0';inU.className='div-in-usos';inU.value=d.usos||0;
+    inU.addEventListener('change',function(){
+      let v=parseInt(inU.value,10);if(isNaN(v)||v<0)v=0;inU.value=v;
+      divSalvar(d,{usos:v}).then(function(){d.usos=v;divKpis();});
+    });
+    tdU.appendChild(inU);
+    tr.appendChild(tdU);
+
+    /* arte */
+    const tdR=document.createElement('td');
+    const acoes=document.createElement('div');acoes.className='div-acoes';
+    if(d.arte_url){
+      const ver=document.createElement('a');
+      ver.className='btn-sm btn-sm-green';ver.href=d.arte_url;ver.target='_blank';ver.rel='noopener';ver.textContent='Ver arte';
+      acoes.appendChild(ver);
+    }
+    const file=document.createElement('input');file.type='file';file.accept='image/*';file.style.display='none';
+    const bt=document.createElement('button');
+    bt.className='btn-sm btn-sm-ghost';bt.textContent=d.arte_url?'Trocar':'Subir arte';
+    bt.addEventListener('click',function(){file.click();});
+    file.addEventListener('change',function(){
+      const f=file.files&&file.files[0];if(!f)return;
+      bt.disabled=true;bt.textContent='Enviando…';
+      divUploadArte(f,d.cupom).then(function(url){
+        return divSalvar(d,{arte_url:url}).then(function(){d.arte_url=url;divRenderLista();});
+      }).catch(function(){bt.disabled=false;bt.textContent=d.arte_url?'Trocar':'Subir arte';
+        divMsg('div-feedback','Não consegui enviar a arte.','#e74c3c');});
+    });
+    acoes.appendChild(file);acoes.appendChild(bt);
+    tdR.appendChild(acoes);
+    tr.appendChild(tdR);
+
+    /* remover */
+    const tdX=document.createElement('td');
+    const x=document.createElement('button');
+    x.className='btn-sm btn-sm-ghost';x.textContent='✕';x.title='Remover desta campanha';
+    x.addEventListener('click',function(){
+      if(!confirm('Remover '+d.nome+' desta campanha? O cadastro dele nas outras campanhas continua.'))return;
+      x.disabled=true;
+      divSalvar(d,{remover:true}).then(divCarregarLista).catch(function(){x.disabled=false;});
+    });
+    tdX.appendChild(x);
+    tr.appendChild(tdX);
+
+    tb.appendChild(tr);
+  });
+}
+
+const DIV_ERROS={sem_permissao:'Sem permissão para esta aba.',cupom_existe:'Já existe outro divulgador com esse cupom nesta campanha.',
+  cupom_curto:'O cupom precisa de pelo menos 3 caracteres.',instagram_existe:'Esse @ já está em outro cadastro.',
+  instagram_curto:'O @ precisa de pelo menos 2 caracteres.',nao_encontrado:'Cadastro não encontrado.',
+  tem_divulgadores:'Essa campanha já tem divulgadores. Feche a campanha em vez de excluir.',nome_curto:'O nome do evento é muito curto.'};
+
+async function divSalvar(d,campos){
+  divMsg('div-feedback','Salvando…');
+  const r=await rpc('admin_div_salvar',{p_id:d.id,p_campos:campos});
+  if(!r||!r.ok){divMsg('div-feedback',DIV_ERROS[r&&r.erro]||'Não salvou. Tente de novo.','#e74c3c');throw new Error('recusado');}
+  divMsg('div-feedback','Salvo.','#2ecc71');
+  return r;
+}
+
+async function divUploadArte(file,cupom){
+  const ext=(file.type==='image/png')?'png':'jpg';
+  const caminho='artes/'+String(cupom||'arte').toLowerCase()+'-'+Date.now()+'.'+ext;
+  const r=await fetch(SB_URL+'/storage/v1/object/div-artes/'+caminho,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/jpeg','x-upsert':'true'},
+    body:file
+  });
+  if(!r.ok)throw new Error('upload');
+  return SB_URL+'/storage/v1/object/public/div-artes/'+caminho;
+}
+
+/* foto fica em bucket fechado: o painel pede um link temporário */
+async function divFotoSrc(caminho){
+  if(!caminho)return null;
+  if(/^https?:/i.test(caminho))return caminho;
+  try{
+    const r=await fetch('/api/div-foto?path='+encodeURIComponent(caminho),{headers:{'x-admin-token':admToken||''}});
+    if(!r.ok)return null;
+    const j=await r.json();
+    return j&&j.url?j.url:null;
+  }catch(e){return null;}
+}
+function divAbrirFoto(src){
+  if(!src)return;
+  document.getElementById('div-lightbox-img').src=src;
+  document.getElementById('div-lightbox').classList.add('aberto');
+}
+
+/* ── campanhas ── */
+function divFormCampanha(id){
+  const box=document.getElementById('div-form-camp');
+  divCampEdit=id||null;
+  const c=id?divCamps.find(x=>x.id===id):null;
+  document.getElementById('div-form-titulo').textContent=c?('Editar: '+c.nome):'Nova campanha';
+  document.getElementById('dc-nome').value=c?c.nome:'';
+  document.getElementById('dc-sub').value=c&&c.subtitulo?c.subtitulo:'';
+  document.getElementById('dc-data').value=c&&c.data_evento?c.data_evento:'';
+  document.getElementById('dc-local').value=c&&c.local_evento?c.local_evento:'';
+  document.getElementById('dc-perfil').value=c&&c.perfil_instagram?c.perfil_instagram:'';
+  document.getElementById('dc-inscricao').value=c&&c.inscricao_url?c.inscricao_url:'';
+  document.getElementById('dc-drive').value=c&&c.drive_url?c.drive_url:'';
+  document.getElementById('dc-premiacao').value=c&&c.premiacao?c.premiacao:'';
+  document.getElementById('dc-desconto').value=c?c.desconto_pct:10;
+  document.getElementById('dc-cortesia').value=c?c.usos_cortesia:10;
+  document.getElementById('dc-aberta').value=c?String(!!c.aberta):'true';
+  document.getElementById('dc-visivel').value=c?String(!!c.visivel):'true';
+  document.getElementById('div-btn-excluir').style.display=c?'':'none';
+  divMsg('div-camp-feedback','');
+  box.classList.add('aberto');
+  window.scrollTo(0,0);
+}
+function divFecharForm(){document.getElementById('div-form-camp').classList.remove('aberto');divCampEdit=null;}
+
+async function divSalvarCampanha(){
+  const dados={
+    nome:document.getElementById('dc-nome').value.trim(),
+    subtitulo:document.getElementById('dc-sub').value.trim(),
+    data_evento:document.getElementById('dc-data').value,
+    local_evento:document.getElementById('dc-local').value.trim(),
+    perfil_instagram:document.getElementById('dc-perfil').value.trim(),
+    inscricao_url:document.getElementById('dc-inscricao').value.trim(),
+    drive_url:document.getElementById('dc-drive').value.trim(),
+    premiacao:document.getElementById('dc-premiacao').value.trim(),
+    desconto_pct:document.getElementById('dc-desconto').value,
+    usos_cortesia:document.getElementById('dc-cortesia').value,
+    aberta:document.getElementById('dc-aberta').value==='true',
+    visivel:document.getElementById('dc-visivel').value==='true',
+    ordem:0
+  };
+  if(dados.nome.length<3){divMsg('div-camp-feedback','Dê um nome ao evento.','#e74c3c');return;}
+  divMsg('div-camp-feedback','Salvando…');
+  try{
+    const r=await rpc('admin_div_campanha_salvar',{p_id:divCampEdit,p_dados:dados});
+    if(!r||!r.ok){divMsg('div-camp-feedback',DIV_ERROS[r&&r.erro]||'Não salvou.','#e74c3c');return;}
+    divCampAtual=r.id;
+    divFecharForm();
+    await divInit();
+    document.getElementById('div-sel-camp').value=divCampAtual;
+  }catch(e){divMsg('div-camp-feedback','Não salvou. Tente de novo.','#e74c3c');}
+}
+
+async function divExcluirCampanha(){
+  if(!divCampEdit)return;
+  if(!confirm('Excluir esta campanha? Só é possível se ela não tiver nenhum divulgador.'))return;
+  try{
+    const r=await rpc('admin_div_campanha_excluir',{p_id:divCampEdit});
+    if(!r||!r.ok){divMsg('div-camp-feedback',DIV_ERROS[r&&r.erro]||'Não excluiu.','#e74c3c');return;}
+    divCampAtual=null;divFecharForm();divInit();
+  }catch(e){divMsg('div-camp-feedback','Não excluiu.','#e74c3c');}
+}
+
+function divCopiarLink(){
+  const c=divCampanhaAtual();
+  const url=location.origin+'/divulgadores.html'+(c?('?e='+c.id):'');
+  const ok=function(){divMsg('div-feedback','Link copiado: '+url,'#2ecc71');};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,function(){divMsg('div-feedback',url);});}
+  else{divMsg('div-feedback',url);}
+}
+
 
 /* ── DASHBOARD ── */
 async function loadDashboard(){
@@ -12045,6 +12393,82 @@ async function patTirarDoFunil(){
         <div id="reu-lista"><div class="empty-state">Carregando…</div></div>
       </div>
 
+
+      <!-- TELA: DIVULGADORES -->
+      <div class="inner-screen" id="screen-divulgadores">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <h1>Divulgadores</h1>
+          <button class="mkt-btn primary" onclick="divFormCampanha(null)">＋ Nova campanha</button>
+        </div>
+
+        <div class="panel div-campanha-form" id="div-form-camp">
+          <h2 id="div-form-titulo">Nova campanha</h2>
+          <div class="form-row2">
+            <div class="form-g"><label>Nome do evento *</label><input id="dc-nome" placeholder="Ex.: Travessia Bonfim-Ribeirão"></div>
+            <div class="form-g"><label>Subtítulo</label><input id="dc-sub" placeholder="Ex.: Bonfim Paulista → Ribeirão Preto"></div>
+          </div>
+          <div class="form-row2">
+            <div class="form-g"><label>Data do evento</label><input id="dc-data" type="date"></div>
+            <div class="form-g"><label>Local / largada</label><input id="dc-local" placeholder="Ex.: Largada 07h00 em Bonfim Paulista"></div>
+          </div>
+          <div class="form-row2">
+            <div class="form-g"><label>@ oficial do evento</label><input id="dc-perfil" placeholder="@jbxsportstravessia"></div>
+            <div class="form-g"><label>Link de inscrição</label><input id="dc-inscricao" placeholder="https://..."></div>
+          </div>
+          <div class="form-row2">
+            <div class="form-g"><label>Link do drive de materiais</label><input id="dc-drive" placeholder="https://drive.google.com/..."></div>
+            <div class="form-g"><label>Premiação (uma por linha)</label><input id="dc-premiacao" placeholder="Ex.: Blusa JBX Sports, boné e coqueteleira"></div>
+          </div>
+          <div class="form-row2">
+            <div class="form-g"><label>Desconto do cupom (%)</label><input id="dc-desconto" type="number" min="1" max="100" value="10"></div>
+            <div class="form-g"><label>Usos para ganhar 1 cortesia</label><input id="dc-cortesia" type="number" min="1" value="10"></div>
+          </div>
+          <div class="form-row2">
+            <div class="form-g"><label>Aceitando novos cadastros</label>
+              <select id="dc-aberta"><option value="true">Sim</option><option value="false">Não</option></select></div>
+            <div class="form-g"><label>Aparece na página pública</label>
+              <select id="dc-visivel"><option value="true">Sim</option><option value="false">Não</option></select></div>
+          </div>
+          <div class="div-acoes" style="margin-top:12px;">
+            <button class="btn-save" onclick="divSalvarCampanha()">Salvar campanha</button>
+            <button class="btn-ghost" onclick="divFecharForm()">Cancelar</button>
+            <button class="btn-ghost" id="div-btn-excluir" style="display:none;" onclick="divExcluirCampanha()">Excluir campanha</button>
+          </div>
+          <div class="form-feedback" id="div-camp-feedback"></div>
+        </div>
+
+        <div class="div-top">
+          <div class="form-g">
+            <label>Campanha</label>
+            <select id="div-sel-camp" onchange="divTrocarCampanha(this.value)"></select>
+          </div>
+          <button class="btn-ghost" onclick="divFormCampanha(divCampAtual)">Editar campanha</button>
+          <button class="btn-ghost" onclick="divCarregarLista()">Atualizar lista</button>
+          <button class="btn-ghost" onclick="divCopiarLink()">Copiar link público</button>
+        </div>
+
+        <div class="div-kpis" id="div-kpis"></div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="div-tabela">
+            <thead>
+              <tr>
+                <th style="width:52px;">Foto</th>
+                <th>Divulgador</th>
+                <th style="width:126px;">Cupom</th>
+                <th style="width:118px;">Aprovação</th>
+                <th style="width:110px;">Liberado</th>
+                <th style="width:78px;">Usos</th>
+                <th style="width:150px;">Arte</th>
+                <th style="width:52px;"></th>
+              </tr>
+            </thead>
+            <tbody id="div-tbody"></tbody>
+          </table>
+        </div>
+        <div class="form-feedback" id="div-feedback"></div>
+      </div>
+
 <!-- MODAL: REUNIÃO -->
 <div class="modal-overlay2" id="reu-overlay" onclick="if(event.target===this)reuFechar()">
   <div class="mkt-modal" style="max-width:600px;">
@@ -12087,6 +12511,10 @@ async function patTirarDoFunil(){
 </div>
     </main>
   </div>
+</div>
+
+<div class="div-lightbox" id="div-lightbox" onclick="this.classList.remove('aberto')">
+  <img id="div-lightbox-img" alt="Foto do divulgador">
 </div>
 
 <!-- HISTÓRICO DO ATLETA — abre ao clicar no nome em qualquer lista de inscritos -->
