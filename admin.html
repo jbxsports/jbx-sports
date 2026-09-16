@@ -509,6 +509,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-money-wrap{display:flex;align-items:center;gap:3px;}
   .cal-money-pre{font-size:10px;color:var(--muted);font-weight:600;}
   .cal-captado-cel{display:flex;flex-direction:column;gap:4px;min-width:98px;}
+  .cal-captado-auto{font-size:13px;font-weight:700;color:var(--text);cursor:pointer;border-bottom:1px dotted rgba(42,37,32,.3);align-self:flex-start;}
+  .cal-captado-auto:hover{color:var(--orange);border-bottom-color:var(--orange);}
+  .cal-captado-auto.zero{color:var(--muted);font-weight:600;}
   .cal-pct-pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;align-self:flex-start;}
   .cal-pct-baixo{background:#fee2e2;color:#dc2626;}
   .cal-pct-medio{background:#fef3c7;color:#b45309;}
@@ -6972,9 +6975,27 @@ let _calDados = CAL_EVENTOS;
 let _calDB = false;        // true = dados vêm do Supabase (edição completa habilitada)
 let _calCarregado = false; // evita recarregar a cada troca de aba
 
+function calAbrirFunil(id){
+  patEvSel=String(id);
+  showInner('funil');
+}
+async function calAtualizarCaptado(){
+  try{
+    const pd=await rpc('pat_dados');
+    const soma={};
+    ((pd&&pd.oportunidades)||[]).forEach(function(o){
+      if(o.etapa!=='fechado')return;
+      const k=String(o.evento_id||'');
+      soma[k]=(soma[k]||0)+(Number(o.valor_estimado)||0);
+    });
+    (_calDados||[]).forEach(function(ev){ ev.captado=Number(soma[String(ev.id)]||0); });
+    _calBuilt={};
+    calRefreshCurrentView();
+  }catch(e){ console.warn('Captado: não consegui somar o funil.',e); }
+}
 async function calInitCalendario(){
   calRender(); // mostra imediatamente com o que tiver
-  if(_calCarregado) return;
+  if(_calCarregado){ calAtualizarCaptado(); return; }
   _calCarregado = true;
   try{
     const rows = await rpc('admin_calendario_listar');
@@ -6996,6 +7017,7 @@ async function calInitCalendario(){
       await calMigrarLocalStorage();
       _calBuilt = {};
       calRefreshCurrentView();
+      await calAtualizarCaptado();
     }
   }catch(e){ console.warn('Calendário: RPC indisponível, usando dados embutidos.', e); }
 }
@@ -7558,13 +7580,11 @@ function calBuildListaDB(){
       +'title="Meta de patrocínio para este evento" '
       +'oninput="calMoedaDigitando(this)" '
       +'onchange="calMetaEdit(\''+id+'\',\'meta_patrocinio\',this.value)" onclick="event.stopPropagation()"></span>';
+    const capVal2=Number(e.captado)||0;
     const capInp='<div class="cal-captado-cel">'
-      +'<span class="cal-money-wrap"><span class="cal-money-pre">R$</span>'
-      +'<input type="text" inputmode="numeric" class="cal-edit-num" style="width:82px;" placeholder="0" '
-      +'value="'+(Number(e.captado)||0 ? calMoedaBR(e.captado) : '')+'" '
-      +'title="Quanto já foi captado de patrocínio" '
-      +'oninput="calMoedaDigitando(this)" '
-      +'onchange="calMetaEdit(\''+id+'\',\'captado\',this.value)" onclick="event.stopPropagation()"></span>'
+      +'<span class="cal-captado-auto'+(capVal2?'':' zero')+'" '
+      +'title="Soma das marcas fechadas no funil deste evento. Clique para abrir o funil." '
+      +'onclick="event.stopPropagation();calAbrirFunil(\''+id+'\')">R$ '+calMoedaBR(capVal2)+'</span>'
       +'<span id="cal-pct-'+id+'">'+calPctHtml(e)+'</span></div>';
     const driveCel='<div class="cal-drive-cel" id="cal-drive-'+id+'">'+calDriveHtml(e)+'</div>';
     const delBtn='<button class="cal-del-btn" onclick="calExcluirEvento(\''+id+'\')" title="Excluir evento">🗑</button>';
