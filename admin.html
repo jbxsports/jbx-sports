@@ -11867,8 +11867,8 @@ async function patTirarDoFunil(){
 
 /* ══════════════ MAPAS MENTAIS ══════════════ */
 const MAP_CORES=['#ff751f','#2563eb','#16a34a','#dc2626','#9333ea','#0891b2','#ca8a04','#475569'];
-const MAP_GAPX=66, MAP_GAPY=16;
-let mapLista=[], mapAtual=null, mapSel=null, mapZoom=1, mapTx=60, mapTy=60;
+const MAP_GAPX=66, MAP_GAPY=16, MAP_GAPV=18, MAP_PROFV=54;
+let mapLista=[], mapAtual=null, mapSel=null, mapZoom=1, mapTx=60, mapTy=60, mapDir='h';
 let mapTimer=null, mapArrasto=null, mapSalvando=false;
 
 function mapInit(){ mapVoltar(); }
@@ -11913,7 +11913,7 @@ async function mapNovo(){
   if(!nome||nome.trim().length<2) return;
   const raiz={id:mapUid(),pai:null,txt:nome.trim(),cor:MAP_CORES[0]};
   try{
-    const r=await rpc('map_salvar',{p_id:null,p_nome:nome.trim(),p_descricao:null,p_dados:{nos:[raiz]}});
+    const r=await rpc('map_salvar',{p_id:null,p_nome:nome.trim(),p_descricao:null,p_dados:{nos:[raiz],dir:'h'}});
     if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
     await mapAbrir(r.id);
   }catch(e){ alert('Erro ao criar: '+mapErro(e)); }
@@ -11933,12 +11933,13 @@ async function mapAbrir(id){
     const dados=r.dados||{};
     let nos=Array.isArray(dados.nos)?dados.nos.slice():[];
     if(!nos.length) nos=[{id:mapUid(),pai:null,txt:r.nome||'Mapa',cor:MAP_CORES[0]}];
+    mapDir=(dados.dir==='v')?'v':'h';
     mapAtual={id:r.id,nome:r.nome||'',descricao:r.descricao||'',nos:nos};
     mapSel=(mapRaiz()||nos[0]).id;
     document.getElementById('map-nome').value=mapAtual.nome;
     document.getElementById('map-tela-lista').style.display='none';
     document.getElementById('map-tela-editor').style.display='';
-    mapPintarCores();
+    mapPintarCores(); mapRotuloDir();
     mapRender(); mapAjustar(); mapStatus('Salvo');
   }catch(e){ alert('Erro ao abrir: '+mapErro(e)); }
 }
@@ -11968,25 +11969,33 @@ function mapCaixa(n){
   return {lin:lin,fs:fs,w:w,h:h,raiz:raiz};
 }
 
+function mapVertical(){ return mapDir==='v'; }
+function mapVao(){ return mapVertical()?MAP_GAPV:MAP_GAPY; }
+
 function mapMedir(id){
   const n=mapNo(id); if(!n) return 0;
   n._c=mapCaixa(n);
+  const propria=mapVertical()?n._c.w:n._c.h;
   const fs=mapFilhos(id);
-  if(!fs.length){ n._alt=n._c.h; return n._alt; }
+  if(!fs.length){ n._alt=propria; return n._alt; }
   let tot=0;
-  fs.forEach(function(f,i){ tot+=mapMedir(f.id); if(i) tot+=MAP_GAPY; });
-  n._alt=Math.max(n._c.h,tot);
+  fs.forEach(function(f,i){ tot+=mapMedir(f.id); if(i) tot+=mapVao(); });
+  n._alt=Math.max(propria,tot);
   return n._alt;
 }
 
-function mapPosicionar(id,x,topo){
+function mapPosicionar(id,prof,inicio){
   const n=mapNo(id); if(!n) return;
-  n._x=x; n._y=topo+n._alt/2;
+  const c=n._c;
+  if(mapVertical()){ n._y=prof; n._x=inicio+n._alt/2-c.w/2; }
+  else             { n._x=prof; n._y=inicio+n._alt/2-c.h/2; }
   const fs=mapFilhos(id);
   if(!fs.length) return;
-  let soma=0; fs.forEach(function(f,i){ soma+=f._alt+(i?MAP_GAPY:0); });
-  let y=topo+(n._alt-soma)/2;
-  fs.forEach(function(f){ mapPosicionar(f.id,x+n._c.w+MAP_GAPX,y); y+=f._alt+MAP_GAPY; });
+  const vao=mapVao();
+  let soma=0; fs.forEach(function(f,i){ soma+=f._alt+(i?vao:0); });
+  let pos=inicio+(n._alt-soma)/2;
+  const prox=mapVertical()?(prof+c.h+MAP_PROFV):(prof+c.w+MAP_GAPX);
+  fs.forEach(function(f){ mapPosicionar(f.id,prox,pos); pos+=f._alt+vao; });
 }
 
 function mapCalcular(){
@@ -11996,7 +12005,7 @@ function mapCalcular(){
   mapAtual.nos.forEach(function(n){
     if(n._x==null) return;
     x1=Math.min(x1,n._x); x2=Math.max(x2,n._x+n._c.w);
-    y1=Math.min(y1,n._y-n._c.h/2); y2=Math.max(y2,n._y+n._c.h/2);
+    y1=Math.min(y1,n._y); y2=Math.max(y2,n._y+n._c.h);
   });
   return {x1:x1,x2:x2,y1:y1,y2:y2,w:x2-x1,h:y2-y1};
 }
@@ -12008,11 +12017,20 @@ function mapCorpo(comSel){
     if(n._x==null) return;
     const p=n.pai?mapNo(n.pai):null;
     if(p&&p._x!=null){
-      const xa=p._x+p._c.w, ya=p._y, xb=n._x, yb=n._y, d=Math.max(18,(xb-xa)/2);
-      ligacoes+='<path d="M '+xa+' '+ya+' C '+(xa+d)+' '+ya+', '+(xb-d)+' '+yb+', '+xb+' '+yb+'" fill="none" stroke="'+(n.cor||MAP_CORES[0])+'" stroke-width="2" stroke-opacity="0.55" stroke-linecap="round"/>';
+      let xa,ya,xb,yb,c1x,c1y,c2x,c2y;
+      if(mapVertical()){
+        xa=p._x+p._c.w/2; ya=p._y+p._c.h; xb=n._x+n._c.w/2; yb=n._y;
+        const d=Math.max(14,(yb-ya)/2);
+        c1x=xa; c1y=ya+d; c2x=xb; c2y=yb-d;
+      } else {
+        xa=p._x+p._c.w; ya=p._y+p._c.h/2; xb=n._x; yb=n._y+n._c.h/2;
+        const d=Math.max(18,(xb-xa)/2);
+        c1x=xa+d; c1y=ya; c2x=xb-d; c2y=yb;
+      }
+      ligacoes+='<path d="M '+xa+' '+ya+' C '+c1x+' '+c1y+', '+c2x+' '+c2y+', '+xb+' '+yb+'" fill="none" stroke="'+(n.cor||MAP_CORES[0])+'" stroke-width="2" stroke-opacity="0.55" stroke-linecap="round"/>';
     }
     const c=n._c, cor=n.cor||MAP_CORES[0], sel=(comSel!==false)&&(n.id===mapSel);
-    const x=n._x, y=n._y-c.h/2;
+    const x=n._x, y=n._y;
     const fundo=c.raiz?cor:'#ffffff';
     const texto=c.raiz?'#ffffff':'#2a2520';
     let g='<g class="map-no-cx" data-no="'+n.id+'">';
@@ -12054,6 +12072,16 @@ function mapAjustar(){
   mapTx=(W-b.w*z)/2-b.x1*z;
   mapTy=(H-b.h*z)/2-b.y1*z;
   mapAplicarTransform();
+}
+
+function mapRotuloDir(){
+  const b=document.getElementById('map-btn-dir');
+  if(b) b.textContent=mapVertical()?'Vertical':'Horizontal';
+}
+function mapVirar(){
+  mapDir=mapVertical()?'h':'v';
+  mapRotuloDir();
+  mapRender(); mapAjustar(); mapMarcarSujo();
 }
 
 function mapZoomar(dir){
@@ -12131,7 +12159,7 @@ function mapRenomear(){
   const larg=Math.max(140,n._c.w*mapZoom), alt=Math.max(38,n._c.h*mapZoom);
   ta.style.display='block';
   ta.style.left=Math.round(mapTx+n._x*mapZoom)+'px';
-  ta.style.top=Math.round(mapTy+(n._y-n._c.h/2)*mapZoom)+'px';
+  ta.style.top=Math.round(mapTy+n._y*mapZoom)+'px';
   ta.style.width=larg+'px'; ta.style.height=alt+'px';
   ta.style.fontSize=Math.max(11,Math.round(n._c.fs*mapZoom))+'px';
   ta.dataset.no=n.id; ta.value=n.txt;
@@ -12160,7 +12188,7 @@ async function mapSalvar(manual){
   const limpo=mapAtual.nos.map(function(n){ return {id:n.id,pai:n.pai||null,txt:n.txt,cor:n.cor||MAP_CORES[0]}; });
   mapSalvando=true; mapStatus('Salvando…');
   try{
-    const r=await rpc('map_salvar',{p_id:mapAtual.id,p_nome:nome,p_descricao:mapAtual.descricao||null,p_dados:{nos:limpo}});
+    const r=await rpc('map_salvar',{p_id:mapAtual.id,p_nome:nome,p_descricao:mapAtual.descricao||null,p_dados:{nos:limpo,dir:mapDir}});
     if(!r||!r.ok) throw new Error((r&&r.erro)||'falha');
     mapStatus('Salvo '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ mapStatus('Erro ao salvar: '+mapErro(e),'#dc2626'); if(manual) alert('Erro ao salvar: '+mapErro(e)); }
@@ -13006,6 +13034,8 @@ document.addEventListener('DOMContentLoaded',function(){
             <div class="sep"></div>
             <span class="map-rot">Cor</span>
             <span id="map-cores"></span>
+            <div class="sep"></div>
+            <button class="mkt-btn sm" id="map-btn-dir" onclick="mapVirar()">Horizontal</button>
             <div class="sep"></div>
             <button class="mkt-btn sm" onclick="mapZoomar(-1)">−</button>
             <button class="mkt-btn sm" onclick="mapAjustar()">Ajustar</button>
