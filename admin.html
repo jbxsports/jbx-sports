@@ -2782,7 +2782,8 @@ function divFormCampanha(id){
   document.getElementById('dc-perfil').value=c&&c.perfil_instagram?c.perfil_instagram:'';
   document.getElementById('dc-inscricao').value=c&&c.inscricao_url?c.inscricao_url:'';
   document.getElementById('dc-drive').value=c&&c.drive_url?c.drive_url:'';
-  document.getElementById('dc-whats').value=c&&c.whatsapp_url?c.whatsapp_url:'';
+  const whatsPadrao=(divCamps.find(x=>x.whatsapp_url)||{}).whatsapp_url||'';
+  document.getElementById('dc-whats').value=c?(c.whatsapp_url||''):whatsPadrao;
   document.getElementById('dc-premiacao').value=c&&c.premiacao?c.premiacao:'';
   document.getElementById('dc-desconto').value=c?c.desconto_pct:10;
   document.getElementById('dc-cortesia').value=c?c.usos_cortesia:10;
