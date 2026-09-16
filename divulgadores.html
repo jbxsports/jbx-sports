@@ -105,6 +105,13 @@
   .b-link{background:none;border:0;color:var(--tinta-2);text-decoration:underline;padding:0;font-family:var(--f-txt);font-weight:600;font-size:14px;cursor:pointer}
   .b-link:hover{color:var(--laranja-esc)}
 
+  .grupo{margin-top:16px;background:var(--roxo);border-radius:var(--raio);padding:20px;display:flex;
+    align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--branco)}
+  .grupo b{display:block;font-family:var(--f);font-size:17px}
+  .grupo span{display:block;font-size:14px;color:rgba(255,255,255,.88)}
+  .grupo a{background:var(--branco);color:var(--roxo);text-decoration:none;font-family:var(--f);font-weight:700;
+    font-size:15px;border-radius:10px;padding:13px 20px;white-space:nowrap}
+  .grupo a:hover{background:#F2EDFF;color:var(--roxo)}
   .b-whats{display:inline-block;text-decoration:none;font-family:var(--f);font-weight:700;font-size:15px;
     background:var(--roxo);color:var(--branco);border-radius:10px;padding:13px 20px;border:2px solid var(--roxo)}
   .b-whats:hover{background:#4C11C4;border-color:#4C11C4;color:var(--branco)}
@@ -185,6 +192,8 @@
     <h2>Escolha o evento</h2>
     <p class="sub">Você pode participar de mais de um. Cada evento tem o seu cupom.</p>
     <div class="eventos" id="lista-eventos"><p class="sub">Carregando…</p></div>
+
+    <div id="bloco-grupo"></div>
 
     <div class="card" style="margin-top:22px">
       <h3 style="font-size:17px">Já é divulgador?</h3>
@@ -300,6 +309,28 @@
   }
   window.irEventos=function(){CAMP=null;history.replaceState(null,'',location.pathname);telas('tela-eventos');};
 
+  /* ── grupo de WhatsApp (o mesmo para todos os eventos) ── */
+  function linkGrupo(){
+    for(var i=0;i<CAMPS.length;i++){ if(CAMPS[i].whatsapp_url) return CAMPS[i].whatsapp_url; }
+    return '';
+  }
+  function montarGrupo(){
+    var destino=$('bloco-grupo');
+    if(!destino)return;
+    destino.textContent='';
+    var url=linkGrupo();
+    if(!url)return;
+    var box=document.createElement('div');box.className='grupo';
+    var tx=document.createElement('div');
+    var b=document.createElement('b');b.textContent='Grupo dos divulgadores';
+    var s=document.createElement('span');s.textContent='Avisos, artes e novidades de todos os eventos ficam por lá.';
+    tx.appendChild(b);tx.appendChild(s);
+    var a=document.createElement('a');
+    a.href=url;a.target='_blank';a.rel='noopener';a.textContent='Entrar no grupo';
+    box.appendChild(tx);box.appendChild(a);
+    destino.appendChild(box);
+  }
+
   /* ── lista de eventos ── */
   function carregarEventos(){
     return rpc('div_campanhas_publicas').then(function(rows){
@@ -311,6 +342,7 @@
         p.textContent='Nenhum evento com divulgação aberta no momento. Volte em breve.';
         box.appendChild(p);return;
       }
+      montarGrupo();
       CAMPS.forEach(function(c){
         var b=document.createElement('button');
         b.type='button';b.className='ev';
