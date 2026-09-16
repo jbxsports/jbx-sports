@@ -105,6 +105,9 @@
   .b-link{background:none;border:0;color:var(--tinta-2);text-decoration:underline;padding:0;font-family:var(--f-txt);font-weight:600;font-size:14px;cursor:pointer}
   .b-link:hover{color:var(--laranja-esc)}
 
+  .b-whats{display:inline-block;text-decoration:none;font-family:var(--f);font-weight:700;font-size:15px;
+    background:var(--roxo);color:var(--branco);border-radius:10px;padding:13px 20px;border:2px solid var(--roxo)}
+  .b-whats:hover{background:#4C11C4;border-color:#4C11C4;color:var(--branco)}
   .msg{margin-top:14px;font-size:14px;min-height:20px;font-weight:600}
   .msg.ok{color:var(--roxo)} .msg.err{color:var(--erro)} .msg.info{color:var(--tinta-2)}
 
@@ -596,6 +599,13 @@
         }
 
         var acoes=document.createElement('div');acoes.className='btns';acoes.style.marginTop='16px';
+        if(st!=='reprovado'&&i.whatsapp_url){
+          var bw=document.createElement('a');
+          bw.className='b-whats';
+          bw.href=i.whatsapp_url;bw.target='_blank';bw.rel='noopener';
+          bw.textContent='Entrar no grupo do WhatsApp';
+          acoes.appendChild(bw);
+        }
         if(i.arte_url){
           var ba=document.createElement('a');
           ba.className='b-primary';ba.style.cssText='display:inline-block;text-decoration:none;padding:13px 20px;border-radius:10px';

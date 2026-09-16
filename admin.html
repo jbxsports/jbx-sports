@@ -2782,6 +2782,7 @@ function divFormCampanha(id){
   document.getElementById('dc-perfil').value=c&&c.perfil_instagram?c.perfil_instagram:'';
   document.getElementById('dc-inscricao').value=c&&c.inscricao_url?c.inscricao_url:'';
   document.getElementById('dc-drive').value=c&&c.drive_url?c.drive_url:'';
+  document.getElementById('dc-whats').value=c&&c.whatsapp_url?c.whatsapp_url:'';
   document.getElementById('dc-premiacao').value=c&&c.premiacao?c.premiacao:'';
   document.getElementById('dc-desconto').value=c?c.desconto_pct:10;
   document.getElementById('dc-cortesia').value=c?c.usos_cortesia:10;
@@ -2803,6 +2804,7 @@ async function divSalvarCampanha(){
     perfil_instagram:document.getElementById('dc-perfil').value.trim(),
     inscricao_url:document.getElementById('dc-inscricao').value.trim(),
     drive_url:document.getElementById('dc-drive').value.trim(),
+    whatsapp_url:document.getElementById('dc-whats').value.trim(),
     premiacao:document.getElementById('dc-premiacao').value.trim(),
     desconto_pct:document.getElementById('dc-desconto').value,
     usos_cortesia:document.getElementById('dc-cortesia').value,
@@ -12916,6 +12918,7 @@ document.addEventListener('DOMContentLoaded',function(){
           </div>
           <div class="form-row2">
             <div class="form-g"><label>Link do drive de materiais</label><input id="dc-drive" placeholder="https://drive.google.com/..."></div>
+            <div class="form-g"><label>Grupo de WhatsApp</label><input id="dc-whats" placeholder="https://chat.whatsapp.com/..."></div>
             <div class="form-g"><label>Premiação do Top 5 (uma por linha)</label><textarea id="dc-premiacao" rows="5" placeholder="Camiseta oficial JBX Sports&#10;Boné JBX Sports&#10;Coqueteleira JBX Sports&#10;Super kit dos patrocinadores&#10;Participação no palco do evento" style="width:100%;font-family:'Ubuntu',sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;resize:vertical;"></textarea></div>
           </div>
           <div class="form-row2">
