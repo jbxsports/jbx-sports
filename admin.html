@@ -1314,9 +1314,10 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .map-cor:hover{transform:scale(1.12);}
 .map-rot{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);}
 .map-palco{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;height:calc(100vh - 300px);min-height:420px;overflow:hidden;background-image:radial-gradient(rgba(42,37,32,.10) 1px,transparent 1px);background-size:22px 22px;}
-.map-palco svg{width:100%;height:100%;display:block;cursor:grab;}
+.map-palco svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;-webkit-user-select:none;}
 .map-palco svg.arrastando{cursor:grabbing;}
-.map-no-cx{cursor:pointer;}
+.map-no-cx{cursor:grab;}
+.map-palco svg.arrastando .map-no-cx{cursor:grabbing;}
 .map-edit{display:none;position:absolute;z-index:5;font-family:'Ubuntu',sans-serif;font-weight:600;border:2px solid var(--orange);border-radius:8px;padding:6px 10px;resize:none;outline:none;line-height:1.3;color:var(--text);background:#fff;box-shadow:0 6px 18px rgba(42,37,32,.18);}
 .map-dica{position:absolute;left:12px;bottom:10px;font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.88);border:1px solid var(--border);border-radius:20px;padding:5px 12px;pointer-events:none;}
 .map-vazio{text-align:center;color:var(--muted);font-size:14px;padding:40px 12px;}
@@ -11869,7 +11870,7 @@ async function patTirarDoFunil(){
 const MAP_CORES=['#ff751f','#2563eb','#16a34a','#dc2626','#9333ea','#0891b2','#ca8a04','#475569'];
 const MAP_GAPX=66, MAP_GAPY=16, MAP_GAPV=18, MAP_PROFV=54;
 let mapLista=[], mapAtual=null, mapSel=null, mapZoom=1, mapTx=60, mapTy=60, mapDir='h';
-let mapTimer=null, mapArrasto=null, mapSalvando=false;
+let mapTimer=null, mapArrasto=null, mapSalvando=false, mapDrag=null, mapArrastou=false;
 
 function mapInit(){ mapVoltar(); }
 
@@ -12010,6 +12011,61 @@ function mapCalcular(){
   return {x1:x1,x2:x2,y1:y1,y2:y2,w:x2-x1,h:y2-y1};
 }
 
+/* ── ARRASTAR BALÕES ── */
+function mapPonto(ev){
+  const p=document.getElementById('map-palco').getBoundingClientRect();
+  return {x:(ev.clientX-p.left-mapTx)/mapZoom, y:(ev.clientY-p.top-mapTy)/mapZoom};
+}
+function mapDescende(id,pai){
+  let c=mapNo(id);
+  while(c&&c.pai){ if(c.pai===pai) return true; c=mapNo(c.pai); }
+  return false;
+}
+function mapAlvoEm(pt,arrastado){
+  if(!mapAtual) return null;
+  for(let i=0;i<mapAtual.nos.length;i++){
+    const n=mapAtual.nos[i], c=n._c;
+    if(n._x==null||!c) continue;
+    if(n.id===arrastado) continue;
+    if(pt.x<n._x-6||pt.x>n._x+c.w+6||pt.y<n._y-6||pt.y>n._y+c.h+6) continue;
+    if(mapDescende(n.id,arrastado)) return null;
+    let modo='filho';
+    const rel=mapVertical()?((pt.x-n._x)/c.w):((pt.y-n._y)/c.h);
+    if(n.pai){ if(rel<0.3) modo='antes'; else if(rel>0.7) modo='depois'; }
+    return {id:n.id,modo:modo};
+  }
+  return null;
+}
+function mapMoverNo(arrastado,alvo){
+  const n=mapNo(arrastado), a=alvo&&mapNo(alvo.id);
+  if(!n||!a||!n.pai) return false;
+  if(alvo.modo!=='filho'&&!a.pai) return false;
+  if(mapDescende(alvo.id,arrastado)) return false;
+  const lista=mapAtual.nos;
+  lista.splice(lista.indexOf(n),1);
+  if(alvo.modo==='filho'){ n.pai=a.id; lista.push(n); }
+  else{
+    n.pai=a.pai;
+    const i=lista.indexOf(a);
+    lista.splice(alvo.modo==='antes'?i:i+1,0,n);
+  }
+  return true;
+}
+function mapPistaAlvo(){
+  if(!mapDrag||!mapDrag.alvo) return '';
+  const a=mapNo(mapDrag.alvo.id); if(!a||a._x==null) return '';
+  const c=a._c, m=mapDrag.alvo.modo, cor='#ff751f';
+  if(m==='filho'){
+    return '<rect x="'+(a._x-5)+'" y="'+(a._y-5)+'" width="'+(c.w+10)+'" height="'+(c.h+10)+'" rx="14" fill="'+cor+'" fill-opacity="0.12" stroke="'+cor+'" stroke-width="3"/>';
+  }
+  if(mapVertical()){
+    const x=(m==='antes')?(a._x-9):(a._x+c.w+9);
+    return '<line x1="'+x+'" y1="'+(a._y-6)+'" x2="'+x+'" y2="'+(a._y+c.h+6)+'" stroke="'+cor+'" stroke-width="4" stroke-linecap="round"/>';
+  }
+  const y=(m==='antes')?(a._y-8):(a._y+c.h+8);
+  return '<line x1="'+(a._x-6)+'" y1="'+y+'" x2="'+(a._x+c.w+6)+'" y2="'+y+'" stroke="'+cor+'" stroke-width="4" stroke-linecap="round"/>';
+}
+
 /* ── DESENHO ── */
 function mapCorpo(comSel){
   let ligacoes='', caixas='';
@@ -12033,7 +12089,8 @@ function mapCorpo(comSel){
     const x=n._x, y=n._y;
     const fundo=c.raiz?cor:'#ffffff';
     const texto=c.raiz?'#ffffff':'#2a2520';
-    let g='<g class="map-no-cx" data-no="'+n.id+'">';
+    const opac=(comSel!==false&&mapDrag&&mapDrag.id===n.id&&mapArrastou)?' opacity="0.45"':'';
+    let g='<g class="map-no-cx" data-no="'+n.id+'"'+opac+'>';
     if(sel) g+='<rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(c.w+8)+'" height="'+(c.h+8)+'" rx="14" fill="none" stroke="'+cor+'" stroke-width="2" stroke-dasharray="5 4" stroke-opacity="0.9"/>';
     g+='<rect x="'+x+'" y="'+y+'" width="'+c.w+'" height="'+c.h+'" rx="10" fill="'+fundo+'" stroke="'+cor+'" stroke-width="'+(c.raiz?2:1.6)+'"/>';
     if(!c.raiz) g+='<rect x="'+x+'" y="'+y+'" width="5" height="'+c.h+'" rx="2.5" fill="'+cor+'"/>';
@@ -12044,7 +12101,7 @@ function mapCorpo(comSel){
     g+='</g>';
     caixas+=g;
   });
-  return ligacoes+caixas;
+  return ligacoes+caixas+((comSel!==false)?mapPistaAlvo():'');
 }
 
 function mapRender(){
@@ -12053,7 +12110,7 @@ function mapRender(){
   const svg=document.getElementById('map-svg');
   svg.innerHTML='<g id="map-g" transform="translate('+mapTx+','+mapTy+') scale('+mapZoom+')">'+mapCorpo(true)+'</g>';
   svg.querySelectorAll('[data-no]').forEach(function(g){
-    g.addEventListener('click',function(ev){ ev.stopPropagation(); mapSel=g.getAttribute('data-no'); mapRender(); });
+    g.addEventListener('click',function(ev){ ev.stopPropagation(); if(mapArrastou) return; mapSel=g.getAttribute('data-no'); mapRender(); });
     g.addEventListener('dblclick',function(ev){ ev.stopPropagation(); mapSel=g.getAttribute('data-no'); mapRender(); mapRenomear(); });
   });
 }
@@ -12224,18 +12281,47 @@ document.addEventListener('DOMContentLoaded',function(){
   if(!svg||!palco||!ta) return;
 
   svg.addEventListener('mousedown',function(ev){
-    if(ev.target.closest('[data-no]')) return;
+    const alvo=ev.target.closest('[data-no]');
+    if(alvo){
+      const id=alvo.getAttribute('data-no');
+      mapArrastou=false;
+      const n=mapNo(id);
+      if(n&&n.pai){ ev.preventDefault(); mapDrag={id:id,x:ev.clientX,y:ev.clientY,alvo:null}; mapFecharEdicao(true); }
+      return;
+    }
     mapArrasto={x:ev.clientX,y:ev.clientY,tx:mapTx,ty:mapTy};
     svg.classList.add('arrastando');
     mapFecharEdicao(true);
   });
   window.addEventListener('mousemove',function(ev){
+    if(mapDrag){
+      if(!mapArrastou&&Math.abs(ev.clientX-mapDrag.x)+Math.abs(ev.clientY-mapDrag.y)<5) return;
+      mapArrastou=true;
+      svg.classList.add('arrastando');
+      const novo=mapAlvoEm(mapPonto(ev),mapDrag.id);
+      const antes=mapDrag.alvo;
+      const mudou=(!antes&&novo)||(antes&&!novo)||(antes&&novo&&(antes.id!==novo.id||antes.modo!==novo.modo));
+      mapDrag.alvo=novo;
+      if(mudou) mapRender();
+      return;
+    }
     if(!mapArrasto) return;
     mapTx=mapArrasto.tx+(ev.clientX-mapArrasto.x);
     mapTy=mapArrasto.ty+(ev.clientY-mapArrasto.y);
     mapAplicarTransform();
   });
-  window.addEventListener('mouseup',function(){ mapArrasto=null; svg.classList.remove('arrastando'); });
+  window.addEventListener('mouseup',function(){
+    if(mapDrag){
+      const d=mapDrag; mapDrag=null;
+      svg.classList.remove('arrastando');
+      if(mapArrastou){
+        if(d.alvo&&mapMoverNo(d.id,d.alvo)){ mapSel=d.id; mapRender(); mapMarcarSujo(); }
+        else mapRender();
+      }
+      return;
+    }
+    mapArrasto=null; svg.classList.remove('arrastando');
+  });
 
   palco.addEventListener('wheel',function(ev){
     if(!mapAtual) return;
@@ -13048,7 +13134,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <div class="map-palco" id="map-palco">
             <svg id="map-svg" xmlns="http://www.w3.org/2000/svg"></svg>
             <textarea id="map-edit" class="map-edit" rows="1"></textarea>
-            <div class="map-dica">Clique num balão · Tab = filho · Enter = irmão · F2 = renomear · Del = excluir · arraste o fundo para mover</div>
+            <div class="map-dica">Arraste um balão para mudar de lugar · Tab = filho · Enter = irmão · F2 = renomear · Del = excluir</div>
           </div>
         </div>
 
