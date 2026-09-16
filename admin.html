@@ -2509,7 +2509,12 @@ async function divInit(){
   }catch(e){divMsg('div-feedback','Não consegui carregar as campanhas'+divDetalhe(e),'#e74c3c');return;}
   divRenderSelect();
   if(divCamps.length){
-    if(!divCampAtual||!divCamps.some(c=>c.id===divCampAtual)) divCampAtual=divCamps[0].id;
+    if(!divCampAtual||!divCamps.some(c=>c.id===divCampAtual)){
+      let guardada=null; try{guardada=localStorage.getItem('jbx_div_camp');}catch(e){}
+      const porGuardada=guardada&&divCamps.find(c=>c.id===guardada);
+      const comGente=divCamps.slice().sort((a,b)=>(b.total||0)-(a.total||0))[0];
+      divCampAtual=(porGuardada?porGuardada.id:null)||((comGente&&comGente.total)?comGente.id:divCamps[0].id);
+    }
     document.getElementById('div-sel-camp').value=divCampAtual;
     divCarregarLista();
   } else {
@@ -2530,7 +2535,7 @@ function divRenderSelect(){
   });
 }
 
-function divTrocarCampanha(id){divCampAtual=id;divCarregarLista();}
+function divTrocarCampanha(id){divCampAtual=id;try{localStorage.setItem('jbx_div_camp',id);}catch(e){}divCarregarLista();}
 
 function divCampanhaAtual(){return divCamps.find(c=>c.id===divCampAtual)||null;}
 
