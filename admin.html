@@ -7061,7 +7061,14 @@ async function calAtualizarCaptado(){
       const k=String(o.evento_id||'');
       soma[k]=(soma[k]||0)+(Number(o.valor_estimado)||0);
     });
-    (_calDados||[]).forEach(function(ev){ ev.captado=Number(soma[String(ev.id)]||0); });
+    // Captado = soma do funil. Se o evento não tem marca fechada no funil (ex.: eventos
+    // antigos, anteriores ao funil), usa o valor histórico gravado na tabela calendario.
+    (_calDados||[]).forEach(function(ev){
+      const funil=Number(soma[String(ev.id)]||0);
+      if(ev.captado_manual==null) ev.captado_manual=Number(ev.captado)||0;
+      ev.captado_funil=funil;
+      ev.captado = funil>0 ? funil : (Number(ev.captado_manual)||0);
+    });
     _calBuilt={};
     calRefreshCurrentView();
   }catch(e){ console.warn('Captado: não consegui somar o funil.',e); }
@@ -7084,6 +7091,7 @@ async function calInitCalendario(){
         if(Array.isArray(ext)) ext.forEach(x=>{ const ev=_calDados.find(d=>String(d.id)===String(x.id)); if(ev){
           ev.meta_patrocinio = Number(x.meta_patrocinio)||0;
           ev.captado         = Number(x.captado)||0;
+          ev.captado_manual  = Number(x.captado)||0; // valor histórico (não vem do funil)
           ev.drive_url       = x.drive_url||'';
         }});
       }catch(_e){ console.warn('Calendário: rode a migração de meta/captado/Drive para ativar essas colunas.'); }
@@ -7179,7 +7187,7 @@ async function calExtraSalvar(ev){
     await rpc('admin_calendario_extra_salvar',{
       p_id: ev.id,
       p_meta: Number(ev.meta_patrocinio)||0,
-      p_captado: Number(ev.captado)||0,
+      p_captado: Number(ev.captado_manual!=null ? ev.captado_manual : ev.captado)||0, // nunca grava a soma do funil por cima do histórico
       p_drive: ev.drive_url || null
     });
     calSalvandoUI(2);
@@ -7657,7 +7665,7 @@ function calBuildListaDB(){
     const capVal2=Number(e.captado)||0;
     const capInp='<div class="cal-captado-cel">'
       +'<span class="cal-captado-auto'+(capVal2?'':' zero')+'" '
-      +'title="Soma das marcas fechadas no funil deste evento. Clique para abrir o funil." '
+      +'title="'+((Number(e.captado_funil)||0)>0 || !capVal2 ? 'Soma das marcas fechadas no funil deste evento. Clique para abrir o funil.' : 'Valor histórico (lançado antes do funil). Clique para abrir o funil.')+'" '
       +'onclick="event.stopPropagation();calAbrirFunil(\''+id+'\')">R$ '+calMoedaBR(capVal2)+'</span>'
       +'<span id="cal-pct-'+id+'">'+calPctHtml(e)+'</span></div>';
     const driveCel='<div class="cal-drive-cel" id="cal-drive-'+id+'">'+calDriveHtml(e)+'</div>';
