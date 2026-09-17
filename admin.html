@@ -12162,8 +12162,7 @@ async function iniResumo(){
   if(!(admUser&&admUser.master)){alvo.innerHTML='';return;}
   alvo.innerHTML=
      '<div><b id="ini-k-ev">—</b><span>Eventos</span></div>'
-    +'<div title="Cadastros do site + todas as listas importadas no Cruzamento"><b id="ini-k-leads">…</b><span>Leads</span></div>'
-    +'<div><b id="ini-k-insc">—</b><span>Inscrições</span></div>'
+    +'<div><b id="ini-k-insc">—</b><span>Inscritos</span></div>'
     +'<div><b id="ini-k-fat">—</b><span>Faturamento</span></div>'
     +'<div><b id="ini-k-cap">…</b><span>Captado</span></div>';
 
@@ -12172,17 +12171,7 @@ async function iniResumo(){
     iniPoe('ini-k-ev',fmt(st.eventos_count));
     iniPoe('ini-k-insc',fmt(st.inscricoes_total));
     iniPoe('ini-k-fat',brl(st.faturamento_total));
-  }).catch(function(){ iniPoe('ini-k-ev','—'); });
-
-  Promise.all([
-    rpc('admin_cadastros_geral').catch(function(){return [];}),
-    rpc('crz_bases_listar').catch(function(){return [];})
-  ]).then(function(r){
-    const cadastros=(r[0]||[]).length;
-    let listas=0;
-    (r[1]||[]).forEach(function(b){ listas+=Number(b.qtd)||0; });
-    iniPoe('ini-k-leads',fmt(cadastros+listas));
-  }).catch(function(){ iniPoe('ini-k-leads','—'); });
+  }).catch(function(){ iniPoe('ini-k-ev','—'); iniPoe('ini-k-insc','—'); });
 
   rpc('pat_dados').then(function(pd){
     let soma=0;
