@@ -509,6 +509,17 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
   .cal-money-wrap{display:flex;align-items:center;gap:3px;}
   .cal-money-pre{font-size:10px;color:var(--muted);font-weight:600;}
   .cal-captado-cel{display:flex;flex-direction:column;gap:4px;min-width:98px;}
+  /* Totais de patrocínio no topo do Calendário */
+  .cal-patro-box{display:flex;align-items:stretch;background:var(--card);border:1px solid var(--border);border-left:4px solid var(--orange);border-radius:10px;padding:10px 4px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+  .cal-patro-item{padding:0 16px;border-right:1px solid #eceae6;text-align:right;}
+  .cal-patro-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;}
+  .cal-patro-val{font-size:22px;font-weight:700;color:var(--text);white-space:nowrap;margin-top:2px;}
+  .cal-patro-cap{color:#16a34a;}
+  .cal-patro-falta{color:#dc2626;}
+  .cal-patro-prog{padding:0 16px;display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:150px;}
+  .cal-patro-bar{width:100%;height:8px;border-radius:5px;background:#eceae6;overflow:hidden;}
+  .cal-patro-bar-fill{height:100%;border-radius:5px;background:#dc2626;transition:width .3s;}
+  @media (max-width:700px){.cal-patro-item{border-right:none;padding:4px 12px;text-align:left;}.cal-patro-prog{width:100%;}}
   .cal-captado-auto{font-size:13px;font-weight:700;color:var(--text);cursor:pointer;border-bottom:1px dotted rgba(42,37,32,.3);align-self:flex-start;}
   .cal-captado-auto:hover{color:var(--orange);border-bottom-color:var(--orange);}
   .cal-captado-auto.zero{color:var(--muted);font-weight:600;}
@@ -7206,6 +7217,7 @@ function calMetaEdit(id, campo, valor){
   const d = String(valor==null?'':valor).replace(/\D/g,'');
   ev[campo] = d ? Number(d) : 0;
   calRedesenharCaptado(id);
+  calUpdateStats(); // atualiza os totais de patrocínio no topo
   calExtraSalvar(ev);
 }
 
@@ -8160,6 +8172,23 @@ function calUpdateStats(){
   document.getElementById('cal-stat-total').textContent = evs.length;
   document.getElementById('cal-stat-cidades').textContent = new Set(evs.map(e=>e.cidade)).size;
   document.getElementById('cal-stat-publico').textContent = evs.reduce((s,e)=>s+(e.publico||0),0).toLocaleString('pt-BR');
+  // Totais de patrocínio (mesmo filtro de ano das outras estatísticas)
+  const meta  = evs.reduce((s,e)=>s+(Number(e.meta_patrocinio)||0),0);
+  const cap   = evs.reduce((s,e)=>s+(Number(e.captado)||0),0);
+  const falta = Math.max(0, meta-cap);
+  const pct   = meta>0 ? Math.round((cap/meta)*100) : 0;
+  const elMeta = document.getElementById('cal-stat-meta');
+  if(elMeta){
+    elMeta.textContent = 'R$ '+calMoedaBR(meta);
+    document.getElementById('cal-stat-captado').textContent = 'R$ '+calMoedaBR(cap);
+    document.getElementById('cal-stat-falta').textContent = 'R$ '+calMoedaBR(falta);
+    const pill = document.getElementById('cal-stat-pct');
+    pill.textContent = pct+'%';
+    pill.className = 'cal-pct-pill '+calPctCls(pct);
+    const bar = document.getElementById('cal-stat-bar');
+    bar.style.width = Math.max(0,Math.min(100,pct))+'%';
+    bar.style.background = calPctCor(pct);
+  }
 }
 
 function calSetView(view){
@@ -12778,6 +12807,15 @@ document.addEventListener('DOMContentLoaded',function(){
             <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-total">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Provas</div></div>
             <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-cidades">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Cidades</div></div>
             <div style="text-align:right;"><div style="font-size:22px;font-weight:700;color:var(--orange);" id="cal-stat-publico">0</div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Público total</div></div>
+          </div>
+          <div class="cal-patro-box" id="cal-patro-box" title="Soma dos eventos do filtro de ano selecionado">
+            <div class="cal-patro-item"><div class="cal-patro-lbl">Meta patrocínio</div><div class="cal-patro-val" id="cal-stat-meta">R$ 0</div></div>
+            <div class="cal-patro-item"><div class="cal-patro-lbl">Captado</div><div class="cal-patro-val cal-patro-cap" id="cal-stat-captado">R$ 0</div></div>
+            <div class="cal-patro-item"><div class="cal-patro-lbl">Falta captar</div><div class="cal-patro-val cal-patro-falta" id="cal-stat-falta">R$ 0</div></div>
+            <div class="cal-patro-prog">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span class="cal-patro-lbl">% da meta</span><span class="cal-pct-pill cal-pct-baixo" id="cal-stat-pct">0%</span></div>
+              <div class="cal-patro-bar"><div class="cal-patro-bar-fill" id="cal-stat-bar" style="width:0%;"></div></div>
+            </div>
           </div>
         </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-bottom:20px;">
