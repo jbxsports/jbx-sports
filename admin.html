@@ -2665,7 +2665,19 @@ function divRenderLista(){
     if(d.foto_path){
       const img=document.createElement('img');
       img.className='div-foto';img.alt='Foto de '+d.nome;img.title='Ver foto';
-      divFotoSrc(d.foto_path).then(function(u){if(u)img.src=u;});
+      let urlFoto=null;
+      img.addEventListener('error',function(){
+        img.style.display='none';
+        if(tdF.querySelector('.div-foto-baixar'))return;
+        const a=document.createElement('a');
+        a.className='div-foto-baixar';
+        a.textContent='baixar';
+        a.title='O celular mandou num formato que o navegador não abre (HEIC). Baixe e converta.';
+        a.style.cssText='font-size:11px;color:var(--orange);text-decoration:underline;cursor:pointer;';
+        a.addEventListener('click',function(){ if(urlFoto)window.open(urlFoto,'_blank'); });
+        tdF.appendChild(a);
+      });
+      divFotoSrc(d.foto_path).then(function(u){ if(u){ urlFoto=u; img.src=u; } });
       img.addEventListener('click',function(){divAbrirFoto(img.src);});
       tdF.appendChild(img);
     } else {

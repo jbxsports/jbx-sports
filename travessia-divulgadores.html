@@ -243,7 +243,7 @@
           </div>
           <button type="button" class="b-file" id="escolher">Escolher foto</button>
         </div>
-        <input type="file" id="foto" accept="image/*">
+        <input type="file" id="foto" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,image/*">
         <span class="hint">Sua foto é usada só para a arte e fica visível apenas para a organização.</span>
       </div>
       <div class="btns"><button type="button" class="b-primary" id="enviar">Fazer meu cadastro</button></div>
@@ -471,7 +471,9 @@
     if(!f)return;
     if(f.type.indexOf('image/')!==0){msg('cad-msg','Escolha um arquivo de imagem (JPG ou PNG).','err');$('foto').value='';return;}
     arquivoFoto=f;
-    $('thumb').src=URL.createObjectURL(f);$('thumb').hidden=false;
+    var prev=$('thumb');
+    prev.onerror=function(){ prev.hidden=true; };
+    prev.src=URL.createObjectURL(f); prev.hidden=false;
     $('drop').classList.add('ok');
     $('foto-info').textContent='';
     var b=document.createElement('b');b.textContent=f.name;
@@ -479,29 +481,75 @@
     $('foto-info').appendChild(b);$('foto-info').appendChild(s);
     msg('cad-msg','','info');
   });
-  function reduzir(file){
-    return new Promise(function(resolve){
-      var img=new Image();
-      img.onload=function(){
-        var max=1400,w=img.width,h=img.height;
-        if(w>max||h>max){ if(w>h){h=Math.round(h*max/w);w=max;} else {w=Math.round(w*max/h);h=max;} }
-        var cv=document.createElement('canvas');cv.width=w;cv.height=h;
-        cv.getContext('2d').drawImage(img,0,0,w,h);
-        cv.toBlob(function(b){resolve(b||file);},'image/jpeg',0.85);
-      };
-      img.onerror=function(){resolve(file);};
-      img.src=URL.createObjectURL(file);
+  function carregarImagem(file){
+    return new Promise(function(ok,falha){
+      if(window.createImageBitmap){
+        try{
+          createImageBitmap(file).then(ok).catch(function(){ viaTag(file).then(ok,falha); });
+          return;
+        }catch(e){}
+      }
+      viaTag(file).then(ok,falha);
     });
+  }
+  function viaTag(file){
+    return new Promise(function(ok,falha){
+      var url=URL.createObjectURL(file);
+      var img=new Image();
+      img.onload=function(){ ok(img); };
+      img.onerror=function(){ URL.revokeObjectURL(url); falha(new Error('formato')); };
+      img.src=url;
+    });
+  }
+  function paraJpeg(img){
+    return new Promise(function(ok,falha){
+      var max=1400, w=img.width||img.naturalWidth, h=img.height||img.naturalHeight;
+      if(!w||!h){ falha(new Error('tamanho')); return; }
+      if(w>max||h>max){ if(w>h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      if(cv.toBlob){
+        cv.toBlob(function(b){ b?ok(b):falha(new Error('blob')); },'image/jpeg',0.85);
+      } else {
+        try{
+          var d=cv.toDataURL('image/jpeg',0.85).split(',')[1];
+          var bin=atob(d), arr=new Uint8Array(bin.length);
+          for(var i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
+          ok(new Blob([arr],{type:'image/jpeg'}));
+        }catch(e){ falha(e); }
+      }
+    });
+  }
+  /* devolve sempre algo enviável: JPEG convertido ou o arquivo original */
+  function prepararFoto(file){
+    return carregarImagem(file).then(paraJpeg).then(function(blob){
+      return {blob:blob, ext:'jpg', tipo:'image/jpeg', convertida:true};
+    }).catch(function(){
+      var nome=String(file.name||''), ponto=nome.lastIndexOf('.');
+      var ext=(ponto>-1?nome.slice(ponto+1):'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'jpg';
+      return {blob:file, ext:ext, tipo:file.type||'application/octet-stream', convertida:false};
+    });
+  }
+  function subirArquivo(caminho,blob,tipo){
+    var ctrl=('AbortController' in window)?new AbortController():null;
+    var relogio=setTimeout(function(){ if(ctrl)ctrl.abort(); },90000);
+    var opcoes={method:'POST',headers:headers({'Content-Type':tipo,'x-upsert':'true'}),body:blob};
+    if(ctrl)opcoes.signal=ctrl.signal;
+    return fetch(SB_URL+'/storage/v1/object/div-fotos/'+caminho,opcoes).then(function(r){
+      clearTimeout(relogio);
+      if(!r.ok)throw new Error('http '+r.status);
+      return caminho;
+    },function(e){ clearTimeout(relogio); throw e; });
   }
   function enviarFoto(insta){
     if(!arquivoFoto)return Promise.resolve(null);
-    return reduzir(arquivoFoto).then(function(blob){
-      var caminho=slugInsta(insta)+'-'+Date.now()+'.jpg';
-      return fetch(SB_URL+'/storage/v1/object/div-fotos/'+caminho,{
-        method:'POST',headers:headers({'Content-Type':'image/jpeg','x-upsert':'true'}),body:blob
-      }).then(function(r){
-        if(!r.ok)throw new Error('upload');
-        return caminho;
+    return prepararFoto(arquivoFoto).then(function(p){
+      var base=slugInsta(insta)+'-'+Date.now();
+      return subirArquivo(base+'.'+p.ext,p.blob,p.tipo).catch(function(){
+        /* uma segunda tentativa: conexão de celular costuma falhar na primeira */
+        return new Promise(function(r){setTimeout(r,1200);}).then(function(){
+          return subirArquivo(base+'-2.'+p.ext,p.blob,p.tipo);
+        });
       });
     });
   }
@@ -522,27 +570,38 @@
     evento_invalido:'Evento não encontrado.'
   };
 
-  $('enviar').addEventListener('click',function(){
+  var semFoto=false;
+  function enviarCadastro(){
     if(!CAMP)return;
     var nome=String($('nome').value||'').trim();
     var insta=slugInsta($('insta').value);
     var cupom=slugCupom($('cupom').value);
     $('cupom').value=cupom;
     if(nome.length<3||insta.length<2||cupom.length<3){msg('cad-msg',ERROS.dados_incompletos,'err');return;}
-    if(!arquivoFoto){msg('cad-msg','Escolha uma foto sua para a arte do evento.','err');return;}
+    if(!arquivoFoto&&!semFoto){msg('cad-msg','Escolha uma foto sua para a arte do evento.','err');return;}
     $('enviar').disabled=true;
-    msg('cad-msg','Enviando a foto…','info');
-    enviarFoto(insta).catch(function(){return null;}).then(function(caminho){
+    var passo=semFoto?Promise.resolve(null):(msg('cad-msg','Enviando a foto… pode demorar alguns segundos.','info'),enviarFoto(insta));
+    passo.then(function(caminho){
       msg('cad-msg','Finalizando o cadastro…','info');
       return rpc('div_cadastrar',{p_campanha:CAMP.id,p_nome:nome,p_instagram:insta,p_cupom:cupom,p_foto:caminho});
     }).then(function(res){
-      if(res&&res.ok){ abrirArea(insta,'Cadastro enviado. Agora é com a gente.'); }
+      if(res&&res.ok){ semFoto=false; abrirArea(insta,'Cadastro enviado. Agora é com a gente.'); }
       else{ $('enviar').disabled=false; msg('cad-msg',ERROS[res&&res.erro]||'Não consegui cadastrar agora. Tente de novo.','err'); }
-    }).catch(function(){
+    }).catch(function(e){
       $('enviar').disabled=false;
-      msg('cad-msg','Não consegui cadastrar agora. Tente de novo em instantes.','err');
+      if(semFoto){ msg('cad-msg','Não consegui cadastrar agora. Tente de novo em instantes.','err'); return; }
+      var cx=$('cad-msg');
+      cx.className='msg err';
+      cx.textContent='Não consegui enviar a sua foto. Tente de novo, ou ';
+      var link=document.createElement('button');
+      link.type='button'; link.className='b-link';
+      link.textContent='envie o cadastro sem a foto';
+      link.addEventListener('click',function(){ semFoto=true; enviarCadastro(); });
+      cx.appendChild(link);
+      cx.appendChild(document.createTextNode(' — depois é só mandar a foto para a organização.'));
     });
-  });
+  }
+  $('enviar').addEventListener('click',function(){ semFoto=false; enviarCadastro(); });
 
   /* ── área do divulgador ── */
   $('btn-entrar').addEventListener('click',function(){
