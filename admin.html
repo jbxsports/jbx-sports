@@ -13824,7 +13824,7 @@ function propRender(){
   let html = '';
   for (let i = 0; i < lista.length; i++) {
     const p = lista[i];
-    const evento = p.nome_evento || p.tipo_evento || '—';
+    const evento = p.nome_evento || p.esporte_outro || p.tipo_evento || '—';
     const sub = [p.responsavel, p.cidade_evento || p.cidade_empresa].filter(Boolean).join(' · ');
     html += '<tr>' +
       '<td><span class="prp-proto">' + propEsc(p.protocolo || '') + '</span></td>' +
@@ -13861,6 +13861,7 @@ function propAbrir(id){
 
   const objetivos = Array.isArray(p.objetivos) ? p.objetivos : [];
   const escopo = Array.isArray(p.escopo) ? p.escopo : [];
+  const respostas = Array.isArray(p.respostas) ? p.respostas : [];
 
   let html = '';
 
@@ -13874,13 +13875,21 @@ function propAbrir(id){
     propLinha('Site / Instagram', p.site) + '</div>';
 
   html += '<div class="prp-bloco"><div class="prp-bloco-t">O evento</div>' +
-    propLinha('Tipo', p.tipo_evento) +
+    propLinha('Modalidade', (p.tipo_evento || '') + (p.esporte_outro ? ' \u2014 ' + p.esporte_outro : '')) +
     propLinha('Nome', p.nome_evento) +
     propLinha('Data pretendida', p.data_pretendida ? (propData(p.data_pretendida) + (p.data_flexivel ? ' (flexível)' : ' (fechada)')) : '') +
     propLinha('Cidade', p.cidade_evento) +
     propLinha('Local / percurso', p.local_evento) +
     propLinha('Participantes estimados', p.participantes ? fmt(p.participantes) : '') +
     propLinha('Distâncias', p.distancias) + '</div>';
+
+  let resp = '';
+  for (let i = 0; i < respostas.length; i++) {
+    resp += propLinha(respostas[i].r, respostas[i].v);
+  }
+  if (resp) {
+    html += '<div class="prp-bloco"><div class="prp-bloco-t">Formato \u2014 respostas da modalidade</div>' + resp + '</div>';
+  }
 
   html += '<div class="prp-bloco"><div class="prp-bloco-t">Objetivo e investimento</div>' +
     propLinha('Objetivos', objetivos.join(' · ')) +
@@ -13972,14 +13981,16 @@ function propExportar(){
   const lista = propVisiveis();
   if (!lista.length) { propMsg('Nada para exportar com esse filtro.', '#e74c3c'); return; }
   const linhas = [['Protocolo','Recebido','Status','Responsável JBX','Empresa','CNPJ','Contato','Cargo',
-    'WhatsApp','E-mail','Cidade empresa','Site','Tipo de evento','Nome do evento','Data pretendida',
-    'Data flexível','Cidade do evento','Local','Participantes','Distâncias','Objetivos','Faixa de verba',
-    'Modelo de inscrição','Valor inscrição','Tem patrocinadores','Patrocinadores','Escopo (item = qtd)',
+    'WhatsApp','E-mail','Cidade empresa','Site','Modalidade','Modalidade (outra)','Nome do evento','Data pretendida',
+    'Data flexível','Cidade do evento','Local','Participantes','Percursos','Formato (respostas)','Objetivos','Faixa de verba',
+    'Modelo de inscrição','Valor inscrição','Escopo (item = qtd)',
     'Observações','Como conheceu','Notas internas']];
   for (let i = 0; i < lista.length; i++) {
     const p = lista[i];
     const escopo = Array.isArray(p.escopo) ? p.escopo : [];
     const escTxt = escopo.map(function(e){ return e.item + (e.qtd ? ' = ' + e.qtd : ''); }).join(' | ');
+    const respostas = Array.isArray(p.respostas) ? p.respostas : [];
+    const respTxt = respostas.map(function(r){ return r.r + ': ' + r.v; }).join(' | ');
     linhas.push([
       p.protocolo || '',
       p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
@@ -13987,22 +13998,21 @@ function propExportar(){
       p.responsavel_jbx || '',
       p.empresa || '', p.cnpj || '', p.responsavel || '', p.cargo || '',
       p.whatsapp || '', p.email || '', p.cidade_empresa || '', p.site || '',
-      p.tipo_evento || '', p.nome_evento || '', propData(p.data_pretendida),
+      p.tipo_evento || '', p.esporte_outro || '', p.nome_evento || '', propData(p.data_pretendida),
       p.data_flexivel ? 'Sim' : 'Não',
       p.cidade_evento || '', p.local_evento || '',
-      Number(p.participantes || 0), p.distancias || '',
+      Number(p.participantes || 0), p.distancias || '', respTxt,
       (Array.isArray(p.objetivos) ? p.objetivos.join(' | ') : ''),
       p.verba_faixa || '', p.modelo_inscricao || '',
       Number(p.valor_inscricao || 0),
-      p.tem_patrocinadores ? 'Sim' : 'Não', p.patrocinadores || '',
       escTxt, p.observacoes || '', p.como_conheceu || '', p.notas_internas || ''
     ]);
   }
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(linhas);
   ws['!cols'] = [{wch:11},{wch:17},{wch:17},{wch:15},{wch:28},{wch:19},{wch:24},{wch:18},
-    {wch:17},{wch:28},{wch:18},{wch:22},{wch:20},{wch:26},{wch:13},{wch:13},{wch:18},{wch:26},
-    {wch:12},{wch:26},{wch:36},{wch:20},{wch:20},{wch:13},{wch:16},{wch:26},{wch:60},{wch:44},{wch:22},{wch:44}];
+    {wch:17},{wch:28},{wch:18},{wch:22},{wch:20},{wch:22},{wch:26},{wch:13},{wch:13},{wch:18},{wch:26},
+    {wch:12},{wch:40},{wch:70},{wch:36},{wch:20},{wch:20},{wch:13},{wch:60},{wch:44},{wch:22},{wch:44}];
   XLSX.utils.book_append_sheet(wb, ws, 'Propostas');
   const arq = 'propostas_jbx_' + new Date().toISOString().slice(0, 10) + '.xlsx';
   XLSX.writeFile(wb, arq);
