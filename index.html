@@ -829,6 +829,7 @@
   @media (max-width: 768px) {
     /* NAV */
     .nav-links { display: none; }
+    .nav-empresas { display: none; } /* no mobile o CTA vive na seção Para empresas */
     nav { padding: 0 4%; height: 60px; }
     .nav-cta { padding: 8px 14px; font-size: 13px; }
 
@@ -913,6 +914,39 @@
     .timer-num { font-size: 22px; min-width: 44px; }
     .stat-num { font-size: 24px; }
   }
+  /* ── PARA EMPRESAS ── */
+  #empresas { background: #f3f1ee; }
+  #empresas > * { max-width: 1200px; margin-left: auto; margin-right: auto; }
+  .emp-topo { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
+  .emp-pilares { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .emp-card {
+    background: var(--bg-card); border: 1px solid rgba(42,37,32,0.1);
+    border-radius: 12px; padding: 22px 20px; transition: transform 0.2s, border-color 0.2s;
+  }
+  .emp-card:hover { transform: translateY(-3px); border-color: rgba(255,117,31,0.4); }
+  .emp-card .ico {
+    width: 42px; height: 42px; border-radius: 10px; background: rgba(255,117,31,0.12);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  }
+  .emp-card .ico svg { width: 21px; height: 21px; stroke: var(--orange); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .emp-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #2a2520; }
+  .emp-card p { font-size: 13px; color: rgba(42,37,32,0.55); line-height: 1.6; }
+  .emp-acoes { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 32px; align-items: center; }
+  .emp-nota { font-size: 13px; color: rgba(42,37,32,0.45); display: flex; align-items: center; gap: 7px; margin-top: 18px; }
+  .emp-nota svg { stroke: var(--orange); flex-shrink: 0; }
+  .btn-whats-emp {
+    background: transparent; color: #2a2520; padding: 16px 30px; border-radius: 6px;
+    font-size: 15px; font-weight: 700; text-decoration: none; border: 2px solid rgba(42,37,32,0.2);
+    transition: all 0.2s; display: inline-block;
+  }
+  .btn-whats-emp:hover { border-color: #2a2520; background: rgba(42,37,32,0.05); }
+  @media (max-width: 900px) {
+    .emp-topo { grid-template-columns: 1fr; gap: 36px; }
+  }
+  @media (max-width: 560px) {
+    .emp-pilares { grid-template-columns: 1fr; }
+    .emp-acoes .btn-primary, .emp-acoes .btn-whats-emp { width: 100%; text-align: center; }
+  }
 </style>
 </head>
 <body>
@@ -928,6 +962,7 @@
   <div style="display:flex;align-items:center;gap:32px;">
     <ul class="nav-links">
       <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#empresas">Para empresas</a></li>
       <li><a href="#reels">Comunidade</a></li>
       <li><a href="#contato">Contato</a></li>
     </ul>
@@ -936,6 +971,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:5px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         Login
       </a>
+      <a href="/orcamento.html" class="nav-empresas" style="color:var(--orange);text-decoration:none;font-size:14px;font-weight:700;padding:8px 16px;border:1px solid var(--orange);border-radius:6px;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.background='rgba(255,117,31,0.1)'" onmouseout="this.style.background='transparent'">Quero um evento</a>
       <a href="/atleta.html?tela=cadastro" class="nav-cta">Cadastre-se</a>
     </div>
   </div>
@@ -977,6 +1013,49 @@
   </div>
 </section>
 
+
+<!-- PARA EMPRESAS -->
+<section id="empresas">
+  <div class="emp-topo">
+    <div>
+      <div class="section-tag">Para empresas</div>
+      <h2>Um evento com a cara da <em>sua marca</em>.</h2>
+      <p class="section-sub">A JBX produz corridas, caminhadas, trails e travessias sob medida para empresas &mdash; do alvar&aacute; na prefeitura at&eacute; a medalha na m&atilde;o do atleta. Conte como voc&ecirc; imagina o seu evento e devolvemos uma proposta comercial completa, com escopo, cronograma e investimento.</p>
+      <div class="emp-acoes">
+        <a href="/orcamento.html" class="btn-primary">Preencher o briefing &rarr;</a>
+        <a href="https://wa.me/5516981118772" target="_blank" rel="noopener" class="btn-whats-emp">Falar no WhatsApp</a>
+      </div>
+      <div class="emp-nota">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+        Leva cerca de 4 minutos. Retorno em at&eacute; 2 dias &uacute;teis, sem compromisso.
+      </div>
+    </div>
+
+    <div class="emp-pilares">
+      <div class="emp-card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4-6.2-4.6-6.2 4.6 2.4-7.4L2 9.4h7.6z"/></svg></div>
+        <h4>Projeto sob medida</h4>
+        <p>Percurso, dist&acirc;ncias, identidade visual e kit do atleta desenhados junto com voc&ecirc;.</p>
+      </div>
+      <div class="emp-card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <h4>Execu&ccedil;&atilde;o ponta a ponta</h4>
+        <p>Alvar&aacute;s, estrutura, staff, ambul&acirc;ncia, seguro e cronometragem com chip.</p>
+      </div>
+      <div class="emp-card">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><path d="M7 14h5"/></svg></div>
+        <h4>Inscri&ccedil;&atilde;o online</h4>
+        <p>P&aacute;gina pr&oacute;pria do evento, pagamento e gest&atilde;o completa dos inscritos.</p>
+      </div>
+      <div class="emp-card">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19.5 5.5a9 9 0 0 1 0 13"/></svg></div>
+        <h4>Divulga&ccedil;&atilde;o</h4>
+        <p>Social media, artes, cobertura fotogr&aacute;fica e v&iacute;deo do dia do evento.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- PARCEIROS OFICIAIS -->
 <section id="parceiros-home" style="background:#f5f4f2;padding:40px 5%;display:none;">
   <div style="max-width:1300px;margin:0 auto;">
@@ -1000,6 +1079,7 @@
     </div>
     <div class="footer-col">
       <h5>Empresa</h5>
+      <a href="/orcamento.html">Quero um evento</a>
       <a href="#">Sobre nós</a>
       <a href="#">Parceiros</a>
       <a href="#">Patrocínio</a>
