@@ -163,6 +163,35 @@
   footer{background:#f0ede8;border-top:1px solid var(--border);padding:32px 5%;text-align:center;
     font-size:13px;color:var(--muted);}
   footer a{color:var(--orange);text-decoration:none;font-weight:700;}
+  /* ── MODO TESTE (?teste=1) ── */
+  .tst-bar{position:fixed;left:0;right:0;bottom:0;z-index:200;background:#2a2520;color:#fff;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 18px;
+    box-shadow:0 -6px 24px rgba(42,37,32,.25);font-size:13px;}
+  .tst-bar .marca{font-weight:700;letter-spacing:1.4px;text-transform:uppercase;font-size:11px;
+    color:#ffb37a;background:rgba(255,117,31,.18);border:1px solid rgba(255,117,31,.45);
+    border-radius:5px;padding:4px 10px;}
+  .tst-bar .sep{width:1px;height:22px;background:rgba(255,255,255,.18);}
+  .tst-b{font-family:'Ubuntu',sans-serif;font-size:12.5px;font-weight:700;border-radius:7px;
+    padding:7px 13px;cursor:pointer;border:1px solid rgba(255,255,255,.22);
+    background:rgba(255,255,255,.08);color:#fff;transition:.15s;}
+  .tst-b:hover{background:rgba(255,117,31,.85);border-color:var(--orange);}
+  .tst-b.on{background:var(--orange);border-color:var(--orange);}
+  .tst-b.destaque{background:var(--orange);border-color:var(--orange);}
+  .tst-b.destaque:hover{background:var(--orange-dark);}
+  .tst-chk{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;
+    color:rgba(255,255,255,.75);font-size:12.5px;}
+  .tst-chk input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
+  .tst-fim{margin-left:auto;color:rgba(255,255,255,.45);font-size:11.5px;}
+  body.tst-on{padding-bottom:70px;}
+  body.tst-on .steps .stp{cursor:pointer;}
+  .tst-aviso{background:rgba(255,117,31,.12);border:1px solid rgba(255,117,31,.35);
+    border-radius:10px;padding:11px 16px;font-size:13px;color:var(--orange);font-weight:500;
+    margin-bottom:20px;}
+  @media(max-width:700px){
+    .tst-bar{gap:7px;padding:9px 12px;}
+    .tst-fim{display:none;}
+    .tst-b{padding:6px 10px;font-size:12px;}
+  }
 </style>
 </head>
 <body>
@@ -366,6 +395,9 @@ let tipoEvento = '';
 let verba = '';
 const objetivos = [];
 
+/* modo teste: abra a página com ?teste=1 no fim da URL */
+const TESTE = /[?&]teste=1/.test(location.search);
+
 /* ══ ITENS DO ESCOPO ══ */
 /* qtd:'' → não pede quantidade | qtd:'texto' → placeholder do campo */
 const ESCOPO = [
@@ -478,6 +510,7 @@ function msg(texto, tipo){
 
 function validarPasso(n){
   msg('');
+  if (TESTE) return true;   /* modo teste: navega livre */
   if (n === 1) {
     if (!val('f-empresa'))     { marcarErro('f-empresa');     msg('Informe o nome da empresa.', 'err'); return false; }
     if (!val('f-responsavel')) { marcarErro('f-responsavel'); msg('Informe o seu nome.', 'err'); return false; }
@@ -500,6 +533,7 @@ function irPara(n){
   document.getElementById('btn-voltar').style.visibility = (n === 1) ? 'hidden' : 'visible';
   document.getElementById('btn-proximo').textContent = (n === TOTAL) ? 'Enviar briefing' : 'Próximo →';
   if (n === TOTAL) montarRevisao();
+  if (typeof tstMarcarAtivo === 'function') tstMarcarAtivo();
   msg('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -599,6 +633,19 @@ function montarRevisao(){
 
 /* ══ ENVIO ══ */
 async function enviar(){
+  /* modo teste sem gravar: mostra a tela de sucesso sem tocar no banco */
+  const chkGravar = document.getElementById('tst-gravar');
+  if (TESTE && chkGravar && !chkGravar.checked) {
+    document.getElementById('form-card').style.display = 'none';
+    document.getElementById('steps').style.display = 'none';
+    document.getElementById('ok-nome').textContent = val('f-responsavel').split(' ')[0] || 'teste';
+    document.getElementById('ok-proto').textContent = 'PROP-TESTE';
+    document.getElementById('ok-tela').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    console.log('[modo teste] payload que seria enviado:', montarPayload());
+    return;
+  }
+
   const btn = document.getElementById('btn-proximo');
   const textoOriginal = btn.textContent;
   btn.disabled = true;
@@ -643,6 +690,132 @@ ligarChips('chip-objetivos', objetivos);
 document.getElementById('f-whatsapp').addEventListener('input', function(){ mascaraTel(this); });
 document.getElementById('f-cnpj').addEventListener('input', function(){ mascaraCnpj(this); });
 irPara(1);
+
+/* ══════════ MODO TESTE ══════════ */
+const EXEMPLO = {
+  'f-empresa':'Supermercados Exemplo Ltda',
+  'f-cnpj':'12.345.678/0001-90',
+  'f-responsavel':'Mariana Oliveira',
+  'f-cargo':'Gerente de Marketing',
+  'f-whatsapp':'(16) 99123-4567',
+  'f-email':'mariana@exemplo.com.br',
+  'f-cidade-empresa':'Ribeirão Preto',
+  'f-site':'@supermercadosexemplo',
+  'f-nome-evento':'1ª Corrida Exemplo',
+  'f-participantes':'800',
+  'f-cidade-evento':'Ribeirão Preto',
+  'f-local':'Parque Curupira e av. Nove de Julho',
+  'f-distancias':'5km corrida, 10km corrida, 3km caminhada',
+  'f-valor':'89,90',
+  'f-patro':'Distribuidora Exemplo, Academia Exemplo',
+  'f-obs':'Queremos algo no fim de semana, com espaço para ativação das marcas parceiras e estrutura para família. Referência: as corridas que a JBX já fez em Sertãozinho.'
+};
+
+const EXEMPLO_ESCOPO = [
+  [0,'800 kits'], [1,'800 peças'], [2,'800 medalhas'], [3,'800 chips'],
+  [4,'30 troféus'], [5,'1 arco + 4 tendas'], [7,'3 pontos'], [9,'2 ambulâncias'],
+  [12,''], [13,''], [14,'1 mês de campanha'], [19,'']
+];
+
+function tstPreencher(){
+  for (const id in EXEMPLO) {
+    const e = document.getElementById(id);
+    if (e) e.value = EXEMPLO[id];
+  }
+  const d = new Date();
+  d.setMonth(d.getMonth() + 4);
+  document.getElementById('f-data').value = d.toISOString().slice(0, 10);
+  document.getElementById('f-data-flex').value = 'true';
+  document.getElementById('f-modelo').value = 'Pago';
+  document.getElementById('f-tem-patro').value = 'true';
+  document.getElementById('f-conheceu').value = 'Já participei de um evento JBX';
+
+  tstClicar('#opt-tipo .opt[data-v="Corrida de rua"]');
+  tstClicar('#opt-verba .opt[data-v="R$ 60 mil a R$ 120 mil"]');
+  tstChip('Exposição de marca');
+  tstChip('Relacionamento com clientes');
+  tstChip('Saúde e bem-estar dos colaboradores');
+
+  for (let i = 0; i < EXEMPLO_ESCOPO.length; i++) {
+    const idx = EXEMPLO_ESCOPO[i][0];
+    const qtd = EXEMPLO_ESCOPO[i][1];
+    const c = document.getElementById('esc-c-' + idx);
+    if (c && !c.checked) { c.checked = true; escToggle(idx); }
+    const q = document.getElementById('esc-q-' + idx);
+    if (q && qtd) q.value = qtd;
+  }
+
+  if (passo === TOTAL) montarRevisao();
+  msg('Formulário preenchido com dados de exemplo.', 'ok');
+}
+
+function tstClicar(sel){ const e = document.querySelector(sel); if (e) e.click(); }
+function tstChip(v){
+  const c = document.querySelector('#chip-objetivos .chip[data-v="' + v + '"]');
+  if (c && !c.classList.contains('on')) c.click();
+}
+
+function tstLimpar(){ location.reload(); }
+
+function tstVoltarForm(){
+  document.getElementById('ok-tela').style.display = 'none';
+  document.getElementById('form-card').style.display = '';
+  document.getElementById('steps').style.display = '';
+  const btn = document.getElementById('btn-proximo');
+  btn.disabled = false;
+  irPara(1);
+}
+
+function tstBarra(){
+  document.body.classList.add('tst-on');
+
+  /* aviso dentro do card */
+  const aviso = document.createElement('div');
+  aviso.className = 'tst-aviso';
+  aviso.textContent = '⚙ Modo teste ativo — validação desligada, você pode pular entre as etapas livremente. Nada é gravado no banco enquanto "gravar no banco" estiver desmarcado.';
+  const card = document.getElementById('form-card');
+  card.insertBefore(aviso, card.firstChild);
+
+  /* clique direto nas bolinhas do topo */
+  const dots = document.querySelectorAll('.steps .stp');
+  for (let i = 0; i < dots.length; i++) {
+    (function(d){
+      d.onclick = function(){ irPara(Number(d.dataset.s)); };
+    })(dots[i]);
+  }
+
+  /* barra fixa */
+  let botoes = '';
+  const nomes = ['Empresa', 'Evento', 'Objetivo', 'Escopo', 'Revisão'];
+  for (let i = 1; i <= TOTAL; i++) {
+    botoes += '<button class="tst-b" data-ir="' + i + '" onclick="irPara(' + i + ')">' + i + '. ' + nomes[i-1] + '</button>';
+  }
+
+  const bar = document.createElement('div');
+  bar.className = 'tst-bar';
+  bar.innerHTML =
+    '<span class="marca">Modo teste</span>' +
+    botoes +
+    '<span class="sep"></span>' +
+    '<button class="tst-b destaque" onclick="tstPreencher()">Preencher exemplo</button>' +
+    '<button class="tst-b" onclick="tstLimpar()">Limpar</button>' +
+    '<button class="tst-b" onclick="tstVoltarForm()">Voltar ao formulário</button>' +
+    '<label class="tst-chk"><input type="checkbox" id="tst-gravar"> gravar no banco</label>' +
+    '<span class="tst-fim">tire o ?teste=1 da URL para ver como o cliente vê</span>';
+  document.body.appendChild(bar);
+
+  tstMarcarAtivo();
+}
+
+function tstMarcarAtivo(){
+  const bs = document.querySelectorAll('.tst-bar .tst-b[data-ir]');
+  for (let i = 0; i < bs.length; i++) {
+    bs[i].classList.toggle('on', Number(bs[i].dataset.ir) === passo);
+  }
+}
+
+if (TESTE) tstBarra();
+
 </script>
 
 </body>
