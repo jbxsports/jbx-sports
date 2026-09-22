@@ -1272,6 +1272,41 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 @media(max-width:760px){table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{min-width:190px;}.ck-bar .ck-status{margin-left:0;}}
 
 /* ── DIVULGADORES ── */
+
+/* ══════════ PROPOSTAS (briefings comerciais) ══════════ */
+.prp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:18px;}
+.prp-kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+.prp-kpi b{display:block;font-size:26px;font-weight:700;line-height:1.1;color:var(--text);}
+.prp-kpi span{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+.prp-kpi.destaque b{color:var(--orange);}
+.prp-top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.prp-busca{flex:1 1 260px;min-width:220px;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:10px 14px;font-family:'Ubuntu',sans-serif;font-size:14px;color:var(--text);}
+.prp-busca:focus{outline:none;border-color:var(--orange);background:#fff;}
+.prp-filtros{display:flex;gap:6px;flex-wrap:wrap;}
+.prp-f{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1.5px solid rgba(42,37,32,.14);background:#f5f3f0;color:var(--muted);border-radius:20px;padding:7px 14px;cursor:pointer;transition:.15s;}
+.prp-f:hover{border-color:rgba(255,117,31,.5);}
+.prp-f.on{border-color:var(--orange);background:rgba(255,117,31,.1);color:var(--orange);}
+.prp-st{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;border-radius:20px;padding:4px 11px;white-space:nowrap;}
+.prp-st i{width:7px;height:7px;border-radius:50%;background:currentColor;display:block;}
+.prp-emp{font-weight:700;font-size:14px;color:var(--text);cursor:pointer;}
+.prp-emp:hover{color:var(--orange);text-decoration:underline;}
+.prp-sub{font-size:11.5px;color:var(--muted);margin-top:2px;}
+.prp-proto{font-size:11px;font-weight:700;color:var(--orange);letter-spacing:.5px;}
+.prp-det-hd{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
+.prp-det-hd h3{margin:0;font-size:20px;}
+.prp-bloco{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.prp-bloco-t{background:#f5f3f0;padding:9px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);}
+.prp-l{display:flex;justify-content:space-between;gap:14px;padding:8px 14px;font-size:13px;border-bottom:1px solid rgba(42,37,32,.06);}
+.prp-l:last-child{border-bottom:none;}
+.prp-l b{font-weight:500;color:var(--muted);flex-shrink:0;}
+.prp-l span{text-align:right;font-weight:500;color:var(--text);word-break:break-word;}
+.prp-esc{display:flex;justify-content:space-between;gap:12px;padding:8px 14px;font-size:13px;border-bottom:1px solid rgba(42,37,32,.06);align-items:center;}
+.prp-esc:last-child{border-bottom:none;}
+.prp-esc b{font-weight:500;display:flex;align-items:center;gap:8px;}
+.prp-esc b::before{content:'✓';color:var(--orange);font-weight:700;}
+.prp-esc span{font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border-radius:6px;padding:3px 10px;font-size:12px;white-space:nowrap;}
+.prp-vazio{padding:12px 14px;font-size:13px;color:var(--muted);}
+@media(max-width:700px){.prp-l{flex-direction:column;gap:2px;}.prp-l span{text-align:left;}}
 .div-top{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px}
 .div-top .form-g{margin:0;min-width:240px;flex:1 1 240px}
 .div-kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
@@ -1424,6 +1459,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
+        <button class="nav-btn" id="nav-propostas" onclick="showInner('propostas')">Propostas</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
@@ -2458,7 +2494,8 @@ const RPC_PROTEGIDAS=['admin_inscritos','admin_exportar_inscritos','admin_inscri
   'div_adm_campanhas','div_adm_campanha_salvar','div_adm_campanha_excluir',
   'div_adm_lista','div_adm_salvar',
   'map_listar','map_abrir','map_salvar','map_excluir',
-  'pat_entreg_ler','pat_entreg_salvar'];
+  'pat_entreg_ler','pat_entreg_salvar',
+  'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2478,7 +2515,8 @@ const ADM_ABAS=[
  {id:'calendario',label:'Calendário'},{id:'social',label:'Social Media'},
  {id:'marcas',label:'Marcas'},
  {id:'cruzar',label:'Cruzamento'},{id:'campanhas',label:'Campanhas'},{id:'reunioes',label:'Reuniões'},
- {id:'divulgadores',label:'Divulgadores'},{id:'mapas',label:'Mapas'}
+ {id:'divulgadores',label:'Divulgadores'},{id:'mapas',label:'Mapas'},
+ {id:'propostas',label:'Propostas'}
 ];
 let admUser=null, admToken=null;
 function admTemAba(id){
@@ -2569,6 +2607,7 @@ function showInner(name){
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
   if(name==='divulgadores'){document.getElementById('nav-divulgadores').classList.add('active');divInit();}
   if(name==='mapas'){document.getElementById('nav-mapas').classList.add('active');mapInit();}
+  if(name==='propostas'){document.getElementById('nav-propostas').classList.add('active');propInit();}
 }
 
 /* ══════════════ DIVULGADORES ══════════════ */
@@ -13479,6 +13518,90 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
 
 
+
+      <!-- TELA: PROPOSTAS (briefings recebidos pelo site) -->
+      <div class="inner-screen" id="screen-propostas">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <h1>Propostas</h1>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="mkt-btn" onclick="propCopiarLink()">Copiar link do formulário</button>
+            <button class="mkt-btn" onclick="propExportar()">Exportar Excel</button>
+            <button class="mkt-btn primary" onclick="propInit()">Atualizar</button>
+          </div>
+        </div>
+
+        <div class="prp-kpis" id="prp-kpis"></div>
+
+        <div class="prp-top">
+          <input type="text" class="prp-busca" id="prp-busca" placeholder="Buscar por empresa, responsável, cidade, protocolo…" oninput="propFiltro=this.value;propRender();">
+          <div class="prp-filtros" id="prp-filtros"></div>
+        </div>
+
+        <div class="form-feedback" id="prp-msg" style="min-height:22px;margin-bottom:8px;font-size:13px;"></div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="prp-tabela">
+            <thead>
+              <tr>
+                <th style="width:92px;">Protocolo</th>
+                <th>Empresa</th>
+                <th style="width:170px;">Evento</th>
+                <th style="width:104px;">Data</th>
+                <th style="width:92px;">Pessoas</th>
+                <th style="width:132px;">Verba</th>
+                <th style="width:158px;">Status</th>
+                <th style="width:96px;">Recebido</th>
+                <th style="width:60px;"></th>
+              </tr>
+            </thead>
+            <tbody id="prp-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+<!-- MODAL: DETALHE DA PROPOSTA -->
+<div class="modal-overlay2" id="prp-overlay" onclick="if(event.target===this)propFechar()">
+  <div class="mkt-modal" style="max-width:760px;">
+    <div class="prp-det-hd">
+      <div style="flex:1;min-width:200px;">
+        <div class="prp-proto" id="prp-d-proto">—</div>
+        <h3 id="prp-d-empresa">Empresa</h3>
+        <div class="prp-sub" id="prp-d-quando">—</div>
+      </div>
+      <div id="prp-d-badge"></div>
+    </div>
+
+    <div id="prp-d-corpo"></div>
+
+    <div class="prp-bloco">
+      <div class="prp-bloco-t">Gestão interna</div>
+      <div style="padding:14px;">
+        <div class="mkt-row2">
+          <div class="mkt-fg"><label>Status</label>
+            <select id="prp-d-status">
+              <option value="novo">Novo</option>
+              <option value="em_contato">Em contato</option>
+              <option value="proposta_enviada">Proposta enviada</option>
+              <option value="negociacao">Em negociação</option>
+              <option value="ganho">Ganho</option>
+              <option value="perdido">Perdido</option>
+            </select></div>
+          <div class="mkt-fg"><label>Responsável JBX</label>
+            <input id="prp-d-resp" placeholder="Ex.: Stephano"></div>
+        </div>
+        <div class="mkt-fg"><label>Notas internas</label>
+          <textarea id="prp-d-notas" placeholder="Histórico do contato, valores discutidos, próximos passos…"></textarea></div>
+      </div>
+    </div>
+
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" onclick="propFechar()">Fechar</button>
+      <button class="mkt-btn" id="prp-d-whats">WhatsApp</button>
+      <button class="mkt-btn primary" id="prp-d-salvar" onclick="propSalvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
       <!-- TELA: MAPAS MENTAIS -->
       <div class="inner-screen" id="screen-mapas">
 
@@ -13578,6 +13701,314 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="hist-overlay" id="hist-overlay" onclick="if(event.target===this)fecharHistorico()">
   <div class="hist-box" id="hist-box"></div>
 </div>
+
+<script>
+/* ══════════════ PROPOSTAS (briefings comerciais do site) ══════════════ */
+let propLista = [], propFiltro = '', propStatus = '', propAtual = null;
+
+const PROP_STATUS = [
+  {id:'',                 label:'Todos',            cor:'#8a8378'},
+  {id:'novo',             label:'Novo',             cor:'#3498db'},
+  {id:'em_contato',       label:'Em contato',       cor:'#f39c12'},
+  {id:'proposta_enviada', label:'Proposta enviada', cor:'#9b59b6'},
+  {id:'negociacao',       label:'Em negociação',    cor:'#ff751f'},
+  {id:'ganho',            label:'Ganho',            cor:'#16a34a'},
+  {id:'perdido',          label:'Perdido',          cor:'#95a5a6'}
+];
+
+function propStatusInfo(id){
+  for (let i = 0; i < PROP_STATUS.length; i++) if (PROP_STATUS[i].id === id) return PROP_STATUS[i];
+  return {id:id, label:id || '—', cor:'#8a8378'};
+}
+function propEsc(v){
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function propMsg(txt, cor){
+  const e = document.getElementById('prp-msg');
+  if (!e) return;
+  e.textContent = txt || '';
+  e.style.color = cor || 'var(--muted)';
+}
+function propData(d){
+  if (!d) return '—';
+  const p = String(d).split('-');
+  return p.length === 3 ? (p[2] + '/' + p[1] + '/' + p[0]) : String(d);
+}
+function propQuando(dt){
+  if (!dt) return '—';
+  const d = new Date(dt);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+function propBadge(st){
+  const i = propStatusInfo(st);
+  return '<span class="prp-st" style="color:' + i.cor + ';background:' + i.cor + '1a;"><i></i>' + i.label + '</span>';
+}
+
+async function propInit(){
+  propMsg('Carregando…');
+  propMontarFiltros();
+  try {
+    const dados = await rpc('admin_propostas_listar', {p_status: null});
+    propLista = Array.isArray(dados) ? dados : [];
+    propMsg('');
+    propRender();
+    propKpis();
+  } catch (e) {
+    propMsg('Não foi possível carregar as propostas. Rode o 01_propostas.sql no Supabase e tente de novo.', '#e74c3c');
+    propLista = [];
+    propRender();
+  }
+}
+
+function propMontarFiltros(){
+  const box = document.getElementById('prp-filtros');
+  if (!box || box.dataset.pronto) return;
+  let html = '';
+  for (let i = 0; i < PROP_STATUS.length; i++) {
+    const s = PROP_STATUS[i];
+    html += '<button class="prp-f' + (s.id === propStatus ? ' on' : '') + '" data-s="' + s.id + '" onclick="propFiltrarStatus(\'' + s.id + '\')">' + s.label + '</button>';
+  }
+  box.innerHTML = html;
+  box.dataset.pronto = '1';
+}
+
+function propFiltrarStatus(st){
+  propStatus = st;
+  const btns = document.querySelectorAll('#prp-filtros .prp-f');
+  for (let i = 0; i < btns.length; i++) btns[i].classList.toggle('on', btns[i].dataset.s === st);
+  propRender();
+}
+
+function propVisiveis(){
+  const t = propFiltro.trim().toLowerCase();
+  return propLista.filter(function(p){
+    if (propStatus && p.status !== propStatus) return false;
+    if (!t) return true;
+    const alvo = [p.protocolo, p.empresa, p.responsavel, p.cidade_evento, p.cidade_empresa,
+                  p.nome_evento, p.tipo_evento, p.email, p.whatsapp].join(' ').toLowerCase();
+    return alvo.indexOf(t) > -1;
+  });
+}
+
+function propKpis(){
+  const el = document.getElementById('prp-kpis');
+  if (!el) return;
+  let novos = 0, andamento = 0, ganhos = 0, perdidos = 0, pessoas = 0;
+  for (let i = 0; i < propLista.length; i++) {
+    const p = propLista[i];
+    if (p.status === 'novo') novos++;
+    else if (p.status === 'ganho') ganhos++;
+    else if (p.status === 'perdido') perdidos++;
+    else andamento++;
+    if (p.status !== 'perdido') pessoas += Number(p.participantes || 0);
+  }
+  el.innerHTML =
+    '<div class="prp-kpi destaque"><b>' + novos + '</b><span>Novos</span></div>' +
+    '<div class="prp-kpi"><b>' + andamento + '</b><span>Em andamento</span></div>' +
+    '<div class="prp-kpi"><b>' + ganhos + '</b><span>Ganhos</span></div>' +
+    '<div class="prp-kpi"><b>' + perdidos + '</b><span>Perdidos</span></div>' +
+    '<div class="prp-kpi"><b>' + propLista.length + '</b><span>Total recebido</span></div>' +
+    '<div class="prp-kpi"><b>' + fmt(pessoas) + '</b><span>Pessoas em jogo</span></div>';
+}
+
+function propRender(){
+  const tb = document.getElementById('prp-tbody');
+  if (!tb) return;
+  const lista = propVisiveis();
+  if (!lista.length) {
+    tb.innerHTML = '<tr><td colspan="9"><div class="empty-state">' +
+      (propLista.length ? 'Nenhuma proposta com esse filtro.' : 'Nenhum briefing recebido ainda. Divulgue o link do formulário para os clientes.') +
+      '</div></td></tr>';
+    return;
+  }
+  let html = '';
+  for (let i = 0; i < lista.length; i++) {
+    const p = lista[i];
+    const evento = p.nome_evento || p.tipo_evento || '—';
+    const sub = [p.responsavel, p.cidade_evento || p.cidade_empresa].filter(Boolean).join(' · ');
+    html += '<tr>' +
+      '<td><span class="prp-proto">' + propEsc(p.protocolo || '') + '</span></td>' +
+      '<td><div class="prp-emp" onclick="propAbrir(\'' + p.id + '\')">' + propEsc(p.empresa) + '</div>' +
+        (sub ? '<div class="prp-sub">' + propEsc(sub) + '</div>' : '') + '</td>' +
+      '<td>' + propEsc(evento) + '</td>' +
+      '<td>' + propData(p.data_pretendida) + '</td>' +
+      '<td>' + (p.participantes ? fmt(p.participantes) : '—') + '</td>' +
+      '<td>' + propEsc(p.verba_faixa || '—') + '</td>' +
+      '<td>' + propBadge(p.status) + '</td>' +
+      '<td>' + (p.criado_em ? new Date(p.criado_em).toLocaleDateString('pt-BR') : '—') + '</td>' +
+      '<td><button class="edit-btn" onclick="propAbrir(\'' + p.id + '\')">Ver</button></td>' +
+      '</tr>';
+  }
+  tb.innerHTML = html;
+}
+
+function propLinha(rotulo, valor){
+  if (valor === null || valor === undefined || valor === '') return '';
+  return '<div class="prp-l"><b>' + rotulo + '</b><span>' + propEsc(valor) + '</span></div>';
+}
+
+function propAbrir(id){
+  let p = null;
+  for (let i = 0; i < propLista.length; i++) if (String(propLista[i].id) === String(id)) p = propLista[i];
+  if (!p) return;
+  propAtual = p;
+
+  document.getElementById('prp-d-proto').textContent = p.protocolo || '';
+  document.getElementById('prp-d-empresa').textContent = p.empresa || '';
+  document.getElementById('prp-d-quando').textContent = 'Recebido em ' + propQuando(p.criado_em) +
+    (p.origem ? ' · via ' + p.origem : '');
+  document.getElementById('prp-d-badge').innerHTML = propBadge(p.status);
+
+  const objetivos = Array.isArray(p.objetivos) ? p.objetivos : [];
+  const escopo = Array.isArray(p.escopo) ? p.escopo : [];
+
+  let html = '';
+
+  html += '<div class="prp-bloco"><div class="prp-bloco-t">Empresa e contato</div>' +
+    propLinha('Empresa', p.empresa) +
+    propLinha('CNPJ', p.cnpj) +
+    propLinha('Responsável', (p.responsavel || '') + (p.cargo ? ' · ' + p.cargo : '')) +
+    propLinha('WhatsApp', p.whatsapp) +
+    propLinha('E-mail', p.email) +
+    propLinha('Cidade', p.cidade_empresa) +
+    propLinha('Site / Instagram', p.site) + '</div>';
+
+  html += '<div class="prp-bloco"><div class="prp-bloco-t">O evento</div>' +
+    propLinha('Tipo', p.tipo_evento) +
+    propLinha('Nome', p.nome_evento) +
+    propLinha('Data pretendida', p.data_pretendida ? (propData(p.data_pretendida) + (p.data_flexivel ? ' (flexível)' : ' (fechada)')) : '') +
+    propLinha('Cidade', p.cidade_evento) +
+    propLinha('Local / percurso', p.local_evento) +
+    propLinha('Participantes estimados', p.participantes ? fmt(p.participantes) : '') +
+    propLinha('Distâncias', p.distancias) + '</div>';
+
+  html += '<div class="prp-bloco"><div class="prp-bloco-t">Objetivo e investimento</div>' +
+    propLinha('Objetivos', objetivos.join(' · ')) +
+    propLinha('Faixa de investimento', p.verba_faixa) +
+    propLinha('Modelo de inscrição', p.modelo_inscricao) +
+    propLinha('Valor de inscrição previsto', p.valor_inscricao ? brl(p.valor_inscricao) : '') +
+    propLinha('Patrocinadores', p.tem_patrocinadores ? (p.patrocinadores || 'Sim, já tem') : 'Ainda não tem') + '</div>';
+
+  let esc = '';
+  for (let i = 0; i < escopo.length; i++) {
+    const it = escopo[i];
+    esc += '<div class="prp-esc"><b>' + propEsc(it.item) + '</b>' +
+      '<span>' + propEsc(it.qtd ? it.qtd : 'Sim') + '</span></div>';
+  }
+  html += '<div class="prp-bloco"><div class="prp-bloco-t">Escopo pedido pelo cliente (' + escopo.length + ' itens)</div>' +
+    (esc || '<div class="prp-vazio">Nenhum item marcado — o cliente quer que a JBX sugira o escopo.</div>') + '</div>';
+
+  if (p.observacoes || p.como_conheceu) {
+    html += '<div class="prp-bloco"><div class="prp-bloco-t">Outros</div>' +
+      propLinha('Observações', p.observacoes) +
+      propLinha('Como conheceu a JBX', p.como_conheceu) + '</div>';
+  }
+
+  document.getElementById('prp-d-corpo').innerHTML = html;
+  document.getElementById('prp-d-status').value = p.status || 'novo';
+  document.getElementById('prp-d-resp').value = p.responsavel_jbx || '';
+  document.getElementById('prp-d-notas').value = p.notas_internas || '';
+
+  const bw = document.getElementById('prp-d-whats');
+  const tel = String(p.whatsapp || '').replace(/\D/g, '');
+  if (tel.length >= 10) {
+    bw.style.display = '';
+    bw.onclick = function(){
+      window.open('https://wa.me/55' + tel + '?text=' + encodeURIComponent(
+        'Olá ' + (p.responsavel || '') + '! Aqui é da JBX Sports. Recebemos o briefing ' + (p.protocolo || '') + ' do evento da ' + (p.empresa || '') + '.'
+      ), '_blank');
+    };
+  } else {
+    bw.style.display = 'none';
+  }
+
+  document.getElementById('prp-overlay').classList.add('open');
+}
+
+function propFechar(){
+  document.getElementById('prp-overlay').classList.remove('open');
+  propAtual = null;
+}
+
+async function propSalvar(){
+  if (!propAtual) return;
+  const btn = document.getElementById('prp-d-salvar');
+  const txt = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+  try {
+    const r = await rpc('admin_proposta_atualizar', {
+      p_id: propAtual.id,
+      p_status: document.getElementById('prp-d-status').value,
+      p_responsavel: document.getElementById('prp-d-resp').value,
+      p_notas: document.getElementById('prp-d-notas').value
+    });
+    if (r && r.ok === false) throw new Error(r.erro || 'erro');
+    propAtual.status = document.getElementById('prp-d-status').value;
+    propAtual.responsavel_jbx = document.getElementById('prp-d-resp').value;
+    propAtual.notas_internas = document.getElementById('prp-d-notas').value;
+    propFechar();
+    propRender();
+    propKpis();
+    propMsg('Proposta atualizada.', '#2ecc71');
+  } catch (e) {
+    propMsg('Não foi possível salvar. Tente novamente.', '#e74c3c');
+  }
+  btn.disabled = false;
+  btn.textContent = txt;
+}
+
+function propCopiarLink(){
+  const url = location.origin + '/orcamento.html';
+  const ok = function(){ propMsg('Link copiado: ' + url, '#2ecc71'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(ok, function(){ propMsg(url); });
+  } else {
+    propMsg(url);
+  }
+}
+
+function propExportar(){
+  const lista = propVisiveis();
+  if (!lista.length) { propMsg('Nada para exportar com esse filtro.', '#e74c3c'); return; }
+  const linhas = [['Protocolo','Recebido','Status','Responsável JBX','Empresa','CNPJ','Contato','Cargo',
+    'WhatsApp','E-mail','Cidade empresa','Site','Tipo de evento','Nome do evento','Data pretendida',
+    'Data flexível','Cidade do evento','Local','Participantes','Distâncias','Objetivos','Faixa de verba',
+    'Modelo de inscrição','Valor inscrição','Tem patrocinadores','Patrocinadores','Escopo (item = qtd)',
+    'Observações','Como conheceu','Notas internas']];
+  for (let i = 0; i < lista.length; i++) {
+    const p = lista[i];
+    const escopo = Array.isArray(p.escopo) ? p.escopo : [];
+    const escTxt = escopo.map(function(e){ return e.item + (e.qtd ? ' = ' + e.qtd : ''); }).join(' | ');
+    linhas.push([
+      p.protocolo || '',
+      p.criado_em ? new Date(p.criado_em).toLocaleString('pt-BR') : '',
+      propStatusInfo(p.status).label,
+      p.responsavel_jbx || '',
+      p.empresa || '', p.cnpj || '', p.responsavel || '', p.cargo || '',
+      p.whatsapp || '', p.email || '', p.cidade_empresa || '', p.site || '',
+      p.tipo_evento || '', p.nome_evento || '', propData(p.data_pretendida),
+      p.data_flexivel ? 'Sim' : 'Não',
+      p.cidade_evento || '', p.local_evento || '',
+      Number(p.participantes || 0), p.distancias || '',
+      (Array.isArray(p.objetivos) ? p.objetivos.join(' | ') : ''),
+      p.verba_faixa || '', p.modelo_inscricao || '',
+      Number(p.valor_inscricao || 0),
+      p.tem_patrocinadores ? 'Sim' : 'Não', p.patrocinadores || '',
+      escTxt, p.observacoes || '', p.como_conheceu || '', p.notas_internas || ''
+    ]);
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols'] = [{wch:11},{wch:17},{wch:17},{wch:15},{wch:28},{wch:19},{wch:24},{wch:18},
+    {wch:17},{wch:28},{wch:18},{wch:22},{wch:20},{wch:26},{wch:13},{wch:13},{wch:18},{wch:26},
+    {wch:12},{wch:26},{wch:36},{wch:20},{wch:20},{wch:13},{wch:16},{wch:26},{wch:60},{wch:44},{wch:22},{wch:44}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Propostas');
+  const arq = 'propostas_jbx_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+  XLSX.writeFile(wb, arq);
+  propMsg('Excel gerado: ' + arq, '#2ecc71');
+}
+</script>
 
 </body>
 </html>
