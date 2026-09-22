@@ -66,6 +66,8 @@
   .sec{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
     color:var(--orange);margin:26px 0 14px;}
   .sec:first-child{margin-top:0;}
+  /* blocos que entram no meio do painel precisam do respiro de volta */
+  #bloco-participantes .sec,#bloco-final .sec{margin-top:30px;}
   .hint{font-size:13px;color:var(--muted);line-height:1.6;margin:-8px 0 16px;}
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -315,7 +317,11 @@
       <div class="sec">Detalhes do evento</div>
       <div class="row2">
         <div class="fg"><label>Nome do evento (se já tiver)</label><input id="f-nome-evento" placeholder="Ex.: 1ª Corrida Empresa X"></div>
-        <div class="fg"><label>Nº total estimado de participantes</label><input id="f-participantes" inputmode="numeric" placeholder="Ex.: 800"></div>
+        <div class="fg"><label>É a primeira edição?</label>
+          <select id="f-edicao">
+            <option value="1ª edição">Sim, primeira edição</option>
+            <option value="Já teve edições anteriores">Não, já teve edições anteriores</option>
+          </select></div>
       </div>
       <div class="row2">
         <div class="fg"><label>Data pretendida</label><input id="f-data" type="date"></div>
@@ -326,11 +332,6 @@
         <div class="fg"><label>Cidade do evento</label><input id="f-cidade-evento" placeholder="Ribeirão Preto"></div>
         <div class="fg"><label>Local pretendido</label><input id="f-local" placeholder="Ex.: Parque Curupira, av. principal…"></div>
       </div>
-      <div class="fg"><label>É a primeira edição?</label>
-        <select id="f-edicao">
-          <option value="1ª edição">Sim, primeira edição</option>
-          <option value="Já teve edições anteriores">Não, já teve edições anteriores</option>
-        </select></div>
     </div>
 
     <!-- ════ ETAPA 3 · FORMATO (ramifica por esporte) ════ -->
@@ -339,9 +340,19 @@
       <!-- ── CORRIDA / CAMINHADA ── -->
       <div data-esp="corrida" style="display:none;">
         <div class="sec">Percursos do evento</div>
-        <p class="hint">Marque os percursos que o evento vai ter e, ao lado, quantas pessoas você estima em cada um. Isso deixa o cálculo de kit, medalha e chip muito mais preciso.</p>
-        <div class="fq-head"><span>Percurso</span><span>Vai ter?</span><span>Pessoas estimadas</span></div>
-        <div class="fq-list" id="dist-list"></div>
+        <p class="hint">Escreva a quilometragem de cada percurso que o evento vai ter. <b>Deixe em branco o que não vai acontecer.</b></p>
+        <div class="row2">
+          <div class="fg"><label>Corrida · distância 1</label><input id="f-dist-1" placeholder="Ex.: 5 km"></div>
+          <div class="fg"><label>Corrida · distância 2</label><input id="f-dist-2" placeholder="Ex.: 10 km"></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Corrida · distância 3</label><input id="f-dist-3" placeholder="Ex.: 15 km"></div>
+          <div class="fg"><label>Corrida · distância 4</label><input id="f-dist-4" placeholder="Ex.: 21 km (meia maratona)"></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>Caminhada</label><input id="f-caminhada" placeholder="Ex.: 3 km"></div>
+          <div class="fg"><label>Kids run</label><input id="f-kids" placeholder="Ex.: 400 m"></div>
+        </div>
 
         <div class="sec">Formato da prova</div>
         <div class="fg"><label>Onde acontece o percurso?</label>
@@ -404,6 +415,15 @@
         </div>
         <div class="fg"><label>Conte como você imagina o evento</label>
           <textarea id="f-formato-livre" placeholder="Formato da disputa, número de duplas ou equipes, categorias, quantas quadras, duração, premiação, o que não pode faltar…" style="min-height:150px;"></textarea></div>
+      </div>
+
+      <!-- ── PARTICIPANTES (vale para qualquer modalidade) ── -->
+      <div id="bloco-participantes">
+        <div class="sec">Participantes</div>
+        <div class="fg"><label>Nº total estimado de participantes</label>
+          <input id="f-participantes" placeholder="Ex.: 800"></div>
+        <div class="fg"><label>Observações sobre o número de participantes</label>
+          <textarea id="f-participantes-obs" placeholder="Se você quer comparar cenários, escreva aqui. Ex.: preciso de orçamento para 500, 1.000, 1.500 e 2.000 participantes."></textarea></div>
       </div>
 
       <!-- ── nenhum esporte escolhido ── -->
@@ -548,18 +568,6 @@ const TESTE = /[?&]teste=1/.test(location.search);
 
 const ESPORTE_NOME = { corrida: 'Corrida / Caminhada', beach: 'Beach Tennis', outro: 'Outra modalidade' };
 
-/* ══ PERCURSOS (corrida) ══ */
-const DISTANCIAS = [
-  {n:'Caminhada 3 km',        d:'percurso leve, para todas as idades'},
-  {n:'Caminhada 5 km',        d:'caminhada mais longa'},
-  {n:'Corrida 5 km',          d:'distância de entrada, maior volume de gente'},
-  {n:'Corrida 10 km',         d:'distância clássica de rua'},
-  {n:'Corrida 15 km',         d:'para corredor mais experiente'},
-  {n:'Meia maratona 21 km',   d:'exige percurso e estrutura maiores'},
-  {n:'Kids run',              d:'percurso infantil, 100 a 800 m'},
-  {n:'Outra distância',       d:'escreva ao lado qual e quantas pessoas'}
-];
-
 /* ══ ESCOPO (corrida) — dividido em blocos ══ */
 const ESCOPO_GRUPOS = [
   { g:'Kit do atleta', d:'O que o participante recebe na retirada do kit.', itens:[
@@ -636,47 +644,6 @@ const ESCOPO_GRUPOS = [
 
 const SUB_TOTAL = ESCOPO_GRUPOS.length + 1;   /* blocos + tela final */
 let subEscopo = 1;
-
-/* ══ LISTAS FLAG + QUANTIDADE ══ */
-function montarFQ(idBox, itens, prefixo){
-  const box = document.getElementById(idBox);
-  if (!box) return;
-  let html = '';
-  for (let i = 0; i < itens.length; i++) {
-    const e = itens[i];
-    const temQtd = (e.q === undefined) ? true : !!e.q;
-    const ph = (e.q === undefined) ? 'Ex.: 400 pessoas' : e.q;
-    const campo = temQtd
-      ? '<input type="text" id="' + prefixo + '-q-' + i + '" placeholder="' + ph + '" disabled>'
-      : '<span style="font-size:12px;color:rgba(42,37,32,.3);">—</span>';
-    html += '<div class="fq" id="' + prefixo + '-r-' + i + '">'
-      + '<div class="fq-nome">' + e.n + '<i>' + e.d + '</i></div>'
-      + '<label class="flag"><input type="checkbox" id="' + prefixo + '-c-' + i + '" onchange="fqToggle(\'' + prefixo + '\',' + i + ')">'
-      + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
-      + '<em>Sim</em></label>'
-      + campo
-      + '</div>';
-  }
-  box.innerHTML = html;
-}
-
-function fqToggle(prefixo, i){
-  const marcado = document.getElementById(prefixo + '-c-' + i).checked;
-  document.getElementById(prefixo + '-r-' + i).classList.toggle('on', marcado);
-  const q = document.getElementById(prefixo + '-q-' + i);
-  if (q) { q.disabled = !marcado; if (marcado) q.focus(); else q.value = ''; }
-}
-
-function coletarFQ(itens, prefixo){
-  const lista = [];
-  for (let i = 0; i < itens.length; i++) {
-    const c = document.getElementById(prefixo + '-c-' + i);
-    if (!c || !c.checked) continue;
-    const q = document.getElementById(prefixo + '-q-' + i);
-    lista.push({ item: itens[i].n, tem: true, qtd: q ? q.value.trim() : '' });
-  }
-  return lista;
-}
 
 /* ══ ESCOPO EM BLOCOS ══ */
 function montarEscopoBlocos(){
@@ -852,6 +819,8 @@ function aplicarEsporte(){
     blocos[i].style.display = (blocos[i].dataset.esp === alvo) ? '' : 'none';
   }
   document.getElementById('bloco-outro-esporte').style.display = (esporte === 'outro') ? '' : 'none';
+  const bp = document.getElementById('bloco-participantes');
+  if (bp) bp.style.display = esporte ? '' : 'none';
   if (typeof atualizarFinal === 'function') atualizarFinal();
   if (typeof atualizarBotoes === 'function') atualizarBotoes();
 }
@@ -960,9 +929,7 @@ function coletarRespostas(){
   const add = function(r, v){ if (v) lista.push({ r: r, v: v }); };
 
   if (esporte === 'corrida') {
-    const dist = coletarFQ(DISTANCIAS, 'dist');
-    const distTxt = dist.map(function(d){ return d.item + (d.qtd ? ' (' + d.qtd + ')' : ''); }).join(' · ');
-    add('Percursos', distTxt);
+    add('Percursos', coletarDistancias());
     add('Tipo de percurso', val('f-percurso-tipo'));
     add('Horário da largada', val('f-periodo'));
     add('Público', val('f-publico'));
@@ -972,6 +939,8 @@ function coletarRespostas(){
     add('Como imagina o formato', val('f-formato-livre'));
   }
   add('Edição', val('f-edicao'));
+  add('Nº total de participantes (como informado)', val('f-participantes'));
+  add('Observações sobre participantes', val('f-participantes-obs'));
   return lista;
 }
 
@@ -995,9 +964,23 @@ function coletarEscopo(){
 
 function coletarDistancias(){
   if (esporte !== 'corrida') return '';
-  return coletarFQ(DISTANCIAS, 'dist').map(function(d){
-    return d.item + (d.qtd ? ' (' + d.qtd + ')' : '');
-  }).join(', ');
+  const partes = [];
+  for (let i = 1; i <= 4; i++) {
+    const v = val('f-dist-' + i);
+    if (v) partes.push('Corrida ' + v);
+  }
+  const cam = val('f-caminhada');
+  if (cam) partes.push('Caminhada ' + cam);
+  const kids = val('f-kids');
+  if (kids) partes.push('Kids run ' + kids);
+  return partes.join(', ');
+}
+
+/* o cliente pode escrever qualquer coisa no total de participantes
+   ("500 a 2000"); só vira número na coluna do banco quando é limpo */
+function participantesNumero(){
+  const bruto = val('f-participantes');
+  return /^[\d.\s]+$/.test(bruto) ? bruto.replace(/\D/g, '') : '';
 }
 
 function montarPayload(){
@@ -1017,7 +1000,7 @@ function montarPayload(){
     data_flexivel:  val('f-data-flex') === 'true',
     cidade_evento:  val('f-cidade-evento'),
     local_evento:   val('f-local'),
-    participantes:  val('f-participantes').replace(/\D/g, ''),
+    participantes:  participantesNumero(),
     distancias:     coletarDistancias(),
     respostas:      coletarRespostas(),
     objetivos:      objetivos,
@@ -1053,7 +1036,7 @@ function montarRevisao(){
     + linha('Nome', d.nome_evento)
     + linha('Data', d.data_pretendida ? d.data_pretendida.split('-').reverse().join('/') + (d.data_flexivel ? ' (flexível)' : '') : '')
     + linha('Cidade', d.cidade_evento) + linha('Local', d.local_evento)
-    + linha('Participantes', d.participantes) + '</div>';
+    + linha('Participantes', val('f-participantes')) + '</div>';
 
   let esp = '';
   for (let i = 0; i < d.respostas.length; i++) esp += linha(d.respostas[i].r, d.respostas[i].v);
@@ -1143,7 +1126,6 @@ function mostrarSucesso(nome, protocolo){
 }
 
 /* ══ INIT ══ */
-montarFQ('dist-list', DISTANCIAS, 'dist');
 montarEscopoBlocos();
 escTotal();
 ligarOpcoes('opt-esporte', function(v){ esporte = v; aplicarEsporte(); });
@@ -1169,11 +1151,15 @@ const EXEMPLO = {
   'f-participantes':'800',
   'f-cidade-evento':'Ribeirão Preto',
   'f-local':'Parque Curupira e av. Nove de Julho',
+  'f-dist-1':'5 km',
+  'f-dist-2':'10 km',
+  'f-caminhada':'3 km',
+  'f-kids':'400 m',
+  'f-participantes':'800',
+  'f-participantes-obs':'Quero comparar cenários: orçamento para 500, 1.000, 1.500 e 2.000 participantes.',
   'f-valor':'89,90',
   'f-obs':'Queremos algo no fim de semana, com espaço para ativação das marcas parceiras e estrutura para família. Referência: as corridas que a JBX já fez em Sertãozinho.'
 };
-
-const EXEMPLO_DIST = [[0,'250 pessoas'], [2,'350 pessoas'], [3,'150 pessoas'], [6,'50 crianças']];
 
 /* [grupo, item, quantidade] — índices de ESCOPO_GRUPOS */
 const EXEMPLO_ESCOPO = [
@@ -1188,16 +1174,6 @@ const EXEMPLO_ESCOPO = [
   [8,0,'2 un.'], [8,3,'800 atletas'],
   [9,0,''], [9,1,''], [9,2,''], [9,3,'']
 ];
-
-function tstMarcarFQ(pares, prefixo){
-  for (let i = 0; i < pares.length; i++) {
-    const idx = pares[i][0], qtd = pares[i][1];
-    const c = document.getElementById(prefixo + '-c-' + idx);
-    if (c && !c.checked) { c.checked = true; fqToggle(prefixo, idx); }
-    const q = document.getElementById(prefixo + '-q-' + idx);
-    if (q && qtd) q.value = qtd;
-  }
-}
 
 function tstMarcarEscopo(trios){
   const grupos = {};
@@ -1244,7 +1220,6 @@ function tstPreencher(){
   tstChip('chip-objetivos', 'Saúde e bem-estar dos colaboradores');
   tstChip('chip-objetivos', 'Cobrir os custos — evento se paga');
 
-  tstMarcarFQ(EXEMPLO_DIST, 'dist');
   tstMarcarEscopo(EXEMPLO_ESCOPO);
 
   if (passo === TOTAL) montarRevisao();
