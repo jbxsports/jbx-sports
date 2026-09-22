@@ -45,16 +45,17 @@
 
   /* ── WIZARD ── */
   main{max-width:880px;margin:0 auto;padding:34px 5% 80px;}
-  .steps{display:flex;gap:6px;margin-bottom:30px;}
+  .steps{display:flex;gap:5px;margin-bottom:30px;}
   .stp{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;}
   .stp b{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-size:14px;font-weight:700;background:rgba(42,37,32,.07);color:var(--muted);
     border:2px solid transparent;transition:.2s;}
-  .stp span{font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:rgba(42,37,32,.38);
+  .stp span{font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:rgba(42,37,32,.38);
     text-align:center;transition:.2s;}
   .stp.on b{background:var(--orange);color:#fff;}
   .stp.on span{color:var(--orange);}
   .stp.done b{background:rgba(255,117,31,.16);color:var(--orange);border-color:var(--orange);}
+  @media(max-width:560px){ .stp span{display:none;} .stp b{width:30px;height:30px;font-size:13px;} }
 
   .card{background:var(--card);border:1px solid var(--border);border-radius:16px;
     padding:28px 30px;box-shadow:0 2px 12px rgba(42,37,32,.05);}
@@ -68,7 +69,6 @@
   .hint{font-size:13px;color:var(--muted);line-height:1.6;margin:-8px 0 16px;}
 
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
   .fg{margin-bottom:14px;}
   .fg label{display:block;font-size:12px;font-weight:700;letter-spacing:.4px;
     text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
@@ -78,7 +78,7 @@
   .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--orange);background:#fff;}
   .fg input::placeholder,.fg textarea::placeholder{color:rgba(42,37,32,.3);}
   .fg textarea{resize:vertical;min-height:96px;line-height:1.6;}
-  .fg .erro{border-color:#e74c3c !important;background:rgba(231,76,60,.05) !important;}
+  .fg .erro,input.erro,textarea.erro{border-color:#e74c3c !important;background:rgba(231,76,60,.05) !important;}
 
   .chips{display:flex;gap:8px;flex-wrap:wrap;}
   .chip{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;border:1.5px solid rgba(42,37,32,.15);
@@ -87,23 +87,25 @@
   .chip.on{border-color:var(--orange);background:rgba(255,117,31,.1);color:var(--orange);}
 
   .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+  .opts.tres{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));}
   .opt{border:2px solid rgba(42,37,32,.1);border-radius:12px;padding:16px 12px;text-align:center;
     cursor:pointer;transition:.18s;background:#fff;font-size:14px;font-weight:700;}
   .opt:hover{border-color:rgba(255,117,31,.45);transform:translateY(-2px);}
   .opt.on{border-color:var(--orange);background:rgba(255,117,31,.07);color:var(--orange);}
-  .opt small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px;}
+  .opt small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45;}
   .opt.on small{color:var(--orange);opacity:.8;}
+  .opt .emo{display:block;font-size:26px;margin-bottom:8px;}
 
-  /* ── ESCOPO: flag + quantidade ── */
-  .esc-head{display:grid;grid-template-columns:1fr 92px 128px;gap:10px;align-items:center;
+  /* ── FLAG + QUANTIDADE (escopo e distâncias) ── */
+  .fq-head{display:grid;grid-template-columns:1fr 92px 138px;gap:10px;align-items:center;
     padding:0 14px 8px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(42,37,32,.4);}
-  .esc-list{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  .esc{display:grid;grid-template-columns:1fr 92px 128px;gap:10px;align-items:center;
+  .fq-list{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .fq{display:grid;grid-template-columns:1fr 92px 138px;gap:10px;align-items:center;
     padding:12px 14px;border-bottom:1px solid rgba(42,37,32,.07);transition:background .15s;}
-  .esc:last-child{border-bottom:none;}
-  .esc.on{background:rgba(255,117,31,.05);}
-  .esc-nome{font-size:14px;font-weight:500;line-height:1.35;}
-  .esc-nome i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .fq:last-child{border-bottom:none;}
+  .fq.on{background:rgba(255,117,31,.05);}
+  .fq-nome{font-size:14px;font-weight:500;line-height:1.35;}
+  .fq-nome i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px;}
   .flag{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
   .flag input{display:none;}
   .flag .box{width:24px;height:24px;border-radius:7px;border:2px solid rgba(42,37,32,.18);
@@ -113,16 +115,50 @@
   .flag input:checked + .box svg{opacity:1;}
   .flag em{font-style:normal;font-size:12px;font-weight:700;color:var(--muted);}
   .flag input:checked ~ em{color:var(--orange);}
-  .esc input[type=text]{width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);
-    border-radius:8px;padding:9px 11px;font-size:14px;font-family:'Ubuntu',sans-serif;color:var(--text);
-    transition:.15s;}
-  .esc input[type=text]:focus{outline:none;border-color:var(--orange);background:#fff;}
-  .esc input[type=text]:disabled{opacity:.35;cursor:not-allowed;}
+  /* bloco parcialmente marcado */
+  .flag .box.meio{border-color:var(--orange);position:relative;}
+  .flag .box.meio::after{content:'';position:absolute;width:11px;height:3px;border-radius:2px;background:var(--orange);}
+  .esc-hd .flag .box.meio ~ em{color:var(--orange);}
+  .fq input[type=text]{width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);
+    border-radius:8px;padding:9px 11px;font-size:14px;font-family:'Ubuntu',sans-serif;color:var(--text);transition:.15s;}
+  .fq input[type=text]:focus{outline:none;border-color:var(--orange);background:#fff;}
+  .fq input[type=text]:disabled{opacity:.35;cursor:not-allowed;}
   @media(max-width:620px){
-    .esc-head{display:none;}
-    .esc{grid-template-columns:1fr;gap:8px;}
-    .esc input[type=text]{max-width:200px;}
+    .fq-head{display:none;}
+    .fq{grid-template-columns:1fr;gap:8px;}
+    .fq input[type=text]{max-width:220px;}
   }
+
+  /* ── ESCOPO EM BLOCOS ── */
+  .esc-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+  .esc-passo{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+  .esc-contador{font-size:12px;font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);
+    border:1px solid rgba(255,117,31,.3);border-radius:20px;padding:5px 13px;}
+  .esc-nav{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 12px;scrollbar-width:thin;
+    border-bottom:1px solid var(--border);margin-bottom:22px;}
+  .esc-nav::-webkit-scrollbar{height:5px;}
+  .esc-nav::-webkit-scrollbar-thumb{background:rgba(255,117,31,.35);border-radius:3px;}
+  .esc-nb{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;white-space:nowrap;
+    border:1.5px solid rgba(42,37,32,.14);background:#f5f3f0;color:var(--muted);border-radius:20px;
+    padding:7px 14px;cursor:pointer;transition:.15s;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+  .esc-nb:hover{border-color:rgba(255,117,31,.5);}
+  .esc-nb .n{background:rgba(255,117,31,.16);color:var(--orange);border-radius:10px;
+    font-size:10.5px;padding:1px 7px;min-width:20px;text-align:center;}
+  /* ordem importa: .cheio primeiro, .on depois — o bloco atual sempre vence */
+  .esc-nb.cheio{border-color:rgba(255,117,31,.5);background:rgba(255,117,31,.08);color:var(--orange);}
+  .esc-nb.on,.esc-nb.on.cheio{border-color:var(--orange);background:var(--orange);color:#fff;}
+  .esc-nb.on .n,.esc-nb.on.cheio .n{background:rgba(255,255,255,.28);color:#fff;}
+
+  .esc-bloco{display:none;}
+  .esc-bloco.on{display:block;animation:fade .22s ease;}
+  .esc-hd{display:flex;align-items:flex-start;gap:14px;background:#f5f3f0;border:1px solid var(--border);
+    border-radius:12px;padding:16px 18px;margin-bottom:16px;flex-wrap:wrap;}
+  .esc-hd.on{background:rgba(255,117,31,.08);border-color:rgba(255,117,31,.35);}
+  .esc-hd .txt{flex:1;min-width:190px;}
+  .esc-hd h3{font-size:16px;font-weight:700;color:var(--text);}
+  .esc-hd p{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:3px;}
+  .esc-hd .flag em{font-size:12.5px;}
+  @media(max-width:560px){ .esc-hd{gap:10px;} }
 
   /* ── REVISÃO ── */
   .rev{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px;}
@@ -133,6 +169,13 @@
   .rev-l:last-child{border-bottom:none;}
   .rev-l b{font-weight:500;color:var(--muted);flex-shrink:0;}
   .rev-l span{text-align:right;font-weight:500;}
+  @media(max-width:620px){.rev-l{flex-direction:column;gap:2px;}.rev-l span{text-align:left;}}
+
+  /* ── BLOCO "EM CONSTRUÇÃO" (outros esportes) ── */
+  .prov{background:rgba(255,117,31,.07);border:1px solid rgba(255,117,31,.28);border-radius:12px;
+    padding:20px 22px;margin-bottom:20px;}
+  .prov h4{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--orange);}
+  .prov p{font-size:13.5px;color:var(--muted);line-height:1.65;}
 
   /* ── NAV ── */
   .nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:26px;}
@@ -141,8 +184,7 @@
     background:transparent;color:var(--muted);}
   .btn:hover{border-color:var(--text);color:var(--text);}
   .btn.primary{background:var(--orange);border-color:var(--orange);color:#fff;margin-left:auto;}
-  .btn.primary:hover{background:var(--orange-dark);transform:translateY(-1px);
-    box-shadow:0 8px 22px rgba(255,117,31,.3);}
+  .btn.primary:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 8px 22px rgba(255,117,31,.3);}
   .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none;}
   .msg{font-size:13.5px;margin-top:14px;min-height:20px;}
   .msg.err{color:#c0392b;}
@@ -152,8 +194,7 @@
   #ok-tela{display:none;text-align:center;padding:52px 24px;}
   #ok-tela .ico{font-size:56px;margin-bottom:16px;}
   #ok-tela h2{font-size:26px;font-weight:700;letter-spacing:-.5px;}
-  #ok-tela p{font-size:15.5px;color:var(--muted);line-height:1.7;margin-top:12px;max-width:520px;
-    margin-left:auto;margin-right:auto;}
+  #ok-tela p{font-size:15.5px;color:var(--muted);line-height:1.7;margin-top:12px;max-width:520px;margin-left:auto;margin-right:auto;}
   #ok-tela .proto{display:inline-block;margin-top:20px;background:rgba(255,117,31,.1);
     border:1px solid rgba(255,117,31,.3);border-radius:10px;padding:12px 24px;
     font-size:18px;font-weight:700;color:var(--orange);letter-spacing:1px;}
@@ -163,35 +204,29 @@
   footer{background:#f0ede8;border-top:1px solid var(--border);padding:32px 5%;text-align:center;
     font-size:13px;color:var(--muted);}
   footer a{color:var(--orange);text-decoration:none;font-weight:700;}
+
   /* ── MODO TESTE (?teste=1) ── */
   .tst-bar{position:fixed;left:0;right:0;bottom:0;z-index:200;background:#2a2520;color:#fff;
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 18px;
+    display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:11px 18px;
     box-shadow:0 -6px 24px rgba(42,37,32,.25);font-size:13px;}
   .tst-bar .marca{font-weight:700;letter-spacing:1.4px;text-transform:uppercase;font-size:11px;
     color:#ffb37a;background:rgba(255,117,31,.18);border:1px solid rgba(255,117,31,.45);
     border-radius:5px;padding:4px 10px;}
   .tst-bar .sep{width:1px;height:22px;background:rgba(255,255,255,.18);}
   .tst-b{font-family:'Ubuntu',sans-serif;font-size:12.5px;font-weight:700;border-radius:7px;
-    padding:7px 13px;cursor:pointer;border:1px solid rgba(255,255,255,.22);
+    padding:7px 12px;cursor:pointer;border:1px solid rgba(255,255,255,.22);
     background:rgba(255,255,255,.08);color:#fff;transition:.15s;}
   .tst-b:hover{background:rgba(255,117,31,.85);border-color:var(--orange);}
   .tst-b.on{background:var(--orange);border-color:var(--orange);}
   .tst-b.destaque{background:var(--orange);border-color:var(--orange);}
   .tst-b.destaque:hover{background:var(--orange-dark);}
-  .tst-chk{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;
-    color:rgba(255,255,255,.75);font-size:12.5px;}
+  .tst-chk{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;color:rgba(255,255,255,.75);font-size:12.5px;}
   .tst-chk input{accent-color:var(--orange);width:15px;height:15px;cursor:pointer;}
-  .tst-fim{margin-left:auto;color:rgba(255,255,255,.45);font-size:11.5px;}
-  body.tst-on{padding-bottom:70px;}
+  body.tst-on{padding-bottom:78px;}
   body.tst-on .steps .stp{cursor:pointer;}
-  .tst-aviso{background:rgba(255,117,31,.12);border:1px solid rgba(255,117,31,.35);
-    border-radius:10px;padding:11px 16px;font-size:13px;color:var(--orange);font-weight:500;
-    margin-bottom:20px;}
-  @media(max-width:700px){
-    .tst-bar{gap:7px;padding:9px 12px;}
-    .tst-fim{display:none;}
-    .tst-b{padding:6px 10px;font-size:12px;}
-  }
+  .tst-aviso{background:rgba(255,117,31,.12);border:1px solid rgba(255,117,31,.35);border-radius:10px;
+    padding:11px 16px;font-size:13px;color:var(--orange);font-weight:500;margin-bottom:20px;}
+  @media(max-width:700px){ .tst-bar{gap:6px;padding:9px 12px;} .tst-b{padding:6px 9px;font-size:11.5px;} }
 </style>
 </head>
 <body>
@@ -220,18 +255,18 @@
 </section>
 
 <main>
-  <!-- progresso -->
   <div class="steps" id="steps">
     <div class="stp on" data-s="1"><b>1</b><span>Empresa</span></div>
     <div class="stp" data-s="2"><b>2</b><span>O evento</span></div>
-    <div class="stp" data-s="3"><b>3</b><span>Objetivo</span></div>
-    <div class="stp" data-s="4"><b>4</b><span>Escopo</span></div>
-    <div class="stp" data-s="5"><b>5</b><span>Revisão</span></div>
+    <div class="stp" data-s="3"><b>3</b><span>Formato</span></div>
+    <div class="stp" data-s="4"><b>4</b><span>Objetivo</span></div>
+    <div class="stp" data-s="5"><b>5</b><span>Escopo</span></div>
+    <div class="stp" data-s="6"><b>6</b><span>Revisão</span></div>
   </div>
 
   <div class="card" id="form-card">
 
-    <!-- ── ETAPA 1 ── -->
+    <!-- ════ ETAPA 1 · EMPRESA ════ -->
     <div class="pane on" data-p="1">
       <div class="sec">Empresa e contato</div>
       <p class="hint">Para quem vamos endereçar a proposta.</p>
@@ -253,24 +288,34 @@
       </div>
     </div>
 
-    <!-- ── ETAPA 2 ── -->
+    <!-- ════ ETAPA 2 · O EVENTO ════ -->
     <div class="pane" data-p="2">
       <div class="sec">Que tipo de evento você imagina?</div>
-      <div class="opts" id="opt-tipo">
-        <div class="opt" data-v="Corrida de rua">Corrida de rua<small>a nossa especialidade</small></div>
-        <div class="opt" data-v="Caminhada">Caminhada<small>percurso leve, família</small></div>
-        <div class="opt" data-v="Trail run">Trail run<small>terra, trilha, montanha</small></div>
-        <div class="opt" data-v="Travessia / natação">Travessia<small>natação em águas abertas</small></div>
-        <div class="opt" data-v="Beach tennis">Beach tennis<small>torneio ou circuito</small></div>
-        <div class="opt" data-v="Circuito / multisport">Multisport<small>mais de uma modalidade</small></div>
-        <div class="opt" data-v="Evento interno / endomarketing">Evento interno<small>só colaboradores</small></div>
-        <div class="opt" data-v="Ainda não sei">Ainda não sei<small>me ajudem a definir</small></div>
+      <p class="hint">A partir daqui as perguntas mudam conforme a modalidade.</p>
+      <div class="opts tres" id="opt-esporte">
+        <div class="opt" data-v="corrida">
+          <span class="emo">🏃</span>Corrida / Caminhada
+          <small>corrida de rua, caminhada, trail</small>
+        </div>
+        <div class="opt" data-v="beach">
+          <span class="emo">🎾</span>Beach Tennis
+          <small>torneio ou circuito</small>
+        </div>
+        <div class="opt" data-v="outro">
+          <span class="emo">✨</span>Outra modalidade
+          <small>me conte qual</small>
+        </div>
       </div>
 
-      <div class="sec">Detalhes</div>
+      <div id="bloco-outro-esporte" style="display:none;margin-top:16px;">
+        <div class="fg"><label>Qual modalidade? *</label>
+          <input id="f-esporte-outro" placeholder="Ex.: pedal, natação em piscina, futevôlei, circuito funcional…"></div>
+      </div>
+
+      <div class="sec">Detalhes do evento</div>
       <div class="row2">
         <div class="fg"><label>Nome do evento (se já tiver)</label><input id="f-nome-evento" placeholder="Ex.: 1ª Corrida Empresa X"></div>
-        <div class="fg"><label>Nº estimado de participantes</label><input id="f-participantes" inputmode="numeric" placeholder="Ex.: 800"></div>
+        <div class="fg"><label>Nº total estimado de participantes</label><input id="f-participantes" inputmode="numeric" placeholder="Ex.: 800"></div>
       </div>
       <div class="row2">
         <div class="fg"><label>Data pretendida</label><input id="f-data" type="date"></div>
@@ -279,14 +324,97 @@
       </div>
       <div class="row2">
         <div class="fg"><label>Cidade do evento</label><input id="f-cidade-evento" placeholder="Ribeirão Preto"></div>
-        <div class="fg"><label>Local / percurso pretendido</label><input id="f-local" placeholder="Ex.: Parque Curupira, av. principal…"></div>
+        <div class="fg"><label>Local pretendido</label><input id="f-local" placeholder="Ex.: Parque Curupira, av. principal…"></div>
       </div>
-      <div class="fg"><label>Distâncias / modalidades desejadas</label>
-        <input id="f-distancias" placeholder="Ex.: 5km corrida, 10km corrida, 3km caminhada"></div>
+      <div class="fg"><label>É a primeira edição?</label>
+        <select id="f-edicao">
+          <option value="1ª edição">Sim, primeira edição</option>
+          <option value="Já teve edições anteriores">Não, já teve edições anteriores</option>
+        </select></div>
     </div>
 
-    <!-- ── ETAPA 3 ── -->
+    <!-- ════ ETAPA 3 · FORMATO (ramifica por esporte) ════ -->
     <div class="pane" data-p="3">
+
+      <!-- ── CORRIDA / CAMINHADA ── -->
+      <div data-esp="corrida" style="display:none;">
+        <div class="sec">Percursos do evento</div>
+        <p class="hint">Marque os percursos que o evento vai ter e, ao lado, quantas pessoas você estima em cada um. Isso deixa o cálculo de kit, medalha e chip muito mais preciso.</p>
+        <div class="fq-head"><span>Percurso</span><span>Vai ter?</span><span>Pessoas estimadas</span></div>
+        <div class="fq-list" id="dist-list"></div>
+
+        <div class="sec">Formato da prova</div>
+        <div class="fg"><label>Onde acontece o percurso?</label>
+          <select id="f-percurso-tipo">
+            <option value="">Selecione</option>
+            <option>Rua / asfalto (com bloqueio de via)</option>
+            <option>Parque ou área verde</option>
+            <option>Área fechada (condomínio, clube, indústria)</option>
+            <option>Trilha / terra</option>
+            <option>Misto</option>
+            <option>Ainda não definido</option>
+          </select></div>
+        <div class="row2">
+          <div class="fg"><label>Horário da largada</label>
+            <select id="f-periodo">
+              <option value="">Selecione</option>
+              <option>Manhã cedo (06h–08h)</option>
+              <option>Fim da manhã</option>
+              <option>Fim de tarde</option>
+              <option>Noturna</option>
+              <option>Ainda não definido</option>
+            </select></div>
+          <div class="fg"><label>Quem pode participar?</label>
+            <select id="f-publico">
+              <option value="">Selecione</option>
+              <option>Aberto ao público em geral</option>
+              <option>Só colaboradores e familiares</option>
+              <option>Colaboradores + público geral</option>
+              <option>Convidados e clientes da empresa</option>
+            </select></div>
+        </div>
+        <div class="fg"><label>Cronometragem</label>
+          <select id="f-cronometragem">
+            <option value="">Selecione</option>
+            <option>Com chip — tempo oficial e classificação</option>
+            <option>Só largada e chegada, sem chip</option>
+            <option>Sem cronometragem — evento participativo</option>
+            <option>Ainda não definido</option>
+          </select></div>
+
+        <div class="sec">Premiação</div>
+        <p class="hint">Quais categorias o evento vai premiar? Pode marcar mais de uma.</p>
+        <div class="chips" id="chip-categorias">
+          <div class="chip" data-v="Geral masculino e feminino">Geral masc. e fem.</div>
+          <div class="chip" data-v="Faixas etárias">Faixas etárias</div>
+          <div class="chip" data-v="Equipes e assessorias">Equipes / assessorias</div>
+          <div class="chip" data-v="Colaboradores da empresa">Colaboradores da empresa</div>
+          <div class="chip" data-v="Kids">Kids</div>
+          <div class="chip" data-v="PCD">PCD</div>
+          <div class="chip" data-v="Sem premiação por colocação">Sem premiação por colocação</div>
+        </div>
+      </div>
+
+      <!-- ── BEACH TENNIS / OUTRO (caminho curto provisório) ── -->
+      <div data-esp="provisorio" style="display:none;">
+        <div class="sec">Como você imagina o formato?</div>
+        <div class="prov">
+          <h4>Questionário detalhado em construção</h4>
+          <p>Ainda estamos montando as perguntas específicas dessa modalidade. Siga em frente — o essencial já foi capturado e a nossa equipe detalha o resto no contato com você.</p>
+        </div>
+        <div class="fg"><label>Conte como você imagina o evento</label>
+          <textarea id="f-formato-livre" placeholder="Formato da disputa, número de duplas ou equipes, categorias, quantas quadras, duração, premiação, o que não pode faltar…" style="min-height:150px;"></textarea></div>
+      </div>
+
+      <!-- ── nenhum esporte escolhido ── -->
+      <div data-esp="vazio">
+        <div class="sec">Escolha a modalidade primeiro</div>
+        <p class="hint">Volte para a etapa anterior e selecione o tipo de evento — as perguntas desta etapa mudam conforme a modalidade.</p>
+      </div>
+    </div>
+
+    <!-- ════ ETAPA 4 · OBJETIVO ════ -->
+    <div class="pane" data-p="4">
       <div class="sec">Qual é o objetivo do evento?</div>
       <p class="hint">Pode marcar mais de um.</p>
       <div class="chips" id="chip-objetivos">
@@ -298,6 +426,8 @@
         <div class="chip" data-v="Aniversário da empresa">Aniversário da empresa</div>
         <div class="chip" data-v="Lançamento de produto">Lançamento de produto</div>
         <div class="chip" data-v="Saúde e bem-estar dos colaboradores">Saúde dos colaboradores</div>
+        <div class="chip" data-v="Resultado financeiro — o evento precisa dar lucro">Resultado financeiro (lucro)</div>
+        <div class="chip" data-v="Cobrir os custos — evento se paga">Cobrir os custos</div>
       </div>
 
       <div class="sec">Faixa de investimento prevista</div>
@@ -306,7 +436,8 @@
         <div class="opt" data-v="Até R$ 30 mil">Até R$ 30 mil</div>
         <div class="opt" data-v="R$ 30 mil a R$ 60 mil">R$ 30–60 mil</div>
         <div class="opt" data-v="R$ 60 mil a R$ 120 mil">R$ 60–120 mil</div>
-        <div class="opt" data-v="Acima de R$ 120 mil">Acima de R$ 120 mil</div>
+        <div class="opt" data-v="R$ 120 mil a R$ 200 mil">R$ 120–200 mil</div>
+        <div class="opt" data-v="Acima de R$ 200 mil">Acima de R$ 200 mil</div>
         <div class="opt" data-v="Ainda não definido">Ainda não definido</div>
       </div>
 
@@ -323,20 +454,36 @@
         <div class="fg"><label>Valor de inscrição previsto (R$)</label>
           <input id="f-valor" inputmode="decimal" placeholder="Ex.: 89,90"></div>
       </div>
-      <div class="row2">
-        <div class="fg"><label>Já tem patrocinadores?</label>
-          <select id="f-tem-patro"><option value="false">Não / ainda não</option><option value="true">Sim, já temos</option></select></div>
-        <div class="fg"><label>Quais?</label><input id="f-patro" placeholder="Marcas que já apoiam"></div>
-      </div>
     </div>
 
-    <!-- ── ETAPA 4 ── -->
-    <div class="pane" data-p="4">
-      <div class="sec">Escopo do evento</div>
-      <p class="hint">Marque o que o evento precisa ter e, ao lado, a quantidade (quando fizer sentido). O que você não marcar entra na proposta como opcional.</p>
-      <div class="esc-head"><span>Item</span><span>Vai ter?</span><span>Quantidade</span></div>
-      <div class="esc-list" id="esc-list"></div>
+    <!-- ════ ETAPA 5 · ESCOPO ════ -->
+    <div class="pane" data-p="5">
+      <div data-esp="corrida" style="display:none;">
+        <div class="esc-topo">
+          <div class="sec" style="margin:0;">Escopo do evento</div>
+          <span class="esc-contador" id="esc-contador">0 itens marcados</span>
+        </div>
+        <p class="hint">O escopo vem separado em blocos. Marque o bloco inteiro de uma vez ou item por item, e informe a quantidade quando souber. O que você não marcar entra na proposta como opcional.</p>
+        <div class="esc-nav" id="esc-nav"></div>
+        <div id="esc-blocos"></div>
+      </div>
 
+      <div data-esp="provisorio" style="display:none;">
+        <div class="sec">Escopo do evento</div>
+        <div class="prov">
+          <h4>Lista de escopo em construção</h4>
+          <p>A lista de itens dessa modalidade ainda está sendo montada. Escreva abaixo o que não pode faltar e nós detalhamos na proposta.</p>
+        </div>
+        <div class="fg"><label>O que o evento precisa ter?</label>
+          <textarea id="f-escopo-livre" placeholder="Ex.: troféus, kit dos participantes, estrutura das quadras, som, arbitragem, fotos…" style="min-height:130px;"></textarea></div>
+      </div>
+
+      <div data-esp="vazio">
+        <div class="sec">Escolha a modalidade primeiro</div>
+        <p class="hint">Volte para a etapa 2 e selecione o tipo de evento.</p>
+      </div>
+
+      <div id="bloco-final">
       <div class="sec">Mais alguma coisa?</div>
       <div class="fg"><label>Observações</label>
         <textarea id="f-obs" placeholder="Conte o que mais importa: referências de eventos que você gostou, restrições de data ou local, quem é o público, o que não pode faltar…"></textarea></div>
@@ -350,18 +497,18 @@
           <option>Contato comercial da JBX</option>
           <option>Outro</option>
         </select></div>
+      </div><!-- /bloco-final -->
     </div>
 
-    <!-- ── ETAPA 5 ── -->
-    <div class="pane" data-p="5">
+    <!-- ════ ETAPA 6 · REVISÃO ════ -->
+    <div class="pane" data-p="6">
       <div class="sec">Confira antes de enviar</div>
       <p class="hint">Se algo estiver errado é só voltar e ajustar.</p>
       <div id="revisao"></div>
     </div>
 
-    <!-- nav -->
     <div class="nav">
-      <button class="btn" id="btn-voltar" onclick="irPara(passo-1)">Voltar</button>
+      <button class="btn" id="btn-voltar" onclick="voltar()">Voltar</button>
       <button class="btn primary" id="btn-proximo" onclick="proximo()">Próximo →</button>
     </div>
     <div class="msg" id="msg"></div>
@@ -389,73 +536,295 @@
 const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
 
-const TOTAL = 5;
+const TOTAL = 6;
 let passo = 1;
-let tipoEvento = '';
+let esporte = '';          /* '' | 'corrida' | 'beach' | 'outro' */
 let verba = '';
 const objetivos = [];
+const categorias = [];
 
 /* modo teste: abra a página com ?teste=1 no fim da URL */
 const TESTE = /[?&]teste=1/.test(location.search);
 
-/* ══ ITENS DO ESCOPO ══ */
-/* qtd:'' → não pede quantidade | qtd:'texto' → placeholder do campo */
-const ESCOPO = [
-  {n:'Kit do atleta',            d:'número de peito, sacola, brindes',        q:'Ex.: 800 kits'},
-  {n:'Camiseta',                 d:'malha, personalização e grade de tamanhos', q:'Ex.: 800 peças'},
-  {n:'Medalha de participação',  d:'arte exclusiva do evento',                 q:'Ex.: 800 medalhas'},
-  {n:'Cronometragem com chip',   d:'tempo oficial e classificação',            q:'Ex.: 800 chips'},
-  {n:'Troféus e premiação',      d:'geral e faixas etárias',                   q:'Ex.: 30 troféus'},
-  {n:'Estrutura do evento',      d:'arco de largada, tendas, palco, banheiros', q:'Ex.: 1 arco + 4 tendas'},
-  {n:'Som e locução',            d:'sonorização e locutor',                    q:'Ex.: 1 estrutura'},
-  {n:'Pontos de hidratação',     d:'água no percurso e na chegada',            q:'Ex.: 3 pontos'},
-  {n:'Frutas / pós-prova',       d:'alimentação na área de chegada',           q:'Ex.: 800 porções'},
-  {n:'Ambulância e equipe médica', d:'atendimento no local',                   q:'Ex.: 2 ambulâncias'},
-  {n:'Seguro dos atletas',       d:'apólice de acidentes pessoais',            q:'Ex.: 800 atletas'},
-  {n:'Staff e segurança de percurso', d:'apoio, sinalização e bloqueios',      q:'Ex.: 25 pessoas'},
-  {n:'Alvarás e autorizações',   d:'prefeitura, PM, bombeiros, trânsito',      q:''},
-  {n:'Site e sistema de inscrição', d:'página do evento e pagamento online',   q:''},
-  {n:'Divulgação e social media', d:'artes, posts e impulsionamento',          q:'Ex.: 1 mês de campanha'},
-  {n:'Fotografia',               d:'cobertura e banco de imagens',             q:'Ex.: 2 fotógrafos'},
-  {n:'Vídeo / aftermovie',       d:'making of e vídeo institucional',          q:'Ex.: 1 vídeo'},
-  {n:'Aula de aquecimento',      d:'professor e som antes da largada',         q:''},
-  {n:'Ativação de patrocinadores', d:'espaços de marca na arena',              q:'Ex.: 5 marcas'},
-  {n:'Coordenação técnica JBX',  d:'planejamento e execução ponta a ponta',    q:''}
+const ESPORTE_NOME = { corrida: 'Corrida / Caminhada', beach: 'Beach Tennis', outro: 'Outra modalidade' };
+
+/* ══ PERCURSOS (corrida) ══ */
+const DISTANCIAS = [
+  {n:'Caminhada 3 km',        d:'percurso leve, para todas as idades'},
+  {n:'Caminhada 5 km',        d:'caminhada mais longa'},
+  {n:'Corrida 5 km',          d:'distância de entrada, maior volume de gente'},
+  {n:'Corrida 10 km',         d:'distância clássica de rua'},
+  {n:'Corrida 15 km',         d:'para corredor mais experiente'},
+  {n:'Meia maratona 21 km',   d:'exige percurso e estrutura maiores'},
+  {n:'Kids run',              d:'percurso infantil, 100 a 800 m'},
+  {n:'Outra distância',       d:'escreva ao lado qual e quantas pessoas'}
 ];
 
-function montarEscopo(){
-  const box = document.getElementById('esc-list');
+/* ══ ESCOPO (corrida) — dividido em blocos ══ */
+const ESCOPO_GRUPOS = [
+  { g:'Kit do atleta', d:'O que o participante recebe na retirada do kit.', itens:[
+    {n:'Camiseta poliéster',  q:'Ex.: 800 peças'},
+    {n:'Camiseta poliamida',  q:'Ex.: 800 peças'},
+    {n:'Numeral de peito',    q:'Ex.: 800 un.'},
+    {n:'Sacola plástica',     q:'Ex.: 800 un.'},
+    {n:'Sacochila',           q:'Ex.: 800 un.'}
+  ]},
+  { g:'Cronometragem', d:'Tempo oficial, classificação e retirada de kit informatizada. Marcar o bloco liga todos os itens de uma vez.', itens:[
+    {n:'Numeral de peito com chip',          q:'Ex.: 800 un.'},
+    {n:'Retirada de kit computadorizada',    q:'Ex.: 2 dias'},
+    {n:'Relógio e antenas de cronometragem', q:'Ex.: 1 conjunto'}
+  ]},
+  { g:'Equipe', d:'Quem faz o evento acontecer no dia.', itens:[
+    {n:'Coordenadores e staffs', q:'Ex.: 25 pessoas'},
+    {n:'Locutor',                q:'Ex.: 1'},
+    {n:'DJ',                     q:'Ex.: 1'},
+    {n:'Equipe de limpeza',      q:'Ex.: 6 pessoas'}
+  ]},
+  { g:'Estrutura do evento', d:'Arena de largada e chegada, percurso e apoio.', itens:[
+    {n:'Gradil metálico',            q:'Ex.: 100 metros'},
+    {n:'Cones de sinalização',       q:'Ex.: 60 un.'},
+    {n:'Placas de avisos',           q:'Ex.: 20 un.'},
+    {n:'Coxos de hidratação',        q:'Ex.: 4 un.'},
+    {n:'Tenda 5x5',                  q:'Ex.: 4 un.'},
+    {n:'Tenda 10x10',                q:'Ex.: 1 un.'},
+    {n:'Palco 5x4',                  q:'Ex.: 1 un.'},
+    {n:'Pódio 3 lugares',            q:'Ex.: 1 un.'},
+    {n:'Backdrop',                   q:'Ex.: 1 un.', s:'estrutura metálica revestida com lona'},
+    {n:'Pórtico',                    q:'Ex.: 1 un.', s:'estrutura metálica revestida com lona'},
+    {n:'Sonorização profissional',   q:'Ex.: 1 estrutura'},
+    {n:'Banheiros químicos',         q:'Ex.: 10 un.'},
+    {n:'Gerador de energia',         q:'Ex.: 1 un.'},
+    {n:'Painel de LED',              q:'Ex.: 1 un.'}
+  ]},
+  { g:'Acessórios', d:'Itens de apoio e organização da arena.', itens:[
+    {n:'Cestos de lixo',             q:'Ex.: 20 un.'},
+    {n:'Sacos de lixo',              q:'Ex.: 200 un.'},
+    {n:'Vassouras e pás',            q:'Ex.: 10 un.'},
+    {n:'Coletes refletivos',         q:'Ex.: 30 un.'},
+    {n:'Abraçadeiras de nylon',      q:'Ex.: 500 un.'},
+    {n:'Sacolas de guarda-volumes',  q:'Ex.: 800 un.'}
+  ]},
+  { g:'Pós-prova', d:'O que espera o participante na área de chegada.', itens:[
+    {n:'Frutas / bananas', q:'Ex.: 800 porções'},
+    {n:'Água',             q:'Ex.: 1.600 copos'},
+    {n:'Gelo',             q:'Ex.: 200 kg'},
+    {n:'Isotônico',        q:'Ex.: 800 doses'},
+    {n:'Medalha',          q:'Ex.: 800 medalhas'}
+  ]},
+  { g:'Mídia', d:'Registro do evento para a marca usar depois.', itens:[
+    {n:'Equipe de fotografia no percurso', q:'Ex.: 3 fotógrafos'},
+    {n:'Fotos institucionais',             q:'Ex.: 1 ensaio'},
+    {n:'Aftermovie com drone',             q:'Ex.: 1 vídeo'}
+  ]},
+  { g:'Marketing', d:'Divulgação através dos canais da JBX Sports.', itens:[
+    {n:'Postagem no Instagram @jbx.sports',      q:'Ex.: 4 posts'},
+    {n:'Disparos de e-mail mkt (+20 mil leads)', q:'Ex.: 3 disparos'}
+  ]},
+  { g:'Segurança', d:'Atendimento e cobertura dos participantes.', itens:[
+    {n:'Ambulância básica',          q:'Ex.: 2 un.'},
+    {n:'Ambulância UTI',             q:'Ex.: 1 un.'},
+    {n:'Moto bombeiro civil',        q:'Ex.: 2 un.'},
+    {n:'Seguro de vida dos atletas', q:'Ex.: 800 atletas'}
+  ]},
+  { g:'Alvarás e autorizações', d:'Documentação obrigatória para a prova acontecer.', itens:[
+    {n:'Federação Paulista de Atletismo', q:''},
+    {n:'Departamento de Trânsito',        q:''},
+    {n:'Prefeitura',                      q:''},
+    {n:'Secretaria da Fazenda',           q:''}
+  ]}
+];
+
+const SUB_TOTAL = ESCOPO_GRUPOS.length + 1;   /* blocos + tela final */
+let subEscopo = 1;
+
+/* ══ LISTAS FLAG + QUANTIDADE ══ */
+function montarFQ(idBox, itens, prefixo){
+  const box = document.getElementById(idBox);
+  if (!box) return;
   let html = '';
-  for (let i = 0; i < ESCOPO.length; i++) {
-    const e = ESCOPO[i];
-    const campoQtd = e.q
-      ? '<input type="text" id="esc-q-' + i + '" placeholder="' + e.q + '" disabled>'
+  for (let i = 0; i < itens.length; i++) {
+    const e = itens[i];
+    const temQtd = (e.q === undefined) ? true : !!e.q;
+    const ph = (e.q === undefined) ? 'Ex.: 400 pessoas' : e.q;
+    const campo = temQtd
+      ? '<input type="text" id="' + prefixo + '-q-' + i + '" placeholder="' + ph + '" disabled>'
       : '<span style="font-size:12px;color:rgba(42,37,32,.3);">—</span>';
-    html += '<div class="esc" id="esc-r-' + i + '">'
-      + '<div class="esc-nome">' + e.n + '<i>' + e.d + '</i></div>'
-      + '<label class="flag"><input type="checkbox" id="esc-c-' + i + '" onchange="escToggle(' + i + ')">'
+    html += '<div class="fq" id="' + prefixo + '-r-' + i + '">'
+      + '<div class="fq-nome">' + e.n + '<i>' + e.d + '</i></div>'
+      + '<label class="flag"><input type="checkbox" id="' + prefixo + '-c-' + i + '" onchange="fqToggle(\'' + prefixo + '\',' + i + ')">'
       + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
       + '<em>Sim</em></label>'
-      + campoQtd
+      + campo
       + '</div>';
   }
   box.innerHTML = html;
 }
 
-function escToggle(i){
-  const marcado = document.getElementById('esc-c-' + i).checked;
-  document.getElementById('esc-r-' + i).classList.toggle('on', marcado);
-  const q = document.getElementById('esc-q-' + i);
+function fqToggle(prefixo, i){
+  const marcado = document.getElementById(prefixo + '-c-' + i).checked;
+  document.getElementById(prefixo + '-r-' + i).classList.toggle('on', marcado);
+  const q = document.getElementById(prefixo + '-q-' + i);
   if (q) { q.disabled = !marcado; if (marcado) q.focus(); else q.value = ''; }
+}
+
+function coletarFQ(itens, prefixo){
+  const lista = [];
+  for (let i = 0; i < itens.length; i++) {
+    const c = document.getElementById(prefixo + '-c-' + i);
+    if (!c || !c.checked) continue;
+    const q = document.getElementById(prefixo + '-q-' + i);
+    lista.push({ item: itens[i].n, tem: true, qtd: q ? q.value.trim() : '' });
+  }
+  return lista;
+}
+
+/* ══ ESCOPO EM BLOCOS ══ */
+function montarEscopoBlocos(){
+  const box = document.getElementById('esc-blocos');
+  const nav = document.getElementById('esc-nav');
+  if (!box || !nav) return;
+
+  let html = '', navHtml = '';
+
+  for (let g = 0; g < ESCOPO_GRUPOS.length; g++) {
+    const grp = ESCOPO_GRUPOS[g];
+    let linhas = '';
+    for (let i = 0; i < grp.itens.length; i++) {
+      const it = grp.itens[i];
+      const campo = it.q
+        ? '<input type="text" id="escq-' + g + '-' + i + '" placeholder="' + it.q + '" disabled>'
+        : '<span style="font-size:12px;color:rgba(42,37,32,.3);">—</span>';
+      linhas += '<div class="fq" id="escr-' + g + '-' + i + '">'
+        + '<div class="fq-nome">' + it.n + (it.s ? '<i>' + it.s + '</i>' : '') + '</div>'
+        + '<label class="flag"><input type="checkbox" id="escc-' + g + '-' + i + '" onchange="escItem(' + g + ',' + i + ')">'
+        + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
+        + '<em>Sim</em></label>'
+        + campo
+        + '</div>';
+    }
+
+    html += '<div class="esc-bloco' + (g === 0 ? ' on' : '') + '" data-bloco="' + (g + 1) + '">'
+      + '<div class="esc-hd" id="esch-' + g + '">'
+        + '<div class="txt"><h3>' + grp.g + '</h3><p>' + grp.d + '</p></div>'
+        + '<label class="flag"><input type="checkbox" id="escg-' + g + '" onchange="escGrupo(' + g + ')">'
+        + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
+        + '<em>Quero este bloco</em></label>'
+      + '</div>'
+      + '<div class="fq-head"><span>Item</span><span>Vai ter?</span><span>Quantidade</span></div>'
+      + '<div class="fq-list">' + linhas + '</div>'
+      + '</div>';
+
+    navHtml += '<button class="esc-nb' + (g === 0 ? ' on' : '') + '" id="escn-' + (g + 1) + '" onclick="escIr(' + (g + 1) + ')">'
+      + grp.g + '<span class="n" id="escnq-' + g + '">0</span></button>';
+  }
+
+  /* último painel: nada além da tela final, que fica fora do carrossel */
+  html += '<div class="esc-bloco" data-bloco="' + SUB_TOTAL + '"></div>';
+  navHtml += '<button class="esc-nb" id="escn-' + SUB_TOTAL + '" onclick="escIr(' + SUB_TOTAL + ')">Finalizar</button>';
+
+  box.innerHTML = html;
+  nav.innerHTML = navHtml;
+}
+
+/* marca ou desmarca o bloco inteiro */
+function escGrupo(g){
+  const ligado = document.getElementById('escg-' + g).checked;
+  const grp = ESCOPO_GRUPOS[g];
+  for (let i = 0; i < grp.itens.length; i++) {
+    const c = document.getElementById('escc-' + g + '-' + i);
+    if (!c) continue;
+    c.checked = ligado;
+    aplicarItem(g, i, ligado);
+  }
+  escSincronizar(g);
+}
+
+/* item individual → atualiza o estado do bloco */
+function escItem(g, i){
+  const c = document.getElementById('escc-' + g + '-' + i);
+  aplicarItem(g, i, c.checked);
+  escSincronizar(g);
+}
+
+function aplicarItem(g, i, marcado){
+  const linha = document.getElementById('escr-' + g + '-' + i);
+  if (linha) linha.classList.toggle('on', marcado);
+  const q = document.getElementById('escq-' + g + '-' + i);
+  if (q) { q.disabled = !marcado; if (!marcado) q.value = ''; }
+}
+
+function escContarGrupo(g){
+  let n = 0;
+  const grp = ESCOPO_GRUPOS[g];
+  for (let i = 0; i < grp.itens.length; i++) {
+    const c = document.getElementById('escc-' + g + '-' + i);
+    if (c && c.checked) n++;
+  }
+  return n;
+}
+
+function escSincronizar(g){
+  const n = escContarGrupo(g);
+  const total = ESCOPO_GRUPOS[g].itens.length;
+  const master = document.getElementById('escg-' + g);
+  if (master) { master.checked = (n === total); master.indeterminate = (n > 0 && n < total); }
+  const hd = document.getElementById('esch-' + g);
+  if (hd) {
+    hd.classList.toggle('on', n > 0);
+    const box = hd.querySelector('.flag .box');
+    if (box) box.classList.toggle('meio', n > 0 && n < total);
+    const rotulo = hd.querySelector('.flag em');
+    if (rotulo) rotulo.textContent = (n > 0 && n < total)
+      ? (n + ' de ' + total + ' marcados')
+      : (n === total ? 'Bloco completo' : 'Quero este bloco');
+  }
+  const badge = document.getElementById('escnq-' + g);
+  if (badge) badge.textContent = n;
+  const nb = document.getElementById('escn-' + (g + 1));
+  if (nb) nb.classList.toggle('cheio', n > 0);
+  escTotal();
+}
+
+function escTotal(){
+  let n = 0;
+  for (let g = 0; g < ESCOPO_GRUPOS.length; g++) n += escContarGrupo(g);
+  const el = document.getElementById('esc-contador');
+  if (el) el.textContent = n === 1 ? '1 item marcado' : (n + ' itens marcados');
+  return n;
+}
+
+function escIr(n){
+  if (n < 1 || n > SUB_TOTAL) return;
+  subEscopo = n;
+  const blocos = document.querySelectorAll('.esc-bloco');
+  for (let i = 0; i < blocos.length; i++) blocos[i].classList.toggle('on', Number(blocos[i].dataset.bloco) === n);
+  const nbs = document.querySelectorAll('.esc-nb');
+  for (let i = 0; i < nbs.length; i++) nbs[i].classList.remove('on');
+  const atual = document.getElementById('escn-' + n);
+  if (atual) { atual.classList.add('on'); atual.scrollIntoView({ block:'nearest', inline:'center', behavior:'smooth' }); }
+  atualizarFinal();
+  atualizarBotoes();
+  const card = document.getElementById('form-card');
+  if (card) window.scrollTo({ top: Math.max(0, card.offsetTop - 80), behavior: 'smooth' });
+}
+
+/* a tela final (observações) só aparece no último passo do escopo */
+function atualizarFinal(){
+  const f = document.getElementById('bloco-final');
+  if (!f) return;
+  const naEtapaEscopo = (passo === 5);
+  f.style.display = (naEtapaEscopo && esporte === 'corrida' && subEscopo < SUB_TOTAL) ? 'none' : '';
 }
 
 /* ══ SELEÇÕES ══ */
 function ligarOpcoes(idBox, aoEscolher){
   const box = document.getElementById(idBox);
+  if (!box) return;
   box.addEventListener('click', function(ev){
     const alvo = ev.target.closest('.opt');
     if (!alvo) return;
-    box.querySelectorAll('.opt').forEach(function(o){ o.classList.remove('on'); });
+    const opts = box.querySelectorAll('.opt');
+    for (let i = 0; i < opts.length; i++) opts[i].classList.remove('on');
     alvo.classList.add('on');
     aoEscolher(alvo.dataset.v);
   });
@@ -463,6 +832,7 @@ function ligarOpcoes(idBox, aoEscolher){
 
 function ligarChips(idBox, lista){
   const box = document.getElementById(idBox);
+  if (!box) return;
   box.addEventListener('click', function(ev){
     const alvo = ev.target.closest('.chip');
     if (!alvo) return;
@@ -471,6 +841,19 @@ function ligarChips(idBox, lista){
     if (pos > -1) { lista.splice(pos, 1); alvo.classList.remove('on'); }
     else { lista.push(v); alvo.classList.add('on'); }
   });
+}
+
+/* ══ RAMIFICAÇÃO POR ESPORTE ══ */
+function aplicarEsporte(){
+  if (esporte === 'corrida') subEscopo = 1;
+  const alvo = esporte === 'corrida' ? 'corrida' : (esporte ? 'provisorio' : 'vazio');
+  const blocos = document.querySelectorAll('[data-esp]');
+  for (let i = 0; i < blocos.length; i++) {
+    blocos[i].style.display = (blocos[i].dataset.esp === alvo) ? '' : 'none';
+  }
+  document.getElementById('bloco-outro-esporte').style.display = (esporte === 'outro') ? '' : 'none';
+  if (typeof atualizarFinal === 'function') atualizarFinal();
+  if (typeof atualizarBotoes === 'function') atualizarBotoes();
 }
 
 /* ══ MÁSCARAS ══ */
@@ -517,43 +900,104 @@ function validarPasso(n){
     if (val('f-whatsapp').replace(/\D/g,'').length < 10) { marcarErro('f-whatsapp'); msg('Informe um WhatsApp válido com DDD.', 'err'); return false; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val('f-email'))) { marcarErro('f-email'); msg('Informe um e-mail válido.', 'err'); return false; }
   }
-  if (n === 2 && !tipoEvento) { msg('Escolha o tipo de evento.', 'err'); return false; }
+  if (n === 2) {
+    if (!esporte) { msg('Escolha o tipo de evento.', 'err'); return false; }
+    if (esporte === 'outro' && !val('f-esporte-outro')) {
+      marcarErro('f-esporte-outro'); msg('Escreva qual é a modalidade.', 'err'); return false;
+    }
+  }
   return true;
 }
 
 function irPara(n){
   if (n < 1 || n > TOTAL) return;
   passo = n;
-  document.querySelectorAll('.pane').forEach(function(p){ p.classList.toggle('on', Number(p.dataset.p) === n); });
-  document.querySelectorAll('.stp').forEach(function(s){
-    const i = Number(s.dataset.s);
-    s.classList.toggle('on', i === n);
-    s.classList.toggle('done', i < n);
-  });
-  document.getElementById('btn-voltar').style.visibility = (n === 1) ? 'hidden' : 'visible';
-  document.getElementById('btn-proximo').textContent = (n === TOTAL) ? 'Enviar briefing' : 'Próximo →';
+  const panes = document.querySelectorAll('.pane');
+  for (let i = 0; i < panes.length; i++) panes[i].classList.toggle('on', Number(panes[i].dataset.p) === n);
+  const dots = document.querySelectorAll('.stp');
+  for (let i = 0; i < dots.length; i++) {
+    const k = Number(dots[i].dataset.s);
+    dots[i].classList.toggle('on', k === n);
+    dots[i].classList.toggle('done', k < n);
+  }
+  if (n === 5 && esporte === 'corrida') escIr(subEscopo);
+  atualizarFinal();
+  atualizarBotoes();
   if (n === TOTAL) montarRevisao();
   if (typeof tstMarcarAtivo === 'function') tstMarcarAtivo();
   msg('');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function atualizarBotoes(){
+  const bv = document.getElementById('btn-voltar');
+  const bp = document.getElementById('btn-proximo');
+  const noEscopo = (passo === 5 && esporte === 'corrida');
+  const primeiro = (passo === 1) && !(noEscopo && subEscopo > 1);
+  bv.style.visibility = primeiro ? 'hidden' : 'visible';
+  if (passo === TOTAL) bp.textContent = 'Enviar briefing';
+  else if (noEscopo && subEscopo < SUB_TOTAL) bp.textContent = 'Próximo bloco →';
+  else bp.textContent = 'Próximo →';
+  bv.textContent = (noEscopo && subEscopo > 1) ? '← Bloco anterior' : 'Voltar';
+}
+
+function voltar(){
+  if (passo === 5 && esporte === 'corrida' && subEscopo > 1) { escIr(subEscopo - 1); return; }
+  irPara(passo - 1);
+}
+
 function proximo(){
+  if (passo === 5 && esporte === 'corrida' && subEscopo < SUB_TOTAL) { escIr(subEscopo + 1); return; }
   if (passo === TOTAL) { enviar(); return; }
   if (!validarPasso(passo)) return;
   irPara(passo + 1);
 }
 
 /* ══ COLETA ══ */
-function coletarEscopo(){
+/* respostas específicas da modalidade, no formato [{r:'rótulo', v:'valor'}] */
+function coletarRespostas(){
   const lista = [];
-  for (let i = 0; i < ESCOPO.length; i++) {
-    const c = document.getElementById('esc-c-' + i);
-    if (!c || !c.checked) continue;
-    const q = document.getElementById('esc-q-' + i);
-    lista.push({ item: ESCOPO[i].n, tem: true, qtd: q ? q.value.trim() : '' });
+  const add = function(r, v){ if (v) lista.push({ r: r, v: v }); };
+
+  if (esporte === 'corrida') {
+    const dist = coletarFQ(DISTANCIAS, 'dist');
+    const distTxt = dist.map(function(d){ return d.item + (d.qtd ? ' (' + d.qtd + ')' : ''); }).join(' · ');
+    add('Percursos', distTxt);
+    add('Tipo de percurso', val('f-percurso-tipo'));
+    add('Horário da largada', val('f-periodo'));
+    add('Público', val('f-publico'));
+    add('Cronometragem', val('f-cronometragem'));
+    add('Categorias premiadas', categorias.join(' · '));
+  } else if (esporte) {
+    add('Como imagina o formato', val('f-formato-livre'));
+  }
+  add('Edição', val('f-edicao'));
+  return lista;
+}
+
+function coletarEscopo(){
+  if (esporte !== 'corrida') {
+    const livre = val('f-escopo-livre');
+    return livre ? [{ grupo: 'Descrito pelo cliente', item: 'Descrito pelo cliente', tem: true, qtd: livre }] : [];
+  }
+  const lista = [];
+  for (let g = 0; g < ESCOPO_GRUPOS.length; g++) {
+    const grp = ESCOPO_GRUPOS[g];
+    for (let i = 0; i < grp.itens.length; i++) {
+      const c = document.getElementById('escc-' + g + '-' + i);
+      if (!c || !c.checked) continue;
+      const q = document.getElementById('escq-' + g + '-' + i);
+      lista.push({ grupo: grp.g, item: grp.itens[i].n, tem: true, qtd: q ? q.value.trim() : '' });
+    }
   }
   return lista;
+}
+
+function coletarDistancias(){
+  if (esporte !== 'corrida') return '';
+  return coletarFQ(DISTANCIAS, 'dist').map(function(d){
+    return d.item + (d.qtd ? ' (' + d.qtd + ')' : '');
+  }).join(', ');
 }
 
 function montarPayload(){
@@ -566,20 +1010,20 @@ function montarPayload(){
     email:          val('f-email'),
     cidade_empresa: val('f-cidade-empresa'),
     site:           val('f-site'),
-    tipo_evento:    tipoEvento,
+    tipo_evento:    ESPORTE_NOME[esporte] || '',
+    esporte_outro:  esporte === 'outro' ? val('f-esporte-outro') : '',
     nome_evento:    val('f-nome-evento'),
     data_pretendida: val('f-data'),
     data_flexivel:  val('f-data-flex') === 'true',
     cidade_evento:  val('f-cidade-evento'),
     local_evento:   val('f-local'),
     participantes:  val('f-participantes').replace(/\D/g, ''),
-    distancias:     val('f-distancias'),
+    distancias:     coletarDistancias(),
+    respostas:      coletarRespostas(),
     objetivos:      objetivos,
     verba_faixa:    verba,
     modelo_inscricao: val('f-modelo'),
     valor_inscricao: val('f-valor').replace(/\./g, '').replace(',', '.'),
-    tem_patrocinadores: val('f-tem-patro') === 'true',
-    patrocinadores: val('f-patro'),
     escopo:         coletarEscopo(),
     observacoes:    val('f-obs'),
     como_conheceu:  val('f-conheceu'),
@@ -587,9 +1031,11 @@ function montarPayload(){
   };
 }
 
+function esc(v){ return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function linha(rotulo, valor){
   if (!valor) return '';
-  return '<div class="rev-l"><b>' + rotulo + '</b><span>' + String(valor).replace(/</g, '&lt;') + '</span></div>';
+  return '<div class="rev-l"><b>' + esc(rotulo) + '</b><span>' + esc(valor) + '</span></div>';
 }
 
 function montarRevisao(){
@@ -603,25 +1049,41 @@ function montarRevisao(){
     + linha('Cidade', d.cidade_empresa) + linha('Site / Instagram', d.site) + '</div>';
 
   html += '<div class="rev"><div class="rev-t">O evento</div>'
-    + linha('Tipo', d.tipo_evento) + linha('Nome', d.nome_evento)
+    + linha('Modalidade', d.tipo_evento + (d.esporte_outro ? ' · ' + d.esporte_outro : ''))
+    + linha('Nome', d.nome_evento)
     + linha('Data', d.data_pretendida ? d.data_pretendida.split('-').reverse().join('/') + (d.data_flexivel ? ' (flexível)' : '') : '')
     + linha('Cidade', d.cidade_evento) + linha('Local', d.local_evento)
-    + linha('Participantes', d.participantes) + linha('Distâncias', d.distancias) + '</div>';
+    + linha('Participantes', d.participantes) + '</div>';
+
+  let esp = '';
+  for (let i = 0; i < d.respostas.length; i++) esp += linha(d.respostas[i].r, d.respostas[i].v);
+  if (esp) html += '<div class="rev"><div class="rev-t">Formato</div>' + esp + '</div>';
 
   html += '<div class="rev"><div class="rev-t">Objetivo e investimento</div>'
     + linha('Objetivos', d.objetivos.join(' · '))
     + linha('Faixa de investimento', d.verba_faixa)
     + linha('Modelo de inscrição', d.modelo_inscricao)
-    + linha('Valor previsto', d.valor_inscricao ? 'R$ ' + val('f-valor') : '')
-    + linha('Patrocinadores', d.tem_patrocinadores ? (d.patrocinadores || 'Sim') : 'Ainda não') + '</div>';
+    + linha('Valor previsto', d.valor_inscricao ? 'R$ ' + val('f-valor') : '') + '</div>';
 
-  let itens = '';
-  for (let i = 0; i < d.escopo.length; i++) {
-    itens += linha(d.escopo[i].item, d.escopo[i].qtd || 'Sim');
+  if (!d.escopo.length) {
+    html += '<div class="rev"><div class="rev-t">Escopo marcado</div>'
+      + '<div class="rev-l"><b>Nenhum item marcado</b><span>vamos sugerir o escopo</span></div></div>';
+  } else {
+    let grupoAtual = '';
+    let itens = '';
+    for (let i = 0; i < d.escopo.length; i++) {
+      const e = d.escopo[i];
+      const g = e.grupo || 'Escopo';
+      if (g !== grupoAtual) {
+        if (grupoAtual) itens += '</div>';
+        itens += '<div class="rev"><div class="rev-t">Escopo · ' + esc(g) + '</div>';
+        grupoAtual = g;
+      }
+      itens += linha(e.item, e.qtd || 'Sim');
+    }
+    if (grupoAtual) itens += '</div>';
+    html += itens;
   }
-  html += '<div class="rev"><div class="rev-t">Escopo marcado</div>'
-    + (itens || '<div class="rev-l"><b>Nenhum item marcado</b><span>vamos sugerir o escopo</span></div>')
-    + '</div>';
 
   if (d.observacoes || d.como_conheceu) {
     html += '<div class="rev"><div class="rev-t">Outros</div>'
@@ -636,12 +1098,7 @@ async function enviar(){
   /* modo teste sem gravar: mostra a tela de sucesso sem tocar no banco */
   const chkGravar = document.getElementById('tst-gravar');
   if (TESTE && chkGravar && !chkGravar.checked) {
-    document.getElementById('form-card').style.display = 'none';
-    document.getElementById('steps').style.display = 'none';
-    document.getElementById('ok-nome').textContent = val('f-responsavel').split(' ')[0] || 'teste';
-    document.getElementById('ok-proto').textContent = 'PROP-TESTE';
-    document.getElementById('ok-tela').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    mostrarSucesso(val('f-responsavel').split(' ')[0] || 'teste', 'PROP-TESTE');
     console.log('[modo teste] payload que seria enviado:', montarPayload());
     return;
   }
@@ -667,13 +1124,7 @@ async function enviar(){
       msg((res && res.erro) || 'Não foi possível enviar agora. Tente novamente.', 'err');
       return;
     }
-
-    document.getElementById('form-card').style.display = 'none';
-    document.getElementById('steps').style.display = 'none';
-    document.getElementById('ok-nome').textContent = val('f-responsavel').split(' ')[0];
-    document.getElementById('ok-proto').textContent = res.protocolo || '';
-    document.getElementById('ok-tela').style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    mostrarSucesso(val('f-responsavel').split(' ')[0], res.protocolo || '');
 
   } catch (e) {
     btn.disabled = false;
@@ -682,13 +1133,26 @@ async function enviar(){
   }
 }
 
+function mostrarSucesso(nome, protocolo){
+  document.getElementById('form-card').style.display = 'none';
+  document.getElementById('steps').style.display = 'none';
+  document.getElementById('ok-nome').textContent = nome || '';
+  document.getElementById('ok-proto').textContent = protocolo || '';
+  document.getElementById('ok-tela').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 /* ══ INIT ══ */
-montarEscopo();
-ligarOpcoes('opt-tipo',  function(v){ tipoEvento = v; });
-ligarOpcoes('opt-verba', function(v){ verba = v; });
+montarFQ('dist-list', DISTANCIAS, 'dist');
+montarEscopoBlocos();
+escTotal();
+ligarOpcoes('opt-esporte', function(v){ esporte = v; aplicarEsporte(); });
+ligarOpcoes('opt-verba',   function(v){ verba = v; });
 ligarChips('chip-objetivos', objetivos);
+ligarChips('chip-categorias', categorias);
 document.getElementById('f-whatsapp').addEventListener('input', function(){ mascaraTel(this); });
 document.getElementById('f-cnpj').addEventListener('input', function(){ mascaraCnpj(this); });
+aplicarEsporte();
 irPara(1);
 
 /* ══════════ MODO TESTE ══════════ */
@@ -705,54 +1169,86 @@ const EXEMPLO = {
   'f-participantes':'800',
   'f-cidade-evento':'Ribeirão Preto',
   'f-local':'Parque Curupira e av. Nove de Julho',
-  'f-distancias':'5km corrida, 10km corrida, 3km caminhada',
   'f-valor':'89,90',
-  'f-patro':'Distribuidora Exemplo, Academia Exemplo',
   'f-obs':'Queremos algo no fim de semana, com espaço para ativação das marcas parceiras e estrutura para família. Referência: as corridas que a JBX já fez em Sertãozinho.'
 };
 
+const EXEMPLO_DIST = [[0,'250 pessoas'], [2,'350 pessoas'], [3,'150 pessoas'], [6,'50 crianças']];
+
+/* [grupo, item, quantidade] — índices de ESCOPO_GRUPOS */
 const EXEMPLO_ESCOPO = [
-  [0,'800 kits'], [1,'800 peças'], [2,'800 medalhas'], [3,'800 chips'],
-  [4,'30 troféus'], [5,'1 arco + 4 tendas'], [7,'3 pontos'], [9,'2 ambulâncias'],
-  [12,''], [13,''], [14,'1 mês de campanha'], [19,'']
+  [0,0,'800 peças'], [0,2,'800 un.'], [0,4,'800 un.'],
+  [1,0,'800 un.'], [1,1,'2 dias'], [1,2,'1 conjunto'],
+  [2,0,'25 pessoas'], [2,1,'1'], [2,2,'1'], [2,3,'6 pessoas'],
+  [3,0,'100 metros'], [3,1,'60 un.'], [3,3,'4 un.'], [3,4,'4 un.'], [3,9,'1 un.'], [3,10,'1 estrutura'], [3,11,'10 un.'],
+  [4,0,'20 un.'], [4,3,'30 un.'],
+  [5,0,'800 porções'], [5,1,'1.600 copos'], [5,4,'800 medalhas'],
+  [6,0,'3 fotógrafos'], [6,2,'1 vídeo'],
+  [7,0,'4 posts'], [7,1,'3 disparos'],
+  [8,0,'2 un.'], [8,3,'800 atletas'],
+  [9,0,''], [9,1,''], [9,2,''], [9,3,'']
 ];
 
-function tstPreencher(){
-  for (const id in EXEMPLO) {
-    const e = document.getElementById(id);
-    if (e) e.value = EXEMPLO[id];
+function tstMarcarFQ(pares, prefixo){
+  for (let i = 0; i < pares.length; i++) {
+    const idx = pares[i][0], qtd = pares[i][1];
+    const c = document.getElementById(prefixo + '-c-' + idx);
+    if (c && !c.checked) { c.checked = true; fqToggle(prefixo, idx); }
+    const q = document.getElementById(prefixo + '-q-' + idx);
+    if (q && qtd) q.value = qtd;
   }
+}
+
+function tstMarcarEscopo(trios){
+  const grupos = {};
+  for (let i = 0; i < trios.length; i++) {
+    const g = trios[i][0], it = trios[i][1], qtd = trios[i][2];
+    const c = document.getElementById('escc-' + g + '-' + it);
+    if (c && !c.checked) { c.checked = true; aplicarItem(g, it, true); }
+    const q = document.getElementById('escq-' + g + '-' + it);
+    if (q && qtd) q.value = qtd;
+    grupos[g] = true;
+  }
+  for (const g in grupos) escSincronizar(Number(g));
+}
+
+function tstClicar(sel){ const e = document.querySelector(sel); if (e) e.click(); }
+function tstChip(box, v){
+  const c = document.querySelector('#' + box + ' .chip[data-v="' + v + '"]');
+  if (c && !c.classList.contains('on')) c.click();
+}
+
+function tstPreencher(){
+  for (const id in EXEMPLO) { const e = document.getElementById(id); if (e) e.value = EXEMPLO[id]; }
   const d = new Date();
   d.setMonth(d.getMonth() + 4);
   document.getElementById('f-data').value = d.toISOString().slice(0, 10);
   document.getElementById('f-data-flex').value = 'true';
+  document.getElementById('f-edicao').value = '1ª edição';
   document.getElementById('f-modelo').value = 'Pago';
-  document.getElementById('f-tem-patro').value = 'true';
   document.getElementById('f-conheceu').value = 'Já participei de um evento JBX';
 
-  tstClicar('#opt-tipo .opt[data-v="Corrida de rua"]');
-  tstClicar('#opt-verba .opt[data-v="R$ 60 mil a R$ 120 mil"]');
-  tstChip('Exposição de marca');
-  tstChip('Relacionamento com clientes');
-  tstChip('Saúde e bem-estar dos colaboradores');
+  tstClicar('#opt-esporte .opt[data-v="corrida"]');
+  tstClicar('#opt-verba .opt[data-v="R$ 120 mil a R$ 200 mil"]');
 
-  for (let i = 0; i < EXEMPLO_ESCOPO.length; i++) {
-    const idx = EXEMPLO_ESCOPO[i][0];
-    const qtd = EXEMPLO_ESCOPO[i][1];
-    const c = document.getElementById('esc-c-' + idx);
-    if (c && !c.checked) { c.checked = true; escToggle(idx); }
-    const q = document.getElementById('esc-q-' + idx);
-    if (q && qtd) q.value = qtd;
-  }
+  document.getElementById('f-percurso-tipo').value = 'Rua / asfalto (com bloqueio de via)';
+  document.getElementById('f-periodo').value = 'Manhã cedo (06h–08h)';
+  document.getElementById('f-publico').value = 'Colaboradores + público geral';
+  document.getElementById('f-cronometragem').value = 'Com chip — tempo oficial e classificação';
+
+  tstChip('chip-categorias', 'Geral masculino e feminino');
+  tstChip('chip-categorias', 'Faixas etárias');
+  tstChip('chip-categorias', 'Colaboradores da empresa');
+  tstChip('chip-objetivos', 'Exposição de marca');
+  tstChip('chip-objetivos', 'Relacionamento com clientes');
+  tstChip('chip-objetivos', 'Saúde e bem-estar dos colaboradores');
+  tstChip('chip-objetivos', 'Cobrir os custos — evento se paga');
+
+  tstMarcarFQ(EXEMPLO_DIST, 'dist');
+  tstMarcarEscopo(EXEMPLO_ESCOPO);
 
   if (passo === TOTAL) montarRevisao();
-  msg('Formulário preenchido com dados de exemplo.', 'ok');
-}
-
-function tstClicar(sel){ const e = document.querySelector(sel); if (e) e.click(); }
-function tstChip(v){
-  const c = document.querySelector('#chip-objetivos .chip[data-v="' + v + '"]');
-  if (c && !c.classList.contains('on')) c.click();
+  msg('Formulário preenchido com dados de exemplo (corrida).', 'ok');
 }
 
 function tstLimpar(){ location.reload(); }
@@ -761,47 +1257,39 @@ function tstVoltarForm(){
   document.getElementById('ok-tela').style.display = 'none';
   document.getElementById('form-card').style.display = '';
   document.getElementById('steps').style.display = '';
-  const btn = document.getElementById('btn-proximo');
-  btn.disabled = false;
+  const b = document.getElementById('btn-proximo');
+  b.disabled = false;
   irPara(1);
 }
 
 function tstBarra(){
   document.body.classList.add('tst-on');
 
-  /* aviso dentro do card */
   const aviso = document.createElement('div');
   aviso.className = 'tst-aviso';
   aviso.textContent = '⚙ Modo teste ativo — validação desligada, você pode pular entre as etapas livremente. Nada é gravado no banco enquanto "gravar no banco" estiver desmarcado.';
   const card = document.getElementById('form-card');
   card.insertBefore(aviso, card.firstChild);
 
-  /* clique direto nas bolinhas do topo */
   const dots = document.querySelectorAll('.steps .stp');
   for (let i = 0; i < dots.length; i++) {
-    (function(d){
-      d.onclick = function(){ irPara(Number(d.dataset.s)); };
-    })(dots[i]);
+    (function(dd){ dd.onclick = function(){ irPara(Number(dd.dataset.s)); }; })(dots[i]);
   }
 
-  /* barra fixa */
+  const nomes = ['Empresa', 'Evento', 'Formato', 'Objetivo', 'Escopo', 'Revisão'];
   let botoes = '';
-  const nomes = ['Empresa', 'Evento', 'Objetivo', 'Escopo', 'Revisão'];
   for (let i = 1; i <= TOTAL; i++) {
     botoes += '<button class="tst-b" data-ir="' + i + '" onclick="irPara(' + i + ')">' + i + '. ' + nomes[i-1] + '</button>';
   }
 
   const bar = document.createElement('div');
   bar.className = 'tst-bar';
-  bar.innerHTML =
-    '<span class="marca">Modo teste</span>' +
-    botoes +
+  bar.innerHTML = '<span class="marca">Modo teste</span>' + botoes +
     '<span class="sep"></span>' +
     '<button class="tst-b destaque" onclick="tstPreencher()">Preencher exemplo</button>' +
     '<button class="tst-b" onclick="tstLimpar()">Limpar</button>' +
     '<button class="tst-b" onclick="tstVoltarForm()">Voltar ao formulário</button>' +
-    '<label class="tst-chk"><input type="checkbox" id="tst-gravar"> gravar no banco</label>' +
-    '<span class="tst-fim">tire o ?teste=1 da URL para ver como o cliente vê</span>';
+    '<label class="tst-chk"><input type="checkbox" id="tst-gravar"> gravar no banco</label>';
   document.body.appendChild(bar);
 
   tstMarcarAtivo();
@@ -809,13 +1297,10 @@ function tstBarra(){
 
 function tstMarcarAtivo(){
   const bs = document.querySelectorAll('.tst-bar .tst-b[data-ir]');
-  for (let i = 0; i < bs.length; i++) {
-    bs[i].classList.toggle('on', Number(bs[i].dataset.ir) === passo);
-  }
+  for (let i = 0; i < bs.length; i++) bs[i].classList.toggle('on', Number(bs[i].dataset.ir) === passo);
 }
 
 if (TESTE) tstBarra();
-
 </script>
 
 </body>
