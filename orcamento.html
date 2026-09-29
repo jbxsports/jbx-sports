@@ -763,8 +763,14 @@ function escPreencherAuto(g, i){
 }
 function escAtualizarAutos(){
   for (let g = 0; g < ESCOPO_GRUPOS.length; g++)
-    for (let i = 0; i < ESCOPO_GRUPOS[g].itens.length; i++)
-      if (ESCOPO_GRUPOS[g].itens[i].p) escPreencherAuto(g, i);
+    for (let i = 0; i < ESCOPO_GRUPOS[g].itens.length; i++) {
+      const it = ESCOPO_GRUPOS[g].itens[i];
+      if (!it.p) continue;
+      /* mesmo desmarcado, o campo já mostra a quantidade que vai entrar */
+      const q = document.getElementById('escq-' + g + '-' + i);
+      if (q) q.placeholder = escQtdAuto(g, i) || it.q;
+      escPreencherAuto(g, i);
+    }
 }
 
 function escContarGrupo(g){
