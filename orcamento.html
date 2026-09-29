@@ -106,6 +106,10 @@
     padding:12px 14px;border-bottom:1px solid rgba(42,37,32,.07);transition:background .15s;}
   .fq:last-child{border-bottom:none;}
   .fq.on{background:rgba(255,117,31,.05);}
+  /* bloco fechado: só lista o que inclui, sem marcar item a item */
+  .fq.fq-so{grid-template-columns:1fr;padding-top:11px;padding-bottom:11px;}
+  .fq.fq-so .fq-nome::before{content:'•';color:var(--orange);margin-right:8px;}
+  .fq-head.fq-head-so{grid-template-columns:1fr;}
   .fq-nome{font-size:14px;font-weight:500;line-height:1.35;}
   .fq-nome i{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:2px;}
   .flag{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
@@ -121,14 +125,14 @@
   .flag .box.meio{border-color:var(--orange);position:relative;}
   .flag .box.meio::after{content:'';position:absolute;width:11px;height:3px;border-radius:2px;background:var(--orange);}
   .esc-hd .flag .box.meio ~ em{color:var(--orange);}
-  .fq input[type=text]{width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);
+  .fq input[type=text],.fq select{width:100%;background:#f5f3f0;border:1px solid rgba(42,37,32,.15);
     border-radius:8px;padding:9px 11px;font-size:14px;font-family:'Ubuntu',sans-serif;color:var(--text);transition:.15s;}
-  .fq input[type=text]:focus{outline:none;border-color:var(--orange);background:#fff;}
-  .fq input[type=text]:disabled{opacity:.35;cursor:not-allowed;}
+  .fq input[type=text]:focus,.fq select:focus{outline:none;border-color:var(--orange);background:#fff;}
+  .fq input[type=text]:disabled,.fq select:disabled{opacity:.35;cursor:not-allowed;}
   @media(max-width:620px){
     .fq-head{display:none;}
     .fq{grid-template-columns:1fr;gap:8px;}
-    .fq input[type=text]{max-width:220px;}
+    .fq input[type=text],.fq select{max-width:220px;}
   }
 
   /* ── ESCOPO EM BLOCOS ── */
@@ -451,14 +455,13 @@
       </div>
 
       <div class="sec">Faixa de investimento prevista</div>
-      <p class="hint">Uma faixa já nos ajuda a calibrar a proposta. Se ainda não tem, tudo bem.</p>
+      <p class="hint">Escolha a faixa mais próxima. Isso nos ajuda a calibrar a proposta.</p>
       <div class="opts" id="opt-verba">
         <div class="opt" data-v="Até R$ 30 mil">Até R$ 30 mil</div>
         <div class="opt" data-v="R$ 30 mil a R$ 60 mil">R$ 30–60 mil</div>
         <div class="opt" data-v="R$ 60 mil a R$ 120 mil">R$ 60–120 mil</div>
         <div class="opt" data-v="R$ 120 mil a R$ 200 mil">R$ 120–200 mil</div>
         <div class="opt" data-v="Acima de R$ 200 mil">Acima de R$ 200 mil</div>
-        <div class="opt" data-v="Ainda não definido">Ainda não definido</div>
       </div>
 
       <div class="sec">Modelo de inscrição</div>
@@ -571,40 +574,39 @@ const ESPORTE_NOME = { corrida: 'Corrida / Caminhada', beach: 'Beach Tennis', ou
 /* ══ ESCOPO (corrida) — dividido em blocos ══ */
 const ESCOPO_GRUPOS = [
   { g:'Kit do atleta', d:'O que o participante recebe na retirada do kit.', itens:[
-    {n:'Camiseta poliéster',  q:'Ex.: 800 peças'},
-    {n:'Camiseta poliamida',  q:'Ex.: 800 peças'},
-    {n:'Numeral de peito',    q:'Ex.: 800 un.'},
-    {n:'Sacola plástica',     q:'Ex.: 800 un.'},
-    {n:'Sacochila',           q:'Ex.: 800 un.'}
+    {n:'Camiseta poliéster',  q:'Ex.: 800 peças', p:true},
+    {n:'Camiseta poliamida',  q:'Ex.: 800 peças', p:true},
+    {n:'Numeral de peito',    q:'Ex.: 800 un.',   p:true},
+    {n:'Sacola plástica',     q:'Ex.: 800 un.',   p:true},
+    {n:'Sacochila',           q:'Ex.: 800 un.',   p:true}
   ]},
   { g:'Cronometragem', d:'Tempo oficial, classificação e retirada de kit informatizada. Marcar o bloco liga todos os itens de uma vez.', itens:[
-    {n:'Numeral de peito com chip',          q:'Ex.: 800 un.'},
-    {n:'Retirada de kit computadorizada',    q:'Ex.: 2 dias'},
-    {n:'Relógio e antenas de cronometragem', q:'Ex.: 1 conjunto'}
+    {n:'Numeral de peito com chip',          q:'Ex.: 800 un.', p:true},
+    {n:'Retirada de kit computadorizada',    q:'Dias de entrega', op:['1 dia','2 dias','3 dias','4 dias']}
   ]},
   { g:'Equipe', d:'Quem faz o evento acontecer no dia.', itens:[
-    {n:'Coordenadores e staffs', q:'Ex.: 25 pessoas'},
-    {n:'Locutor',                q:'Ex.: 1'},
-    {n:'DJ',                     q:'Ex.: 1'},
-    {n:'Equipe de limpeza',      q:'Ex.: 6 pessoas'}
+    {n:'Coordenadores e staffs', q:''},
+    {n:'Locutor',                q:''},
+    {n:'DJ',                     q:''},
+    {n:'Equipe de limpeza',      q:''}
   ]},
   { g:'Estrutura do evento', d:'Arena de largada e chegada, percurso e apoio.', itens:[
-    {n:'Gradil metálico',            q:'Ex.: 100 metros'},
-    {n:'Cones de sinalização',       q:'Ex.: 60 un.'},
-    {n:'Placas de avisos',           q:'Ex.: 20 un.'},
-    {n:'Coxos de hidratação',        q:'Ex.: 4 un.'},
+    {n:'Gradil metálico',            q:''},
+    {n:'Cones de sinalização',       q:''},
+    {n:'Placas de avisos',           q:''},
+    {n:'Coxos de hidratação',        q:''},
     {n:'Tenda 5x5',                  q:'Ex.: 4 un.'},
     {n:'Tenda 10x10',                q:'Ex.: 1 un.'},
-    {n:'Palco 5x4',                  q:'Ex.: 1 un.'},
-    {n:'Pódio 3 lugares',            q:'Ex.: 1 un.'},
+    {n:'Palco 5x4',                  q:''},
+    {n:'Pódio 3 lugares',            q:''},
     {n:'Backdrop',                   q:'Ex.: 1 un.', s:'estrutura metálica revestida com lona'},
-    {n:'Pórtico',                    q:'Ex.: 1 un.', s:'estrutura metálica revestida com lona'},
-    {n:'Sonorização profissional',   q:'Ex.: 1 estrutura'},
-    {n:'Banheiros químicos',         q:'Ex.: 10 un.'},
-    {n:'Gerador de energia',         q:'Ex.: 1 un.'},
-    {n:'Painel de LED',              q:'Ex.: 1 un.'}
+    {n:'Pórtico',                    q:'', s:'estrutura metálica revestida com lona'},
+    {n:'Sonorização profissional',   q:''},
+    {n:'Banheiros químicos',         q:''},
+    {n:'Gerador de energia',         q:''},
+    {n:'Painel de LED',              q:''}
   ]},
-  { g:'Acessórios', d:'Itens de apoio e organização da arena.', itens:[
+  { g:'Acessórios', d:'Itens de apoio e organização da arena. Contratado como bloco completo.', bloco:true, itens:[
     {n:'Cestos de lixo',             q:'Ex.: 20 un.'},
     {n:'Sacos de lixo',              q:'Ex.: 200 un.'},
     {n:'Vassouras e pás',            q:'Ex.: 10 un.'},
@@ -613,11 +615,11 @@ const ESCOPO_GRUPOS = [
     {n:'Sacolas de guarda-volumes',  q:'Ex.: 800 un.'}
   ]},
   { g:'Pós-prova', d:'O que espera o participante na área de chegada.', itens:[
-    {n:'Frutas / bananas', q:'Ex.: 800 porções'},
-    {n:'Água',             q:'Ex.: 1.600 copos'},
-    {n:'Gelo',             q:'Ex.: 200 kg'},
-    {n:'Isotônico',        q:'Ex.: 800 doses'},
-    {n:'Medalha',          q:'Ex.: 800 medalhas'}
+    {n:'Frutas / bananas', q:''},
+    {n:'Água',             q:''},
+    {n:'Gelo',             q:''},
+    {n:'Isotônico',        q:''},
+    {n:'Medalha',          q:''}
   ]},
   { g:'Mídia', d:'Registro do evento para a marca usar depois.', itens:[
     {n:'Equipe de fotografia no percurso', q:'Ex.: 3 fotógrafos'},
@@ -625,14 +627,14 @@ const ESCOPO_GRUPOS = [
     {n:'Aftermovie com drone',             q:'Ex.: 1 vídeo'}
   ]},
   { g:'Marketing', d:'Divulgação através dos canais da JBX Sports.', itens:[
-    {n:'Postagem no Instagram @jbx.sports',      q:'Ex.: 4 posts'},
-    {n:'Disparos de e-mail mkt (+20 mil leads)', q:'Ex.: 3 disparos'}
+    {n:'Postagem no Instagram @jbx.sports',      q:''},
+    {n:'Disparos de e-mail mkt (+20 mil leads)', q:''}
   ]},
   { g:'Segurança', d:'Atendimento e cobertura dos participantes.', itens:[
-    {n:'Ambulância básica',          q:'Ex.: 2 un.'},
-    {n:'Ambulância UTI',             q:'Ex.: 1 un.'},
-    {n:'Moto bombeiro civil',        q:'Ex.: 2 un.'},
-    {n:'Seguro de vida dos atletas', q:'Ex.: 800 atletas'}
+    {n:'Ambulância básica',          q:''},
+    {n:'Ambulância UTI',             q:''},
+    {n:'Moto bombeiro civil',        q:''},
+    {n:'Seguro de vida dos atletas', q:''}
   ]},
   { g:'Alvarás e autorizações', d:'Documentação obrigatória para a prova acontecer.', itens:[
     {n:'Federação Paulista de Atletismo', q:''},
@@ -658,9 +660,23 @@ function montarEscopoBlocos(){
     let linhas = '';
     for (let i = 0; i < grp.itens.length; i++) {
       const it = grp.itens[i];
-      const campo = it.q
+      let opcoes = '';
+      if (it.op) {
+        opcoes = '<option value="">' + it.q + '</option>';
+        for (let k = 0; k < it.op.length; k++) opcoes += '<option>' + it.op[k] + '</option>';
+      }
+      const campo = it.op
+        ? '<select id="escq-' + g + '-' + i + '" disabled>' + opcoes + '</select>'
+        : it.q
         ? '<input type="text" id="escq-' + g + '-' + i + '" placeholder="' + it.q + '" disabled>'
         : '<span style="font-size:12px;color:rgba(42,37,32,.3);">—</span>';
+      if (grp.bloco) {
+        linhas += '<div class="fq fq-so" id="escr-' + g + '-' + i + '">'
+          + '<div class="fq-nome">' + it.n + (it.s ? '<i>' + it.s + '</i>' : '') + '</div>'
+          + '<input type="checkbox" id="escc-' + g + '-' + i + '" hidden>'
+          + '</div>';
+        continue;
+      }
       linhas += '<div class="fq" id="escr-' + g + '-' + i + '">'
         + '<div class="fq-nome">' + it.n + (it.s ? '<i>' + it.s + '</i>' : '') + '</div>'
         + '<label class="flag"><input type="checkbox" id="escc-' + g + '-' + i + '" onchange="escItem(' + g + ',' + i + ')">'
@@ -677,7 +693,9 @@ function montarEscopoBlocos(){
         + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
         + '<em>Quero este bloco</em></label>'
       + '</div>'
-      + '<div class="fq-head"><span>Item</span><span>Vai ter?</span><span>Quantidade</span></div>'
+      + (grp.bloco
+          ? '<div class="fq-head fq-head-so"><span>O bloco inclui</span></div>'
+          : '<div class="fq-head"><span>Item</span><span>Vai ter?</span><span>Quantidade</span></div>')
       + '<div class="fq-list">' + linhas + '</div>'
       + '</div>';
 
@@ -717,7 +735,36 @@ function aplicarItem(g, i, marcado){
   const linha = document.getElementById('escr-' + g + '-' + i);
   if (linha) linha.classList.toggle('on', marcado);
   const q = document.getElementById('escq-' + g + '-' + i);
-  if (q) { q.disabled = !marcado; if (!marcado) q.value = ''; }
+  if (q) {
+    q.disabled = !marcado;
+    if (!marcado) { q.value = ''; delete q.dataset.auto; }
+    else escPreencherAuto(g, i);
+  }
+}
+
+/* itens marcados com p:true (1 por participante) puxam o total de participantes
+   da etapa anterior. Se o cliente editar a quantidade, o valor dele é mantido. */
+function escQtdAuto(g, i){
+  const it = ESCOPO_GRUPOS[g].itens[i];
+  if (!it || !it.p) return '';
+  const total = val('f-participantes');
+  if (!total) return '';
+  const un = ((it.q || '').match(/\d[\d.]*\s+(.+)$/) || [])[1] || '';
+  return total + (un ? ' ' + un : '');
+}
+function escPreencherAuto(g, i){
+  const q = document.getElementById('escq-' + g + '-' + i);
+  const c = document.getElementById('escc-' + g + '-' + i);
+  if (!q || !c || !c.checked) return;
+  if (q.value !== '' && q.value !== q.dataset.auto) return;   /* cliente editou */
+  const v = escQtdAuto(g, i);
+  q.value = v;
+  if (v) q.dataset.auto = v; else delete q.dataset.auto;
+}
+function escAtualizarAutos(){
+  for (let g = 0; g < ESCOPO_GRUPOS.length; g++)
+    for (let i = 0; i < ESCOPO_GRUPOS[g].itens.length; i++)
+      if (ESCOPO_GRUPOS[g].itens[i].p) escPreencherAuto(g, i);
 }
 
 function escContarGrupo(g){
@@ -1127,6 +1174,7 @@ function mostrarSucesso(nome, protocolo){
 
 /* ══ INIT ══ */
 montarEscopoBlocos();
+document.getElementById('f-participantes').addEventListener('input', escAtualizarAutos);
 escTotal();
 ligarOpcoes('opt-esporte', function(v){ esporte = v; aplicarEsporte(); });
 ligarOpcoes('opt-verba',   function(v){ verba = v; });
@@ -1164,14 +1212,14 @@ const EXEMPLO = {
 /* [grupo, item, quantidade] — índices de ESCOPO_GRUPOS */
 const EXEMPLO_ESCOPO = [
   [0,0,'800 peças'], [0,2,'800 un.'], [0,4,'800 un.'],
-  [1,0,'800 un.'], [1,1,'2 dias'], [1,2,'1 conjunto'],
-  [2,0,'25 pessoas'], [2,1,'1'], [2,2,'1'], [2,3,'6 pessoas'],
-  [3,0,'100 metros'], [3,1,'60 un.'], [3,3,'4 un.'], [3,4,'4 un.'], [3,9,'1 un.'], [3,10,'1 estrutura'], [3,11,'10 un.'],
-  [4,0,'20 un.'], [4,3,'30 un.'],
-  [5,0,'800 porções'], [5,1,'1.600 copos'], [5,4,'800 medalhas'],
+  [1,0,'800 un.'], [1,1,'2 dias'],
+  [2,0,''], [2,1,''], [2,2,''], [2,3,''],
+  [3,0,''], [3,1,''], [3,3,''], [3,4,'4 un.'], [3,8,'1 un.'], [3,10,''], [3,11,''],
+  [4,0,''], [4,1,''], [4,2,''], [4,3,''], [4,4,''], [4,5,''],
+  [5,0,''], [5,1,''], [5,4,''],
   [6,0,'3 fotógrafos'], [6,2,'1 vídeo'],
-  [7,0,'4 posts'], [7,1,'3 disparos'],
-  [8,0,'2 un.'], [8,3,'800 atletas'],
+  [7,0,''], [7,1,''],
+  [8,0,''], [8,3,''],
   [9,0,''], [9,1,''], [9,2,''], [9,3,'']
 ];
 
