@@ -576,7 +576,6 @@ const ESCOPO_GRUPOS = [
   { g:'Kit do atleta', d:'O que o participante recebe na retirada do kit.', itens:[
     {n:'Camiseta poliéster',  q:'Ex.: 800 peças', p:true},
     {n:'Camiseta poliamida',  q:'Ex.: 800 peças', p:true},
-    {n:'Numeral de peito',    q:'Ex.: 800 un.',   p:true},
     {n:'Sacola plástica',     q:'Ex.: 800 un.',   p:true},
     {n:'Sacochila',           q:'Ex.: 800 un.',   p:true}
   ]},
@@ -618,8 +617,11 @@ const ESCOPO_GRUPOS = [
     {n:'Frutas / bananas', q:''},
     {n:'Água',             q:''},
     {n:'Gelo',             q:''},
-    {n:'Isotônico',        q:''},
-    {n:'Medalha',          q:''}
+    {n:'Isotônico',        q:''}
+  ]},
+  { g:'Premiação', d:'Medalha de participação e troféus dos pódios.', itens:[
+    {n:'Medalhas para todos os inscritos', q:'Ex.: 800 medalhas', p:true},
+    {n:'Troféus',                          q:'', s:'para as categorias premiadas'}
   ]},
   { g:'Mídia', d:'Registro do evento para a marca usar depois.', itens:[
     {n:'Equipe de fotografia no percurso', q:'Ex.: 3 fotógrafos'},
@@ -1217,16 +1219,17 @@ const EXEMPLO = {
 
 /* [grupo, item, quantidade] — índices de ESCOPO_GRUPOS */
 const EXEMPLO_ESCOPO = [
-  [0,0,'800 peças'], [0,2,'800 un.'], [0,4,'800 un.'],
-  [1,0,'800 un.'], [1,1,'2 dias'],
+  [0,0,''], [0,3,''],
+  [1,0,''], [1,1,'2 dias'],
   [2,0,''], [2,1,''], [2,2,''], [2,3,''],
   [3,0,''], [3,1,''], [3,3,''], [3,4,'4 un.'], [3,8,'1 un.'], [3,10,''], [3,11,''],
   [4,0,''], [4,1,''], [4,2,''], [4,3,''], [4,4,''], [4,5,''],
-  [5,0,''], [5,1,''], [5,4,''],
-  [6,0,'3 fotógrafos'], [6,2,'1 vídeo'],
-  [7,0,''], [7,1,''],
-  [8,0,''], [8,3,''],
-  [9,0,''], [9,1,''], [9,2,''], [9,3,'']
+  [5,0,''], [5,1,''],
+  [6,0,''], [6,1,''],
+  [7,0,'3 fotógrafos'], [7,2,'1 vídeo'],
+  [8,0,''], [8,1,''],
+  [9,0,''], [9,3,''],
+  [10,0,''], [10,1,''], [10,2,''], [10,3,'']
 ];
 
 function tstMarcarEscopo(trios){
