@@ -533,13 +533,19 @@
   function subirArquivo(caminho,blob,tipo){
     var ctrl=('AbortController' in window)?new AbortController():null;
     var relogio=setTimeout(function(){ if(ctrl)ctrl.abort(); },90000);
-    var opcoes={method:'POST',headers:headers({'Content-Type':tipo,'x-upsert':'true'}),body:blob};
+    /* sem x-upsert: upsert exige permissão de LER o bucket, e o bucket de fotos é fechado (LGPD).
+       O nome do arquivo já é único (@ + horário), então não precisa sobrescrever nada. */
+    var opcoes={method:'POST',headers:headers({'Content-Type':tipo,'cache-control':'3600'}),body:blob};
     if(ctrl)opcoes.signal=ctrl.signal;
     return fetch(SB_URL+'/storage/v1/object/div-fotos/'+caminho,opcoes).then(function(r){
       clearTimeout(relogio);
-      if(!r.ok)throw new Error('http '+r.status);
-      return caminho;
-    },function(e){ clearTimeout(relogio); throw e; });
+      if(r.ok)return caminho;
+      return r.text().then(function(t){
+        var e=new Error('upload');e.status=r.status;e.detalhe=String(t||'').slice(0,160);
+        try{ console.error('[foto] falhou',r.status,t); }catch(x){}
+        throw e;
+      });
+    },function(e){ clearTimeout(relogio); e.status=e.status||(e.name==='AbortError'?'tempo':'rede'); throw e; });
   }
   function enviarFoto(insta){
     if(!arquivoFoto)return Promise.resolve(null);
@@ -580,8 +586,10 @@
     if(nome.length<3||insta.length<2||cupom.length<3){msg('cad-msg',ERROS.dados_incompletos,'err');return;}
     if(!arquivoFoto&&!semFoto){msg('cad-msg','Escolha uma foto sua para a arte do evento.','err');return;}
     $('enviar').disabled=true;
+    var etapa='foto';
     var passo=semFoto?Promise.resolve(null):(msg('cad-msg','Enviando a foto… pode demorar alguns segundos.','info'),enviarFoto(insta));
     passo.then(function(caminho){
+      etapa='cadastro';
       msg('cad-msg','Finalizando o cadastro…','info');
       return rpc('div_cadastrar',{p_campanha:CAMP.id,p_nome:nome,p_instagram:insta,p_cupom:cupom,p_foto:caminho});
     }).then(function(res){
@@ -589,10 +597,11 @@
       else{ $('enviar').disabled=false; msg('cad-msg',ERROS[res&&res.erro]||'Não consegui cadastrar agora. Tente de novo.','err'); }
     }).catch(function(e){
       $('enviar').disabled=false;
-      if(semFoto){ msg('cad-msg','Não consegui cadastrar agora. Tente de novo em instantes.','err'); return; }
+      if(semFoto||etapa==='cadastro'){ msg('cad-msg','Não consegui cadastrar agora. Tente de novo em instantes.','err'); return; }
+      var cod=e&&e.status?(' (erro '+e.status+')'):'';
       var cx=$('cad-msg');
       cx.className='msg err';
-      cx.textContent='Não consegui enviar a sua foto. Tente de novo, ou ';
+      cx.textContent='Não consegui enviar a sua foto'+cod+'. Tente de novo, ou ';
       var link=document.createElement('button');
       link.type='button'; link.className='b-link';
       link.textContent='envie o cadastro sem a foto';
