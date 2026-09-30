@@ -9973,7 +9973,7 @@ const MKT_TIPOS_FILTRO=['obrigatorio','patrocinador','outro'];   /* os 3 tipos q
 function mktAbrirXls(){
   if(!mktData)return;
   let hEv='<option value="">Todos os eventos</option>';
-  (mktData.eventos||[]).forEach(e=>{hEv+='<option value="'+e.id+'">'+e.nome+'</option>';});
+  (mktData.eventos||[]).forEach(e=>{hEv+='<option value="'+e.id+'">'+patEsc(mktEvRotulo(e))+'</option>';});
   document.getElementById('mx-evento').innerHTML=hEv;
   if(mktFiltro.evento)document.getElementById('mx-evento').value=mktFiltro.evento;
   mktXlsSyncPats();
@@ -10203,7 +10203,7 @@ function mktPintarFiltros(){
 function mktMontarFiltros(){
   const def=(id,valor,html)=>{const el=document.getElementById(id);el.innerHTML=html;el.value=valor;if(el.value!==valor){el.value='';mktFiltro[id.replace('mkt-f-','')]='';}};
   def('mkt-f-evento',mktFiltro.evento,
-      mktOpcoesFiltro('Todos os eventos',mktData.eventos.map(e=>({id:e.id,label:e.nome}))));
+      mktOpcoesFiltro('Todos os eventos',mktData.eventos.map(e=>({id:e.id,label:mktEvRotulo(e)}))));
   def('mkt-f-pat',mktFiltro.pat,
       mktOpcoesFiltro('Todos os patrocinadores',
         mktData.pats.map(p=>{const e=mktEv(p.evento_id);return {id:p.id,label:p.nome+(e?' ('+e.nome+')':'')};})
@@ -10727,9 +10727,10 @@ function mktImprimirTempo(){
 }
 
 /* ── MODAL POST ── */
+function mktEvRotulo(e){ return (e.nome||'')+(e.data_prova?' · '+fmtDS(e.data_prova):''); }
 function mktSelectEventosHtml(sel){
   let h='';
-  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+e.nome+'</option>';});
+  mktData.eventos.forEach(e=>{h+='<option value="'+e.id+'"'+(e.id===sel?' selected':'')+'>'+patEsc(mktEvRotulo(e))+'</option>';});
   return h;
 }
 function mktAbrirPost(id,dataPre){
@@ -11208,7 +11209,7 @@ function mktAbrirEvento(id){
   mktObrigRows=e?[]:MKT_OBRIG.map(o=>({titulo:o.t,off:o.d,on:true,data:''}));
   document.getElementById('me-obrig-wrap').style.display=e?'none':'block';
   mktRenderObrig();
-  mktMontarSelectCal(e?(e.calendario_id||''):'');
+  mktEvModoCalendario(e);
   document.getElementById('me-arquivar').style.display=e?'block':'none';
   document.getElementById('me-excluir').style.display=e?'block':'none';
   document.getElementById('mkt-ev-overlay').classList.add('open');
@@ -11243,6 +11244,10 @@ function mktAddObrig(){
   if(inputs.length)inputs[inputs.length-1].focus();
 }
 async function mktSalvarEvento(){
+  if(!mktEvAtual&&!document.getElementById('me-cal').value){
+    alert('Escolha o evento do Calendário.\n\nO evento nasce no Calendário; aqui ele só é trazido para o Social Media. Se ele ainda não existe, cadastre primeiro no Calendário.');
+    return;
+  }
   const nome=document.getElementById('me-nome').value.trim();
   if(!nome){alert('Informe o nome do evento.');return;}
   if(!mktPerfisEvSel.length){alert('Selecione ao menos um @ padrão para os conteúdos.');return;}
@@ -12144,27 +12149,52 @@ async function mktAplicarNomesCal(){
   mktData.eventos.forEach(function(e){
     if(!e.calendario_id)return;
     const c=mktCalEventos.find(x=>x.id===String(e.calendario_id));
-    if(c&&c.nome){ if(e.nome_mkt===undefined)e.nome_mkt=e.nome; e.nome=c.nome; }
+    if(c&&c.nome){ if(e.nome_mkt===undefined){e.nome_mkt=e.nome;e.data_mkt=e.data_prova;} e.nome=c.nome; if(c.data)e.data_prova=c.data; }
   });
 }
-async function mktMontarSelectCal(atual){
+async function mktMontarSelectCal(atual,soLivres){
   const sel=document.getElementById('me-cal'); if(!sel)return;
   if(!mktCalEventos){
     sel.innerHTML='<option value="">— carregando —</option>';
     await mktCarregarCal();
     if(!mktCalEventos)mktCalEventos=[];
   }
-  let h='<option value="">— não ligado —</option>';
-  mktCalEventos.forEach(e=>{ h+='<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+' · '+e.data.split('-').reverse().join('/')+'</option>'; });
+  const usados={}; (mktData&&mktData.eventos||[]).forEach(x=>{ if(x.calendario_id)usados[String(x.calendario_id)]=1; });
+  let h='<option value="">'+(soLivres?'— escolha o evento do Calendário —':'— não ligado —')+'</option>';
+  mktCalEventos.forEach(e=>{
+    if(soLivres&&usados[e.id])return;
+    h+='<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+' · '+e.data.split('-').reverse().join('/')+'</option>';
+  });
   if(atual&&!mktCalEventos.some(e=>e.id===String(atual))) h+='<option value="'+patEsc(atual)+'">Evento '+patEsc(atual)+'</option>';
   sel.innerHTML=h;
   sel.value=atual?String(atual):'';
-  if(!atual)mktCalSugerir();
+  if(!atual&&!soLivres)mktCalSugerir();
 }
 function mktCalNome(){
   const sel=document.getElementById('me-cal'); if(!sel||!sel.value||!mktCalEventos)return;
   const c=mktCalEventos.find(x=>x.id===sel.value);
-  if(c)document.getElementById('me-nome').value=c.nome;
+  if(!c)return;
+  document.getElementById('me-nome').value=c.nome;
+  if(c.data){ document.getElementById('me-data').value=c.data; if(!mktEvAtual)mktObrigDataProva(); }
+}
+/* Fluxo: o evento nasce no Calendário → aqui ele só é trazido para o Social Media.
+   Evento novo: escolhe do Calendário (nome e data vêm de lá, travados).
+   Evento já ligado: nome e data travados. Evento antigo sem ligação: pode ligar. */
+async function mktEvModoCalendario(e){
+  const novo=!e, ligado=!!(e&&e.calendario_id);
+  const campo=document.getElementById('me-cal').closest('.mkt-fg');
+  const topo=document.getElementById('me-cal-topo');
+  if(novo) topo.appendChild(campo); else { const ref=document.getElementById('me-perfis').closest('.mkt-fg'); ref.parentNode.insertBefore(campo,ref); }
+  document.getElementById('mkt-ev-title').textContent=novo?'Trazer evento do Calendário':'Editar evento (marketing)';
+  const nomeInp=document.getElementById('me-nome'), dataInp=document.getElementById('me-data');
+  nomeInp.readOnly=novo||ligado; dataInp.readOnly=novo||ligado;
+  nomeInp.style.opacity=dataInp.style.opacity=(novo||ligado)?'.75':'';
+  document.getElementById('me-nome-origem').textContent=(novo||ligado)?'— vem do Calendário':'— evento antigo, ainda sem ligação';
+  if(ligado&&e.nome){ nomeInp.value=e.nome; if(e.data_prova)dataInp.value=e.data_prova; }
+  await mktMontarSelectCal(e?(e.calendario_id||''):'', novo);
+  const sel=document.getElementById('me-cal');
+  sel.disabled=ligado;
+  if(novo){ sel.value=''; nomeInp.value=''; dataInp.value=''; }
 }
 function mktCalSugerir(){
   const sel=document.getElementById('me-cal'), d=document.getElementById('me-data').value;
@@ -13507,7 +13537,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <div class="mkt-toolbar-left">
             <button class="mkt-btn primary" onclick="mktAbrirPost(null,null)">＋ Novo conteúdo</button>
             <button class="mkt-btn" id="mkt-btn-obrig" onclick="mktAbrirObrig()" title="Entregáveis de mídia das marcas fechadas no funil">🤝 Patrocínios <span class="mkt-obrig-badge" id="mkt-obrig-badge" style="display:none;"></span></button>
-            <button class="mkt-btn" onclick="mktAbrirEvento(null)">＋ Evento Mkt</button>
+            <button class="mkt-btn" onclick="mktAbrirEvento(null)" title="O evento nasce no Calendário. Aqui você só traz ele para o Social Media.">📅 Trazer evento do Calendário</button>
             <button class="mkt-btn" onclick="mktAbrirXls()" title="Baixar conteúdos em Excel">⬇ Excel</button>
             <button class="mkt-btn" id="mkt-btn-print" onclick="mktImprimirMkt()" title="Imprimir a vista atual em paisagem, fundo branco">🖨 Imprimir</button>
           </div>
@@ -13789,7 +13819,8 @@ document.addEventListener('DOMContentLoaded',function(){
 <div class="modal-overlay2" id="mkt-ev-overlay" onclick="if(event.target===this)mktFecharEvento()">
   <div class="mkt-modal" style="max-width:520px;">
     <h3 id="mkt-ev-title">Novo evento (marketing)</h3>
-    <div class="mkt-fg"><label>Nome do evento *</label><input type="text" id="me-nome" placeholder="Ex: JBX Night Run 2026"></div>
+    <div class="mkt-fg" id="me-cal-topo"></div>
+    <div class="mkt-fg"><label>Nome do evento <span id="me-nome-origem" style="font-weight:400;text-transform:none;color:var(--muted);"></span></label><input type="text" id="me-nome" placeholder="Vem do Calendário"></div>
     <div class="mkt-row2">
       <div class="mkt-fg"><label>Data da prova</label><input type="date" id="me-data" onchange="mktObrigDataProva();mktCalSugerir()"></div>
       <div class="mkt-fg"><label>Cor *</label><div class="mkt-cores" id="me-cores"></div></div>
