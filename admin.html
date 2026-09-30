@@ -29,7 +29,9 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 /* LAYOUT */
 .admin-shell{display:grid;grid-template-rows:auto 1fr;min-height:100vh;}
 .admin-header{background:rgba(250,249,247,0.97);border-bottom:1px solid rgba(255,117,31,0.2);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:60px;position:sticky;top:0;z-index:50;}
-.admin-nav{display:flex;gap:24px;}
+.admin-home-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:6px 8px;border-radius:8px;line-height:1;transition:background .15s;}
+.admin-home-btn:hover{background:rgba(255,117,31,0.12);}
+.admin-nav{display:none;}
 .nav-btn{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:6px 0;border-bottom:2px solid transparent;transition:all .2s;}
 .nav-btn:hover,.nav-btn.active{color:var(--orange);border-bottom-color:var(--orange);}
 .admin-logout{background:rgba(42,37,32,.06);border:1px solid rgba(42,37,32,.12);color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:'Ubuntu',sans-serif;padding:7px 16px;border-radius:6px;transition:all .2s;}
@@ -1561,6 +1563,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 <div id="admin" class="screen">
   <div class="admin-shell">
     <header class="admin-header">
+      <button class="admin-home-btn" onclick="showInner('inicio')" title="Início">🏠</button>
       <nav class="admin-nav">
         <button class="nav-btn" id="nav-inicio" onclick="showInner('inicio')">Início</button>
         <button class="nav-btn" id="nav-dash" onclick="showInner('dash')">Dashboard</button>
@@ -14712,4 +14715,4 @@ function propExportar(){
 </script>
 
 </body>
-</html>
+</html><!-- redeploy 2026-09-30 -->
