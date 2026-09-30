@@ -9930,6 +9930,7 @@ async function mktRecarregar(){
       (pp&&pp.pats||[]).forEach(x=>{if(x.perfis)mktPerfisPadrao.pats[x.id]=x.perfis;});
     }catch(e){console.warn('mkt_perfis_padrao indisponível (rode a migration).');}
     await mktCarregarFechadas();
+    await mktAplicarNomesCal();
     mktMontarFiltros(); mktMontarFeedBtns(); mktRender();
   }catch(e){
     console.error(e);
@@ -12127,15 +12128,31 @@ function mktAbrirPostMarca(evId,marca,fmt){
   mktSyncArteBox();
 }
 /* evento do Calendário no cadastro do evento de marketing */
+async function mktCarregarCal(){
+  if(mktCalEventos)return;
+  try{
+    const rows=await rpc('admin_calendario_listar');
+    mktCalEventos=(rows||[]).map(r=>({id:String(r.id),nome:r.evento||r.nome||r.titulo||'Evento',data:String(r.inicio||'').slice(0,10)}))
+      .filter(e=>e.data).sort((a,b)=>a.data.localeCompare(b.data));
+  }catch(e){ mktCalEventos=null; }
+}
+/* evento ligado ao Calendário usa o nome oficial do Calendário em toda a aba */
+async function mktAplicarNomesCal(){
+  if(!mktData||!(mktData.eventos||[]).some(e=>e.calendario_id))return;
+  await mktCarregarCal();
+  if(!mktCalEventos)return;
+  mktData.eventos.forEach(function(e){
+    if(!e.calendario_id)return;
+    const c=mktCalEventos.find(x=>x.id===String(e.calendario_id));
+    if(c&&c.nome){ if(e.nome_mkt===undefined)e.nome_mkt=e.nome; e.nome=c.nome; }
+  });
+}
 async function mktMontarSelectCal(atual){
   const sel=document.getElementById('me-cal'); if(!sel)return;
   if(!mktCalEventos){
     sel.innerHTML='<option value="">— carregando —</option>';
-    try{
-      const rows=await rpc('admin_calendario_listar');
-      mktCalEventos=(rows||[]).map(r=>({id:String(r.id),nome:r.evento||r.nome||r.titulo||'Evento',data:String(r.inicio||'').slice(0,10)}))
-        .filter(e=>e.data).sort((a,b)=>a.data.localeCompare(b.data));
-    }catch(e){ mktCalEventos=[]; }
+    await mktCarregarCal();
+    if(!mktCalEventos)mktCalEventos=[];
   }
   let h='<option value="">— não ligado —</option>';
   mktCalEventos.forEach(e=>{ h+='<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+' · '+e.data.split('-').reverse().join('/')+'</option>'; });
@@ -12144,11 +12161,16 @@ async function mktMontarSelectCal(atual){
   sel.value=atual?String(atual):'';
   if(!atual)mktCalSugerir();
 }
+function mktCalNome(){
+  const sel=document.getElementById('me-cal'); if(!sel||!sel.value||!mktCalEventos)return;
+  const c=mktCalEventos.find(x=>x.id===sel.value);
+  if(c)document.getElementById('me-nome').value=c.nome;
+}
 function mktCalSugerir(){
   const sel=document.getElementById('me-cal'), d=document.getElementById('me-data').value;
   if(!sel||sel.value||!d||!mktCalEventos)return;
   const m=mktCalEventos.filter(e=>e.data===d);
-  if(m.length===1)sel.value=m[0].id;
+  if(m.length===1){ sel.value=m[0].id; mktCalNome(); }
 }
 
 /* ══════════ FUNIL: conteúdos do Social Media desta marca (painel do Gui) ══════════ */
@@ -13773,7 +13795,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="mkt-fg"><label>Cor *</label><div class="mkt-cores" id="me-cores"></div></div>
     </div>
     <div class="mkt-fg"><label>Evento do Calendário <span style="font-weight:400;text-transform:none;color:var(--muted);">— liga com o Funil de Patrocínio</span></label>
-      <select id="me-cal"><option value="">— carregando —</option></select>
+      <select id="me-cal" onchange="mktCalNome()"><option value="">— carregando —</option></select>
       <div style="font-size:11px;color:var(--muted);margin-top:4px;">As marcas fechadas no funil desse evento aparecem para criar os conteúdos de patrocínio.</div>
     </div>
     <div class="mkt-fg"><label>@ padrão dos conteúdos deste evento *</label><div class="mkt-chips" id="me-perfis"></div>
