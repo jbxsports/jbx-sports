@@ -1389,6 +1389,18 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .div-btn-aprov[disabled],.div-btn-reprov[disabled]{opacity:.5;cursor:default}
 .div-campanha-form{display:none}
 .div-campanha-form.aberto{display:block}
+.div-imp{display:none;margin-bottom:18px;border:2px solid var(--orange)}
+.div-imp.aberto{display:block}
+.div-imp h2{margin:0 0 6px}
+.div-imp-resumo{font-size:13px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.div-imp-aviso{background:#fff4e5;border:1px solid #f5c27a;color:#8a5300;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:10px}
+.div-imp td.num,.div-imp th.num{text-align:right;white-space:nowrap}
+.div-imp tr.mudou td{background:rgba(255,117,31,.07)}
+.div-imp tr.zerou td{background:rgba(231,76,60,.08)}
+.div-imp-delta{font-weight:700}
+.div-imp-delta.mais{color:#16a34a}.div-imp-delta.menos{color:#dc2626}
+.div-imp-outros{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6}
+.div-imp-acoes{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
 .div-lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:999;padding:24px}
 .div-lightbox.aberto{display:flex}
 .div-lightbox img{max-width:min(92vw,700px);max-height:88vh;border-radius:12px}
@@ -3122,6 +3134,177 @@ function divCopiarLink(){
   const ok=function(){divMsg('div-feedback','Link copiado: '+url,'#2ecc71');};
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(ok,function(){divMsg('div-feedback',url);});}
   else{divMsg('div-feedback',url);}
+}
+
+/* ── Atualizar usos dos cupons a partir do relatório de inscrições (Excel da plataforma) ── */
+let divImpMudancas=[];
+
+function divImpChave(v){return String(v==null?'':v).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]/g,'').toUpperCase();}
+
+function divImpFechar(){
+  document.getElementById('div-imp').classList.remove('aberto');
+  document.getElementById('div-imp-arq').value='';
+  divImpMudancas=[];
+}
+
+function divImpPalavras(nome){
+  return String(nome||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase()
+    .split(/[^A-Z0-9]+/).filter(function(p){return p.length>=4;});
+}
+
+/* escolhe sozinho a campanha pelo nome do arquivo (ex.: "Relatório de Geral - TRAIL RUN ARTESANO 2026.xlsx") */
+function divImpAcharCampanha(nomeArq){
+  const arqK=divImpChave(nomeArq);
+  let melhor=null, pontos=0;
+  divCamps.forEach(function(c){
+    const p=divImpPalavras(c.nome).filter(function(w){return arqK.indexOf(w)!==-1;}).length;
+    if(p>pontos){pontos=p;melhor=c;}
+  });
+  return melhor;
+}
+
+function divImpLer(inp){
+  const arq=inp.files&&inp.files[0];
+  if(!arq)return;
+  const leitor=new FileReader();
+  leitor.onload=async function(ev){
+    let linhas;
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'});
+      linhas=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+    }catch(e){
+      divMsg('div-feedback','Não consegui ler o arquivo. Use o Excel exportado da plataforma de inscrições.','#e74c3c');
+      inp.value='';return;
+    }
+    const achada=divImpAcharCampanha(arq.name);
+    if(achada&&achada.id!==divCampAtual){
+      divCampAtual=achada.id;
+      try{localStorage.setItem('jbx_div_camp',achada.id);}catch(e){}
+      document.getElementById('div-sel-camp').value=achada.id;
+      await divCarregarLista();
+    }
+    const c=divCampanhaAtual();
+    if(!c){divMsg('div-feedback','Escolha a campanha antes de importar.','#e74c3c');inp.value='';return;}
+    divImpProcessar(linhas,arq.name,c);
+  };
+  leitor.readAsArrayBuffer(arq);
+}
+
+function divImpProcessar(linhas,nomeArq,camp){
+  /* acha a linha de cabeçalho (a que tem a coluna "Cupom") */
+  let hi=-1;
+  for(let i=0;i<Math.min(linhas.length,15);i++){
+    if((linhas[i]||[]).some(function(x){return divImpChave(x)==='CUPOM';})){hi=i;break;}
+  }
+  if(hi<0){divMsg('div-feedback','Esse arquivo não tem a coluna "Cupom".','#e74c3c');document.getElementById('div-imp-arq').value='';return;}
+  const cab=linhas[hi].map(divImpChave);
+  const iCup=cab.indexOf('CUPOM');
+  const iSt=cab.indexOf('STATUSDOPAGAMENTO');
+  const iCanc=cab.indexOf('CANCELADA');
+  const iTipo=cab.indexOf('TIPO');
+  const STATUS_OK=['PAGO','ISENTO','APROVADO','CONFIRMADO'];
+
+  const contagem={};
+  let validas=0, ignoradas=0;
+  for(let i=hi+1;i<linhas.length;i++){
+    const l=linhas[i]||[];
+    if(!l.some(function(x){return String(x).trim()!=='';}))continue;
+    if(iTipo>=0){const t=divImpChave(l[iTipo]);if(t&&t!=='INSCRICAO'){ignoradas++;continue;}}
+    if(iCanc>=0&&divImpChave(l[iCanc]).indexOf('SIM')===0){ignoradas++;continue;}
+    if(iSt>=0&&STATUS_OK.indexOf(divImpChave(l[iSt]))===-1){ignoradas++;continue;}
+    validas++;
+    const k=divImpChave(l[iCup]);
+    if(!k)continue;
+    contagem[k]=(contagem[k]||0)+1;
+  }
+
+  /* cruza com os divulgadores da campanha */
+  const usados={};
+  const linhasPrev=divLista.filter(function(d){return d.cupom;}).map(function(d){
+    const k=divImpChave(d.cupom);
+    usados[k]=true;
+    return {d:d,atual:Number(d.usos||0),novo:contagem[k]||0};
+  }).sort(function(a,b){return b.novo-a.novo||b.atual-a.atual||String(a.d.nome).localeCompare(String(b.d.nome));});
+  divImpMudancas=linhasPrev.filter(function(x){return x.novo!==x.atual;});
+
+  /* tabela */
+  const tb=document.getElementById('div-imp-tbody');
+  tb.innerHTML='';
+  linhasPrev.forEach(function(x){
+    const tr=document.createElement('tr');
+    if(x.novo!==x.atual)tr.className=(x.novo===0?'zerou':'mudou');
+    const delta=x.novo-x.atual;
+    const cel=[
+      [x.d.nome+(x.d.instagram?' · @'+String(x.d.instagram).replace(/^@/,''):''),''],
+      [x.d.cupom,''],
+      [String(x.atual),'num'],
+      [String(x.novo),'num'],
+      [delta===0?'—':(delta>0?'+'+delta:String(delta)),'num']
+    ];
+    cel.forEach(function(cc,j){
+      const td=document.createElement('td');
+      if(cc[1])td.className=cc[1];
+      if(j===4&&delta!==0){const s=document.createElement('span');s.className='div-imp-delta '+(delta>0?'mais':'menos');s.textContent=cc[0];td.appendChild(s);}
+      else td.textContent=cc[0];
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+  if(!linhasPrev.length){
+    const tr=document.createElement('tr');const td=document.createElement('td');
+    td.colSpan=5;td.className='empty-state';td.textContent='Nenhum divulgador com cupom nesta campanha.';
+    tr.appendChild(td);tb.appendChild(tr);
+  }
+
+  /* resumo */
+  const usosDiv=linhasPrev.reduce(function(a,x){return a+x.novo;},0);
+  document.getElementById('div-imp-resumo').textContent=
+    'Arquivo: '+nomeArq+' · Campanha: '+camp.nome+' · '+validas+' inscrições válidas'+
+    (ignoradas?' ('+ignoradas+' canceladas/pendentes ignoradas)':'')+
+    ' · '+usosDiv+' com cupom de divulgador · '+divImpMudancas.length+' divulgador'+(divImpMudancas.length===1?'':'es')+' a atualizar.';
+
+  /* aviso se o arquivo parece ser de outro evento */
+  const palavras=divImpPalavras(camp.nome);
+  const arqK=divImpChave(nomeArq);
+  const bate=!palavras.length||palavras.some(function(p){return arqK.indexOf(p)!==-1;});
+  const zera=divImpMudancas.filter(function(x){return x.novo===0;}).length;
+  const avisos=[];
+  if(!bate)avisos.push('O nome do arquivo não parece ser de "'+camp.nome+'". Confira se escolheu a campanha certa antes de aplicar.');
+  if(zera)avisos.push(zera+' divulgador'+(zera===1?'':'es')+' vai'+(zera===1?'':'ão')+' ficar com 0 usos (cupom não aparece no relatório).');
+  const av=document.getElementById('div-imp-aviso');
+  av.style.display=avisos.length?'block':'none';
+  av.textContent=avisos.join(' ');
+
+  /* cupons do relatório que não são de divulgador desta campanha */
+  const outros=Object.keys(contagem).filter(function(k){return !usados[k];})
+    .sort(function(a,b){return contagem[b]-contagem[a];})
+    .map(function(k){return k+' ('+contagem[k]+')';});
+  document.getElementById('div-imp-outros').textContent=outros.length?
+    'Outros cupons no relatório (não são de divulgador desta campanha, não mexo): '+outros.join(', ')+'.':'';
+
+  const bt=document.getElementById('div-imp-aplicar');
+  bt.disabled=!divImpMudancas.length;
+  bt.textContent=divImpMudancas.length?('Aplicar '+divImpMudancas.length+' atualizaç'+(divImpMudancas.length===1?'ão':'ões')):'Nada a atualizar';
+  document.getElementById('div-imp').classList.add('aberto');
+  document.getElementById('div-imp').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+async function divImpAplicar(){
+  if(!divImpMudancas.length)return;
+  const bt=document.getElementById('div-imp-aplicar');
+  bt.disabled=true;
+  let ok=0, falha=0;
+  for(let i=0;i<divImpMudancas.length;i++){
+    const x=divImpMudancas[i];
+    bt.textContent='Gravando '+(i+1)+' de '+divImpMudancas.length+'…';
+    try{
+      const r=await rpc('div_adm_salvar',{p_id:x.d.id,p_campos:{usos:x.novo}});
+      if(r&&r.ok){ok++;x.d.usos=x.novo;}else falha++;
+    }catch(e){falha++;}
+  }
+  divImpFechar();
+  await divCarregarLista();
+  divMsg('div-feedback',ok+' divulgador'+(ok===1?'':'es')+' atualizado'+(ok===1?'':'s')+(falha?' · '+falha+' falharam, tente de novo':'')+'. O ranking público já mostra os números novos.',falha?'#e74c3c':'#2ecc71');
 }
 
 
@@ -14182,6 +14365,25 @@ document.addEventListener('DOMContentLoaded',function(){
           <button class="btn-ghost" onclick="divCarregarLista()">Atualizar lista</button>
           <button class="btn-ghost" onclick="divCopiarLink()">Copiar link público</button>
           <button class="btn-ghost" onclick="divExportar()">Exportar Excel</button>
+          <button class="btn-ghost" onclick="document.getElementById('div-imp-arq').click()">Atualizar usos pelo relatório</button>
+          <input type="file" id="div-imp-arq" accept=".xlsx,.xls,.csv" style="display:none" onchange="divImpLer(this)">
+        </div>
+
+        <div class="panel div-imp" id="div-imp">
+          <h2>Atualizar usos pelo relatório de inscrições</h2>
+          <div class="div-imp-resumo" id="div-imp-resumo"></div>
+          <div class="div-imp-aviso" id="div-imp-aviso" style="display:none"></div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead><tr><th>Divulgador</th><th>Cupom</th><th class="num">Usos hoje</th><th class="num">Relatório</th><th class="num">Diferença</th></tr></thead>
+              <tbody id="div-imp-tbody"></tbody>
+            </table>
+          </div>
+          <div class="div-imp-outros" id="div-imp-outros"></div>
+          <div class="div-imp-acoes">
+            <button class="btn-ghost" onclick="divImpFechar()">Cancelar</button>
+            <button class="mkt-btn primary" id="div-imp-aplicar" onclick="divImpAplicar()">Aplicar</button>
+          </div>
         </div>
 
         <div class="div-kpis" id="div-kpis"></div>
