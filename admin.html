@@ -3128,6 +3128,131 @@ function divExportar(){
   divMsg('div-feedback','Excel gerado: '+arq,'#2ecc71');
 }
 
+/* ── Exportar PDF do ranking da campanha (abre página pronta para "Salvar como PDF") ── */
+function divEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+function divExportarPdf(){
+  const c=divCampanhaAtual();
+  if(!c){divMsg('div-feedback','Escolha uma campanha primeiro.','#e74c3c');return;}
+  /* mesmo critério do ranking público: só quem está com o cupom liberado */
+  const lista=divLista.filter(function(d){return d.ativo&&!d.reprovado;})
+    .sort(function(a,b){return (b.usos||0)-(a.usos||0)||String(a.nome).localeCompare(String(b.nome),'pt-BR');});
+  if(!lista.length){divMsg('div-feedback','Nenhum divulgador com cupom ativo nesta campanha.','#e74c3c');return;}
+  const w=window.open('','_blank');
+  if(!w){divMsg('div-feedback','O navegador bloqueou a janela do PDF. Libere pop-ups para o admin e tente de novo.','#e74c3c');return;}
+
+  const cortesia=Number(c.usos_cortesia||10);
+  const totalUsos=lista.reduce(function(a,d){return a+Number(d.usos||0);},0);
+  const totalCort=lista.reduce(function(a,d){return a+Math.floor(Number(d.usos||0)/cortesia);},0);
+  const comVenda=lista.filter(function(d){return Number(d.usos||0)>0;}).length;
+  const maxUsos=Math.max(1,Number(lista[0].usos||0));
+  /* posição com empate (1, 1, 3…) */
+  let pos=0,ant=null;
+  lista.forEach(function(d,i){const u=Number(d.usos||0);if(u!==ant){pos=i+1;ant=u;}d._pos=pos;});
+
+  const logoEl=document.querySelector('link[rel="icon"]');
+  const logo=logoEl?logoEl.href:'';
+  const agora=new Date();
+  const geradoEm=agora.toLocaleDateString('pt-BR')+' às '+agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  let dataEv='';
+  if(c.data_evento){const p=String(c.data_evento).slice(0,10).split('-');if(p.length===3)dataEv=p[2]+'/'+p[1]+'/'+p[0];}
+  const sub=[dataEv,c.local_evento].filter(Boolean).join(' · ');
+  const arroba=function(ig){ig=String(ig||'').trim().replace(/^@+/,'');return ig?'@'+ig:'';};
+  const iniciais=function(n){return String(n||'?').trim().split(/\s+/).filter(Boolean).slice(0,2).map(function(p){return p[0];}).join('').toUpperCase();};
+
+  /* pódio: 3 primeiros com usos */
+  const podio=lista.filter(function(d){return Number(d.usos||0)>0;}).slice(0,3);
+  const ordemPodio=podio.length===3?[podio[1],podio[0],podio[2]]:podio;
+  const podioHtml=podio.length?('<section class="podio">'+ordemPodio.map(function(d){
+    const lugar=d._pos===1?'p1':(d._pos===2?'p2':'p3');
+    return '<div class="pd '+lugar+'"><div class="av">'+divEsc(iniciais(d.nome))+'</div>'
+      +'<div class="pn">'+divEsc(d.nome)+'</div><div class="pi">'+divEsc(arroba(d.instagram))+'</div>'
+      +'<div class="base"><span class="pos">'+d._pos+'º</span><span class="pu">'+Number(d.usos||0)+'<small> usos</small></span></div></div>';
+  }).join('')+'</section>'):'';
+
+  const linhas=lista.map(function(d){
+    const u=Number(d.usos||0);
+    const pct=Math.round(u/maxUsos*100);
+    const cort=Math.floor(u/cortesia);
+    return '<tr class="'+(d._pos<=5&&u>0?'top':'')+(u===0?' zero':'')+'">'
+      +'<td class="c-pos">'+d._pos+'º</td>'
+      +'<td><div class="nm">'+divEsc(d.nome)+'</div><div class="ig">'+divEsc(arroba(d.instagram))+'</div></td>'
+      +'<td class="c-cup">'+divEsc(d.cupom||'')+'</td>'
+      +'<td class="c-bar"><div class="bar"><i style="width:'+pct+'%"></i></div></td>'
+      +'<td class="c-num"><b>'+u+'</b></td>'
+      +'<td class="c-num">'+(cort?cort:'—')+'</td></tr>';
+  }).join('');
+
+  const kpis=[['Divulgadores ativos',lista.length],['Com pelo menos 1 uso',comVenda],['Usos de cupom',totalUsos],['Cortesias conquistadas',totalCort]]
+    .map(function(k){return '<div class="kp"><b>'+k[1]+'</b><span>'+k[0]+'</span></div>';}).join('');
+
+  const titulo='Ranking de divulgadores — '+c.nome;
+  const html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+divEsc(titulo)+'</title>'
+  +'<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">'
+  +'<style>'
+  +'@page{size:A4;margin:12mm 12mm 14mm}'
+  +'*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+  +'body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;background:#fff;font-size:11px}'
+  +'.pg{max-width:186mm;margin:0 auto}'
+  +'.hd{background:#0a0a0a;color:#fff;border-radius:14px;padding:20px 22px;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden}'
+  +'.hd:after{content:"";position:absolute;right:-30px;top:0;bottom:0;width:180px;background:repeating-linear-gradient(115deg,#ff751f 0 10px,transparent 10px 22px);opacity:.9}'
+  +'.hd img{width:54px;height:54px;border-radius:10px;object-fit:cover;background:#fff;flex:none}'
+  +'.hd .tx{position:relative;z-index:1;padding-right:150px}'
+  +'.hd .ey{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#ff751f;font-weight:700}'
+  +'.hd h1{font-size:24px;line-height:1.1;margin-top:4px;font-weight:700}'
+  +'.hd .sb{font-size:12px;color:#c9c2bb;margin-top:5px}'
+  +'.kps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}'
+  +'.kp{border:1px solid rgba(42,37,32,.12);border-radius:10px;padding:10px 12px}'
+  +'.kp b{display:block;font-size:22px;color:#ff751f;line-height:1}'
+  +'.kp span{display:block;margin-top:4px;font-size:9.5px;color:#7a7068;text-transform:uppercase;letter-spacing:.6px}'
+  +'.podio{display:flex;justify-content:center;align-items:flex-end;gap:10px;margin:6px 0 16px;page-break-inside:avoid}'
+  +'.pd{width:31%;text-align:center}'
+  +'.av{width:46px;height:46px;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;background:#2a2520}'
+  +'.p1 .av{width:58px;height:58px;font-size:20px;background:#ff751f}'
+  +'.pn{font-weight:700;font-size:12px;line-height:1.2;padding:0 4px}'
+  +'.pi{color:#7a7068;font-size:10px;margin:2px 0 6px}'
+  +'.base{border-radius:10px 10px 4px 4px;background:#f0ede8;padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px}'
+  +'.p1 .base{background:#0a0a0a;color:#fff;padding:20px 6px}.p2 .base{padding:14px 6px}'
+  +'.pos{font-size:11px;font-weight:700;color:#ff751f;letter-spacing:1px}'
+  +'.pu{font-size:20px;font-weight:700}.pu small{font-size:10px;font-weight:400;opacity:.7}'
+  +'h2{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#7a7068;margin:4px 0 6px;display:flex;justify-content:space-between}'
+  +'table{width:100%;border-collapse:collapse}'
+  +'thead{display:table-header-group}'
+  +'th{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:#7a7068;text-align:left;padding:6px 8px;border-bottom:2px solid #0a0a0a}'
+  +'td{padding:6px 8px;border-bottom:1px solid rgba(42,37,32,.09);vertical-align:middle}'
+  +'tr{page-break-inside:avoid}'
+  +'tr.top td{background:#fff4ec}tr.top .c-pos{color:#ff751f}'
+  +'tr.zero{color:#9a918a}'
+  +'.c-pos{width:38px;font-weight:700;font-size:12px}'
+  +'.nm{font-weight:700;font-size:11.5px}.ig{color:#7a7068;font-size:9.5px;margin-top:1px}'
+  +'.c-cup{font-family:"JetBrains Mono",Consolas,monospace;font-size:10px;letter-spacing:.3px}'
+  +'.c-bar{width:24%}.bar{height:7px;border-radius:4px;background:#f0ede8;overflow:hidden}.bar i{display:block;height:100%;background:#ff751f;border-radius:4px}'
+  +'.c-num{text-align:right;width:62px;font-size:12px}'
+  +'th.r{text-align:right}'
+  +'.ft{margin-top:14px;padding-top:8px;border-top:1px solid rgba(42,37,32,.12);display:flex;justify-content:space-between;color:#7a7068;font-size:9px}'
+  +'.ft b{color:#ff751f}'
+  +'.dica{background:#0a0a0a;color:#fff;text-align:center;padding:10px;font-size:13px;margin-bottom:14px}'
+  +'.dica button{margin-left:10px;background:#ff751f;color:#fff;border:0;border-radius:6px;padding:7px 14px;font:700 13px Ubuntu,Arial;cursor:pointer}'
+  +'@media print{.dica{display:none}}'
+  +'</style></head><body>'
+  +'<div class="dica">Na janela de impressão, escolha <b>Salvar como PDF</b>.<button onclick="window.print()">Gerar PDF</button></div>'
+  +'<div class="pg">'
+  +'<header class="hd">'+(logo?'<img src="'+divEsc(logo)+'" alt="">':'')
+  +'<div class="tx"><div class="ey">Ranking de divulgadores</div><h1>'+divEsc(c.nome)+'</h1>'
+  +(sub?'<div class="sb">'+divEsc(sub)+'</div>':'')+'</div></header>'
+  +'<section class="kps">'+kpis+'</section>'
+  +podioHtml
+  +'<h2><span>Classificação completa</span><span>1 cortesia a cada '+cortesia+' usos</span></h2>'
+  +'<table><thead><tr><th>Pos.</th><th>Divulgador</th><th>Cupom</th><th></th><th class="r">Usos</th><th class="r">Cortesias</th></tr></thead>'
+  +'<tbody>'+linhas+'</tbody></table>'
+  +'<div class="ft"><span><b>JBX Sports</b> · Time de Divulgadores</span><span>Atualizado em '+divEsc(geradoEm)+'</span></div>'
+  +'</div>'
+  +'<script>window.addEventListener("load",function(){var go=function(){setTimeout(function(){window.print();},250);};'
+  +'if(document.fonts&&document.fonts.ready){document.fonts.ready.then(go);}else{go();}});<\/script>'
+  +'</body></html>';
+  w.document.open();w.document.write(html);w.document.close();
+  divMsg('div-feedback','Ranking aberto em outra aba — escolha "Salvar como PDF" na impressão.','#2ecc71');
+}
+
 function divCopiarLink(){
   const c=divCampanhaAtual();
   const url=location.origin+'/divulgadores.html'+(c?('?e='+c.id):'');
@@ -14365,6 +14490,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <button class="btn-ghost" onclick="divCarregarLista()">Atualizar lista</button>
           <button class="btn-ghost" onclick="divCopiarLink()">Copiar link público</button>
           <button class="btn-ghost" onclick="divExportar()">Exportar Excel</button>
+          <button class="btn-ghost" onclick="divExportarPdf()">Exportar PDF do ranking</button>
           <button class="btn-ghost" onclick="document.getElementById('div-imp-arq').click()">Atualizar usos pelo relatório</button>
           <input type="file" id="div-imp-arq" accept=".xlsx,.xls,.csv" style="display:none" onchange="divImpLer(this)">
         </div>
