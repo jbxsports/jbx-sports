@@ -151,7 +151,7 @@ async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
   try {
     const r = await fetch(`${SITE_URL}/api/enviar-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-chave-interna': process.env.EMAIL_INTERNAL_KEY || '' },
       body: JSON.stringify({ tipo: 'confirmacao_inscricao', email, nome, item, data_evento: dataEvento })
     });
     console.log('[checkout] E-mail gratuito status:', r.status, 'para', email.slice(0,4) + '***');

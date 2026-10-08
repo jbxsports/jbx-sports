@@ -1,3 +1,40 @@
+// api/enviar-email.js
+// Segurança (08/10/2026):
+//  • confirmação, recusa e carrinho abandonado só saem com o cabeçalho
+//    x-chave-interna = EMAIL_INTERNAL_KEY (variável de ambiente da Vercel).
+//    Só o checkout, o webhook e o banco conhecem essa chave.
+//  • boas-vindas (chamado pela área do atleta) só sai para e-mail que já tem
+//    conta, e o nome vem do banco — nada do pedido entra no e-mail.
+//  • todo texto é escapado antes de entrar no HTML.
+const SB_URL         = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
+const CHAVE_INTERNA  = process.env.EMAIL_INTERNAL_KEY || '';
+const ORIGENS_OK     = ['https://jbxsports.com.br', 'https://www.jbxsports.com.br', 'https://jbx-sports.vercel.app'];
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function emailValido(e) {
+  return typeof e === 'string' && e.length <= 120 && /^[^@\s<>"']+@[^@\s<>"']+\.[^@\s<>"']+$/.test(e);
+}
+function chaveConfere(req) {
+  const h = String(req.headers['x-chave-interna'] || '');
+  return CHAVE_INTERNA.length >= 20 && h === CHAVE_INTERNA;
+}
+async function contaPorEmail(email) {
+  if (!SB_SERVICE_KEY) return null;
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/atletas_contas?email=eq.' + encodeURIComponent(email) + '&select=nome&limit=1', {
+      headers: { apikey: SB_SERVICE_KEY, Authorization: 'Bearer ' + SB_SERVICE_KEY }
+    });
+    if (!r.ok) return null;
+    const rows = await r.json();
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  } catch (e) { return null; }
+}
+
 async function enviarResend(to, subject, html) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -51,7 +88,7 @@ function templateBase(conteudo) {
 
 // ── E-mail 1: Boas-vindas (cadastro) ──
 function htmlBoasVindas(nome) {
-  const primeiroNome = (nome || 'Atleta').split(' ')[0];
+  const primeiroNome = esc((nome || 'Atleta').split(' ')[0]);
   return templateBase(`
     <div style="text-align:center;margin-bottom:32px;">
       <div style="font-size:52px;margin-bottom:16px;">🎽</div>
@@ -79,7 +116,7 @@ function htmlBoasVindas(nome) {
 
 // ── E-mail 2: Confirmação de inscrição ──
 function htmlConfirmacaoInscricao(item, dataEvento) {
-  const primeiroNome = (item.nome || 'Atleta').split(' ')[0];
+  const primeiroNome = esc((item.nome || 'Atleta').split(' ')[0]);
   const valor = item.valor ? 'R$ ' + Number(item.valor).toFixed(2).replace('.', ',') : '—';
   return templateBase(`
     <div style="text-align:center;margin-bottom:32px;">
@@ -124,7 +161,7 @@ function linhaDetalhe(label, valor, destaque = false) {
         <span style="color:rgba(255,255,255,0.45);font-size:13px;">${label}</span>
       </td>
       <td style="padding:10px 20px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;">
-        <span style="color:${destaque ? '#ff751f' : 'rgba(255,255,255,0.9)'};font-size:13px;font-weight:${destaque ? '700' : '600'};">${valor}</span>
+        <span style="color:${destaque ? '#ff751f' : 'rgba(255,255,255,0.9)'};font-size:13px;font-weight:${destaque ? '700' : '600'};">${esc(valor)}</span>
       </td>
     </tr>`;
 }
@@ -132,7 +169,8 @@ function linhaDetalhe(label, valor, destaque = false) {
 
 // ── E-mail 3: Pagamento recusado ──
 function htmlPagamentoRecusado(nome, eventoNome, motivo) {
-  const primeiroNome = (nome || 'Atleta').split(' ')[0];
+  const primeiroNome = esc((nome || 'Atleta').split(' ')[0]);
+  eventoNome = esc(eventoNome); motivo = esc(motivo);
   return templateBase(`
     <div style="text-align:center;margin-bottom:32px;">
       <div style="font-size:52px;margin-bottom:16px;">❌</div>
@@ -174,10 +212,10 @@ function htmlPagamentoRecusado(nome, eventoNome, motivo) {
 // 30 a 60 minutos depois de uma inscrição ficar pendente. Um por inscrição —
 // a trava é a coluna abandono_notificado.
 function htmlCarrinhoAbandonado(nome, item) {
-  const primeiroNome = (nome || 'Atleta').split(' ')[0];
-  const evento = (item && item.evento) || 'JBX Sports';
+  const primeiroNome = esc((nome || 'Atleta').split(' ')[0]);
+  const evento = esc((item && item.evento) || 'JBX Sports');
   const linha = (label, valor) => valor
-    ? `<tr><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:rgba(255,255,255,0.45);font-size:13px;">${label}</span></td><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;"><span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:600;">${valor}</span></td></tr>`
+    ? `<tr><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);"><span style="color:rgba(255,255,255,0.45);font-size:13px;">${label}</span></td><td style="padding:9px 20px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:right;"><span style="color:rgba(255,255,255,0.9);font-size:13px;font-weight:600;">${esc(valor)}</span></td></tr>`
     : '';
   return templateBase(`
     <div style="text-align:center;margin-bottom:30px;">
@@ -215,22 +253,35 @@ function htmlCarrinhoAbandonado(nome, item) {
 
 // ── Handler ──
 module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const origem = String(req.headers.origin || '');
+  if (ORIGENS_OK.indexOf(origem) !== -1) res.setHeader('Access-Control-Allow-Origin', origem);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ erro: 'Método não permitido' });
 
-  const { tipo, email, nome, item, data_evento } = req.body;
+  const { tipo, email, nome, item, data_evento } = req.body || {};
+  if (!emailValido(email)) return res.status(400).json({ ok: false, erro: 'E-mail inválido' });
 
   try {
+    // Público (área do atleta): só para quem já tem conta; nome vem do banco.
     if (tipo === 'boas_vindas') {
-      await enviarResend(email, `Bem-vindo à JBX Sports, ${(nome || '').split(' ')[0]}! 🎽`, htmlBoasVindas(nome));
+      const conta = await contaPorEmail(email);
+      if (!conta) return res.status(200).json({ ok: true }); // não revela se existe
+      const n = conta.nome || 'Atleta';
+      await enviarResend(email, 'Bem-vindo à JBX Sports, ' + n.split(' ')[0] + '! 🎽', htmlBoasVindas(n));
       return res.status(200).json({ ok: true });
     }
 
+    // Daqui para baixo: só o próprio servidor (checkout, webhook, banco).
+    if (!chaveConfere(req)) {
+      console.warn('[enviar-email] chamada sem chave interna recusada — tipo:', tipo);
+      return res.status(403).json({ ok: false, erro: 'Não autorizado' });
+    }
+
     if (tipo === 'confirmacao_inscricao') {
-      await enviarResend(email, `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`, htmlConfirmacaoInscricao(item, data_evento));
+      await enviarResend(email, `Inscrição confirmada — ${item?.evento || 'JBX Sports'} 🏁`, htmlConfirmacaoInscricao(item || {}, data_evento));
       return res.status(200).json({ ok: true });
     }
 

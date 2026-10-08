@@ -57,7 +57,7 @@ async function enviarEmailConfirmacao(email, nome, item, dataEvento) {
   try {
     const r = await fetch(`${SITE_URL}/api/enviar-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-chave-interna': process.env.EMAIL_INTERNAL_KEY || '' },
       body: JSON.stringify({ tipo: 'confirmacao_inscricao', email, nome, item, data_evento: dataEvento })
     });
     console.log('[mp-webhook] E-mail confirmação status:', r.status, 'para', email.slice(0,4) + '***');
@@ -72,7 +72,7 @@ async function enviarEmailRecusa(email, nome, eventoNome, motivo) {
   try {
     const r = await fetch(`${SITE_URL}/api/enviar-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'x-chave-interna': process.env.EMAIL_INTERNAL_KEY || '' },
       body: JSON.stringify({ tipo: 'pagamento_recusado', email, nome, evento_nome: eventoNome, motivo })
     });
     console.log('[mp-webhook] E-mail recusa status:', r.status, 'para', email.slice(0,4) + '***');
