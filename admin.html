@@ -1275,6 +1275,65 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ck-bar .ck-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .ck-bar .ck-btn:hover{border-color:var(--orange);color:var(--orange);}
 .ck-bar .ck-btn.novo{background:var(--orange);border-color:var(--orange);color:#fff;}
+
+/* ── CALENDÁRIOS DE PLANEJAMENTO (estratégia, MKT, lançamento) ──
+   Calendários livres, cada um com nome, tipo e evento vinculado.
+   Não são o calendário de eventos: são planos dia a dia de um assunto. */
+.cp-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+.cp-btn{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:8px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.cp-btn:hover{border-color:var(--orange);color:var(--orange);}
+.cp-btn.novo{background:var(--orange);border-color:var(--orange);color:#fff;}
+.cp-btn.novo:hover{filter:brightness(1.07);color:#fff;}
+.cp-btn.del:hover{border-color:#D23A3A;color:#D23A3A;}
+.cp-dica{font-size:11.5px;color:var(--muted);}
+.cp-status{font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap;color:var(--muted);}
+.cp-form{background:#f5f3f0;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;grid-template-columns:2fr 1fr 2fr;align-items:end;}
+.cp-form label{display:grid;gap:5px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);}
+.cp-form input,.cp-form select{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;border:1px solid rgba(42,37,32,.15);background:var(--card);color:var(--text);border-radius:8px;padding:9px 10px;width:100%;}
+.cp-form input:focus,.cp-form select:focus{outline:none;border-color:var(--orange);}
+.cp-form .acoes{grid-column:1/-1;display:flex;gap:8px;}
+.cp-form .tit{grid-column:1/-1;font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
+@media(max-width:800px){.cp-form{grid-template-columns:1fr;}}
+.cp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.cp-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s;display:grid;gap:8px;text-align:left;font-family:inherit;}
+.cp-card:hover{border-color:var(--orange);box-shadow:0 4px 14px rgba(255,117,31,.12);}
+.cp-card .nm{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:15px;color:var(--text);}
+.cp-card .ev{font-size:12px;color:var(--muted);}
+.cp-card .rod{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);}
+.cp-tipo{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#5e17eb;background:rgba(94,23,235,.08);border-radius:999px;padding:3px 9px;justify-self:start;}
+.cp-vazio{background:var(--card);border:1px dashed rgba(42,37,32,.2);border-radius:12px;padding:32px;text-align:center;color:var(--muted);font-size:13px;}
+.cp-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.cp-hd h2{font-family:'Ubuntu',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin:0;}
+.cp-hd .ev{font-size:12.5px;color:var(--muted);}
+.cp-hd .ev b{color:var(--text);font-weight:600;}
+.cp-nav{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.cp-nav .mes{font-family:'Ubuntu',sans-serif;font-size:18px;font-weight:700;color:var(--text);min-width:190px;text-align:center;}
+.cp-nav .seta{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:17px;cursor:pointer;}
+.cp-nav .seta:hover{border-color:var(--orange);color:var(--orange);}
+.cp-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted);margin-left:auto;}
+.cp-leg i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.cp-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+.cp-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));min-width:860px;}
+.cp-wd{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 10px;background:#f5f3f0;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+.cp-day{aspect-ratio:1/1;display:flex;flex-direction:column;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:0;overflow:hidden;position:relative;}
+.cp-wd:nth-child(7n),.cp-day:nth-child(7n){border-right:0;}
+.cp-day.fora{background:#f7f5f2;}
+.cp-day.fds .cp-num{color:var(--muted);}
+.cp-day.hoje .cp-num{background:var(--orange);color:#fff;border-radius:5px;padding:1px 6px;}
+.cp-day.diad{background:rgba(255,117,31,.08);}
+.cp-day.diad .cp-dx{background:var(--orange);color:#fff;border-radius:4px;padding:1px 6px;}
+.cp-day:focus-within{box-shadow:inset 0 0 0 2px var(--orange);}
+.cp-dh{display:flex;align-items:center;gap:5px;padding:6px 7px 2px;}
+.cp-num{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:16px;color:var(--text);line-height:1.2;}
+.cp-dx{margin-left:auto;font-size:10px;font-weight:700;letter-spacing:.4px;color:#b3aca4;white-space:nowrap;}
+.cp-tag{font-family:'Ubuntu',sans-serif;font-size:10.5px;font-weight:700;border:1px solid transparent;border-radius:999px;padding:1px 4px;background:transparent;color:#b3aca4;max-width:92px;cursor:pointer;-webkit-appearance:none;appearance:none;}
+.cp-tag:hover{border-color:var(--border);}
+.cp-tag.on{color:var(--c);background:color-mix(in srgb,var(--c) 12%,transparent);border-color:color-mix(in srgb,var(--c) 35%,transparent);}
+.cp-day textarea{flex:1;min-height:0;width:100%;resize:none;border:0;background:transparent;font-family:'Ubuntu',sans-serif;font-size:12.5px;line-height:1.35;color:var(--text);padding:3px 7px 7px;overflow-y:auto;}
+.cp-day textarea:focus{outline:none;}
+.cp-day textarea::placeholder{color:transparent;}
+.cp-day:hover textarea::placeholder,.cp-day textarea:focus::placeholder{color:#c4bdb5;}
+.cp-day.passado textarea{color:var(--muted);}
 .ck-bar .ck-btn.novo:hover{filter:brightness(1.07);color:#fff;}
 .ck-bar .dica{font-size:11.5px;color:var(--muted);}
 .ck-bar .ck-status{font-size:11px;font-weight:600;margin-left:auto;white-space:nowrap;}
@@ -2617,6 +2676,7 @@ const RPC_PROTEGIDAS=['mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_o
   'admin_carrinhos_abandonados','admin_carrinho_contato',
   'admin_checklist_listar','admin_checklist_item_salvar','admin_checklist_item_excluir',
   'admin_checklist_coluna_salvar','admin_checklist_coluna_excluir','admin_checklist_valor_salvar',
+  'admin_calplan_listar','admin_calplan_salvar','admin_calplan_excluir','admin_calplan_dias','admin_calplan_dia_salvar',
   'div_adm_campanhas','div_adm_campanha_salvar','div_adm_campanha_excluir',
   'div_adm_lista','div_adm_salvar',
   'map_listar','map_abrir','map_salvar','map_excluir',
@@ -8662,7 +8722,7 @@ function calUpdateStats(){
 
 function calSetView(view){
   document.querySelectorAll('.cal-view-btn[data-view]').forEach(b=>b.classList.toggle('cal-view-active', b.dataset.view===view));
-  ['lista','resumido','prazos','tarefas','checklist','completo'].forEach(v=>{
+  ['lista','resumido','prazos','tarefas','checklist','planos','completo'].forEach(v=>{
     document.getElementById('cal-pane-'+v).style.display = v===view ? '' : 'none';
   });
   document.getElementById('cal-btn-exportar').style.display = view==='lista' ? '' : 'none';
@@ -8677,7 +8737,267 @@ function calSetView(view){
   if(view==='prazos'){ calPrazosInit(); } // sempre reconstruir (barato; mantém em sincronia com edições de datas)
   if(view==='tarefas'){ calTarefasInit(); }
   if(view==='checklist'){ calChecklistInit(); }
+  if(view==='planos'){ cpInit(); }
   calUpdateStats(); // atualiza stats em qualquer view
+}
+
+/* ══ CALENDÁRIOS DE PLANEJAMENTO ══
+   Calendários livres (estratégia, marketing, lançamento, assuntos específicos).
+   Cada um tem nome, tipo e um evento vinculado do Calendário (opcional).
+   Tabelas: calendarios_plan + calendarios_plan_dias (migração calendarios_planejamento.sql). */
+let _cpLista=[], _cpAtual=null, _cpDias={}, _cpY=0, _cpM=0;
+let _cpForm=null; // null = fechado | {id:null} novo | {id:'...'} editando
+const _cpTimers={}, _cpPend={}, _cpChains={};
+const CP_TIPOS=['Marketing','Lançamento','Estratégia','Patrocínio','Operação','Outro'];
+const CP_TAGS=[
+  {id:'',nome:'+ etiqueta',c:'#b3aca4'},
+  {id:'div',nome:'Divulgação',c:'#3B82F6'},
+  {id:'ins',nome:'Inscrições',c:'#1D8A55'},
+  {id:'pat',nome:'Patrocínio',c:'#5e17eb'},
+  {id:'ope',nome:'Operação',c:'#C27012'},
+  {id:'pra',nome:'Prazo',c:'#D23A3A'}
+];
+const CP_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const CP_WD=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+function cpEsc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function cpPad(n){return String(n).padStart(2,'0');}
+function cpKey(y,m,d){return y+'-'+cpPad(m+1)+'-'+cpPad(d);}
+function cpHojeKey(){const t=new Date();return cpKey(t.getFullYear(),t.getMonth(),t.getDate());}
+function cpEventos(){
+  return (_calDados||[]).filter(function(e){return e&&e.id!=null&&e.tipo!=='feriado';})
+    .slice().sort(function(a,b){return String(a.inicio||'').localeCompare(String(b.inicio||''));});
+}
+function cpEvento(id){
+  if(id==null||id==='') return null;
+  return (_calDados||[]).find(function(e){return String(e.id)===String(id);})||null;
+}
+function cpEventoLabel(c){
+  const e=cpEvento(c.evento_id);
+  if(e) return (e.evento||'Evento')+' · '+fmtDS(e.inicio);
+  if(c.evento_nome) return c.evento_nome;
+  return 'Sem evento vinculado';
+}
+function cpSetStatus(t,cor){const el=document.getElementById('cp-status'); if(el){el.textContent=t; el.style.color=cor||'var(--muted)';}}
+
+async function cpInit(){
+  const pane=document.getElementById('cal-pane-planos');
+  if(!_cpAtual) pane.innerHTML='<div class="empty-state">Carregando calendários…</div>';
+  try{
+    const r=await rpc('admin_calplan_listar');
+    _cpLista=Array.isArray(r)?r:[];
+  }catch(e){
+    console.error(e);
+    pane.innerHTML='<div class="empty-state">Erro ao carregar os calendários. Confira se a migração calendarios_planejamento.sql foi executada no Supabase.</div>';
+    return;
+  }
+  if(_cpAtual){
+    const a=_cpLista.find(function(x){return x.id===_cpAtual.id;});
+    if(a){ _cpAtual=a; cpRenderCal(); return; }
+    _cpAtual=null;
+  }
+  cpRenderLista();
+}
+
+function cpFormHtml(){
+  if(!_cpForm) return '';
+  const c=_cpForm.id?(_cpLista.find(function(x){return x.id===_cpForm.id;})||{}):{};
+  let h='<div class="cp-form">';
+  h+='<div class="tit">'+(_cpForm.id?'Editar calendário':'Novo calendário')+'</div>';
+  h+='<label>Nome<input id="cp-f-nome" maxlength="120" placeholder="Ex.: Lançamento Travessia — redes sociais" value="'+cpEsc(c.nome||'')+'" onkeydown="if(event.key===\'Enter\')cpSalvarForm()"></label>';
+  h+='<label>Tipo<select id="cp-f-tipo">';
+  CP_TIPOS.forEach(function(t){h+='<option'+((c.tipo||'Marketing')===t?' selected':'')+'>'+t+'</option>';});
+  h+='</select></label>';
+  h+='<label>Evento vinculado<select id="cp-f-evento"><option value="">— Sem evento —</option>';
+  const hoje=cpHojeKey(); let marcouProx=false;
+  cpEventos().forEach(function(e){
+    const id=String(e.id);
+    let rot=(e.evento||'Evento')+' · '+fmtDS(e.inicio);
+    if(!marcouProx && String(e.inicio||'')>=hoje){ rot='▸ '+rot; marcouProx=true; }
+    h+='<option value="'+cpEsc(id)+'"'+(String(c.evento_id||'')===id?' selected':'')+'>'+cpEsc(rot)+'</option>';
+  });
+  h+='</select></label>';
+  h+='<div class="acoes"><button class="cp-btn novo" onclick="cpSalvarForm()">'+(_cpForm.id?'Salvar alterações':'Criar calendário')+'</button>';
+  h+='<button class="cp-btn" onclick="cpFecharForm()">Cancelar</button></div>';
+  h+='</div>';
+  return h;
+}
+
+function cpRenderLista(){
+  const pane=document.getElementById('cal-pane-planos');
+  let h='<div class="cp-bar">';
+  h+='<button class="cp-btn novo" onclick="cpNovo()">＋ Novo calendário</button>';
+  h+='<span class="cp-dica">Calendários de estratégia, marketing, lançamento ou qualquer assunto. Cada um fica ligado a um evento.</span>';
+  h+='</div>';
+  h+=cpFormHtml();
+  if(!_cpLista.length){
+    h+='<div class="cp-vazio">Nenhum calendário ainda. Clique em <b>＋ Novo calendário</b>, dê um nome e escolha o evento.</div>';
+  }else{
+    h+='<div class="cp-cards">';
+    _cpLista.forEach(function(c){
+      const n=Number(c.dias||0);
+      h+='<button class="cp-card" onclick="cpAbrir(\''+c.id+'\')">';
+      h+='<span class="cp-tipo">'+cpEsc(c.tipo||'Outro')+'</span>';
+      h+='<span class="nm">'+cpEsc(c.nome)+'</span>';
+      h+='<span class="ev">📅 '+cpEsc(cpEventoLabel(c))+'</span>';
+      h+='<span class="rod"><span>'+n+(n===1?' dia preenchido':' dias preenchidos')+'</span><span>'+(c.atualizado_em?'Atualizado '+fmtDS(String(c.atualizado_em).slice(0,10)):'')+'</span></span>';
+      h+='</button>';
+    });
+    h+='</div>';
+  }
+  pane.innerHTML=h;
+  const f=document.getElementById('cp-f-nome'); if(f) f.focus();
+}
+
+function cpNovo(){ _cpForm={id:null}; cpRenderLista(); }
+function cpEditar(){ if(!_cpAtual) return; _cpForm={id:_cpAtual.id}; cpRenderCal(); }
+function cpFecharForm(){ _cpForm=null; if(_cpAtual) cpRenderCal(); else cpRenderLista(); }
+
+async function cpSalvarForm(){
+  const nome=(document.getElementById('cp-f-nome').value||'').trim();
+  if(!nome){ document.getElementById('cp-f-nome').focus(); return; }
+  const tipo=document.getElementById('cp-f-tipo').value;
+  const evId=document.getElementById('cp-f-evento').value||null;
+  const ev=cpEvento(evId);
+  const evNome=ev?((ev.evento||'Evento')+' · '+fmtDS(ev.inicio)):null;
+  const editId=_cpForm&&_cpForm.id?_cpForm.id:null;
+  try{
+    const r=await rpc('admin_calplan_salvar',{p_id:editId,p_nome:nome,p_tipo:tipo,p_evento_id:evId,p_evento_nome:evNome});
+    _cpForm=null;
+    const lista=await rpc('admin_calplan_listar'); _cpLista=Array.isArray(lista)?lista:[];
+    const id=editId||(r&&r.id);
+    if(id) cpAbrir(id); else cpRenderLista();
+  }catch(e){
+    console.error(e); alert('Não foi possível salvar o calendário. Tente de novo.');
+  }
+}
+
+async function cpExcluir(){
+  if(!_cpAtual) return;
+  if(!confirm('Excluir o calendário "'+_cpAtual.nome+'" e todas as anotações dele? Não dá para desfazer.')) return;
+  try{
+    await rpc('admin_calplan_excluir',{p_id:_cpAtual.id});
+    _cpLista=_cpLista.filter(function(x){return x.id!==_cpAtual.id;});
+    _cpAtual=null; _cpDias={}; cpRenderLista();
+  }catch(e){ console.error(e); alert('Não foi possível excluir. Tente de novo.'); }
+}
+
+async function cpAbrir(id){
+  const c=_cpLista.find(function(x){return x.id===id;}); if(!c) return;
+  _cpAtual=c; _cpDias={};
+  const t=new Date(); _cpY=t.getFullYear(); _cpM=t.getMonth();
+  const pane=document.getElementById('cal-pane-planos');
+  pane.innerHTML='<div class="empty-state">Abrindo calendário…</div>';
+  try{
+    const r=await rpc('admin_calplan_dias',{p_id:id});
+    (Array.isArray(r)?r:[]).forEach(function(d){ _cpDias[String(d.data).slice(0,10)]={texto:d.texto||'',tag:d.tag||''}; });
+  }catch(e){ console.error(e); }
+  cpRenderCal();
+}
+function cpVoltar(){ cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); }
+
+function cpMes(delta){
+  cpFlushTodos();
+  _cpM+=delta;
+  if(_cpM<0){_cpM=11;_cpY--;} if(_cpM>11){_cpM=0;_cpY++;}
+  cpRenderCal();
+}
+function cpIrEvento(){
+  const e=cpEvento(_cpAtual&&_cpAtual.evento_id); if(!e||!e.inicio) return;
+  cpFlushTodos();
+  const p=String(e.inicio).split('-'); _cpY=Number(p[0]); _cpM=Number(p[1])-1; cpRenderCal();
+}
+function cpHoje(){ cpFlushTodos(); const t=new Date(); _cpY=t.getFullYear(); _cpM=t.getMonth(); cpRenderCal(); }
+
+function cpDx(key){
+  const e=cpEvento(_cpAtual&&_cpAtual.evento_id); if(!e||!e.inicio) return '';
+  const a=new Date(key+'T12:00:00'), b=new Date(String(e.inicio).slice(0,10)+'T12:00:00');
+  const diff=Math.round((b-a)/864e5);
+  if(diff===0) return 'DIA D';
+  return diff>0?'D-'+diff:'D+'+(-diff);
+}
+
+function cpRenderCal(){
+  const c=_cpAtual; if(!c) return;
+  const pane=document.getElementById('cal-pane-planos');
+  const ev=cpEvento(c.evento_id);
+  let h='<div class="cp-bar">';
+  h+='<button class="cp-btn" onclick="cpVoltar()">← Todos os calendários</button>';
+  h+='<button class="cp-btn" onclick="cpEditar()">✎ Editar nome / evento</button>';
+  h+='<button class="cp-btn del" onclick="cpExcluir()">✕ Excluir</button>';
+  h+='<span class="cp-status" id="cp-status"></span>';
+  h+='</div>';
+  h+=cpFormHtml();
+  h+='<div class="cp-hd"><span class="cp-tipo">'+cpEsc(c.tipo||'Outro')+'</span><h2>'+cpEsc(c.nome)+'</h2>';
+  h+='<span class="ev">Evento: <b>'+cpEsc(cpEventoLabel(c))+'</b></span></div>';
+
+  h+='<div class="cp-nav">';
+  h+='<button class="seta" onclick="cpMes(-1)" title="Mês anterior">‹</button>';
+  h+='<span class="mes">'+CP_MESES[_cpM]+' '+_cpY+'</span>';
+  h+='<button class="seta" onclick="cpMes(1)" title="Próximo mês">›</button>';
+  h+='<button class="cp-btn" onclick="cpHoje()">Hoje</button>';
+  if(ev&&ev.inicio) h+='<button class="cp-btn" onclick="cpIrEvento()">Mês do evento</button>';
+  h+='<span class="cp-leg">';
+  CP_TAGS.slice(1).forEach(function(t){h+='<span><i style="background:'+t.c+'"></i>'+t.nome+'</span>';});
+  h+='</span></div>';
+
+  const first=new Date(_cpY,_cpM,1).getDay();
+  const total=new Date(_cpY,_cpM+1,0).getDate();
+  const hoje=cpHojeKey();
+  h+='<div class="cp-wrap"><div class="cp-grid">';
+  CP_WD.forEach(function(w){h+='<div class="cp-wd">'+w+'</div>';});
+  for(let i=0;i<first;i++) h+='<div class="cp-day fora"></div>';
+  for(let d=1;d<=total;d++){
+    const key=cpKey(_cpY,_cpM,d), wd=(first+d-1)%7, n=_cpDias[key]||{};
+    const dx=cpDx(key);
+    let cls='cp-day';
+    if(wd===0||wd===6) cls+=' fds';
+    if(key===hoje) cls+=' hoje';
+    if(key<hoje) cls+=' passado';
+    if(dx==='DIA D') cls+=' diad';
+    h+='<div class="'+cls+'"><div class="cp-dh"><span class="cp-num">'+d+'</span>';
+    h+='<select class="cp-tag" id="cp-tag-'+key+'" onchange="cpTagMudou(\''+key+'\')" title="Tipo de ação">';
+    CP_TAGS.forEach(function(t){h+='<option value="'+t.id+'"'+((n.tag||'')===t.id?' selected':'')+'>'+t.nome+'</option>';});
+    h+='</select><span class="cp-dx">'+dx+'</span></div>';
+    h+='<textarea id="cp-txt-'+key+'" placeholder="Escreva aqui…" oninput="cpQueue(\''+key+'\')" onblur="cpFlush(\''+key+'\')">'+cpEsc(n.texto||'')+'</textarea></div>';
+  }
+  const resto=(first+total)%7;
+  if(resto) for(let i=resto;i<7;i++) h+='<div class="cp-day fora"></div>';
+  h+='</div></div>';
+  pane.innerHTML=h;
+  for(let d=1;d<=total;d++) cpPintaTag(cpKey(_cpY,_cpM,d));
+  const f=document.getElementById('cp-f-nome'); if(f) f.focus();
+}
+
+function cpPintaTag(key){
+  const sel=document.getElementById('cp-tag-'+key); if(!sel) return;
+  const t=CP_TAGS.find(function(x){return x.id===sel.value;})||CP_TAGS[0];
+  sel.style.setProperty('--c',t.c);
+  sel.classList.toggle('on',!!sel.value);
+}
+function cpTagMudou(key){ cpPintaTag(key); cpQueue(key); cpFlush(key); }
+
+function cpQueue(key){
+  _cpPend[key]=true; cpSetStatus('Salvando…');
+  clearTimeout(_cpTimers[key]);
+  _cpTimers[key]=setTimeout(function(){cpFlush(key);},800);
+}
+function cpFlushTodos(){ Object.keys(_cpPend).forEach(function(k){ if(_cpPend[k]) cpFlush(k); }); }
+function cpFlush(key){
+  clearTimeout(_cpTimers[key]);
+  if(!_cpPend[key]||!_cpAtual) return;
+  const ta=document.getElementById('cp-txt-'+key), sel=document.getElementById('cp-tag-'+key);
+  if(!ta||!sel){ _cpPend[key]=false; return; }
+  const texto=ta.value, tag=sel.value, calId=_cpAtual.id;
+  if(!texto.trim()&&!tag) delete _cpDias[key]; else _cpDias[key]={texto:texto,tag:tag};
+  _cpPend[key]=false;
+  _cpChains[key]=(_cpChains[key]||Promise.resolve()).then(function(){
+    return rpc('admin_calplan_dia_salvar',{p_id:calId,p_data:key,p_texto:texto,p_tag:tag||null});
+  }).then(function(){
+    if(!Object.keys(_cpPend).some(function(k){return _cpPend[k];})) cpSetStatus('✓ Salvo','#1D8A55');
+  }).catch(function(e){
+    console.error(e); _cpPend[key]=true; cpSetStatus('Erro ao salvar — confira a internet','#D23A3A');
+  });
 }
 
 function calRender(){
@@ -13853,6 +14173,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <button class="cal-view-btn" data-view="tarefas" onclick="calSetView('tarefas')">Tarefas</button>
           <button class="cal-view-btn" data-view="checklist" onclick="calSetView('checklist')">Checklist pré-evento</button>
           <button class="cal-view-btn cal-view-active" data-view="completo" onclick="calSetView('completo')">Calendário completo</button>
+          <button class="cal-view-btn" data-view="planos" onclick="calSetView('planos')" title="Calendários de estratégia, marketing, lançamento e assuntos específicos">🗓 Calendários de planejamento</button>
           <span id="cal-save-ind" style="align-self:center;font-size:11px;font-weight:600;margin-left:auto;"></span>
           <button id="cal-btn-exportar" onclick="exportarCalendarioExcel()" style="display:none;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:8px 16px;cursor:pointer;">⬇ Baixar Excel</button>
         </div>
@@ -13861,6 +14182,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div id="cal-pane-prazos" style="display:none;"></div>
         <div id="cal-pane-tarefas" style="display:none;"></div>
         <div id="cal-pane-checklist" style="display:none;"></div>
+        <div id="cal-pane-planos" style="display:none;"></div>
         <div id="cal-pane-completo">
           <div id="cal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:20px;"></div>
         </div>
