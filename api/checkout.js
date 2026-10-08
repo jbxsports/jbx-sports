@@ -106,9 +106,11 @@ async function criarInscricoes(itens, pedido, cupom, formaPagamento, eventoNome)
 // O fluxo pago é notificado pelo api/mp-webhook.js. Como a inscrição
 // gratuita não passa pelo Mercado Pago, o aviso sai daqui.
 // ══════════════════════════════════════════════════════════════
-const ZAPI_INSTANCE     = '3F457758AC68513DE147E6B1C9468980';
-const ZAPI_TOKEN        = 'CD007B54BA8BD1111B802279';
-const ZAPI_CLIENT_TOKEN = 'Fbe7af069c70a4f1281ad63eee20c5cbeS';
+// Credenciais do Z-API ficam nas variáveis de ambiente da Vercel
+// (ZAPI_INSTANCE, ZAPI_TOKEN, ZAPI_CLIENT_TOKEN). Nunca escrever no código.
+const ZAPI_INSTANCE     = process.env.ZAPI_INSTANCE     || '';
+const ZAPI_TOKEN        = process.env.ZAPI_TOKEN        || '';
+const ZAPI_CLIENT_TOKEN = process.env.ZAPI_CLIENT_TOKEN || '';
 const ZAPI_URL          = `https://api.z-api.io/instances/${ZAPI_INSTANCE}/token/${ZAPI_TOKEN}/send-text`;
 
 // ══════════════════════════════════════════════════════════════
@@ -120,6 +122,10 @@ const WHATSAPP_ATIVO = process.env.WHATSAPP_ATIVO === 'true';
 async function enviarWhatsApp(telefone, mensagem) {
   if (!WHATSAPP_ATIVO) {
     console.log('[checkout] WhatsApp DESLIGADO (WHATSAPP_ATIVO != true) — nada enviado.');
+    return;
+  }
+  if (!ZAPI_INSTANCE || !ZAPI_TOKEN || !ZAPI_CLIENT_TOKEN) {
+    console.error('[checkout] Credenciais do Z-API ausentes nas variáveis de ambiente — nada enviado.');
     return;
   }
   try {
