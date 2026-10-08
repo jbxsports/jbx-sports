@@ -4505,13 +4505,18 @@ function histTile(label, valor, cls){
 }
 
 // Monta o nome como link clicável. Usado nas duas listas de inscritos.
+/* ── ESCAPE (segurança 08/10/2026) ──
+   Todo texto que vem de fora (atleta, inscrição, telefone) passa por aqui
+   antes de virar HTML. hEsc = texto; jsAttr = texto dentro de onclick="...('x')". */
+function hEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function jsAttr(v){return hEsc(String(v==null?'':v).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/[\r\n]+/g,' '));}
+function clsSafe(v){return String(v==null?'':v).replace(/[^a-zA-Z0-9_-]/g,'');}
 function histNomeLink(nome, cpf){
   const n = nome || '—';
   const d = histCpf(cpf);
-  if(!d) return n;
-  const nEsc = String(n).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  if(!d) return hEsc(n);
   return '<span class="hist-nome-link" title="Ver histórico completo deste atleta" '
-    + 'onclick="event.stopPropagation();abrirHistoricoAtleta(\'' + d + '\',\'' + nEsc + '\')">' + n + '</span>';
+    + 'onclick="event.stopPropagation();abrirHistoricoAtleta(\'' + jsAttr(d) + '\',\'' + jsAttr(n) + '\')">' + hEsc(n) + '</span>';
 }
 
 function renderInscritos(arr){
@@ -4526,16 +4531,16 @@ function renderInscritos(arr){
   if(!arr.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--muted);">Nenhum inscrito ainda.</td></tr>';return;}
   tb.innerHTML=arr.map(i=>`<tr>
     <td style="font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${histNomeLink(i.nome, i.cpf)}</td>
-    <td style="font-size:12px;color:var(--muted);">${i.cpf||'—'}</td>
-    <td>${i.kit||'—'}</td>
-    <td style="font-size:12px;color:var(--orange);">${i.lote_nome||'—'}</td>
-    <td>${i.modalidade||'—'}</td><td>${i.tamanho_camisa||'—'}</td>
+    <td style="font-size:12px;color:var(--muted);">${hEsc(i.cpf||'—')}</td>
+    <td>${hEsc(i.kit||'—')}</td>
+    <td style="font-size:12px;color:var(--orange);">${hEsc(i.lote_nome||'—')}</td>
+    <td>${hEsc(i.modalidade||'—')}</td><td>${hEsc(i.tamanho_camisa||'—')}</td>
     <td style="font-size:12px;">${brl(i.valor_base)}</td>
     <td style="font-size:12px;color:var(--muted);">${Number(i.valor_taxa||0) > 0 ? brl(i.valor_taxa) : '—'}</td>
     <td style="color:var(--orange);font-weight:700;">${brl(i.valor)}</td>
-    <td><span class="status-pill status-${i.status||'pendente'}">${i.status||'pendente'}</span></td>
+    <td><span class="status-pill status-${clsSafe(i.status||'pendente')}">${hEsc(i.status||'pendente')}</span></td>
     <td style="font-size:12px;color:var(--muted);">${fmtData(i.criado_em)}</td>
-    <td style="white-space:nowrap;">${wppBotaoInscrito(Object.assign({evento:(currentEvento&&currentEvento.nome)||''}, i))} <button class="edit-btn" onclick='editarInscrito(${JSON.stringify(i)})'>Editar</button></td>
+    <td style="white-space:nowrap;">${wppBotaoInscrito(Object.assign({evento:(currentEvento&&currentEvento.nome)||''}, i))} <button class="edit-btn" onclick='editarInscrito(${hEsc(JSON.stringify(i))})'>Editar</button></td>
   </tr>`).join('');
 }
 function filtrarInscritos(){
@@ -6203,13 +6208,13 @@ function wppBotaoInscrito(i){
     .split('{modalidade}').join(i.modalidade || '')
     .split('{kit}').join(i.kit || '');
   const link = 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
-  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener" title="' + (i.telefone||'') + '">💬 Chamar</a>';
+  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener" title="' + hEsc(i.telefone||'') + '">💬 Chamar</a>';
 }
 
 function wppBotao(pessoa, rotulo){
   const link = wppLink(pessoa);
   if(!link) return '<span class="wpp-btn wpp-off" title="Sem telefone">sem tel.</span>';
-  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener">💬 ' + (rotulo || 'Chamar') + '</a>';
+  return '<a class="wpp-btn" href="' + link + '" target="_blank" rel="noopener">💬 ' + hEsc(rotulo || 'Chamar') + '</a>';
 }
 
 /* ── CADASTROS ── */
@@ -6960,9 +6965,9 @@ function renderUsoCupom(arr){
   if(!arr.length){el.innerHTML='<div class="empty-state" style="padding:20px;">Nenhum uso registrado.</div>';return;}
   el.innerHTML=`<table class="data-table"><thead><tr><th>Nome</th><th>Data</th><th>Kit</th></tr></thead>
     <tbody>${arr.map(r=>`<tr>
-      <td style="font-weight:600;">${r.nome||'—'}</td>
+      <td style="font-weight:600;">${hEsc(r.nome||'—')}</td>
       <td style="font-size:12px;color:var(--muted);">${fmtData(r.criado_em)}</td>
-      <td style="font-size:13px;">${r.kit||'—'}</td>
+      <td style="font-size:13px;">${hEsc(r.kit||'—')}</td>
     </tr>`).join('')}</tbody></table>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;">${arr.length} uso${arr.length!==1?'s':''}</div>`;
 }
