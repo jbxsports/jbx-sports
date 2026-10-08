@@ -1326,6 +1326,20 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .cp-mais{grid-column:1/-1;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:var(--muted);background:var(--card);border:0;border-bottom:1px solid var(--border);padding:10px;cursor:pointer;}
 .cp-mais:last-child{border-bottom:0;border-top:1px solid var(--border);}
 .cp-mais:hover{color:var(--orange);}
+.cp-pr{background:#f5f3f0;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;}
+.cp-pr .tit{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
+.cp-pr .linha{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
+.cp-pr .lbl{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);width:70px;padding-top:9px;}
+.cp-pr .acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.cp-pr .cp-btn[disabled]{opacity:.5;cursor:not-allowed;}
+.cp-op{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;text-align:left;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:10px;padding:9px 14px;cursor:pointer;display:grid;gap:2px;}
+.cp-op small{font-size:11px;font-weight:400;color:var(--muted);}
+.cp-op.on{border-color:var(--orange);box-shadow:inset 0 0 0 1px var(--orange);color:var(--orange);}
+.cp-meses{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0;}
+.cp-mchk{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--text);background:var(--card);border:1px solid var(--border);border-radius:999px;padding:5px 11px 5px 8px;cursor:pointer;text-transform:capitalize;}
+.cp-mchk input{accent-color:var(--orange);margin:0;}
+.cp-mchk small{font-size:10.5px;color:#fff;background:var(--orange);border-radius:999px;padding:0 6px;line-height:16px;}
+.cp-mchk.on{border-color:var(--orange);}
 .cp-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));min-width:860px;}
 .cp-wd{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 10px;background:#f5f3f0;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
 .cp-day{aspect-ratio:1/1;display:flex;flex-direction:column;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:0;overflow:hidden;position:relative;}
@@ -8924,7 +8938,7 @@ async function cpAbrir(id){
   cpRenderCal();
   cpIrMes(cpMiHoje(),false);
 }
-function cpVoltar(){ cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
+function cpVoltar(){ _cpPrint=null; cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
 
 function cpLimiteTopo(){
   const t=document.getElementById('cp-topo'), w=document.querySelector('.cp-wd');
@@ -8978,9 +8992,11 @@ function cpRenderCal(){
   let h='<div class="cp-bar">';
   h+='<button class="cp-btn" onclick="cpVoltar()">← Todos os calendários</button>';
   h+='<button class="cp-btn" onclick="cpEditar()">✎ Editar nome / evento</button>';
+  h+='<button class="cp-btn" onclick="cpPrintAbrir()">🖨 Imprimir</button>';
   h+='<button class="cp-btn del" onclick="cpExcluir()">✕ Excluir</button>';
   h+='<span class="cp-status" id="cp-status"></span>';
   h+='</div>';
+  h+='<div id="cp-print"></div>';
   h+=cpFormHtml();
   h+='<div class="cp-topo" id="cp-topo">';
   h+='<div class="cp-hd"><span class="cp-tipo">'+cpEsc(c.tipo||'Outro')+'</span><h2>'+cpEsc(c.nome)+'</h2>';
@@ -9034,6 +9050,7 @@ function cpRenderCal(){
   cpAjustaTopo();
   window.scrollTo(0,scrollAntes);
   cpMesVisivel();
+  cpPrintRender();
   const f=document.getElementById('cp-f-nome'); if(f) f.focus();
 }
 
@@ -9043,6 +9060,159 @@ function cpAjustaTopo(){
   document.querySelectorAll('.cp-wd').forEach(function(w){w.style.top=top+'px';});
 }
 window.addEventListener('resize',function(){cpAjustaTopo();});
+
+/* ── IMPRIMIR (calendário mês a mês ou lista) ── */
+let _cpPrint=null; // null = painel fechado | {fmt:'cal'|'lista', meses:{mi:true}}
+function cpPrintMesesDisponiveis(){
+  let ini=_cpIni, fim=_cpFim;
+  Object.keys(_cpDias).forEach(function(k){const mi=cpMiDe(k); if(mi<ini) ini=mi; if(mi>fim) fim=mi;});
+  const out=[]; for(let mi=ini;mi<=fim;mi++) out.push(mi); return out;
+}
+function cpPrintContar(mi){
+  const y=Math.floor(mi/12), m=mi%12, total=new Date(y,m+1,0).getDate(); let n=0;
+  for(let d=1;d<=total;d++){ if(_cpDias[cpKey(y,m,d)]) n++; }
+  return n;
+}
+function cpPrintAbrir(){
+  cpFlushTodos();
+  const meses={}; const hoje=cpMiHoje();
+  cpPrintMesesDisponiveis().forEach(function(mi){ if(mi>=hoje && cpPrintContar(mi)) meses[mi]=true; });
+  if(!Object.keys(meses).length) meses[hoje]=true;
+  _cpPrint={fmt:'cal',meses:meses};
+  cpPrintRender();
+}
+function cpPrintFechar(){ _cpPrint=null; const el=document.getElementById('cp-print'); if(el) el.innerHTML=''; }
+function cpPrintFmt(f){ _cpPrint.fmt=f; cpPrintRender(); }
+function cpPrintMes(mi,on){ if(on) _cpPrint.meses[mi]=true; else delete _cpPrint.meses[mi]; cpPrintRender(); }
+function cpPrintTodos(on){
+  _cpPrint.meses={};
+  if(on) cpPrintMesesDisponiveis().forEach(function(mi){_cpPrint.meses[mi]=true;});
+  cpPrintRender();
+}
+function cpPrintRender(){
+  const el=document.getElementById('cp-print'); if(!el||!_cpPrint) return;
+  const sel=Object.keys(_cpPrint.meses).length;
+  let h='<div class="cp-pr">';
+  h+='<div class="tit">Imprimir</div>';
+  h+='<div class="linha"><span class="lbl">Formato</span>';
+  h+='<button class="cp-op'+(_cpPrint.fmt==='cal'?' on':'')+'" onclick="cpPrintFmt(\'cal\')">🗓 Calendário <small>um mês por folha, paisagem</small></button>';
+  h+='<button class="cp-op'+(_cpPrint.fmt==='lista'?' on':'')+'" onclick="cpPrintFmt(\'lista\')">☰ Lista <small>só os dias preenchidos, em ordem</small></button>';
+  h+='</div>';
+  h+='<div class="linha"><span class="lbl">Meses</span><div class="cp-meses">';
+  cpPrintMesesDisponiveis().forEach(function(mi){
+    const n=cpPrintContar(mi), on=!!_cpPrint.meses[mi];
+    h+='<label class="cp-mchk'+(on?' on':'')+'"><input type="checkbox"'+(on?' checked':'')+' onchange="cpPrintMes('+mi+',this.checked)">'
+      +CP_MESES[mi%12].slice(0,3)+'/'+String(Math.floor(mi/12)).slice(2)
+      +(n?' <small>'+n+'</small>':'')+'</label>';
+  });
+  h+='</div></div>';
+  h+='<div class="acoes"><button class="cp-btn novo" onclick="cpPrintGo()"'+(sel?'':' disabled')+'>🖨 Imprimir '+sel+(sel===1?' mês':' meses')+'</button>';
+  h+='<button class="cp-btn" onclick="cpPrintTodos(true)">Marcar todos</button>';
+  h+='<button class="cp-btn" onclick="cpPrintTodos(false)">Desmarcar</button>';
+  h+='<button class="cp-btn" onclick="cpPrintFechar()">Cancelar</button>';
+  h+='<span class="cp-dica">O número pequeno ao lado do mês = dias preenchidos.</span></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
+function cpPrintGo(){
+  cpFlushTodos();
+  const meses=Object.keys(_cpPrint.meses).map(Number).sort(function(a,b){return a-b;});
+  if(!meses.length) return;
+  if(_cpPrint.fmt==='lista') cpPrintLista(meses); else cpPrintCal(meses);
+}
+function cpPrintTag(id){
+  const t=CP_TAGS.find(function(x){return x.id===id;});
+  return (t&&id)?'<span class="tg" style="color:'+t.c+';border-color:'+t.c+'">'+t.nome+'</span>':'';
+}
+function cpPrintCab(sub){
+  const c=_cpAtual, hoje=new Date().toLocaleDateString('pt-BR');
+  return '<div class="hd"><div><div class="k">'+cpEsc(c.tipo||'Planejamento')+' · JBX Sports</div><h1>'+cpEsc(c.nome)+'</h1>'
+    +'<div class="ev">Evento: <b>'+cpEsc(cpEventoLabel(c))+'</b></div></div>'
+    +'<div class="r"><b>'+sub+'</b>impresso em '+hoje+'</div></div>';
+}
+const CP_PR_BASE='body{font-family:Ubuntu,Arial,Helvetica,sans-serif;color:#2a2520;margin:0;}'
+  +'*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+  +'.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #ff751f;padding-bottom:7px;margin-bottom:8px;}'
+  +'.hd .k{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff751f;font-weight:700;}'
+  +'.hd h1{font-size:20px;margin:2px 0 0;line-height:1.1;}'
+  +'.hd .ev{font-size:11px;color:#6b635b;margin-top:2px;}.hd .ev b{color:#2a2520;}'
+  +'.hd .r{text-align:right;font-size:10.5px;color:#6b635b;line-height:1.5;}'
+  +'.hd .r b{display:block;font-size:14px;color:#2a2520;text-transform:uppercase;letter-spacing:.5px;}'
+  +'.tg{display:inline-block;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border:1px solid;border-radius:8px;padding:0 5px;line-height:13px;}';
+
+function cpPrintCal(meses){
+  const hojeK=cpHojeKey();
+  const css='@page{size:A4 landscape;margin:8mm 9mm;}'+CP_PR_BASE
+    +'.pg{padding:0 1px;page-break-after:always;break-after:page;}.pg:last-child{page-break-after:auto;break-after:auto;}'
+    +'table{width:100%;border-collapse:collapse;table-layout:fixed;}'
+    +'th{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#6b635b;text-align:left;padding:4px 6px;background:#f5f3f0;border:1px solid #d9d4ce;}'
+    +'td{border:1px solid #d9d4ce;vertical-align:top;padding:3px 5px;overflow:hidden;}'
+    +'td.fora{background:#f5f3f0;}'
+    +'td.diad{background:#fff1e6;}'
+    +'.dh{display:flex;align-items:center;gap:4px;margin-bottom:2px;}'
+    +'.n{font-weight:700;font-size:12px;}.fds .n{color:#8a8178;}'
+    +'.dx{margin-left:auto;font-size:7.5px;font-weight:700;color:#a39b92;}'
+    +'.diad .dx{color:#fff;background:#ff751f;border-radius:3px;padding:0 4px;}'
+    +'.tx{font-size:8.5px;line-height:1.3;white-space:pre-wrap;word-wrap:break-word;}';
+  let body='';
+  meses.forEach(function(mi){
+    const y=Math.floor(mi/12), m=mi%12, first=new Date(y,m,1).getDay(), total=new Date(y,m+1,0).getDate();
+    const sem=Math.ceil((first+total)/7);
+    const alt=Math.floor(158/sem); // mm disponíveis para as semanas na folha
+    body+='<div class="pg">'+cpPrintCab(CP_MESES[m]+' '+y);
+    body+='<table><thead><tr>';
+    CP_WD.forEach(function(w){body+='<th>'+w+'</th>';});
+    body+='</tr></thead><tbody>';
+    let cel=0;
+    for(let s=0;s<sem;s++){
+      body+='<tr style="height:'+alt+'mm">';
+      for(let wd=0;wd<7;wd++,cel++){
+        const d=cel-first+1;
+        if(d<1||d>total){ body+='<td class="fora"></td>'; continue; }
+        const key=cpKey(y,m,d), n=_cpDias[key]||{}, dx=cpDx(key);
+        let cls=(wd===0||wd===6)?'fds':'';
+        if(dx==='DIA D') cls+=' diad';
+        body+='<td class="'+cls+'"><div class="dh"><span class="n">'+d+'</span>'+cpPrintTag(n.tag)+'<span class="dx">'+dx+'</span></div>'
+          +(n.texto?'<div class="tx">'+cpEsc(n.texto)+'</div>':'')+'</td>';
+      }
+      body+='</tr>';
+    }
+    body+='</tbody></table></div>';
+  });
+  mktPrintDoc(css,body,_cpAtual.nome+' — calendário');
+}
+
+function cpPrintLista(meses){
+  const css='@page{size:A4 portrait;margin:12mm 12mm 14mm;}'+CP_PR_BASE
+    +'h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;margin:14px 0 4px;padding:5px 8px;background:#f5f3f0;border-left:4px solid #ff751f;}'
+    +'table{width:100%;border-collapse:collapse;}'
+    +'td{padding:6px 6px;border-bottom:1px solid #e3ded8;font-size:11.5px;vertical-align:top;}'
+    +'td.c{width:18px;padding-top:7px;}.bx{display:inline-block;width:11px;height:11px;border:1.5px solid #2a2520;border-radius:2px;}'
+    +'td.d{width:62px;white-space:nowrap;font-weight:700;}td.d small{display:block;font-weight:400;color:#8a8178;font-size:9.5px;text-transform:uppercase;}'
+    +'td.x{width:46px;font-size:9px;font-weight:700;color:#a39b92;white-space:nowrap;}'
+    +'td.t{line-height:1.4;white-space:pre-wrap;}td.t .tg{margin-right:6px;vertical-align:1px;}'
+    +'tr.diad td{background:#fff1e6;}'
+    +'tr{page-break-inside:avoid;}h2{page-break-after:avoid;}'
+    +'.vz{font-size:11px;color:#8a8178;padding:6px 8px;}';
+  let tot=0, body='';
+  meses.forEach(function(mi){
+    const y=Math.floor(mi/12), m=mi%12, total=new Date(y,m+1,0).getDate();
+    let linhas='';
+    for(let d=1;d<=total;d++){
+      const key=cpKey(y,m,d), n=_cpDias[key]; if(!n) continue;
+      tot++;
+      const dx=cpDx(key), wd=new Date(y,m,d).getDay();
+      linhas+='<tr'+(dx==='DIA D'?' class="diad"':'')+'><td class="c"><span class="bx"></span></td>'
+        +'<td class="d">'+cpPad(d)+'/'+cpPad(m+1)+'<small>'+CP_WD[wd]+'</small></td>'
+        +'<td class="x">'+dx+'</td>'
+        +'<td class="t">'+cpPrintTag(n.tag)+cpEsc(n.texto||'')+'</td></tr>';
+    }
+    body+='<h2>'+CP_MESES[m]+' '+y+'</h2>';
+    body+=linhas?'<table>'+linhas+'</table>':'<div class="vz">Nada planejado neste mês.</div>';
+  });
+  body=cpPrintCab(tot+(tot===1?' dia planejado':' dias planejados'))+body;
+  mktPrintDoc(css,body,_cpAtual.nome+' — lista');
+}
 
 function cpPintaTag(key){
   const sel=document.getElementById('cp-tag-'+key); if(!sel) return;
