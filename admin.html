@@ -1313,6 +1313,12 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .cp-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;color:var(--muted);margin-left:auto;}
 .cp-leg i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
 .cp-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+/* cabeçalho travado: título + mês ficam 60px abaixo do topo (encostado no menu); dias da semana logo abaixo */
+.cp-topo{position:sticky;top:60px;z-index:6;background:var(--bg);padding-top:8px;box-shadow:0 8px 8px -8px rgba(42,37,32,.12);}
+.cp-topo .cp-hd{margin-bottom:6px;}
+.cp-topo .cp-nav{margin-bottom:0;padding-bottom:10px;}
+.cp-wd{position:sticky;top:150px;z-index:4;}
+@media(min-width:960px){.cp-wrap{overflow:clip;}.cp-grid{min-width:0;}}
 .cp-grid{display:grid;grid-template-columns:repeat(7,minmax(120px,1fr));min-width:860px;}
 .cp-wd{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:8px 10px;background:#f5f3f0;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
 .cp-day{aspect-ratio:1/1;display:flex;flex-direction:column;border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-width:0;overflow:hidden;position:relative;}
@@ -8928,6 +8934,7 @@ function cpRenderCal(){
   h+='<span class="cp-status" id="cp-status"></span>';
   h+='</div>';
   h+=cpFormHtml();
+  h+='<div class="cp-topo" id="cp-topo">';
   h+='<div class="cp-hd"><span class="cp-tipo">'+cpEsc(c.tipo||'Outro')+'</span><h2>'+cpEsc(c.nome)+'</h2>';
   h+='<span class="ev">Evento: <b>'+cpEsc(cpEventoLabel(c))+'</b></span></div>';
 
@@ -8940,6 +8947,7 @@ function cpRenderCal(){
   h+='<span class="cp-leg">';
   CP_TAGS.slice(1).forEach(function(t){h+='<span><i style="background:'+t.c+'"></i>'+t.nome+'</span>';});
   h+='</span></div>';
+  h+='</div>'; // fecha cp-topo
 
   const first=new Date(_cpY,_cpM,1).getDay();
   const total=new Date(_cpY,_cpM+1,0).getDate();
@@ -8966,8 +8974,16 @@ function cpRenderCal(){
   h+='</div></div>';
   pane.innerHTML=h;
   for(let d=1;d<=total;d++) cpPintaTag(cpKey(_cpY,_cpM,d));
+  cpAjustaTopo();
   const f=document.getElementById('cp-f-nome'); if(f) f.focus();
 }
+
+function cpAjustaTopo(){
+  const t=document.getElementById('cp-topo'); if(!t) return;
+  const top=60+t.offsetHeight;
+  document.querySelectorAll('.cp-wd').forEach(function(w){w.style.top=top+'px';});
+}
+window.addEventListener('resize',function(){cpAjustaTopo();});
 
 function cpPintaTag(key){
   const sel=document.getElementById('cp-tag-'+key); if(!sel) return;
