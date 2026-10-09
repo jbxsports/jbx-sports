@@ -12948,6 +12948,11 @@ function mktMarcasNosFiltros(evId){
   (mktData.posts||[]).forEach(p=>{ if(p.marca_id&&(!evId||p.evento_id===evId)) add(p.marca_id,mktMarcaNome(p.marca_id)); });
   return out.sort((a,b)=>a.label.localeCompare(b.label));
 }
+/* Contador do botão "Patrocínios": zerado em 09/10/2026 a pedido do Stephano.
+   Só conta pendência de marca fechada no funil A PARTIR desta data.
+   A lista dentro do botão continua mostrando tudo, inclusive o antigo. */
+const MKT_OBRIG_CONTAR_DESDE='2026-10-09';
+function mktObrigConta(f){ return !!(f && f.fechado_em && String(f.fechado_em).slice(0,10) >= MKT_OBRIG_CONTAR_DESDE); }
 function mktObrigCalcular(){
   const porCal={};
   mktFechadas.forEach(f=>{(porCal[f.calendario_id]=porCal[f.calendario_id]||[]).push(f);});
@@ -12956,7 +12961,7 @@ function mktObrigCalcular(){
     const marcas=porCal[cal].filter(f=>{const it=f.itens||{};return ['post','stories','reels','carrossel'].some(k=>it[k]&&it[k].on);});
     if(!marcas.length)return;
     const evs=(mktData&&mktData.eventos||[]).filter(e=>String(e.calendario_id||'')===String(cal));
-    if(!evs.length){ soltos.push({nome:marcas[0].evento_nome||'Evento',marcas:marcas}); pend+=marcas.length; return; }
+    if(!evs.length){ soltos.push({nome:marcas[0].evento_nome||'Evento',marcas:marcas}); pend+=marcas.filter(mktObrigConta).length; return; }
     const evIds=evs.map(e=>e.id);
     const posts=(mktData.posts||[]).filter(p=>evIds.indexOf(p.evento_id)!==-1);
     const linhas=marcas.slice().sort((a,b)=>patCotaPeso(a.cota)-patCotaPeso(b.cota)||String(a.nome).localeCompare(String(b.nome))).map(function(f){
@@ -12964,7 +12969,7 @@ function mktObrigCalcular(){
       const cels=MKT_MIDIA_PAT.map(function(m){
         const it=f.itens[m.id]; const quer=(it&&it.on)?(Number(it.qtd)||1):0;
         const tem=meus.filter(p=>m.f.indexOf(p.formato)!==-1).length;
-        if(quer>tem)pend+=quer-tem;
+        if(quer>tem&&mktObrigConta(f))pend+=quer-tem;
         return {m:m,quer:quer,tem:tem};
       });
       const recente=f.fechado_em&&(Date.now()-new Date(f.fechado_em).getTime())<7*864e5&&!meus.length;
@@ -12972,7 +12977,7 @@ function mktObrigCalcular(){
     });
     const car=marcas.filter(f=>f.itens.carrossel&&f.itens.carrossel.on);
     const carFeitos=posts.filter(p=>p.tipo==='patrocinador'&&!p.marca_id&&!p.patrocinador_id&&p.formato==='carrossel');
-    if(car.length&&!carFeitos.length)pend++;
+    if(car.some(mktObrigConta)&&!carFeitos.length)pend++;
     ligados.push({ev:evs[0],linhas:linhas,car:car,carFeitos:carFeitos});
   });
   ligados.sort((a,b)=>String(a.ev.data_prova||'9').localeCompare(String(b.ev.data_prova||'9')));
