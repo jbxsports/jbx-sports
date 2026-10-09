@@ -794,6 +794,24 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .mkt-drop-ok{outline:2px dashed rgba(255,117,31,.6);outline-offset:-2px;}
 /* CARD */
 .mkt-card{background:#fdfcfb;border:1px solid var(--border);border-left:4px solid #999;border-radius:9px;padding:9px 10px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
+/* SEMANA no celular: agenda em lista (um bloco por dia, cards na largura toda) */
+.mkt-ag{display:grid;gap:12px;}
+.mkt-ag-dia{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.mkt-ag-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f5f3f0;border-bottom:1px solid var(--border);font-family:'Ubuntu',sans-serif;}
+.mkt-ag-hd .dn{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);}
+.mkt-ag-hd .dd{font-size:18px;font-weight:700;color:var(--text);line-height:1;}
+.mkt-ag-hd .qt{font-size:11.5px;color:var(--muted);}
+.mkt-ag-hd .fer{font-size:10.5px;font-weight:700;color:#b45309;background:#fef3c7;border-radius:6px;padding:2px 6px;}
+.mkt-ag-hd.hoje{background:rgba(255,117,31,.10);}
+.mkt-ag-hd.hoje .dn,.mkt-ag-hd.hoje .dd{color:var(--orange);}
+.mkt-ag-hd .add{margin-left:auto;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:var(--card);border:1px solid rgba(255,117,31,.35);border-radius:8px;padding:6px 10px;cursor:pointer;}
+.mkt-ag-lista{display:grid;gap:8px;padding:10px;}
+.mkt-ag-item{display:grid;grid-template-columns:46px minmax(0,1fr);gap:8px;align-items:start;}
+.mkt-ag-hora{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;color:var(--text);padding-top:10px;font-variant-numeric:tabular-nums;}
+.mkt-ag-hora.sem{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding-top:12px;}
+.mkt-ag-item .mkt-card{margin:0;}
+.mkt-ag-item .mkt-card-titulo{font-size:13.5px;line-height:1.35;white-space:normal;}
+.mkt-ag-vazio{padding:10px 12px;font-size:12px;color:var(--muted);}
 .mkt-card:hover{box-shadow:0 3px 10px rgba(42,37,32,.12);transform:translateY(-1px);}
 .mkt-card-top{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;}
 .mkt-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-radius:4px;padding:2px 6px;}
@@ -11333,7 +11351,57 @@ function mktRenderMes(){
 const MKT_H_INI=5, MKT_H_FIM=24, MKT_PXH=48;
 function mktHoraMin(hhmm){const p=hhmm.split(':');return parseInt(p[0])*60+(parseInt(p[1])||0);}
 function mktMinHHMM(m){return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
+/* No celular a grade de 7 colunas não deixa ler nada: vira agenda em lista */
+const MKT_SEM_MOBILE_PX=760;
+function mktSemanaMobile(){ return window.innerWidth<=MKT_SEM_MOBILE_PX; }
+let _mktSemMobileAtual=null;
+window.addEventListener('resize',function(){
+  if(typeof mktView==='undefined'||mktView!=='semana'||!mktData)return;
+  const m=mktSemanaMobile();
+  if(m!==_mktSemMobileAtual)mktRender();
+});
+function mktRenderSemanaLista(){
+  const ini=mktSegunda(mktRef);
+  const fim=new Date(ini);fim.setDate(fim.getDate()+6);
+  document.getElementById('mkt-per-label').textContent=mktFmtCurta(mktISO(ini))+' – '+mktFmtCurta(mktISO(fim));
+  const posts=mktPostsFiltrados();
+  const hoje=mktHojeISO();
+  let h='<div class="mkt-ag">';
+  const cur=new Date(ini);
+  for(let i=0;i<7;i++){
+    const iso=mktISO(cur);
+    const fer=mktFeriados()[iso];
+    const dp=posts.filter(p=>p.data_post===iso).slice()
+      .sort((a,b)=>(a.hora?1:0)-(b.hora?1:0)||(a.hora||'').localeCompare(b.hora||''));
+    h+='<div class="mkt-ag-dia"><div class="mkt-ag-hd'+(iso===hoje?' hoje':'')+'">'
+      +'<span class="dn">'+MKT_DIAS[i]+(iso===hoje?' · hoje':'')+'</span><span class="dd">'+cur.getDate()+'</span>'
+      +(dp.length?'<span class="qt">'+dp.length+(dp.length===1?' conteúdo':' conteúdos')+'</span>':'')
+      +(fer?'<span class="fer">'+fer.join(' · ')+'</span>':'')
+      +'<button class="add" onclick="mktAbrirPost(null,\''+iso+'\')">＋ Novo</button></div>';
+    if(!dp.length){
+      h+='<div class="mkt-ag-vazio">Nada programado.</div>';
+    }else{
+      h+='<div class="mkt-ag-lista">';
+      dp.forEach(p=>{
+        h+='<div class="mkt-ag-item">'
+          +(p.hora?'<div class="mkt-ag-hora">'+p.hora.slice(0,5)+'</div>':'<div class="mkt-ag-hora sem">sem hora</div>')
+          +mktCardHtml(Object.assign({},p,{hora:null}),false,false,false)
+          +'</div>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+    cur.setDate(cur.getDate()+1);
+  }
+  h+='</div>';
+  document.getElementById('mkt-conteudo').innerHTML=h;
+  // abre já no dia de hoje, se ele estiver nesta semana
+  const hj=document.querySelector('.mkt-ag-hd.hoje');
+  if(hj){ const y=hj.getBoundingClientRect().top+window.scrollY-130; if(y>window.scrollY+40) window.scrollTo({top:y}); }
+}
 function mktRenderSemana(){
+  _mktSemMobileAtual=mktSemanaMobile();
+  if(_mktSemMobileAtual){ mktRenderSemanaLista(); return; }
   const ini=mktSegunda(mktRef);
   const fim=new Date(ini);fim.setDate(fim.getDate()+6);
   document.getElementById('mkt-per-label').textContent=mktFmtCurta(mktISO(ini))+' – '+mktFmtCurta(mktISO(fim));
