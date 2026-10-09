@@ -2758,6 +2758,8 @@ async function doLogin(){
   err.textContent='';
   try{
     const r=await rpc('admin_login',{p_email:email,p_senha:pass});
+    // o banco devolve {erro:'...'} quando a senha está errada ou o login está bloqueado
+    if(!r||!r.token){err.textContent=(r&&r.erro)||'Email ou senha incorretos.';document.getElementById('pass-input').value='';return;}
     admUser=r; admToken=r.token;
     try{localStorage.setItem('jbx_sessao',r.token);}catch(e){}
     document.getElementById('pass-input').value='';
