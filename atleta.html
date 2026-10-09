@@ -680,6 +680,17 @@ function logout() {
   document.getElementById('nav-user').style.display = 'none';
 }
 
+// Sessão vencida (ou do formato antigo): volta ao login com aviso
+function sessaoInvalida(res) {
+  return !!(res && res.erro && /Sess[aã]o inv[aá]lida/i.test(res.erro));
+}
+function sessaoExpirou() {
+  if (typeof fecharMeusDados === 'function') fecharMeusDados();
+  logout();
+  limparErros();
+  mostrarErro('login-erro', 'Por segurança, entre novamente com seu CPF e senha.');
+}
+
 // ── TELAS ────────────────────────────────────────
 function mostrarTela(nome) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -1223,6 +1234,7 @@ async function abrirMeusDados() {
   const [cpf, hash] = (s.token || '').split(':');
   try {
     const res = await rpc('atleta_buscar_dados', { p_cpf: cpf, p_senha_hash: hash });
+    if (sessaoInvalida(res)) { sessaoExpirou(); return; }
     if (!res || !res.ok) {
       document.getElementById('dados-loading').style.display = 'none';
       document.getElementById('dados-erro').textContent = res?.erro || 'Erro ao carregar dados.';
@@ -1311,6 +1323,7 @@ async function salvarMeusDados() {
       p_emergencia_nome: emergNome, p_emergencia_telefone: emergTel,
       p_nova_senha: senha || null
     });
+    if (sessaoInvalida(res)) { btn.textContent = 'Salvar alterações'; btn.disabled = false; sessaoExpirou(); return; }
     if (!res || !res.ok) {
       erro(res?.erro || 'Erro ao salvar dados.');
     } else {
@@ -1341,6 +1354,7 @@ async function carregarInscricoes(dados) {
     const [cpf, hash] = (dados.token || '').split(':');
     const res = await rpc('atleta_minhas_inscricoes', { p_cpf: cpf, p_senha_hash: hash });
 
+    if (sessaoInvalida(res)) { sessaoExpirou(); return; }
     if (!res.ok) { wrap.innerHTML = '<div class="vazio"><div class="vazio-icone">⚠️</div><div class="vazio-texto">Erro ao carregar inscrições.</div></div>'; return; }
 
     const lista = res.inscricoes || [];
