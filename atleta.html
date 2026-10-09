@@ -465,21 +465,40 @@ nav {
       </div>
     </div>
     <h2 class="auth-title">Crie sua senha</h2>
-    <p class="auth-sub">Sua inscrição foi confirmada! Crie uma senha para acessar sua área do atleta.</p>
     <div class="auth-erro" id="primeiro-erro"></div>
-    <div class="form-group">
-      <label>CPF</label>
-      <input type="text" id="primeiro-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)" readonly style="background:rgba(42,37,32,0.04);color:rgba(42,37,32,0.6);">
+
+    <!-- PASSO 1: CPF → enviar código -->
+    <div id="primeiro-passo1">
+      <p class="auth-sub">Para sua segurança, vamos enviar um código para o e-mail da sua inscrição.</p>
+      <div class="form-group">
+        <label>CPF</label>
+        <input type="text" id="primeiro-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascararCpf(this)" onkeydown="if(event.key==='Enter')primeiroEnviarCodigo()">
+      </div>
+      <button class="btn-auth" id="btn-primeiro-codigo" onclick="primeiroEnviarCodigo()">Enviar código</button>
     </div>
-    <div class="form-group">
-      <label>Criar senha *</label>
-      <input type="password" id="primeiro-senha1" placeholder="Mínimo 6 caracteres">
+
+    <!-- PASSO 2: código + senha -->
+    <div id="primeiro-passo2" style="display:none;">
+      <p class="auth-sub">Digite o código de 6 dígitos enviado para:</p>
+      <div class="rec-email-destino"><strong id="primeiro-email-texto">***@***.com</strong></div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>Código *</label>
+        <input type="text" id="primeiro-codigo" inputmode="numeric" maxlength="6" placeholder="000000" autocomplete="one-time-code" oninput="this.value=this.value.replace(/\D/g,'')" style="letter-spacing:6px;font-size:20px;text-align:center;font-weight:700;">
+      </div>
+      <div class="form-group">
+        <label>Criar senha *</label>
+        <input type="password" id="primeiro-senha1" placeholder="Mínimo 6 caracteres">
+      </div>
+      <div class="form-group">
+        <label>Confirmar senha *</label>
+        <input type="password" id="primeiro-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')criarPrimeiraSenha()">
+      </div>
+      <button class="btn-auth" id="btn-primeiro" onclick="criarPrimeiraSenha()">Criar senha e entrar</button>
+      <div class="auth-switch" style="margin-top:14px;">
+        Não recebeu? <button class="btn-link" onclick="primeiroEnviarCodigo()">Reenviar código</button>
+        &nbsp;·&nbsp; <a onclick="primeiroPasso(1)">Trocar CPF</a>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Confirmar senha *</label>
-      <input type="password" id="primeiro-senha2" placeholder="Repita a senha" onkeydown="if(event.key==='Enter')criarPrimeiraSenha()">
-    </div>
-    <button class="btn-auth" id="btn-primeiro" onclick="criarPrimeiraSenha()">Criar senha e entrar</button>
     <div class="auth-switch">
       <a onclick="irParaLogin()">← Já tenho senha, fazer login</a>
     </div>
@@ -813,33 +832,73 @@ async function fazerCadastro() {
   btn.textContent = 'Criar conta'; btn.disabled = false;
 }
  
+function primeiroPasso(n) {
+  document.getElementById('primeiro-passo1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('primeiro-passo2').style.display = n === 2 ? '' : 'none';
+}
+
 function irParaPrimeiroAcesso(cpf) {
   limparErros();
   const el = document.getElementById('primeiro-cpf');
-  if (cpf) { el.value = cpf; el.readOnly = true; }
-  else { el.value = ''; el.readOnly = false; }
-  document.getElementById('primeiro-senha1').value = '';
-  document.getElementById('primeiro-senha2').value = '';
+  el.value = cpf || '';
+  ['primeiro-codigo','primeiro-senha1','primeiro-senha2'].forEach(id => { document.getElementById(id).value = ''; });
+  primeiroPasso(1);
   mostrarTela('primeiro-acesso');
 }
 
+// PASSO 1 → manda o código para o e-mail da inscrição
+async function primeiroEnviarCodigo() {
+  limparErros();
+  const cpf = document.getElementById('primeiro-cpf').value;
+  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('primeiro-erro', 'CPF inválido.');
+
+  const btn = document.getElementById('btn-primeiro-codigo');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  try {
+    const r = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'primeiro_solicitar', cpf })
+    });
+    const dados = await r.json();
+    if (!dados.ok) {
+      mostrarErro('primeiro-erro', dados.erro || 'Não foi possível enviar o código.');
+    } else {
+      document.getElementById('primeiro-email-texto').textContent = dados.email_mascarado || '';
+      primeiroPasso(2);
+      setTimeout(() => document.getElementById('primeiro-codigo').focus(), 100);
+    }
+  } catch (e) {
+    mostrarErro('primeiro-erro', 'Erro de conexão. Tente novamente.');
+  }
+  btn.textContent = 'Enviar código'; btn.disabled = false;
+}
+
+// PASSO 2 → confere o código e cria a conta
 async function criarPrimeiraSenha() {
   limparErros();
-  const cpf   = document.getElementById('primeiro-cpf').value;
-  const s1    = document.getElementById('primeiro-senha1').value;
-  const s2    = document.getElementById('primeiro-senha2').value;
+  const cpf    = document.getElementById('primeiro-cpf').value;
+  const codigo = document.getElementById('primeiro-codigo').value;
+  const s1     = document.getElementById('primeiro-senha1').value;
+  const s2     = document.getElementById('primeiro-senha2').value;
 
-  if (cpf.replace(/\D/g,'').length !== 11) return mostrarErro('primeiro-erro', 'CPF inválido.');
-  if (s1.length < 6)  return mostrarErro('primeiro-erro', 'A senha deve ter pelo menos 6 caracteres.');
-  if (s1 !== s2)      return mostrarErro('primeiro-erro', 'As senhas não coincidem.');
+  if (codigo.length !== 6) return mostrarErro('primeiro-erro', 'Digite os 6 dígitos do código.');
+  if (s1.length < 6)       return mostrarErro('primeiro-erro', 'A senha deve ter pelo menos 6 caracteres.');
+  if (s1 !== s2)           return mostrarErro('primeiro-erro', 'As senhas não coincidem.');
 
   const btn = document.getElementById('btn-primeiro');
   btn.textContent = 'Criando...'; btn.disabled = true;
 
   try {
-    const res = await rpc('criar_conta_primeiro_acesso', { p_cpf: cpf, p_senha: s1 });
+    const r = await fetch('/api/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'primeiro_criar', cpf, codigo, senha: s1 })
+    });
+    const res = await r.json();
     if (!res.ok) {
       mostrarErro('primeiro-erro', res.erro || 'Erro ao criar conta.');
+      if (res.erro && /expirado|Muitas tentativas/.test(res.erro)) setTimeout(() => primeiroPasso(1), 2000);
       btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
       return;
     }
@@ -849,8 +908,8 @@ async function criarPrimeiraSenha() {
     await fazerLogin();
   } catch(e) {
     mostrarErro('primeiro-erro', 'Erro de conexão. Tente novamente.');
-    btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
   }
+  btn.textContent = 'Criar senha e entrar'; btn.disabled = false;
 }
 
 function irParaRecuperacao() {
