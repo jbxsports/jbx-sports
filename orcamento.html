@@ -99,10 +99,10 @@
   .opt .emo{display:block;font-size:26px;margin-bottom:8px;}
 
   /* ── FLAG + QUANTIDADE (escopo e distâncias) ── */
-  .fq-head{display:grid;grid-template-columns:1fr 92px 138px;gap:10px;align-items:center;
+  .fq-head{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;
     padding:0 14px 8px;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(42,37,32,.4);}
   .fq-list{border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  .fq{display:grid;grid-template-columns:1fr 92px 138px;gap:10px;align-items:center;
+  .fq{display:grid;grid-template-columns:1fr 110px;gap:10px;align-items:center;
     padding:12px 14px;border-bottom:1px solid rgba(42,37,32,.07);transition:background .15s;}
   .fq:last-child{border-bottom:none;}
   .fq.on{background:rgba(255,117,31,.05);}
@@ -486,7 +486,7 @@
           <div class="sec" style="margin:0;">Escopo do evento</div>
           <span class="esc-contador" id="esc-contador">0 itens marcados</span>
         </div>
-        <p class="hint">O escopo vem separado em blocos. Marque o bloco inteiro de uma vez ou item por item, e informe a quantidade quando souber. O que você não marcar entra na proposta como opcional.</p>
+        <p class="hint">O escopo vem separado em blocos. Marque o bloco inteiro de uma vez ou item por item. O que você não marcar entra na proposta como opcional.</p>
         <div class="esc-nav" id="esc-nav"></div>
         <div id="esc-blocos"></div>
       </div>
@@ -662,16 +662,6 @@ function montarEscopoBlocos(){
     let linhas = '';
     for (let i = 0; i < grp.itens.length; i++) {
       const it = grp.itens[i];
-      let opcoes = '';
-      if (it.op) {
-        opcoes = '<option value="">' + it.q + '</option>';
-        for (let k = 0; k < it.op.length; k++) opcoes += '<option>' + it.op[k] + '</option>';
-      }
-      const campo = it.op
-        ? '<select id="escq-' + g + '-' + i + '" disabled>' + opcoes + '</select>'
-        : it.q
-        ? '<input type="text" id="escq-' + g + '-' + i + '" placeholder="' + it.q + '" disabled>'
-        : '<span style="font-size:12px;color:rgba(42,37,32,.3);">—</span>';
       if (grp.bloco) {
         linhas += '<div class="fq fq-so" id="escr-' + g + '-' + i + '">'
           + '<div class="fq-nome">' + it.n + (it.s ? '<i>' + it.s + '</i>' : '') + '</div>'
@@ -684,7 +674,6 @@ function montarEscopoBlocos(){
         + '<label class="flag"><input type="checkbox" id="escc-' + g + '-' + i + '" onchange="escItem(' + g + ',' + i + ')">'
         + '<span class="box"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>'
         + '<em>Sim</em></label>'
-        + campo
         + '</div>';
     }
 
@@ -697,7 +686,7 @@ function montarEscopoBlocos(){
       + '</div>'
       + (grp.bloco
           ? '<div class="fq-head fq-head-so"><span>O bloco inclui</span></div>'
-          : '<div class="fq-head"><span>Item</span><span>Vai ter?</span><span>Quantidade</span></div>')
+          : '<div class="fq-head"><span>Item</span><span>Vai ter?</span></div>')
       + '<div class="fq-list">' + linhas + '</div>'
       + '</div>';
 

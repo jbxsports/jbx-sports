@@ -15260,6 +15260,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <div class="mkt-modal-actions">
       <button class="mkt-btn" onclick="propFechar()">Fechar</button>
+      <button class="mkt-btn" onclick="propImprimirUma()">🖨 Imprimir PDF</button>
+      <button class="mkt-btn" onclick="propExcelUma()">⬇ Exportar Excel</button>
       <button class="mkt-btn" id="prp-d-whats">WhatsApp</button>
       <button class="mkt-btn primary" id="prp-d-salvar" onclick="propSalvar()">Salvar</button>
     </div>
@@ -15632,6 +15634,80 @@ async function propSalvar(){
   }
   btn.disabled = false;
   btn.textContent = txt;
+}
+
+/* ── uma proposta: PDF e Excel com as respostas do cliente ── */
+function propNomeArq(p){
+  return ((p.protocolo || 'proposta') + '_' + String(p.empresa || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'_'))
+    .replace(/_+$/,'').toLowerCase();
+}
+function propLinhasUma(p){
+  const L = [];
+  const add = function(sec, r, v){ if (v !== null && v !== undefined && v !== '') L.push([sec, r, String(v)]); };
+  let s = 'Empresa e contato';
+  add(s,'Empresa',p.empresa); add(s,'CNPJ',p.cnpj);
+  add(s,'Responsável',(p.responsavel||'')+(p.cargo?' · '+p.cargo:''));
+  add(s,'WhatsApp',p.whatsapp); add(s,'E-mail',p.email);
+  add(s,'Cidade',p.cidade_empresa); add(s,'Site / Instagram',p.site);
+  s = 'O evento';
+  add(s,'Modalidade',(p.tipo_evento||'')+(p.esporte_outro?' — '+p.esporte_outro:''));
+  add(s,'Nome',p.nome_evento);
+  add(s,'Data pretendida',p.data_pretendida?(propData(p.data_pretendida)+(p.data_flexivel?' (flexível)':' (fechada)')):'');
+  add(s,'Cidade',p.cidade_evento); add(s,'Local / percurso',p.local_evento);
+  add(s,'Participantes estimados',p.participantes); add(s,'Distâncias',p.distancias);
+  (Array.isArray(p.respostas)?p.respostas:[]).forEach(function(r){ add('Formato',r.r,r.v); });
+  s = 'Objetivo e investimento';
+  add(s,'Objetivos',(Array.isArray(p.objetivos)?p.objetivos:[]).join(' · '));
+  add(s,'Faixa de investimento',p.verba_faixa); add(s,'Modelo de inscrição',p.modelo_inscricao);
+  add(s,'Valor de inscrição previsto',p.valor_inscricao?brl(p.valor_inscricao):'');
+  (Array.isArray(p.escopo)?p.escopo:[]).forEach(function(e){
+    add('Escopo'+(e.grupo?' — '+e.grupo:''), e.item, e.qtd ? e.qtd : 'Sim');
+  });
+  add('Outros','Observações',p.observacoes); add('Outros','Como conheceu a JBX',p.como_conheceu);
+  return L;
+}
+function propExcelUma(){
+  const p = propAtual; if (!p) return;
+  const linhas = [['Seção','Pergunta','Resposta']].concat(propLinhasUma(p));
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols'] = [{wch:30},{wch:36},{wch:70}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Briefing');
+  XLSX.writeFile(wb, propNomeArq(p) + '.xlsx');
+}
+function propImprimirUma(){
+  const p = propAtual; if (!p) return;
+  const w = window.open('', '_blank');
+  if (!w) { alert('O navegador bloqueou a janela. Libere pop-ups para o admin e tente de novo.'); return; }
+  const corpo = document.getElementById('prp-d-corpo').innerHTML;
+  const css = '@page{size:A4;margin:12mm;}*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
+    + 'body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;font-size:12px;}'
+    + '.hd{border-bottom:3px solid #ff751f;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}'
+    + '.hd .k{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#ff751f;font-weight:700;}'
+    + '.hd h1{font-size:22px;margin-top:3px;}.hd .r{font-size:11px;color:#7a7068;text-align:right;line-height:1.5;}'
+    + '.prp-bloco{border:1px solid #ddd8d2;border-radius:8px;overflow:hidden;margin-bottom:10px;page-break-inside:avoid;}'
+    + '.prp-bloco-t{background:#f5f3f0;padding:7px 12px;font-size:9.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:#7a7068;}'
+    + '.prp-l,.prp-esc{display:flex;justify-content:space-between;gap:14px;padding:6px 12px;border-bottom:1px solid #eee9e3;}'
+    + '.prp-l:last-child,.prp-esc:last-child{border-bottom:none;}'
+    + '.prp-l b,.prp-esc b{font-weight:500;color:#7a7068;flex-shrink:0;}.prp-l span{text-align:right;font-weight:500;}'
+    + '.prp-esc b{color:#2a2520;}.prp-esc b::before{content:"✓ ";color:#ff751f;font-weight:700;}'
+    + '.prp-esc span{color:#ff751f;font-weight:700;}'
+    + '.prp-grp{background:#faf9f7;padding:5px 12px;font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#7a7068;border-top:1px solid #eee9e3;border-bottom:1px solid #eee9e3;}'
+    + '.prp-vazio{padding:8px 12px;color:#7a7068;}'
+    + '.dica{background:#0a0a0a;color:#fff;text-align:center;padding:10px;font-size:13px;margin-bottom:14px;}'
+    + '.dica button{margin-left:10px;background:#ff751f;color:#fff;border:0;border-radius:6px;padding:7px 14px;font:700 13px Ubuntu,Arial;cursor:pointer;}'
+    + '@media print{.dica{display:none;}}';
+  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + propEsc(propNomeArq(p)) + '</title>'
+    + '<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">'
+    + '<style>' + css + '</style></head><body>'
+    + '<div class="dica">Na janela de impressão, escolha <b>Salvar como PDF</b>.<button onclick="window.print()">Gerar PDF</button></div>'
+    + '<div class="hd"><div><div class="k">Briefing de evento · JBX Sports</div><h1>' + propEsc(p.empresa || '') + '</h1></div>'
+    + '<div class="r"><b>' + propEsc(p.protocolo || '') + '</b><br>Recebido em ' + propEsc(propQuando(p.criado_em)) + '</div></div>'
+    + corpo
+    + '<scr' + 'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},300);});</scr' + 'ipt>'
+    + '</body></html>';
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 function propCopiarLink(){
