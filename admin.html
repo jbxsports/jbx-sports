@@ -1461,6 +1461,9 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .prp-esc b{font-weight:500;display:flex;align-items:center;gap:8px;}
 .prp-esc b::before{content:'✓';color:var(--orange);font-weight:700;}
 .prp-esc span{font-weight:700;color:var(--orange);background:rgba(255,117,31,.1);border-radius:6px;padding:3px 10px;font-size:12px;white-space:nowrap;}
+.prp-esc.nao b{color:#a59b92;font-weight:400;}
+.prp-esc.nao b::before{content:'✕';color:#c9bfb6;}
+.prp-esc.nao span{color:#a59b92;background:rgba(42,37,32,.05);font-weight:500;}
 .prp-grp{background:#faf9f7;padding:7px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(42,37,32,.06);border-top:1px solid rgba(42,37,32,.06);}
 .prp-vazio{padding:12px 14px;font-size:13px;color:var(--muted);}
 @media(max-width:700px){.prp-l{flex-direction:column;gap:2px;}.prp-l span{text-align:left;}}
@@ -15519,6 +15522,43 @@ function propLinha(rotulo, valor){
   return '<div class="prp-l"><b>' + rotulo + '</b><span>' + propEsc(valor) + '</span></div>';
 }
 
+/* lista completa do formulário de corrida — para mostrar também o que o cliente NÃO marcou */
+const PROP_ESCOPO_FORM = [
+  ['Kit do atleta', ['Camiseta poliéster','Camiseta poliamida','Sacola plástica','Sacochila']],
+  ['Cronometragem', ['Numeral de peito com chip','Retirada de kit computadorizada']],
+  ['Equipe', ['Coordenadores e staffs','Locutor','DJ','Equipe de limpeza']],
+  ['Estrutura do evento', ['Gradil metálico','Cones de sinalização','Placas de avisos','Coxos de hidratação','Tenda 5x5','Tenda 10x10','Palco 5x4','Pódio 3 lugares','Backdrop','Pórtico','Sonorização profissional','Banheiros químicos','Gerador de energia','Painel de LED']],
+  ['Acessórios', ['Cestos de lixo','Sacos de lixo','Vassouras e pás','Coletes refletivos','Abraçadeiras de nylon','Sacolas de guarda-volumes']],
+  ['Pós-prova', ['Frutas / bananas','Água','Gelo','Isotônico']],
+  ['Premiação', ['Medalhas para todos os inscritos','Troféus']],
+  ['Mídia', ['Equipe de fotografia no percurso','Fotos institucionais','Aftermovie com drone']],
+  ['Marketing', ['Postagem no Instagram @jbx.sports','Disparos de e-mail mkt (+20 mil leads)']],
+  ['Segurança', ['Ambulância básica','Ambulância UTI','Moto bombeiro civil','Seguro de vida dos atletas']],
+  ['Alvarás e autorizações', ['Federação Paulista de Atletismo','Departamento de Trânsito','Prefeitura','Secretaria da Fazenda']]
+];
+/* devolve o escopo completo: marcados (tem:true) + não marcados (tem:false), na ordem do formulário */
+function propEscopoCompleto(p){
+  const escopo = (Array.isArray(p.escopo) ? p.escopo : []).filter(function(e){ return e && e.item && e.tem !== false; });
+  const descrito = escopo.length && escopo[0].item === 'Descrito pelo cliente';
+  const corrida = /corrida/i.test(p.tipo_evento || '');
+  if (descrito || (!escopo.length && !corrida)) {
+    return escopo.map(function(e){ return {grupo:e.grupo||'', item:e.item, qtd:e.qtd||'', tem:true}; });
+  }
+  const marc = {};
+  escopo.forEach(function(e){ marc[e.item] = e; });
+  const usados = {};
+  const out = [];
+  PROP_ESCOPO_FORM.forEach(function(g){
+    g[1].forEach(function(n){
+      const e = marc[n];
+      if (e) usados[n] = 1;
+      out.push({grupo:g[0], item:n, qtd:e ? (e.qtd||'') : '', tem:!!e});
+    });
+  });
+  /* itens marcados que não estão mais na lista do formulário (propostas antigas) */
+  escopo.forEach(function(e){ if (!usados[e.item]) out.push({grupo:e.grupo||'Outros', item:e.item, qtd:e.qtd||'', tem:true}); });
+  return out;
+}
 function propAbrir(id){
   let p = null;
   for (let i = 0; i < propLista.length; i++) if (String(propLista[i].id) === String(id)) p = propLista[i];
@@ -15570,17 +15610,26 @@ function propAbrir(id){
     propLinha('Valor de inscrição previsto', p.valor_inscricao ? brl(p.valor_inscricao) : '') +
     propLinha('Patrocinadores', p.tem_patrocinadores ? (p.patrocinadores || 'Sim, já tem') : 'Ainda não tem') + '</div>';
 
+  const escCompleto = propEscopoCompleto(p);
+  const nMarc = escCompleto.filter(function(e){ return e.tem; }).length;
+  const nNao = escCompleto.length - nMarc;
   let esc = '';
   let grpAtual = '';
-  for (let i = 0; i < escopo.length; i++) {
-    const it = escopo[i];
+  for (let i = 0; i < escCompleto.length; i++) {
+    const it = escCompleto[i];
     const g = it.grupo || '';
     if (g && g !== grpAtual) { esc += '<div class="prp-grp">' + propEsc(g) + '</div>'; grpAtual = g; }
-    esc += '<div class="prp-esc"><b>' + propEsc(it.item) + '</b>' +
-      '<span>' + propEsc(it.qtd ? it.qtd : 'Sim') + '</span></div>';
+    if (it.tem) {
+      esc += '<div class="prp-esc"><b>' + propEsc(it.item) + '</b>' +
+        '<span>' + propEsc(it.qtd ? it.qtd : 'Sim') + '</span></div>';
+    } else {
+      esc += '<div class="prp-esc nao"><b>' + propEsc(it.item) + '</b><span>Não marcou</span></div>';
+    }
   }
-  html += '<div class="prp-bloco"><div class="prp-bloco-t">Escopo pedido pelo cliente (' + escopo.length + ' itens)</div>' +
-    (esc || '<div class="prp-vazio">Nenhum item marcado — o cliente quer que a JBX sugira o escopo.</div>') + '</div>';
+  const tituloEsc = nNao ? ('Escopo — ' + nMarc + ' marcados · ' + nNao + ' não marcados') : ('Escopo pedido pelo cliente (' + nMarc + ' itens)');
+  html += '<div class="prp-bloco"><div class="prp-bloco-t">' + tituloEsc + '</div>' +
+    (nMarc ? '' : '<div class="prp-vazio">Nenhum item marcado — o cliente quer que a JBX sugira o escopo.</div>') +
+    esc + '</div>';
 
   if (p.observacoes || p.como_conheceu) {
     html += '<div class="prp-bloco"><div class="prp-bloco-t">Outros</div>' +
@@ -15669,8 +15718,8 @@ function propLinhasUma(p){
   add(s,'Objetivos',(Array.isArray(p.objetivos)?p.objetivos:[]).join(' · '));
   add(s,'Faixa de investimento',p.verba_faixa); add(s,'Modelo de inscrição',p.modelo_inscricao);
   add(s,'Valor de inscrição previsto',p.valor_inscricao?brl(p.valor_inscricao):'');
-  (Array.isArray(p.escopo)?p.escopo:[]).forEach(function(e){
-    add('Escopo'+(e.grupo?' — '+e.grupo:''), e.item, e.qtd ? e.qtd : 'Sim');
+  propEscopoCompleto(p).forEach(function(e){
+    add('Escopo'+(e.grupo?' — '+e.grupo:''), e.item, e.tem ? (e.qtd ? e.qtd : 'Sim') : 'Não marcou');
   });
   add('Outros','Observações',p.observacoes); add('Outros','Como conheceu a JBX',p.como_conheceu);
   return L;
@@ -15701,6 +15750,7 @@ function propImprimirUma(){
     + '.prp-l b,.prp-esc b{font-weight:500;color:#7a7068;flex-shrink:0;}.prp-l span{text-align:right;font-weight:500;}'
     + '.prp-esc b{color:#2a2520;}.prp-esc b::before{content:"✓ ";color:#ff751f;font-weight:700;}'
     + '.prp-esc span{color:#ff751f;font-weight:700;}'
+    + '.prp-esc.nao b{color:#a59b92;font-weight:400;}.prp-esc.nao b::before{content:"✕ ";color:#c9bfb6;}.prp-esc.nao span{color:#a59b92;font-weight:400;}'
     + '.prp-grp{background:#faf9f7;padding:5px 12px;font-size:9.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:#7a7068;border-top:1px solid #eee9e3;border-bottom:1px solid #eee9e3;}'
     + '.prp-vazio{padding:8px 12px;color:#7a7068;}'
     + '.dica{background:#0a0a0a;color:#fff;text-align:center;padding:10px;font-size:13px;margin-bottom:14px;}'
@@ -15863,7 +15913,7 @@ function orcMontar(wb, p){
     return r;
   }
 
-  const escopo = Array.isArray(p.escopo) ? p.escopo : [];
+  const escopo = (Array.isArray(p.escopo) ? p.escopo : []).filter(function(e){ return e && e.tem !== false; });
   const marcados = {};
   escopo.forEach(function(e){ if (e && e.item) marcados[e.item] = e; });
   const porLista = escopo.length && escopo[0].item !== 'Descrito pelo cliente';
