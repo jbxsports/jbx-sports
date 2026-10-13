@@ -15840,26 +15840,18 @@ function orcPintar(c, cor){
   c.font = Object.assign({}, c.font || {}, {bold:true, color:{argb:cor}});
 }
 
-/* cenários de atletas: números citados pelo cliente (ex.: "500, 1.000 e 2.000"),
-   senão o total informado e três variações acima dele */
-function orcCenarios(p){
+/* número de atletas: o que o cliente informou no briefing
+   (campo participantes; senão o primeiro número citado na observação) */
+function orcAtletas(p){
+  const n = Number(String(p.participantes == null ? '' : p.participantes).replace(/\D/g, ''));
+  if (n >= 1) return n;
   let obs = '';
   (Array.isArray(p.respostas) ? p.respostas : []).forEach(function(r){
-    if (/observa/i.test(r.r || '') && /participante/i.test(r.r || '')) obs = String(r.v || '');
+    if (/participante/i.test(r.r || '')) obs += ' ' + String(r.v || '');
   });
-  const achados = (obs.match(/\d{1,3}(?:\.\d{3})+|\d+/g) || [])
-    .map(function(x){ return parseInt(x.replace(/\./g, ''), 10); })
-    .filter(function(n){ return n >= 50 && n <= 100000; });
-  const uniq = achados.filter(function(n, i){ return achados.indexOf(n) === i; }).sort(function(a, b){ return a - b; });
-  if (uniq.length >= 2) {
-    const out = uniq.slice(0, 4);
-    while (out.length < 4) out.push(Math.round(out[out.length - 1] * 1.5 / 50) * 50);
-    return out;
-  }
-  const n = Number(p.participantes) || (uniq.length ? uniq[0] : 0);
-  if (!n) return null;
-  const r50 = function(x){ return Math.max(50, Math.round(x / 50) * 50); };
-  return [n, r50(n * 1.5), n * 2, r50(n * 2.5)];
+  const m = obs.match(/\d{1,3}(?:\.\d{3})+|\d+/);
+  const x = m ? parseInt(m[0].replace(/\./g, ''), 10) : 0;
+  return x >= 1 ? x : 0;
 }
 
 function orcMontar(wb, p){
@@ -15877,9 +15869,12 @@ function orcMontar(wb, p){
   /* cabeçalho */
   ws.getCell(2, 3).value = String(p.empresa || 'CLIENTE').toUpperCase();
   ws.getCell(1, 3).value = (p.protocolo || '') + (p.nome_evento ? ' · ' + p.nome_evento : '');
-  const cen = orcCenarios(p);
-  if (cen) for (let i = 0; i < 4; i++) ws.getCell(2, ORC_CEN[i]).value = cen[i];
-  else avisos.push('Briefing sem número de participantes — mantive os cenários do modelo.');
+  /* um cenário só: a quantidade de atletas que o cliente falou.
+     As colunas dos outros cenários (G a R) ficam ocultas. */
+  const atletas = orcAtletas(p);
+  if (atletas) for (let i = 0; i < 4; i++) ws.getCell(2, ORC_CEN[i]).value = atletas;
+  else avisos.push('Briefing sem número de participantes — mantive o número do modelo (' + ws.getCell(2, 6).text + ').');
+  for (let c = 7; c <= 18; c++) ws.getColumn(c).hidden = true;
 
   /* linhas livres da seção "FORA DO MODELO" */
   const livres = [];
@@ -15974,7 +15969,7 @@ function orcMontar(wb, p){
      abre "reparado" e em branco — tira essa propriedade (só mexe no botão de agrupar) */
   wb.worksheets.forEach(function(w){ if (w.properties) delete w.properties.outlineProperties; });
   wb.calcProperties = Object.assign({}, wb.calcProperties || {}, {fullCalcOnLoad:true});
-  return {avisos:avisos, novos:novos, opcionais:opcionais, cenarios:cen};
+  return {avisos:avisos, novos:novos, opcionais:opcionais, atletas:atletas};
 }
 
 /* aba BRIEFING com tudo que o cliente respondeu */
@@ -16026,7 +16021,7 @@ async function propPlanilhaOrc(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
     let m = 'Planilha gerada';
-    if (res.cenarios) m += ' — cenários de ' + res.cenarios.map(fmt).join(' / ') + ' atletas';
+    if (res.atletas) m += ' para ' + fmt(res.atletas) + ' atletas';
     m += '. ' + res.novos + ' item(ns) fora do modelo (sem preço) e ' + res.opcionais + ' marcado(s) como opcional.';
     if (res.avisos.length) m += ' ' + res.avisos.join(' ');
     alert(m);
