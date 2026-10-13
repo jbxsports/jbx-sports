@@ -2725,7 +2725,8 @@ const RPC_PROTEGIDAS=['mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_o
   'div_adm_lista','div_adm_salvar',
   'map_listar','map_abrir','map_salvar','map_excluir',
   'pat_entreg_ler','pat_entreg_salvar',
-  'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis'];
+  'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
+  'admin_orcamento_modelo','admin_orcamento_modelo_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -15188,6 +15189,8 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
           <h1>Propostas</h1>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="mkt-btn" id="prp-btn-modelo" style="display:none;" onclick="document.getElementById('prp-modelo-arq').click()" title="Trocar a planilha-modelo de orçamento (uso interno)">📊 Modelo de orçamento</button>
+            <input type="file" id="prp-modelo-arq" accept=".xlsx" style="display:none;" onchange="propModeloEnviar(this)">
             <button class="mkt-btn" onclick="propCopiarLink()">Copiar link do formulário</button>
             <button class="mkt-btn" onclick="propExportar()">Exportar Excel</button>
             <button class="mkt-btn primary" onclick="propInit()">Atualizar</button>
@@ -15262,6 +15265,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <button class="mkt-btn" onclick="propFechar()">Fechar</button>
       <button class="mkt-btn" onclick="propImprimirUma()">🖨 Imprimir PDF</button>
       <button class="mkt-btn" onclick="propExcelUma()">⬇ Exportar Excel</button>
+      <button class="mkt-btn" id="prp-d-orc" style="display:none;" onclick="propPlanilhaOrc()" title="Gera a sua planilha de custos com o que o cliente pediu — uso interno">📊 Planilha de orçamento</button>
       <button class="mkt-btn" id="prp-d-whats">WhatsApp</button>
       <button class="mkt-btn primary" id="prp-d-salvar" onclick="propSalvar()">Salvar</button>
     </div>
@@ -15411,6 +15415,8 @@ function propBadge(st){
 }
 
 async function propInit(){
+  const bm = document.getElementById('prp-btn-modelo');
+  if (bm) bm.style.display = (admUser && admUser.master) ? '' : 'none';
   propMsg('Carregando…');
   propMontarFiltros();
   try {
@@ -15600,6 +15606,8 @@ function propAbrir(id){
     bw.style.display = 'none';
   }
 
+  const bo = document.getElementById('prp-d-orc');
+  if (bo) bo.style.display = (admUser && admUser.master) ? '' : 'none';
   document.getElementById('prp-overlay').classList.add('open');
 }
 
@@ -15708,6 +15716,288 @@ function propImprimirUma(){
     + '<scr' + 'ipt>window.addEventListener("load",function(){setTimeout(function(){window.print();},300);});</scr' + 'ipt>'
     + '</body></html>';
   w.document.open(); w.document.write(html); w.document.close();
+}
+
+/* ══════════ PLANILHA DE ORÇAMENTO (controle interno — não vai para o cliente) ══════════
+   Parte do modelo de orçamento da JBX (guardado no banco, só sai com login) e lança
+   o que o cliente marcou no briefing. Item marcado → mantém/coloca quantidade;
+   item do modelo que o cliente NÃO marcou → quantidade 0 e aviso "OPCIONAL";
+   item pedido que não existe no modelo → linha nova na seção "FORA DO MODELO". */
+const ORC_MAPA = {
+  'Camiseta poliéster':                     {rows:['CAMISETA ATLETAS'], b:'POLIÉSTER', atleta:true},
+  'Camiseta poliamida':                     {rows:['CAMISETA ATLETAS'], b:'POLIAMIDA', atleta:true},
+  'Sacola plástica':                        {rows:['SACOLAS KIT ATLETA'], b:'SACOLA PLÁSTICA', atleta:true},
+  'Sacochila':                              {rows:['SACOLAS KIT ATLETA'], b:'SACOCHILA', atleta:true},
+  'Numeral de peito com chip':              {rows:['SISTEMA CRONOMETRAGEM']},
+  'Retirada de kit computadorizada':        {rows:[]},
+  'Coordenadores e staffs':                 {rows:['COORDENADORES','EQUIPE DE STAFF COMPLETA']},
+  'Locutor':                                {rows:['LOCUTOR']},
+  'DJ':                                     {rows:['DJ']},
+  'Equipe de limpeza':                      {rows:['EQUIPE LIMPEZA']},
+  'Gradil metálico':                        {rows:['GRADIL M']},
+  'Cones de sinalização':                   {rows:['CONES']},
+  'Placas de avisos':                       {rows:['PLACAS KM']},
+  'Coxos de hidratação':                    {rows:['COXOS DE AGUA']},
+  'Tenda 5x5':                              {rows:['TENDAS 5X5 COM TESTEIRA']},
+  'Tenda 10x10':                            {rows:['TENDA 10X10']},
+  'Palco 5x4':                              {rows:[]},
+  'Pódio 3 lugares':                        {rows:['PODIUM']},
+  'Backdrop':                               {rows:['BACKDROP 3X5']},
+  'Pórtico':                                {rows:['PORTICO 5M + 1M LATERAIS > + 2 BACKDROP']},
+  'Sonorização profissional':               {rows:['SOM']},
+  'Banheiros químicos':                     {rows:['BANHEIRO QUIMICO']},
+  'Gerador de energia':                     {rows:['GERADOR + ELETRICISTA + DIESEL + MOTOR']},
+  'Painel de LED':                          {rows:['PAINEL DE LED 6X3 NO PORTICO']},
+  'Cestos de lixo':                         {rows:['CESTO DE LIXO']},
+  'Sacos de lixo':                          {rows:['SACO DE LIXO']},
+  'Vassouras e pás':                        {rows:['VASSOURA','PA']},
+  'Coletes refletivos':                     {rows:[]},
+  'Abraçadeiras de nylon':                  {rows:['ABRACADEIRA DE NYLOM']},
+  'Sacolas de guarda-volumes':              {rows:['SACO GUARDA VOLUMES']},
+  'Frutas / bananas':                       {rows:['FRUTAS BANANA CAIXAS','FRUTAS MACA 155 CAIXAS']},
+  'Água':                                   {rows:['AGUA ATLETAS']},
+  'Gelo':                                   {rows:['GELO 22KG SACO']},
+  'Isotônico':                              {rows:[], atleta:true},
+  'Medalhas para todos os inscritos':       {rows:['MEDALHAS']},
+  'Troféus':                                {rows:['TROFEU CATEGORIAS','TROFEU GERAL']},
+  'Equipe de fotografia no percurso':       {rows:[]},
+  'Fotos institucionais':                   {rows:['FILMMAKER + DRONE + FOTOS INST. + AFTERMOVIE']},
+  'Aftermovie com drone':                   {rows:['FILMMAKER + DRONE + FOTOS INST. + AFTERMOVIE']},
+  'Postagem no Instagram @jbx.sports':      {rows:[]},
+  'Disparos de e-mail mkt (+20 mil leads)': {rows:[]},
+  'Ambulância básica':                      {rows:['AMBULANCIA (1 NORMAL E 1 UTI)']},
+  'Ambulância UTI':                         {rows:['AMBULANCIA (1 NORMAL E 1 UTI)']},
+  'Moto bombeiro civil':                    {rows:['MOTO BOMBEIRO']},
+  'Seguro de vida dos atletas':             {rows:['SEGURO DE VIDA']},
+  'Federação Paulista de Atletismo':        {rows:['TAXA FPA']},
+  'Departamento de Trânsito':               {rows:['TAXA RP MOBI']},
+  'Prefeitura':                             {rows:[]},
+  'Secretaria da Fazenda':                  {rows:[]}
+};
+const ORC_QTD = [4, 8, 12, 16];        /* D, H, L, P — quantidade de cada cenário */
+const ORC_CEN = [6, 10, 14, 18];       /* F2, J2, N2, R2 — atletas de cada cenário */
+const ORC_CEN_L = ['F', 'J', 'N', 'R'];
+
+function orcNorm(t){
+  return String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toUpperCase().replace(/\s+/g, ' ').trim();
+}
+function orcTemValor(c){
+  const v = c.value;
+  return !(v === null || v === undefined || v === '');
+}
+function orcPintar(c, cor){
+  c.font = Object.assign({}, c.font || {}, {bold:true, color:{argb:cor}});
+}
+
+/* cenários de atletas: números citados pelo cliente (ex.: "500, 1.000 e 2.000"),
+   senão o total informado e três variações acima dele */
+function orcCenarios(p){
+  let obs = '';
+  (Array.isArray(p.respostas) ? p.respostas : []).forEach(function(r){
+    if (/observa/i.test(r.r || '') && /participante/i.test(r.r || '')) obs = String(r.v || '');
+  });
+  const achados = (obs.match(/\d{1,3}(?:\.\d{3})+|\d+/g) || [])
+    .map(function(x){ return parseInt(x.replace(/\./g, ''), 10); })
+    .filter(function(n){ return n >= 50 && n <= 100000; });
+  const uniq = achados.filter(function(n, i){ return achados.indexOf(n) === i; }).sort(function(a, b){ return a - b; });
+  if (uniq.length >= 2) {
+    const out = uniq.slice(0, 4);
+    while (out.length < 4) out.push(Math.round(out[out.length - 1] * 1.5 / 50) * 50);
+    return out;
+  }
+  const n = Number(p.participantes) || (uniq.length ? uniq[0] : 0);
+  if (!n) return null;
+  const r50 = function(x){ return Math.max(50, Math.round(x / 50) * 50); };
+  return [n, r50(n * 1.5), n * 2, r50(n * 2.5)];
+}
+
+function orcMontar(wb, p){
+  const ws = wb.worksheets[0];
+  const avisos = [];
+  const total = ws.rowCount;
+
+  /* índice: texto da coluna C → número da linha (primeira ocorrência) */
+  const idx = {};
+  for (let r = 1; r <= total; r++) {
+    const k = orcNorm(ws.getCell(r, 3).text);
+    if (k && !idx[k]) idx[k] = r;
+  }
+
+  /* cabeçalho */
+  ws.getCell(2, 3).value = String(p.empresa || 'CLIENTE').toUpperCase();
+  ws.getCell(1, 3).value = (p.protocolo || '') + (p.nome_evento ? ' · ' + p.nome_evento : '');
+  const cen = orcCenarios(p);
+  if (cen) for (let i = 0; i < 4; i++) ws.getCell(2, ORC_CEN[i]).value = cen[i];
+  else avisos.push('Briefing sem número de participantes — mantive os cenários do modelo.');
+
+  /* linhas livres da seção "FORA DO MODELO" */
+  const livres = [];
+  const hdr = Object.keys(idx).filter(function(k){ return k.indexOf('ITENS PEDIDOS PELO CLIENTE') === 0; })[0];
+  if (hdr) {
+    for (let r = idx[hdr] + 1; r <= total; r++) {
+      if (orcNorm(ws.getCell(r, 3).text)) break;
+      if (ws.getCell(r, 6).formula) livres.push(r);
+    }
+  }
+  let extra = total + 2;
+  function linhaNova(nome, nota, porAtleta, precoDe){
+    let r;
+    if (livres.length) r = livres.shift();
+    else {
+      r = extra++;
+      ws.getCell(r, 6).value  = {formula:'E' + r + '*D' + r};
+      ws.getCell(r, 10).value = {formula:'I' + r + '*H' + r};
+      ws.getCell(r, 14).value = {formula:'M' + r + '*L' + r};
+      ws.getCell(r, 18).value = {formula:'Q' + r + '*P' + r};
+      if (r === total + 2) avisos.push('A seção "fora do modelo" lotou — os itens a mais estão no fim da planilha e NÃO entram no custo total.');
+    }
+    ws.getCell(r, 3).value = String(nome).toUpperCase();
+    ws.getCell(r, 2).value = nota;
+    orcPintar(ws.getCell(r, 2), 'FFC0392B');
+    for (let i = 0; i < 4; i++) {
+      ws.getCell(r, ORC_QTD[i]).value = porAtleta ? {formula:ORC_CEN_L[i] + '$2'} : 1;
+      /* preço unitário: puxa da linha original do modelo, quando houver */
+      if (precoDe) ws.getCell(r, ORC_QTD[i] + 1).value = {formula:String.fromCharCode(64 + ORC_QTD[i] + 1) + precoDe};
+    }
+    return r;
+  }
+
+  const escopo = Array.isArray(p.escopo) ? p.escopo : [];
+  const marcados = {};
+  escopo.forEach(function(e){ if (e && e.item) marcados[e.item] = e; });
+  const porLista = escopo.length && escopo[0].item !== 'Descrito pelo cliente';
+
+  /* 1) itens que o cliente marcou */
+  const usadas = {};            /* linha do modelo → já ocupada por qual variante */
+  const linhasPedidas = {};
+  let novos = 0;
+  escopo.forEach(function(e){
+    const m = ORC_MAPA[e.item];
+    if (!m) {
+      const txt = e.item === 'Descrito pelo cliente' ? 'ESCOPO DESCRITO PELO CLIENTE' : e.item;
+      const r = linhaNova(txt, 'NOVO — sem preço no modelo', false);
+      if (e.item === 'Descrito pelo cliente') ws.getCell(r, 2).value = String(e.qtd || '').slice(0, 250);
+      novos++;
+      return;
+    }
+    const achadas = m.rows.map(function(l){ return idx[orcNorm(l)]; }).filter(Boolean);
+    if (!achadas.length) {
+      linhaNova(e.item, 'NOVO — sem preço no modelo', !!m.atleta);
+      novos++;
+      return;
+    }
+    achadas.forEach(function(r){
+      if (m.b && usadas[r] && usadas[r] !== m.b) {
+        /* duas variantes na mesma linha (ex.: poliéster e poliamida) → a segunda vira linha nova */
+        linhaNova(ws.getCell(r, 3).text + ' — ' + m.b, 'NOVO — 2ª opção pedida', true, r);
+        novos++;
+        return;
+      }
+      linhasPedidas[r] = true;
+      if (m.b) { usadas[r] = m.b; ws.getCell(r, 2).value = m.b; }
+      for (let i = 0; i < 4; i++) {
+        const c = ws.getCell(r, ORC_QTD[i]);
+        if (!orcTemValor(c) || c.value === 0) c.value = 1;
+      }
+    });
+  });
+
+  /* 2) itens do modelo ligados ao formulário que o cliente NÃO marcou → opcional */
+  let opcionais = 0;
+  if (porLista) {
+    const vistas = {};
+    Object.keys(ORC_MAPA).forEach(function(k){
+      ORC_MAPA[k].rows.forEach(function(l){
+        const r = idx[orcNorm(l)];
+        if (!r || vistas[r] || linhasPedidas[r]) return;
+        vistas[r] = true;
+        for (let i = 0; i < 4; i++) ws.getCell(r, ORC_QTD[i]).value = 0;
+        ws.getCell(r, 2).value = 'OPCIONAL — cliente não marcou';
+        orcPintar(ws.getCell(r, 2), 'FF9A938A');
+        opcionais++;
+      });
+    });
+  }
+
+  wb.calcProperties = Object.assign({}, wb.calcProperties || {}, {fullCalcOnLoad:true});
+  return {avisos:avisos, novos:novos, opcionais:opcionais, cenarios:cen};
+}
+
+/* aba BRIEFING com tudo que o cliente respondeu */
+function orcAbaBriefing(wb, linhas){
+  const ws = wb.addWorksheet('BRIEFING');
+  ws.columns = [{width:30}, {width:38}, {width:70}];
+  ws.addRow(['Seção', 'Pergunta', 'Resposta']).font = {bold:true};
+  linhas.forEach(function(l){ ws.addRow(l); });
+  ws.getColumn(3).alignment = {wrapText:true, vertical:'top'};
+}
+
+/* carrega o ExcelJS só quando precisa (mantém formatação e fórmulas do modelo) */
+let orcExcelJS = null;
+function orcCarregarExcelJS(){
+  if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
+  if (orcExcelJS) return orcExcelJS;
+  orcExcelJS = new Promise(function(ok, falha){
+    const sc = document.createElement('script');
+    sc.src = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    sc.onload = function(){ ok(window.ExcelJS); };
+    sc.onerror = function(){ orcExcelJS = null; falha(new Error('Não carregou o gerador de planilhas. Confira a internet.')); };
+    document.head.appendChild(sc);
+  });
+  return orcExcelJS;
+}
+function orcB64ParaBuf(b64){
+  const bin = atob(b64), n = bin.length, u = new Uint8Array(n);
+  for (let i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+  return u.buffer;
+}
+async function propPlanilhaOrc(){
+  const p = propAtual; if (!p) return;
+  const btn = document.getElementById('prp-d-orc');
+  const txt = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Gerando…';
+  try {
+    const [EJ, mod] = await Promise.all([orcCarregarExcelJS(), rpc('admin_orcamento_modelo', {})]);
+    if (!mod || !mod.ok) throw new Error(mod && mod.erro === 'sem_modelo'
+      ? 'Nenhum modelo de orçamento cadastrado. Use o botão "📊 Modelo de orçamento" no topo da aba.'
+      : 'Não consegui ler o modelo de orçamento.');
+    const wb = new EJ.Workbook();
+    await wb.xlsx.load(orcB64ParaBuf(mod.arquivo));
+    const res = orcMontar(wb, p);
+    orcAbaBriefing(wb, propLinhasUma(p));
+    const buf = await wb.xlsx.writeBuffer();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download = 'orcamento_' + propNomeArq(p) + '.xlsx';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+    let m = 'Planilha gerada';
+    if (res.cenarios) m += ' — cenários de ' + res.cenarios.map(fmt).join(' / ') + ' atletas';
+    m += '. ' + res.novos + ' item(ns) fora do modelo (sem preço) e ' + res.opcionais + ' marcado(s) como opcional.';
+    if (res.avisos.length) m += ' ' + res.avisos.join(' ');
+    alert(m);
+  } catch (e) {
+    alert(e.message || 'Erro ao gerar a planilha.');
+  }
+  btn.disabled = false; btn.textContent = txt;
+}
+function propModeloEnviar(input){
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  if (!/\.xlsx$/i.test(f.name)) { alert('Envie um arquivo .xlsx'); return; }
+  if (!confirm('Trocar o modelo de orçamento por "' + f.name + '"?\n\nA planilha nova precisa ter os itens na coluna C e as quantidades nas colunas D, H, L e P, como o modelo atual.')) return;
+  const rd = new FileReader();
+  rd.onload = async function(){
+    const b64 = String(rd.result).split(',')[1] || '';
+    try {
+      const r = await rpc('admin_orcamento_modelo_salvar', {p_arquivo: b64, p_nome: f.name});
+      if (!r || !r.ok) throw new Error(r && r.erro === 'arquivo_grande' ? 'Arquivo grande demais.' : 'Não consegui salvar o modelo.');
+      propMsg('Modelo de orçamento trocado: ' + f.name, '#2ecc71');
+    } catch (e) { propMsg(e.message || 'Erro ao salvar o modelo.', '#e74c3c'); }
+  };
+  rd.readAsDataURL(f);
 }
 
 function propCopiarLink(){
