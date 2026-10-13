@@ -15920,6 +15920,9 @@ function orcMontar(wb, p){
     });
   }
 
+  /* o ExcelJS grava <outlinePr> fora da ordem que o Excel exige e o arquivo
+     abre "reparado" e em branco — tira essa propriedade (só mexe no botão de agrupar) */
+  wb.worksheets.forEach(function(w){ if (w.properties) delete w.properties.outlineProperties; });
   wb.calcProperties = Object.assign({}, wb.calcProperties || {}, {fullCalcOnLoad:true});
   return {avisos:avisos, novos:novos, opcionais:opcionais, cenarios:cen};
 }
