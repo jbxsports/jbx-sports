@@ -1466,6 +1466,29 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .prp-esc.nao span{color:#a59b92;background:rgba(42,37,32,.05);font-weight:500;}
 .prp-grp{background:#faf9f7;padding:7px 14px;font-size:10.5px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid rgba(42,37,32,.06);border-top:1px solid rgba(42,37,32,.06);}
 .prp-vazio{padding:12px 14px;font-size:13px;color:var(--muted);}
+.prp-pc-det{border:1px solid var(--border);border-radius:8px;background:#fff;}
+.prp-pc-det summary{cursor:pointer;padding:10px 12px;font-size:13px;font-weight:700;color:var(--text);}
+.prp-pc-det summary span{font-weight:500;color:var(--muted);}
+.prp-pc-hint{font-size:12px;color:var(--muted);padding:0 12px 8px;}
+.prp-pc-det .prp-pc-hint{padding:0 12px 10px;}
+.prp-pc-lista{max-height:340px;overflow:auto;border-top:1px solid var(--border);}
+.prp-pc-it{display:flex;align-items:center;gap:10px;padding:6px 12px;font-size:13px;border-bottom:1px solid rgba(42,37,32,.06);cursor:pointer;color:#a59b92;}
+.prp-pc-it.on{color:var(--text);}
+.prp-pc-it input[type=checkbox]{width:15px;height:15px;accent-color:var(--orange);flex-shrink:0;}
+.prp-pc-it span{flex:1;}
+.prp-pc-q{width:110px;font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#f5f3f0;}
+.prp-pc-q:disabled{opacity:.4;}
+.prp-pc-vt{margin:16px 0 6px;font-size:10.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);}
+.prp-pc-vh,.prp-pc-v{display:grid;grid-template-columns:52px 1fr 86px 70px 140px 90px;gap:8px;align-items:center;padding:7px 10px;font-size:13px;}
+.prp-pc-vh{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding-bottom:3px;}
+.prp-pc-v{border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fff;}
+.prp-pc-v.env{border-color:rgba(46,204,113,.5);background:rgba(46,204,113,.06);}
+.prp-pc-v b{color:var(--orange);}
+.prp-pc-v input[type=date]{font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#f5f3f0;width:100%;}
+.prp-pc-v .mkt-btn{padding:5px 8px;font-size:12px;}
+.prp-pc-env{display:flex;align-items:center;gap:5px;cursor:pointer;}
+.prp-pc-env input{accent-color:#2ecc71;width:15px;height:15px;}
+@media(max-width:640px){.prp-pc-vh{display:none;}.prp-pc-v{grid-template-columns:1fr 1fr;}}
 @media(max-width:700px){.prp-l{flex-direction:column;gap:2px;}.prp-l span{text-align:left;}}
 .div-top{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px}
 .div-top .form-g{margin:0;min-width:240px;flex:1 1 240px}
@@ -2729,7 +2752,8 @@ const RPC_PROTEGIDAS=['mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_o
   'map_listar','map_abrir','map_salvar','map_excluir',
   'pat_entreg_ler','pat_entreg_salvar',
   'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
-  'admin_orcamento_modelo','admin_orcamento_modelo_salvar'];
+  'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
+  'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -15243,6 +15267,29 @@ document.addEventListener('DOMContentLoaded',function(){
 
     <div id="prp-d-corpo"></div>
 
+    <div class="prp-bloco" id="prp-pc" style="display:none;">
+      <div class="prp-bloco-t">Proposta comercial para o cliente</div>
+      <div style="padding:14px;">
+        <details class="prp-pc-det">
+          <summary>Ajustar escopo antes de gerar <span id="prp-pc-esc-res"></span></summary>
+          <div class="prp-pc-hint">Comece pelo que o cliente marcou. Se ele pediu para tirar ou incluir algo depois, ajuste aqui. O briefing original não muda.</div>
+          <div id="prp-pc-esc-lista" class="prp-pc-lista"></div>
+        </details>
+        <div class="mkt-row2" style="margin-top:12px;">
+          <div class="mkt-fg"><label>Valor global (R$)</label>
+            <input id="prp-pc-valor" inputmode="decimal" placeholder="Ex.: 90.000,00"></div>
+          <div class="mkt-fg"><label>Validade (dias)</label>
+            <input id="prp-pc-val" type="number" min="1" value="15"></div>
+        </div>
+        <div class="mkt-fg"><label>Considerações (aparecem na proposta)</label>
+          <textarea id="prp-pc-cons" rows="4" placeholder="Ex.: condições de pagamento, o que está incluso no valor, observações para o cliente…"></textarea></div>
+        <button class="mkt-btn primary" id="prp-pc-gerar" onclick="propPcGerar()">📄 Gerar proposta V0</button>
+        <div class="prp-pc-hint" style="margin-top:6px;">Abre a proposta pronta — na janela de impressão escolha <b>Salvar como PDF</b>.</div>
+        <div class="prp-pc-vt">Versões geradas</div>
+        <div id="prp-pc-versoes"></div>
+      </div>
+    </div>
+
     <div class="prp-bloco">
       <div class="prp-bloco-t">Gestão interna</div>
       <div style="padding:14px;">
@@ -15658,6 +15705,7 @@ function propAbrir(id){
   const bo = document.getElementById('prp-d-orc');
   if (bo) bo.style.display = (admUser && admUser.master) ? '' : 'none';
   document.getElementById('prp-overlay').classList.add('open');
+  propPcMontar(p);
 }
 
 function propFechar(){
@@ -16046,6 +16094,495 @@ function propModeloEnviar(input){
     } catch (e) { propMsg(e.message || 'Erro ao salvar o modelo.', '#e74c3c'); }
   };
   rd.readAsDataURL(f);
+}
+
+/* ══ PROPOSTA COMERCIAL — documento para o cliente (HTML → imprimir/PDF) ══
+   propDocHTML(p, o)
+     p = linha de propostas_briefing
+     o = {valor, consideracoes, versao, data (YYYY-MM-DD), validade, logo (dataURL), fontes (css opcional)} */
+function propDocEsc(t){
+  return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function propDocBRL(n){
+  return 'R$ ' + Number(n || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function propDocDataLonga(iso){
+  if (!iso) return '';
+  const m = String(iso).match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return String(iso);
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return parseInt(m[3], 10) + ' de ' + meses[parseInt(m[2], 10) - 1] + ' de ' + m[1];
+}
+function propDocDataCurta(iso){
+  const m = String(iso || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : '';
+}
+function propDocCampo(rot, v){
+  const vazio = v === null || v === undefined || String(v).trim() === '';
+  return '<div class="cp"><dt>' + propDocEsc(rot) + '</dt><dd' + (vazio ? ' class="ni">Não informado' : '>' + propDocEsc(v)) + '</dd></div>';
+}
+
+function propDocHTML(p, o){
+  o = o || {};
+  const E = propDocEsc;
+  const valor = Number(o.valor) || 0;
+  const atletas = Number(String(p.participantes == null ? '' : p.participantes).replace(/\D/g, '')) || 0;
+  const porAtleta = atletas ? valor / atletas : 0;
+  const versao = o.versao || 'V0';
+  const dataDoc = o.data || new Date().toISOString().slice(0, 10);
+  const validade = Number(o.validade) || 15;
+  const empresa = p.empresa || 'Cliente';
+  const evento = p.nome_evento || ((p.tipo_evento || 'Evento') + ' ' + empresa);
+  const respostas = Array.isArray(p.respostas) ? p.respostas : [];
+  const objetivos = Array.isArray(p.objetivos) ? p.objetivos : [];
+  const escopo = propEscopoCompleto(p);
+  const nInc = escopo.filter(function(e){ return e.tem; }).length;
+  const nNao = escopo.length - nInc;
+  const resp = function(rotulo){
+    for (let i = 0; i < respostas.length; i++) if (respostas[i].r === rotulo) return respostas[i].v;
+    return '';
+  };
+
+  /* ── capa ── */
+  const dataEvt = p.data_pretendida ? propDocDataCurta(p.data_pretendida) : 'A definir';
+  const capaStats =
+    '<div class="cs"><b>' + (atletas ? atletas.toLocaleString('pt-BR') : '—') + '</b><span>atletas</span></div>' +
+    '<div class="cs"><b>' + E(dataEvt) + '</b><span>data' + (p.data_flexivel ? ' (flexível)' : '') + '</span></div>' +
+    '<div class="cs"><b>' + E(p.cidade_evento || 'A definir') + '</b><span>cidade</span></div>';
+  const capa =
+    '<section class="capa">' +
+      '<div class="capa-top"><img class="logo" src="' + E(o.logo || '') + '" alt="JBX Sports"><span class="capa-proto">' + E(p.protocolo || '') + ' · ' + E(versao) + '</span></div>' +
+      '<div class="capa-meio">' +
+        '<div class="capa-tag">Proposta comercial</div>' +
+        '<h1>' + E(evento) + '</h1>' +
+        '<div class="capa-para">Preparada para <b>' + E(empresa) + '</b></div>' +
+      '</div>' +
+      '<div class="capa-stats">' + capaStats + '</div>' +
+      '<div class="capa-pe"><span>' + E(propDocDataLonga(dataDoc)) + '</span><span>jbxsports.com.br · @jbx.sports</span></div>' +
+    '</section>';
+
+  /* ── quem somos ── */
+  const sobre =
+    '<section class="pg">' +
+      '<div class="kick">01 · Quem somos</div>' +
+      '<h2>Apaixonados por projetos diferentes.</h2>' +
+      '<p class="lead">A JBX Sports é a maior organizadora de corridas de rua da região de Ribeirão Preto. ' +
+      'Planejamos, produzimos e executamos o evento de ponta a ponta — do alvará à medalha no peito do último atleta.</p>' +
+      '<p>Já fechamos ruas, avenidas e dois aeroportos para corridas. Cada prova é desenhada para o objetivo de quem contrata: ' +
+      'engajar colaboradores, ativar uma marca, celebrar uma data ou movimentar uma cidade.</p>' +
+      '<div class="pilares">' +
+        '<div><b>Projeto sob medida</b><span>Percurso, formato e experiência pensados para o seu público.</span></div>' +
+        '<div><b>Execução ponta a ponta</b><span>Estrutura, equipe, cronometragem, segurança e licenças.</span></div>' +
+        '<div><b>Inscrição online</b><span>Plataforma própria com pagamento, área do atleta e relatórios.</span></div>' +
+        '<div><b>Divulgação</b><span>Base de mais de 20 mil corredores e os canais da JBX.</span></div>' +
+      '</div>' +
+      '<div class="kick" style="margin-top:34px">Como trabalhamos</div>' +
+      '<ol class="passos">' +
+        '<li><b>Aprovação</b><span>Ajustamos o que for preciso e fechamos a versão final.</span></li>' +
+        '<li><b>Contrato e cronograma</b><span>Datas de cada entrega, do alvará ao dia da prova.</span></li>' +
+        '<li><b>Produção</b><span>Licenças, fornecedores, inscrições e divulgação.</span></li>' +
+        '<li><b>Dia do evento</b><span>Nossa equipe na rua, do primeiro gradil à última medalha.</span></li>' +
+      '</ol>' +
+    '</section>';
+
+  /* ── briefing completo ── */
+  const blocoContratante =
+    '<div class="bq"><h3>Contratante</h3><dl>' +
+      propDocCampo('Empresa', p.empresa) +
+      propDocCampo('CNPJ', p.cnpj) +
+      propDocCampo('Responsável', (p.responsavel || '') + (p.cargo ? ' · ' + p.cargo : '')) +
+      propDocCampo('WhatsApp', p.whatsapp) +
+      propDocCampo('E-mail', p.email) +
+      propDocCampo('Cidade', p.cidade_empresa) +
+      propDocCampo('Site / Instagram', p.site) +
+    '</dl></div>';
+  const blocoEvento =
+    '<div class="bq"><h3>O evento</h3><dl>' +
+      propDocCampo('Modalidade', (p.tipo_evento || '') + (p.esporte_outro ? ' — ' + p.esporte_outro : '')) +
+      propDocCampo('Nome do evento', p.nome_evento) +
+      propDocCampo('Data pretendida', p.data_pretendida ? propDocDataCurta(p.data_pretendida) + (p.data_flexivel ? ' (flexível)' : ' (data fechada)') : '') +
+      propDocCampo('Cidade', p.cidade_evento) +
+      propDocCampo('Local / percurso', p.local_evento) +
+      propDocCampo('Participantes', atletas ? atletas.toLocaleString('pt-BR') : resp('Nº total de participantes (como informado)')) +
+      propDocCampo('Distâncias', p.distancias || resp('Percursos')) +
+    '</dl></div>';
+  const corrida = /corrida/i.test(p.tipo_evento || '');
+  const rotFormato = corrida
+    ? ['Tipo de percurso', 'Horário da largada', 'Público', 'Cronometragem', 'Categorias premiadas', 'Edição', 'Observações sobre participantes']
+    : ['Como imagina o formato', 'Edição', 'Observações sobre participantes'];
+  let fmtHtml = '';
+  rotFormato.forEach(function(r){ fmtHtml += propDocCampo(r, resp(r)); });
+  respostas.forEach(function(r){
+    if (rotFormato.indexOf(r.r) < 0 && r.r !== 'Percursos' && r.r !== 'Nº total de participantes (como informado)') fmtHtml += propDocCampo(r.r, r.v);
+  });
+  const blocoFormato = '<div class="bq"><h3>Formato</h3><dl>' + fmtHtml + '</dl></div>';
+  const blocoObjetivo =
+    '<div class="bq"><h3>Objetivo e investimento</h3><dl>' +
+      propDocCampo('Objetivos', objetivos.join(' · ')) +
+      propDocCampo('Faixa de investimento', p.verba_faixa) +
+      propDocCampo('Modelo de inscrição', p.modelo_inscricao) +
+      propDocCampo('Valor de inscrição previsto', p.valor_inscricao ? propDocBRL(p.valor_inscricao) : '') +
+      propDocCampo('Patrocinadores', p.tem_patrocinadores ? (p.patrocinadores || 'Sim, já tem') : 'Ainda não tem') +
+      propDocCampo('Observações', p.observacoes) +
+      propDocCampo('Como conheceu a JBX', p.como_conheceu) +
+    '</dl></div>';
+  const briefing =
+    '<section class="pg quebra">' +
+      '<div class="kick">02 · O que você nos contou</div>' +
+      '<h2>Briefing do evento</h2>' +
+      '<p class="sub">Todas as respostas do formulário preenchido por ' + E(empresa) + ', exatamente como recebemos.</p>' +
+      '<div class="bqs">' + blocoContratante + blocoEvento + blocoFormato + blocoObjetivo + '</div>' +
+    '</section>';
+
+  /* ── escopo ── */
+  let escHtml = '';
+  if (escopo.length && escopo[0].item === 'Descrito pelo cliente') {
+    escHtml = '<div class="grp"><h3>Escopo descrito pelo cliente</h3><p class="livre">' + E(escopo[0].qtd) + '</p></div>';
+  } else if (!escopo.length) {
+    escHtml = '<p class="sub">O cliente não marcou itens de escopo — a JBX propõe o escopo completo.</p>';
+  } else {
+    const grupos = [];
+    escopo.forEach(function(e){
+      const g = e.grupo || 'Outros';
+      let gr = null;
+      for (let i = 0; i < grupos.length; i++) if (grupos[i].g === g) gr = grupos[i];
+      if (!gr) { gr = {g:g, itens:[]}; grupos.push(gr); }
+      gr.itens.push(e);
+    });
+    grupos.forEach(function(gr){
+      const inc = gr.itens.filter(function(e){ return e.tem; }).length;
+      let linhas = '';
+      gr.itens.forEach(function(e){
+        linhas += '<li class="' + (e.tem ? 'sim' : 'nao') + '"><i></i><span class="it">' + E(e.item) + '</span>' +
+          '<span class="st">' + (e.tem ? (e.qtd ? E(e.qtd) : 'Incluso') : 'Não solicitado') + '</span></li>';
+      });
+      escHtml += '<div class="grp"><h3>' + E(gr.g) + '<small>' + inc + ' de ' + gr.itens.length + '</small></h3><ul>' + linhas + '</ul></div>';
+    });
+  }
+  const escopoSec =
+    '<section class="pg quebra">' +
+      '<div class="kick">03 · Escopo</div>' +
+      '<h2>O que está na proposta</h2>' +
+      '<p class="sub">Itens do questionário, um a um. ' +
+        (nNao ? '<b class="tag-sim">' + nInc + ' inclusos</b> pedidos por vocês e <b class="tag-nao">' + nNao + ' não solicitados</b>, que podem entrar como opcionais.' : '') +
+      '</p>' +
+      '<div class="grps">' + escHtml + '</div>' +
+    '</section>';
+
+  /* ── investimento ── */
+  const consid = String(o.consideracoes || '').trim();
+  let considHtml = '';
+  if (consid) {
+    considHtml = '<div class="consid"><h3>Considerações</h3>' +
+      consid.split(/\n+/).map(function(l){ return '<p>' + E(l) + '</p>'; }).join('') + '</div>';
+  }
+  /* conta rápida: inscrições × ticket informado − investimento */
+  const ticket = Number(String(p.valor_inscricao == null ? '' : p.valor_inscricao).replace(',', '.')) || 0;
+  let contaHtml = '';
+  if (ticket > 0 && atletas > 0 && valor > 0) {
+    const receita = atletas * ticket;
+    const saldo = receita - valor;
+    const pos = saldo >= 0;
+    contaHtml =
+      '<div class="conta">' +
+        '<h3>Conta rápida do evento</h3>' +
+        '<div class="ct-l"><span>Inscrições · ' + atletas.toLocaleString('pt-BR') + ' pagantes × ' + E(propDocBRL(ticket)) + '</span><b>' + E(propDocBRL(receita)) + '</b></div>' +
+        '<div class="ct-l"><span>Investimento JBX Sports</span><b>− ' + E(propDocBRL(valor)) + '</b></div>' +
+        '<div class="ct-l ct-s ' + (pos ? 'pos' : 'neg') + '"><span>Saldo</span><b>' + (pos ? '' : '− ') + E(propDocBRL(Math.abs(saldo))) + '</b></div>' +
+        '<p class="ct-n">' + (pos
+          ? 'Só com as inscrições o evento já se paga. Com <b>patrocinadores</b>, o resultado cresce ainda mais — a prova comporta cotas de marcas parceiras no kit, na arena e na divulgação.'
+          : 'Só com as inscrições, faltam ' + E(propDocBRL(Math.abs(saldo))) + ' para fechar a conta. Esse saldo pode ser coberto — e virar resultado positivo — com <b>patrocinadores</b>: a prova comporta cotas de marcas parceiras no kit, na arena e na divulgação.') +
+        '</p>' +
+        '<p class="ct-r">Valores brutos, com o ticket de inscrição informado no briefing.</p>' +
+      '</div>';
+  }
+  const invest =
+    '<section class="pg quebra">' +
+      '<div class="kick">04 · Investimento</div>' +
+      '<h2>Valor do projeto</h2>' +
+      '<div class="valor">' +
+        '<div class="valor-n"><span>Investimento total</span><b>' + E(propDocBRL(valor)) + '</b></div>' +
+        (porAtleta ? '<div class="valor-x"><b>' + E(propDocBRL(porAtleta)) + '</b><span>por atleta, considerando ' + atletas.toLocaleString('pt-BR') + ' participantes</span></div>' : '') +
+        '<div class="valor-x"><b>' + nInc + '</b><span>itens de escopo inclusos</span></div>' +
+      '</div>' +
+      contaHtml +
+      considHtml +
+      '<div class="cond">' +
+        '<div><b>Validade</b><span>' + validade + ' dias a partir de ' + E(propDocDataCurta(dataDoc)) + '</span></div>' +
+        '<div><b>Versão</b><span>' + E(versao) + ' · ' + E(p.protocolo || '') + '</span></div>' +
+        '<div><b>Opcionais</b><span>Itens não solicitados podem ser incluídos com revisão de valor</span></div>' +
+      '</div>' +
+      '<div class="assina"><img class="logo" src="' + E(o.logo || '') + '" alt=""><div><b>Stephano Bachim</b><span>Diretor Comercial · JBX Sports</span><span>sb@jbxsports.com.br · jbxsports.com.br</span></div></div>' +
+    '</section>';
+
+  const css =
+    '@page{size:A4;margin:16mm 15mm 18mm;@bottom-left{content:"JBX Sports · ' + E(p.protocolo || '') + ' · ' + E(versao) + '";font:500 8pt Ubuntu,sans-serif;color:#a59b92}@bottom-right{content:counter(page);font:700 8pt Ubuntu,sans-serif;color:#FF751F}}' +
+    '@page:first{margin:0;@bottom-left{content:none}@bottom-right{content:none}}' +
+    '*{box-sizing:border-box;margin:0;padding:0}' +
+    'html{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'body{font-family:Ubuntu,sans-serif;color:#2a2520;font-size:10pt;line-height:1.5;background:#fff}' +
+    '.capa{position:relative;width:210mm;height:297mm;background:#fff;color:#0a0a0a;padding:22mm 20mm;border-top:3mm solid #FF751F;display:flex;flex-direction:column;overflow:hidden;break-after:page}' +
+    '.capa-top{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1}' +
+    '.capa .logo{height:11mm;filter:invert(1)}' +
+    '.capa-proto{font-size:9pt;letter-spacing:.12em;color:#a59b92;font-weight:500}' +
+    '.capa-meio{margin-top:auto;position:relative;z-index:1}' +
+    '.capa-tag{display:inline-block;background:#FF751F;color:#fff;font-weight:700;font-size:9pt;letter-spacing:.16em;text-transform:uppercase;padding:2mm 4mm;border-radius:1mm}' +
+    '.capa h1{font-size:46pt;line-height:1.02;font-weight:700;margin:7mm 0 5mm;max-width:150mm;letter-spacing:-.01em}' +
+    '.capa-para{font-size:14pt;color:#7a7068;font-weight:300}.capa-para b{color:#0a0a0a;font-weight:500}' +
+    '.capa-stats{display:flex;gap:0;margin-top:16mm;border-top:1px solid #e5ded6;position:relative;z-index:1}' +
+    '.cs{flex:1;padding:6mm 0 0;border-right:1px solid #eee9e3;padding-left:6mm}.cs:first-child{padding-left:0}.cs:last-child{border-right:none}' +
+    '.cs b{display:block;font-size:20pt;font-weight:700;color:#FF751F;line-height:1.1}.cs span{font-size:8.5pt;color:#7a7068;text-transform:uppercase;letter-spacing:.1em}' +
+    '.capa-pe{display:flex;justify-content:space-between;margin-top:14mm;font-size:9pt;color:#a59b92;position:relative;z-index:1}' +
+    '.pg{padding-top:2mm}.quebra{break-before:page}' +
+    '.kick{font-size:8.5pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#FF751F;margin-bottom:3mm}' +
+    'h2{font-size:24pt;line-height:1.1;font-weight:700;color:#0a0a0a;margin-bottom:5mm;letter-spacing:-.01em}' +
+    '.lead{font-size:13pt;line-height:1.45;font-weight:300;color:#2a2520;margin-bottom:4mm;max-width:160mm}' +
+    '.pg>p{max-width:160mm;margin-bottom:3mm}.sub{color:#7a7068;margin-bottom:6mm}' +
+    '.pilares{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-top:8mm}' +
+    '.pilares div{border-left:3px solid #FF751F;background:#faf9f7;padding:4mm 5mm;border-radius:0 2mm 2mm 0}' +
+    '.pilares b{display:block;font-size:11pt;margin-bottom:1mm}.pilares span{color:#7a7068;font-size:9.5pt}' +
+    '.bqs{display:grid;grid-template-columns:1fr 1fr;gap:5mm}' +
+    '.bq{border:1px solid #eee9e3;border-radius:2.5mm;padding:4mm 5mm;break-inside:avoid}' +
+    '.bq h3,.grp h3,.consid h3{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0a0a0a;margin-bottom:2.5mm;padding-bottom:2mm;border-bottom:2px solid #FF751F;display:flex;justify-content:space-between;align-items:baseline}' +
+    '.cp{display:grid;grid-template-columns:34mm 1fr;gap:3mm;padding:1.6mm 0;border-bottom:1px solid #f3efea}.cp:last-child{border-bottom:none}' +
+    'dt{color:#7a7068;font-size:8.8pt}dd{font-weight:500;font-size:9.4pt;word-break:break-word}dd.ni{color:#c0b6ad;font-weight:400;font-style:italic}' +
+    '.tag-sim{color:#FF751F}.tag-nao{color:#a59b92}' +
+    '.grps{columns:2;column-gap:5mm}' +
+    '.grp{break-inside:avoid;border:1px solid #eee9e3;border-radius:2.5mm;padding:4mm 5mm;margin-bottom:5mm;display:inline-block;width:100%}' +
+    '.grp h3 small{font-size:8pt;color:#a59b92;letter-spacing:.04em;font-weight:500}' +
+    '.grp ul{list-style:none}' +
+    '.grp li{display:flex;align-items:center;gap:2.5mm;padding:1.5mm 0;border-bottom:1px solid #f3efea;font-size:9.4pt}.grp li:last-child{border-bottom:none}' +
+    '.grp li i{flex:0 0 4mm;height:4mm;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}' +
+    '.grp li.sim i{background:#FF751F}.grp li.sim i::after{content:"";width:1.6mm;height:.9mm;border-left:.45mm solid #fff;border-bottom:.45mm solid #fff;transform:rotate(-45deg) translate(.1mm,-.1mm)}' +
+    '.grp li.nao i{border:1px solid #d6cdc4}' +
+    '.grp .it{flex:1}.grp li.nao .it{color:#a59b92}' +
+    '.grp .st{font-size:8.3pt;font-weight:700;white-space:nowrap;color:#FF751F}.grp li.nao .st{color:#b8aea5;font-weight:400}' +
+    '.livre{white-space:pre-wrap}' +
+    '.valor{display:grid;grid-template-columns:1.5fr 1fr 1fr;border-radius:3mm;overflow:hidden;margin:2mm 0 7mm}' +
+    '.valor-n{background:#fff3ea;color:#0a0a0a;padding:7mm;border-left:2mm solid #FF751F}.valor-n span{display:block;font-size:8.5pt;letter-spacing:.14em;text-transform:uppercase;color:#7a7068;margin-bottom:2mm}' +
+    '.valor-n b{font-size:26pt;font-weight:700;color:#FF751F;line-height:1}' +
+    '.valor-x{background:#faf9f7;padding:7mm 6mm;border-left:1px solid #eee9e3}.valor-x b{display:block;font-size:16pt;font-weight:700;color:#0a0a0a}.valor-x span{font-size:8.8pt;color:#7a7068}' +
+    '.conta{border:1px solid #eee9e3;border-radius:3mm;padding:5mm 6mm;margin-bottom:7mm;break-inside:avoid}' +
+    '.conta h3{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0a0a0a;margin-bottom:2mm}' +
+    '.ct-l{display:flex;justify-content:space-between;padding:2.2mm 0;border-bottom:1px solid #f3efea;font-size:10pt}.ct-l b{font-weight:700}' +
+    '.ct-s{border-bottom:none;border-top:2px solid #0a0a0a;margin-top:1mm;font-size:12pt}.ct-s.neg b{color:#c0392b}.ct-s.pos b{color:#1e8449}' +
+    '.ct-n{margin-top:3mm;background:#fff3ea;border-left:3px solid #FF751F;padding:3mm 4mm;border-radius:0 2mm 2mm 0}.ct-n b{color:#e05a08}' +
+    '.ct-r{margin-top:2mm;font-size:8pt;color:#a59b92}' +
+    '.consid{margin-bottom:7mm;break-inside:avoid}.consid p{margin-bottom:2mm}' +
+    '.cond{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}.cond div{border-top:2px solid #5E17EB;padding-top:2.5mm}.cond b{display:block;font-size:9pt}.cond span{font-size:8.8pt;color:#7a7068}' +
+    '.passos{margin-top:2mm;list-style:none;counter-reset:ps;display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}' +
+    '.passos li{counter-increment:ps;background:#faf9f7;border-radius:2.5mm;padding:4mm}' +
+    '.passos li::before{content:counter(ps,decimal-leading-zero);display:block;font-size:16pt;font-weight:700;color:#FF751F;margin-bottom:1mm}' +
+    '.passos b{display:block;font-size:9.5pt}.passos span{font-size:8.5pt;color:#7a7068}' +
+    '.assina{display:flex;align-items:center;gap:6mm;margin-top:12mm;padding:6mm;background:#faf9f7;border:1px solid #eee9e3;border-radius:3mm;color:#0a0a0a;break-inside:avoid}' +
+    '.assina .logo{height:8mm;filter:invert(1)}.assina b{display:block;font-size:11pt}.assina span{display:block;font-size:8.8pt;color:#7a7068}' +
+    '.assina div{border-left:1px solid #e5ded6;padding-left:6mm}';
+
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<title>Proposta ' + E(p.protocolo || '') + ' ' + E(versao) + ' — ' + E(empresa) + '</title>' +
+    (o.fontes || '<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">') +
+    '<style>' + css + '</style></head><body>' + capa + sobre + briefing + escopoSec + invest + '</body></html>';
+}
+
+/* ══ PROPOSTA COMERCIAL — gerar V0, V1, V2… e controlar envio ══ */
+let propPcEsc = [];        /* escopo ajustado que vai na proposta: [{grupo,item,qtd,tem}] */
+let propPcVersoes = [];
+
+function propPcNum(txt){
+  const s = String(txt == null ? '' : txt).replace(/[^\d,.-]/g, '');
+  if (!s) return 0;
+  /* "90.000,00" → 90000.00 ; "90000" → 90000 ; "90000.5" → 90000.5 */
+  if (s.indexOf(',') >= 0) return Number(s.replace(/\./g, '').replace(',', '.')) || 0;
+  if ((s.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(s)) return Number(s.replace(/\./g, '')) || 0;
+  return Number(s) || 0;
+}
+function propPcDataLocal(ts){
+  const d = ts ? new Date(ts) : new Date();
+  const z = function(n){ return (n < 10 ? '0' : '') + n; };
+  return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+}
+function propPcLogo(){
+  const im = document.querySelector('.ini-org-logo img');
+  return im ? im.getAttribute('src') : '';
+}
+
+async function propPcMontar(p){
+  const box = document.getElementById('prp-pc');
+  if (!box) return;
+  if (!(admUser && admUser.master)) { box.style.display = 'none'; return; }
+  box.style.display = '';
+  document.getElementById('prp-pc-versoes').innerHTML = '<div class="prp-vazio">Carregando versões…</div>';
+  document.getElementById('prp-pc-valor').value = '';
+  document.getElementById('prp-pc-cons').value = '';
+  document.getElementById('prp-pc-val').value = '15';
+  propPcEsc = propEscopoCompleto(p);
+  propPcVersoes = [];
+  propPcEscRender();
+  propPcBotao();
+  try {
+    const r = await rpc('admin_proposta_versoes', {p_proposta: String(p.id)});
+    if (!propAtual || String(propAtual.id) !== String(p.id)) return;
+    propPcVersoes = Array.isArray(r) ? r : [];
+  } catch (e) {
+    document.getElementById('prp-pc-versoes').innerHTML =
+      '<div class="prp-vazio" style="color:#c0392b;">Não consegui ler as versões. Já rodou o SQL 04_propostas_versoes.sql?</div>';
+    return;
+  }
+  /* parte da última versão: mesmo valor, considerações e escopo ajustado */
+  const ult = propPcVersoes[0];
+  if (ult) {
+    document.getElementById('prp-pc-valor').value = Number(ult.valor || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById('prp-pc-cons').value = ult.consideracoes || '';
+    document.getElementById('prp-pc-val').value = String(ult.validade_dias || 15);
+    if (ult.snapshot && Array.isArray(ult.snapshot.escopo)) {
+      propPcEsc = propEscopoCompleto(Object.assign({}, p, {escopo: ult.snapshot.escopo}));
+      propPcEscRender();
+    }
+  }
+  propPcVersoesRender();
+  propPcBotao();
+}
+
+function propPcEscRender(){
+  const el = document.getElementById('prp-pc-esc-lista');
+  const res = document.getElementById('prp-pc-esc-res');
+  const lista = propPcEsc.filter(function(e){ return e.item !== 'Descrito pelo cliente'; });
+  if (!lista.length) {
+    el.innerHTML = '<div class="prp-vazio">Escopo descrito em texto pelo cliente — vai na proposta como ele escreveu.</div>';
+    res.textContent = '';
+    return;
+  }
+  let h = '', g = '';
+  for (let i = 0; i < propPcEsc.length; i++) {
+    const e = propPcEsc[i];
+    if (e.grupo !== g) { h += '<div class="prp-grp">' + propEsc(e.grupo) + '</div>'; g = e.grupo; }
+    h += '<label class="prp-pc-it' + (e.tem ? ' on' : '') + '">' +
+      '<input type="checkbox" ' + (e.tem ? 'checked ' : '') + 'onchange="propPcMarcar(' + i + ',this.checked)">' +
+      '<span>' + propEsc(e.item) + '</span>' +
+      '<input type="text" class="prp-pc-q" placeholder="Qtd" value="' + propEsc(e.qtd || '') + '" oninput="propPcQtd(' + i + ',this.value)"' + (e.tem ? '' : ' disabled') + '>' +
+      '</label>';
+  }
+  el.innerHTML = h;
+  propPcEscResumo();
+}
+function propPcEscResumo(){
+  const n = propPcEsc.filter(function(e){ return e.tem; }).length;
+  document.getElementById('prp-pc-esc-res').textContent = '(' + n + ' de ' + propPcEsc.length + ' marcados)';
+}
+function propPcMarcar(i, on){
+  propPcEsc[i].tem = !!on;
+  const lab = document.querySelectorAll('#prp-pc-esc-lista .prp-pc-it')[i];
+  if (lab) { lab.classList.toggle('on', !!on); lab.querySelector('.prp-pc-q').disabled = !on; }
+  propPcEscResumo();
+}
+function propPcQtd(i, v){ propPcEsc[i].qtd = v; }
+
+function propPcBotao(){
+  const b = document.getElementById('prp-pc-gerar');
+  const n = propPcVersoes.length ? (Number(propPcVersoes[0].versao) + 1) : 0;
+  b.textContent = '📄 Gerar proposta V' + n;
+}
+
+function propPcVersoesRender(){
+  const el = document.getElementById('prp-pc-versoes');
+  if (!propPcVersoes.length) { el.innerHTML = '<div class="prp-vazio">Nenhuma versão gerada ainda.</div>'; return; }
+  let h = '<div class="prp-pc-vh"><span>Versão</span><span>Valor</span><span>Gerada</span><span>Enviada?</span><span>Data de envio</span><span></span></div>';
+  propPcVersoes.forEach(function(v){
+    h += '<div class="prp-pc-v' + (v.enviado ? ' env' : '') + '">' +
+      '<b>V' + v.versao + '</b>' +
+      '<span>' + brl(v.valor) + '</span>' +
+      '<span>' + fmtDS(propPcDataLocal(v.criado_em)) + '</span>' +
+      '<label class="prp-pc-env"><input type="checkbox" ' + (v.enviado ? 'checked ' : '') + 'onchange="propPcEnvio(' + v.id + ')" id="prp-pc-e-' + v.id + '"> ' + (v.enviado ? 'Sim' : 'Não') + '</label>' +
+      '<input type="date" id="prp-pc-d-' + v.id + '" value="' + (v.data_envio || '') + '" onchange="propPcEnvio(' + v.id + ')">' +
+      '<button class="mkt-btn" onclick="propPcAbrir(' + v.id + ')">Abrir PDF</button>' +
+      '</div>';
+  });
+  el.innerHTML = h;
+}
+
+async function propPcEnvio(id){
+  const cb = document.getElementById('prp-pc-e-' + id);
+  const dt = document.getElementById('prp-pc-d-' + id);
+  let env = cb.checked;
+  /* escreveu a data → conta como enviada */
+  if (dt.value && !env) { env = true; cb.checked = true; }
+  if (env && !dt.value) dt.value = propPcDataLocal();
+  try {
+    const r = await rpc('admin_proposta_versao_envio', {p_id: id, p_enviado: env, p_data: dt.value || null});
+    if (!r || !r.ok) throw new Error('erro');
+    propPcVersoes.forEach(function(v){ if (v.id === id) { v.enviado = env; v.data_envio = dt.value || null; } });
+    if (env && propAtual && (propAtual.status === 'novo' || propAtual.status === 'em_contato' || !propAtual.status)) {
+      propAtual.status = 'proposta_enviada';
+      document.getElementById('prp-d-status').value = 'proposta_enviada';
+      document.getElementById('prp-d-badge').innerHTML = propBadge('proposta_enviada');
+      propRender(); propKpis();
+    }
+    propPcVersoesRender();
+  } catch (e) {
+    alert('Não consegui salvar o envio. Tente de novo.');
+  }
+}
+
+function propPcDocAbrir(w, snap, v){
+  const html = propDocHTML(snap, {
+    valor: Number(v.valor),
+    consideracoes: v.consideracoes || '',
+    versao: 'V' + v.versao,
+    data: v.data_envio || propPcDataLocal(v.criado_em),
+    validade: v.validade_dias || 15,
+    logo: propPcLogo()
+  });
+  w.document.open(); w.document.write(html); w.document.close();
+  const imprimir = function(){ try { w.focus(); w.print(); } catch (e) {} };
+  setTimeout(function(){
+    if (w.document.fonts && w.document.fonts.ready) w.document.fonts.ready.then(function(){ setTimeout(imprimir, 300); });
+    else imprimir();
+  }, 400);
+}
+
+async function propPcGerar(){
+  const p = propAtual; if (!p) return;
+  const valor = propPcNum(document.getElementById('prp-pc-valor').value);
+  if (!(valor > 0)) { alert('Escreva o valor global da proposta.'); document.getElementById('prp-pc-valor').focus(); return; }
+  const cons = document.getElementById('prp-pc-cons').value;
+  const validade = parseInt(document.getElementById('prp-pc-val').value, 10) || 15;
+  const descrito = (Array.isArray(p.escopo) ? p.escopo : []).filter(function(e){ return e && e.item === 'Descrito pelo cliente'; });
+  const escopo = descrito.length ? descrito : propPcEsc.filter(function(e){ return e.tem; })
+    .map(function(e){ return {grupo:e.grupo, item:e.item, tem:true, qtd:String(e.qtd || '').trim()}; });
+  const snap = Object.assign({}, p, {escopo: escopo});
+  delete snap.notas_internas; delete snap.responsavel_jbx;
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('O navegador bloqueou a janela. Libere pop-ups para o admin e tente de novo.'); return; }
+  w.document.write('<p style="font-family:sans-serif;padding:30px;color:#7a7068">Gerando proposta…</p>');
+  const btn = document.getElementById('prp-pc-gerar');
+  btn.disabled = true;
+  try {
+    const r = await rpc('admin_proposta_versao_criar', {
+      p_proposta: String(p.id), p_valor: valor, p_consideracoes: cons,
+      p_validade: validade, p_snapshot: snap
+    });
+    if (!r || !r.ok) throw new Error(r && r.erro === 'sem_valor' ? 'Escreva o valor global.' : 'Não consegui salvar a versão.');
+    const v = {id:r.id, versao:r.versao, valor:valor, consideracoes:cons, validade_dias:validade,
+               snapshot:snap, enviado:false, data_envio:null, criado_em:new Date().toISOString()};
+    propPcVersoes.unshift(v);
+    propPcVersoesRender();
+    propPcBotao();
+    propPcDocAbrir(w, snap, v);
+  } catch (e) {
+    w.close();
+    alert(e.message && e.message.length < 120 ? e.message : 'Erro ao gerar a proposta. Já rodou o SQL 04_propostas_versoes.sql?');
+  }
+  btn.disabled = false;
+}
+
+function propPcAbrir(id){
+  const v = propPcVersoes.filter(function(x){ return x.id === id; })[0];
+  if (!v || !propAtual) return;
+  const w = window.open('', '_blank');
+  if (!w) { alert('O navegador bloqueou a janela. Libere pop-ups para o admin e tente de novo.'); return; }
+  const snap = (v.snapshot && typeof v.snapshot === 'object') ? v.snapshot : propAtual;
+  propPcDocAbrir(w, snap, v);
 }
 
 function propCopiarLink(){
