@@ -1387,17 +1387,18 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .ck-add button{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:#fff;background:var(--orange);border:none;border-radius:8px;padding:9px 16px;cursor:pointer;white-space:nowrap;}
 .ck-add .dica{font-size:11px;color:var(--muted);width:100%;}
 /* rolagem horizontal: a coluna do item fica fixa à esquerda */
-.ck-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
-table.ck-grid{border-collapse:separate;border-spacing:0;min-width:100%;}
+.ck-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);width:fit-content;max-width:100%;}
+table.ck-grid{border-collapse:separate;border-spacing:0;width:auto;}
 table.ck-grid th,table.ck-grid td{border-bottom:1px solid var(--border);padding:8px 10px;font-size:13px;color:var(--text);vertical-align:middle;}
 table.ck-grid thead th{background:#f5f3f0;position:sticky;top:0;z-index:3;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);text-align:center;border-bottom:2px solid var(--border);}
-table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;min-width:280px;box-shadow:1px 0 0 var(--border);}
+table.ck-grid th.ck-c1,table.ck-grid td.ck-c1{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;width:380px;min-width:280px;max-width:420px;box-shadow:1px 0 0 var(--border);}
 table.ck-grid thead th.ck-c1{z-index:4;background:#f5f3f0;}
 table.ck-grid tbody tr:hover td{background:#fdfbf9;}
 table.ck-grid tbody tr:hover td.ck-c1{background:#fdfbf9;}
 table.ck-grid td.ck-c1{font-weight:700;}
-.ck-nome{cursor:text;}
-.ck-c1 .acs{float:right;opacity:0;transition:opacity .12s;white-space:nowrap;}
+.ck-nome{cursor:pointer;}.ck-nome:hover{color:var(--orange);}
+.ck-col-hd .nm:hover{color:var(--orange);}
+.ck-c1 .acs{float:right;opacity:.35;transition:opacity .12s;white-space:nowrap;margin-left:8px;}
 table.ck-grid tbody tr:hover .ck-c1 .acs{opacity:1;}
 .ck-c1 .acs button{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);padding:2px 4px;font-family:'Ubuntu',sans-serif;}
 .ck-c1 .acs button:hover:not(:disabled){color:var(--orange);}
@@ -1412,7 +1413,8 @@ table.ck-grid tbody tr:hover .ck-c1 .acs{opacity:1;}
 .ck-col-hd .acs button:hover:not(:disabled){opacity:1;color:var(--orange);}
 .ck-col-hd .acs button:disabled{opacity:.12;cursor:default;}
 .ck-col-hd .acs button.del:hover{color:#dc2626;}
-.ck-col-hd .acs button.print{font-size:12px;}
+.ck-col-hd .ck-print{font-family:'Ubuntu',sans-serif;font-size:11px;font-weight:700;text-transform:none;letter-spacing:0;color:#fff;background:var(--orange);border:none;border-radius:6px;padding:5px 10px;cursor:pointer;margin-top:2px;}
+.ck-col-hd .ck-print:hover{filter:brightness(1.07);}
 /* célula de quantidade */
 table.ck-grid td.ck-cel{text-align:center;padding:5px 7px;}
 table.ck-grid td.ck-cel input{font-family:'Ubuntu',sans-serif;font-size:13px;font-weight:700;width:78px;border:1px solid transparent;background:#faf9f7;color:var(--text);border-radius:7px;padding:6px 6px;text-align:center;transition:border-color .12s,background .12s;}
@@ -9364,7 +9366,7 @@ function ckRender(){
   let html='<div class="ck-bar">';
   html+='<button class="ck-btn novo" onclick="ckAddColuna()">＋ Novo evento (coluna)</button>';
   if(cols.length) html+='<button class="ck-btn" onclick="ckAddColuna(true)">＋ Novo copiando de outro</button>';
-  html+='<span class="dica">Digite a quantidade na célula. Vazio = o item não vai. Sem número definido, use <b>x</b>. Duplo clique no nome do item ou do evento para renomear.</span>';
+  html+='<span class="dica">Digite a quantidade na célula. Vazio = o item não vai. Sem número definido, use <b>x</b>. Clique no nome do item ou do evento para editar. Célula vazia mostra em cinza o que foi no evento anterior.</span>';
   html+='<span class="ck-status" id="ck-status"></span>';
   html+='</div>';
 
@@ -9384,28 +9386,31 @@ function ckRender(){
   cols.forEach((c,ci)=>{
     const n=ckColItens(c.id).length;
     html+='<th><div class="ck-col-hd">';
-    html+='<span class="nm" ondblclick="ckRenomearColuna(\''+c.id+'\')" title="Duplo clique para renomear">'+ckEsc(c.nome)+'</span>';
+    html+='<span class="nm" onclick="ckRenomearColuna(\''+c.id+'\')" title="Clique para editar o nome do evento">'+ckEsc(c.nome)+' ✏</span>';
     html+='<span class="qt">'+n+(n===1?' item':' itens')+'</span>';
     html+='<span class="acs">';
     html+='<button onclick="ckMoverColuna(\''+c.id+'\',-1)" title="Mover para a esquerda"'+(ci===0?' disabled':'')+'>◀</button>';
-    html+='<button class="print" onclick="ckImprimir(\''+c.id+'\')" title="Imprimir esta lista para a equipe">🖨</button>';
     html+='<button onclick="ckMoverColuna(\''+c.id+'\',1)" title="Mover para a direita"'+(ci===cols.length-1?' disabled':'')+'>▶</button>';
     html+='<button class="del" onclick="ckDelColuna(\''+c.id+'\')" title="Excluir evento">✕</button>';
-    html+='</span></div></th>';
+    html+='</span>';
+    html+='<button class="ck-print" onclick="ckImprimir(\''+c.id+'\')" title="Imprimir a lista só deste evento">🖨 Imprimir</button>';
+    html+='</div></th>';
   });
   if(!cols.length) html+='<th><div class="ck-col-hd"><span class="qt" style="text-transform:none;letter-spacing:0;">Crie a coluna do primeiro evento →</span></div></th>';
   html+='</tr></thead><tbody>';
 
   itens.forEach((i,idx)=>{
-    html+='<tr><td class="ck-c1"><span class="ck-nome" ondblclick="ckEditarItem(\''+i.id+'\')" title="Duplo clique para renomear">'+ckEsc(i.nome)+'</span>';
+    html+='<tr><td class="ck-c1"><span class="ck-nome" onclick="ckEditarItem(\''+i.id+'\')" title="Clique para editar o nome">'+ckEsc(i.nome)+'</span>';
     html+='<span class="acs">';
+    html+='<button onclick="ckEditarItem(\''+i.id+'\')" title="Editar o nome do item">✏</button>';
     html+='<button onclick="ckMoverItem(\''+i.id+'\',-1)" title="Subir"'+(idx===0?' disabled':'')+'>▲</button>';
     html+='<button onclick="ckMoverItem(\''+i.id+'\',1)" title="Descer"'+(idx===itens.length-1?' disabled':'')+'>▼</button>';
     html+='<button class="del" onclick="ckDelItem(\''+i.id+'\')" title="Excluir item de todos os eventos">✕</button>';
     html+='</span></td>';
-    cols.forEach(c=>{
+    cols.forEach((c,ci)=>{
       const v=ckVal(c.id,i.id);
-      html+='<td class="ck-cel"><input type="text" class="'+(v.trim()===''?'vazio':'')+'" value="'+ckEsc(v)+'" placeholder="—"'
+      const ant=ci>0?ckVal(cols[ci-1].id,i.id).trim():'';
+      html+='<td class="ck-cel"><input type="text" class="'+(v.trim()===''?'vazio':'')+'" value="'+ckEsc(v)+'" placeholder="'+(ant?'ant. '+ckEsc(ant):'—')+'"'
         +' title="'+ckEsc(i.nome)+' · '+ckEsc(c.nome)+'"'
         +' onchange="ckSetValor(\''+c.id+'\',\''+i.id+'\',this.value)"></td>';
     });
@@ -9428,7 +9433,7 @@ function ckRender(){
 /* ── Colunas (eventos) ── */
 async function ckAddColuna(copiar){
   const cols=ckColsOrd();
-  const nome=prompt(copiar?'Nome do novo evento (as quantidades serão copiadas):':'Nome do evento (ex: Savegnago 2026):','');
+  const nome=prompt(copiar?'Nome do novo evento — escreva como quiser (as quantidades serão copiadas):':'Nome do evento — escreva como quiser (ex: Savegnago 2026):','');
   if(nome===null||!nome.trim())return;
   let origem=null;
   if(copiar && cols.length){
