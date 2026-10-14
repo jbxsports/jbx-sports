@@ -1683,6 +1683,91 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
   .map-dica{display:none;}
 }
 
+
+/* ── DIRETORIA ── */
+.dir-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.dir-anos{display:flex;gap:6px;flex-wrap:wrap;}
+.dir-ano{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:20px;padding:7px 14px;cursor:pointer;}
+.dir-ano.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.dir-cfg{display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+.dir-cfg label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px;}
+.dir-cfg label span{font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:500;display:flex;align-items:center;gap:5px;}
+.dir-cfg input{font-family:'Ubuntu',sans-serif;font-size:13px;width:90px;padding:6px 8px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#f5f3f0;text-align:right;}
+.dir-aviso{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px;}
+.dir-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.dir-k{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.dir-k.destaque{border-color:rgba(255,117,31,.45);box-shadow:0 0 0 3px rgba(255,117,31,.08);}
+.dir-k .t{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+.dir-k .v{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text);}
+.dir-k .s{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.dir-k .s b{color:var(--text);}
+.dir-atl{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
+.dir-atl span{color:var(--muted);}
+.dir-atl.tot{border-top:1px solid var(--border);margin-top:3px;padding-top:6px;}
+.dir-k .neg,.dir-t .neg,.dir-prev .neg,.dir-atl .neg{color:#c0392b;}
+.dir-k .pos,.dir-t .pos,.dir-prev .pos,.dir-atl .pos{color:#15803d;}
+.dir-pc{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:2px 8px;}
+.dir-pc.ok{background:rgba(21,128,61,.12);color:#15803d;}
+.dir-pc.md{background:rgba(217,119,6,.13);color:#b45309;}
+.dir-pc.bx{background:rgba(192,57,43,.11);color:#c0392b;}
+.dir-pc.nd{color:#c9c1b8;}
+.dir-leg{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.dir-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
+.dir-t th,.dir-t td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;vertical-align:middle;}
+.dir-t thead th{background:#f5f3f0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
+.dir-t thead tr.g th{text-align:center;font-size:11px;letter-spacing:1px;color:var(--text);border-bottom:none;padding-bottom:4px;}
+.dir-t thead tr.g th.gi{border-top:3px solid #FF751F;}
+.dir-t thead tr.g th.gp{border-top:3px solid #5E17EB;}
+.dir-t thead tr.g th.gd{border-top:3px solid #c0392b;}
+.dir-t thead tr.g th.gr{border-top:3px solid #2a2520;}
+.dir-t thead tr.g th.ga{border-top:3px solid #94a3b8;}
+.dir-t .gsep{border-left:1px solid var(--border);}
+.dir-t .dir-c1{position:sticky;left:0;z-index:2;background:var(--card);text-align:left;min-width:210px;max-width:260px;white-space:normal;box-shadow:1px 0 0 var(--border);}
+.dir-t thead .dir-c1{background:#f5f3f0;z-index:3;vertical-align:bottom;}
+.dir-t tbody tr{cursor:pointer;}
+.dir-t tbody tr:hover td{background:#fdf6f0;}
+.dir-t tbody tr.fut td{background:#fcfbfa;}
+.dir-t tbody tr.fut:hover td{background:#fdf6f0;}
+.dir-t td small{display:block;font-size:10.5px;color:var(--muted);font-weight:400;}
+.dir-t td b{font-weight:700;}
+.dir-t .nd{color:#c9c1b8;font-size:11.5px;}
+.dir-t .dsp{color:#7a3b32;}
+.dir-t td.res{font-weight:700;font-size:13.5px;}
+.dir-t .dt{font-size:10.5px;color:var(--muted);display:flex;gap:6px;align-items:center;}
+.dir-t .st{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-radius:4px;padding:1px 5px;}
+.dir-t .st.f{background:rgba(21,128,61,.12);color:#15803d;}
+.dir-t .st.p{background:rgba(94,23,235,.1);color:#5E17EB;}
+.dir-t .nm{font-weight:700;font-size:13px;color:var(--text);margin-top:2px;}
+.dir-t .cd{font-size:11px;color:var(--muted);font-weight:400;}
+.dir-t tfoot td{background:#f5f3f0;font-weight:700;border-top:2px solid #2a2520;}
+.dir-t tfoot tr.esc td,.dir-t tfoot tr.liq td{border-top:none;}
+.dir-t tfoot tr.liq td{background:#2a2520;color:#fff;}
+.dir-t tfoot tr.liq td.dir-c1{background:#2a2520;}
+.dir-t tfoot tr.liq .pos{color:#86efac;}.dir-t tfoot tr.liq .neg{color:#fca5a5;}
+.dir-graf{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+.dir-gc{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.dir-gc .gt{font-size:13px;font-weight:700;color:var(--text);}
+.dir-gc .gt small{font-weight:400;color:var(--muted);font-size:11.5px;}
+.dir-gc .gl{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin:6px 0 8px;}
+.dir-gc .gl span{display:flex;align-items:center;gap:5px;}
+.dir-gc .gl i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+.dir-gc .gl i.m{background:#5E17EB;}.dir-gc .gl i.p{background:#FF751F;}
+.dir-gc .gb{position:relative;height:260px;}
+.dir-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin:2px 0 8px;}
+.dir-hint{font-size:11.5px;color:var(--muted);margin-top:4px;}
+.dir-pat{display:grid;grid-template-columns:1fr 1fr 80px;gap:10px;}
+.dir-pat div,.dir-prev div{display:flex;flex-direction:column;gap:2px;}
+.dir-pat span,.dir-prev span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.dir-pat b{font-size:15px;}
+.dir-prev{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;background:#f5f3f0;border-radius:10px;padding:12px 14px;margin:6px 0 4px;}
+.dir-prev b{font-size:15px;}
+@media(max-width:1100px){.dir-kpis{grid-template-columns:repeat(2,1fr);}.dir-graf{grid-template-columns:1fr;}}
+@media(max-width:640px){.dir-kpis{grid-template-columns:1fr;}.dir-prev{grid-template-columns:1fr 1fr;}}
+.dir-t tbody td:nth-child(2),.dir-t tbody td:nth-child(5),.dir-t tbody td:nth-child(8),.dir-t tbody td:nth-child(11),.dir-t tbody td:nth-child(13),
+.dir-t tfoot tr:first-child td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(8),.dir-t tfoot tr:first-child td:nth-child(11),.dir-t tfoot tr:first-child td:nth-child(13),
+.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(7),.dir-t thead tr:nth-child(2) th:nth-child(10),.dir-t thead tr:nth-child(2) th:nth-child(12),
+.dir-t thead tr.g th+th{border-left:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -1724,6 +1809,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
+        <button class="nav-btn" id="nav-diretoria" onclick="showInner('diretoria')" style="display:none;">Diretoria</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;" id="hd-usuario">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -2755,7 +2841,8 @@ const RPC_PROTEGIDAS=['mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_o
   'pat_entreg_ler','pat_entreg_salvar',
   'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
-  'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio'];
+  'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
+  'dir_dados','dir_evento_salvar','dir_config_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -2792,6 +2879,8 @@ function admAplicarPermissoes(){
   });
   const bu=document.getElementById('nav-usuarios');
   if(bu)bu.style.display=(admUser&&admUser.master)?'':'none';
+  const bdi=document.getElementById('nav-diretoria');
+  if(bdi)bdi.style.display=(admUser&&admUser.master)?'':'none';
   /* criar tarefa é da coordenação; o funcionário só executa */
   const bc=document.getElementById('ig-btn-camp');
   if(bc)bc.style.display=(admUser&&admUser.master)?'':'none';
@@ -2842,7 +2931,7 @@ async function admRestaurarSessao(){
 function showInner(name){
   const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas'};
   const abaReq=mapa[name]||name;
-  if(abaReq==='usuarios'){if(!admUser||!admUser.master)return;}
+  if(abaReq==='usuarios'||abaReq==='diretoria'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
   document.querySelectorAll('.inner-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -2867,6 +2956,7 @@ function showInner(name){
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
+  if(name==='diretoria'){document.getElementById('nav-diretoria').classList.add('active');dirInit();}
   if(name==='divulgadores'){document.getElementById('nav-divulgadores').classList.add('active');divInit();}
   if(name==='mapas'){document.getElementById('nav-mapas').classList.add('active');mapInit();}
   if(name==='propostas'){document.getElementById('nav-propostas').classList.add('active');propInit();}
@@ -10178,6 +10268,404 @@ async function cmpOptoutRemover(chave){
   catch(e){ alert('Erro: ' + (e.message||'')); }
 }
 
+/* ══ DIRETORIA — meta x real por evento (só master) ══ */
+let dirCal = [], dirExt = {}, dirCapt = {}, dirSite = [], dirSiteMap = {}, dirD = {};
+let dirCfg = {aliquota_nf:0, escritorio_mes:0};
+let dirAno = String(new Date().getFullYear());
+let dirChartM = null, dirChartA = null, dirEdId = null;
+
+function dirN(v){ return (v === null || v === undefined || v === '') ? null : Number(v); }
+function dirNum(txt){ return propPcNum(txt); }
+function dirR(v){ return 'R$ ' + Math.round(Number(v) || 0).toLocaleString('pt-BR'); }
+function dirR2(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function dirMoedaInp(v){ return (v === null || v === undefined || v === '') ? '' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function dirPct(real, meta){ return meta > 0 ? Math.round(real / meta * 100) : null; }
+function dirPill(p){
+  if (p === null) return '<span class="dir-pc nd">—</span>';
+  const c = p >= 100 ? 'ok' : (p >= 70 ? 'md' : 'bx');
+  return '<span class="dir-pc ' + c + '">' + p + '%</span>';
+}
+function dirHoje(){ return propPcDataLocal(); }
+
+async function dirInit(){
+  const el = document.getElementById('dir-corpo');
+  if (!(admUser && admUser.master)) { el.innerHTML = '<div class="empty-state">Somente a diretoria acessa este painel.</div>'; return; }
+  el.innerHTML = '<div class="empty-state">Carregando números…</div>';
+  let d;
+  try { d = await rpc('dir_dados'); }
+  catch (e) {
+    el.innerHTML = '<div class="empty-state">Não consegui abrir o painel. Já rodou o SQL <b>05_diretoria.sql</b>?<br><small>' + propEsc(String(e && e.message || '').slice(0, 200)) + '</small></div>';
+    return;
+  }
+  const res = await Promise.all([
+    rpc('admin_calendario_listar').catch(function(){ return []; }),
+    rpc('admin_calendario_extra_listar').catch(function(){ return []; }),
+    rpc('pat_dados').catch(function(){ return null; }),
+    rpc('admin_eventos_stats').catch(function(){ return []; })
+  ]);
+  dirCal = (Array.isArray(res[0]) ? res[0] : []).map(function(r){
+    return Object.assign({}, r, {inicio:String(r.inicio || '').slice(0, 10)});
+  }).filter(function(r){ return r.inicio; });
+  dirExt = {};
+  (Array.isArray(res[1]) ? res[1] : []).forEach(function(x){ dirExt[String(x.id)] = x; });
+  dirCapt = {};
+  ((res[2] && res[2].oportunidades) || []).forEach(function(o){
+    if (o.etapa !== 'fechado') return;
+    const k = String(o.evento_id || '');
+    dirCapt[k] = (dirCapt[k] || 0) + (Number(o.valor_estimado) || 0);
+  });
+  dirSite = Array.isArray(res[3]) ? res[3] : [];
+  dirSiteMap = {};
+  dirSite.forEach(function(s){ dirSiteMap[String(s.id)] = s; });
+  dirD = {};
+  ((d && d.eventos) || []).forEach(function(x){ dirD[String(x.calendario_id)] = x; });
+  dirCfg = (d && d.config) || {aliquota_nf:0, escritorio_mes:0};
+  const anos = dirAnos();
+  if (anos.indexOf(dirAno) < 0 && dirAno !== 'todos') dirAno = anos.length ? anos[anos.length - 1] : dirAno;
+  dirRender();
+}
+
+function dirAnos(){
+  const s = {};
+  dirCal.forEach(function(e){ s[e.inicio.slice(0, 4)] = 1; });
+  return Object.keys(s).sort();
+}
+
+/* todas as contas de um evento */
+function dirCalc(ev){
+  const id = String(ev.id);
+  const d = dirD[id] || {};
+  const ext = dirExt[id] || {};
+  const aliq = (Number(dirCfg.aliquota_nf) || 0) / 100;
+
+  const metaQ = dirN(d.meta_inscritos) !== null ? Number(d.meta_inscritos) : (Number(ev.publico) || 0);
+  const metaQdoCal = dirN(d.meta_inscritos) === null;
+  const metaT = Number(d.meta_ticket) || 0;
+  const metaR = metaQ * metaT;
+
+  let realQ = null, realT = null, realR = null, fonte = '';
+  const site = d.site_evento_id ? dirSiteMap[String(d.site_evento_id)] : null;
+  if (site) {
+    realQ = Number(site.inscricoes_total) || 0;
+    realR = Number(site.faturamento) || 0;
+    realT = realQ ? realR / realQ : 0;
+    fonte = 'site';
+  } else if (dirN(d.real_inscritos) !== null) {
+    realQ = Number(d.real_inscritos);
+    realT = dirN(d.real_ticket) !== null ? Number(d.real_ticket) : metaT;
+    realR = realQ * realT;
+    fonte = 'manual';
+  }
+
+  const metaPat = Number(ext.meta_patrocinio) || 0;
+  const funil = Number(dirCapt[id]) || 0;
+  const realPat = funil > 0 ? funil : (Number(ext.captado) || 0);
+
+  const inv = Number(d.inv_patrocinador) || 0;
+  const custoP = Number(d.custo_previsto) || 0;
+  const custoR = dirN(d.custo_real) !== null ? Number(d.custo_real) : custoP;
+
+  const metaEnt = metaR + metaPat;
+  const nfM = metaEnt * aliq;
+  const despM = inv + custoP + nfM;
+  const resM = metaEnt - despM;
+
+  const realEnt = (realR || 0) + realPat;
+  const nfR = realEnt * aliq;
+  const despR = inv + custoR + nfR;
+  const resR = realEnt - despR;
+
+  const fechado = !!ev.realizado || ev.inicio < dirHoje();
+  /* projeção: evento que já aconteceu usa o real; evento futuro usa a meta
+     (patrocínio futuro usa o maior entre meta e o que já foi captado) */
+  let projQ, projEnt, projNF, projDesp, projRes, projInsR, projPat;
+  if (fechado) {
+    projQ = realQ !== null ? realQ : metaQ; projInsR = realR !== null ? realR : metaR; projPat = realPat;
+  } else {
+    projQ = metaQ; projInsR = metaR; projPat = Math.max(metaPat, realPat);
+  }
+  projEnt = projInsR + projPat;
+  projNF = projEnt * aliq;
+  projDesp = inv + (fechado ? custoR : custoP) + projNF;
+  projRes = projEnt - projDesp;
+
+  return {id:id, ev:ev, d:d, fechado:fechado, fonte:fonte,
+    metaQ:metaQ, metaQdoCal:metaQdoCal, metaT:metaT, metaR:metaR,
+    realQ:realQ, realT:realT, realR:realR,
+    metaPat:metaPat, realPat:realPat, patFunil:funil > 0,
+    inv:inv, custoP:custoP, custoR:custoR,
+    metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
+    realEnt:realEnt, nfR:nfR, despR:despR, resR:resR,
+    projQ:projQ, projEnt:projEnt, projNF:projNF, projDesp:projDesp, projRes:projRes};
+}
+
+function dirLinhas(){
+  return dirCal.filter(function(e){ return dirAno === 'todos' || e.inicio.slice(0, 4) === dirAno; })
+    .sort(function(a, b){ return a.inicio < b.inicio ? -1 : (a.inicio > b.inicio ? 1 : 0); })
+    .map(dirCalc);
+}
+
+function dirRender(){
+  const el = document.getElementById('dir-corpo');
+  const L = dirLinhas();
+  const anos = dirAnos();
+  const T = {metaR:0, realR:0, metaQ:0, realQ:0, metaPat:0, realPat:0, inv:0, custo:0, nf:0, resM:0, projRes:0, projEnt:0, projDesp:0, projQ:0, metaEnt:0, despM:0, realEntFech:0, nRealQ:0, metaRl:0, metaQl:0};
+  L.forEach(function(c){
+    T.metaR += c.metaR; T.metaQ += c.metaQ; T.metaPat += c.metaPat; T.realPat += c.realPat;
+    if (c.realQ !== null) { T.realR += c.realR; T.realQ += c.realQ; T.nRealQ++; T.metaRl += c.metaR; T.metaQl += c.metaQ; }
+    T.inv += c.inv; T.custo += c.fechado ? c.custoR : c.custoP; T.nf += c.projNF;
+    T.resM += c.resM; T.projRes += c.projRes; T.projEnt += c.projEnt; T.projDesp += c.projDesp; T.projQ += c.projQ;
+    T.metaEnt += c.metaEnt; T.despM += c.despM;
+  });
+  const esc = Number(dirCfg.escritorio_mes) || 0;
+  const meses = dirAno === 'todos' ? 0 : 12;
+  const escAno = esc * meses;
+
+  let h = '';
+  /* barra: anos + configurações */
+  h += '<div class="dir-bar"><div class="dir-anos">';
+  anos.concat(['todos']).forEach(function(a){
+    h += '<button class="dir-ano' + (a === dirAno ? ' on' : '') + '" onclick="dirAno=\'' + a + '\';dirRender()">' + (a === 'todos' ? 'Todos' : a) + '</button>';
+  });
+  h += '</div><div class="dir-cfg">' +
+    '<label>Nota fiscal (imposto) <span><input id="dir-aliq" inputmode="decimal" value="' + String(Number(dirCfg.aliquota_nf) || 0).replace('.', ',') + '" onchange="dirCfgSalvar()"> %</span></label>' +
+    '<label>Custo do escritório <span>R$ <input id="dir-esc" inputmode="decimal" value="' + dirMoedaInp(esc) + '" onchange="dirCfgSalvar()"> /mês</span></label>' +
+    '<button class="mkt-btn" onclick="dirExcel()">⬇ Excel</button>' +
+    '</div></div>';
+  if (!(Number(dirCfg.aliquota_nf) > 0)) h += '<div class="dir-aviso">Informe a alíquota da nota fiscal acima — sem ela o imposto entra como zero.</div>';
+
+  /* KPIs */
+  const pIns = T.nRealQ ? dirPct(T.realR, T.metaRl) : null, pPat = dirPct(T.realPat, T.metaPat);
+  const entAtl = T.projQ ? T.projEnt / T.projQ : 0, despAtl = T.projQ ? T.projDesp / T.projQ : 0;
+  h += '<div class="dir-kpis">' +
+    '<div class="dir-k"><div class="t">Inscrições</div><div class="v">' + dirR(T.realR) + '</div>' +
+      '<div class="s">de ' + dirR(T.metaRl) + ' na meta ' + dirPill(pIns) + '</div>' +
+      '<div class="s">' + fmt(T.realQ) + ' de ' + fmt(T.metaQl) + ' inscritos · ' + T.nRealQ + ' evento(s) lançado(s)</div>' +
+      '<div class="s">Meta do ano: ' + dirR(T.metaR) + '</div></div>' +
+    '<div class="dir-k"><div class="t">Patrocínio</div><div class="v">' + dirR(T.realPat) + '</div>' +
+      '<div class="s">de ' + dirR(T.metaPat) + ' na meta ' + dirPill(pPat) + '</div><div class="s">captado até agora (funil + histórico)</div></div>' +
+    '<div class="dir-k"><div class="t">Despesas (projeção)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
+      '<div class="s">Custos ' + dirR(T.custo) + ' · NF ' + dirR(T.nf) + ' · Patroc. ' + dirR(T.inv) + '</div></div>' +
+    '<div class="dir-k destaque"><div class="t">Resultado dos eventos</div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div>' +
+      '<div class="s">projeção · meta ' + dirR(T.resM) + '</div>' +
+      (escAno ? '<div class="s"><b>Após escritório: ' + dirR(T.projRes - escAno) + '</b> (' + dirR(esc) + ' × 12)</div>' : '') + '</div>' +
+    '<div class="dir-k"><div class="t">Por atleta (projeção)</div>' +
+      '<div class="dir-atl"><span>Entrada</span><b>' + dirR2(entAtl) + '</b></div>' +
+      '<div class="dir-atl"><span>Despesa</span><b class="neg">' + dirR2(despAtl) + '</b></div>' +
+      '<div class="dir-atl tot"><span>Saldo</span><b class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '">' + dirR2(entAtl - despAtl) + '</b></div></div>' +
+    '</div>';
+
+  /* tabela */
+  if (!L.length) {
+    h += '<div class="empty-state">Nenhum evento do Calendário neste período.</div>';
+    el.innerHTML = h; dirGraficos([]); return;
+  }
+  h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e custos. <b>Projeção</b> = real nos eventos que já aconteceram, meta nos futuros.</div>';
+  h += '<div class="dir-wrap"><table class="dir-t"><thead>' +
+    '<tr class="g"><th rowspan="2" class="dir-c1">Evento</th>' +
+    '<th colspan="3" class="gi">Inscrições</th><th colspan="3" class="gp">Patrocínio</th>' +
+    '<th colspan="3" class="gd">Despesas</th><th colspan="2" class="gr">Resultado</th><th colspan="3" class="ga">Por atleta</th></tr>' +
+    '<tr><th>Meta</th><th>Real</th><th>%</th><th>Meta</th><th>Captado</th><th>%</th>' +
+    '<th>Invest. patroc.</th><th>Custo evento</th><th>Nota fiscal</th>' +
+    '<th>Meta</th><th>Projeção</th><th>Entrada</th><th>Despesa</th><th>Saldo</th></tr></thead><tbody>';
+  L.forEach(function(c){
+    const e = c.ev;
+    const q = c.projQ || 0;
+    const insMeta = c.metaR ? '<b>' + dirR(c.metaR) + '</b><small>' + fmt(c.metaQ) + ' × ' + dirR2(c.metaT) + '</small>'
+      : '<span class="nd">' + (c.metaQ ? fmt(c.metaQ) + ' insc. · sem ticket' : 'a lançar') + '</span>';
+    const insReal = c.realQ !== null ? '<b>' + dirR(c.realR) + '</b><small>' + fmt(c.realQ) + ' × ' + dirR2(c.realT) + (c.fonte === 'site' ? ' · site' : '') + '</small>'
+      : '<span class="nd">a lançar</span>';
+    h += '<tr onclick="dirAbrir(\'' + c.id + '\')" class="' + (c.fechado ? 'fech' : 'fut') + '">' +
+      '<td class="dir-c1"><div class="dt">' + fmtDS(e.inicio) + ' · ' + (c.fechado ? '<span class="st f">Realizado</span>' : '<span class="st p">Futuro</span>') + '</div>' +
+        '<div class="nm">' + propEsc(e.evento || '') + '</div><div class="cd">' + propEsc(e.cidade || '') + '</div></td>' +
+      '<td>' + insMeta + '</td><td>' + insReal + '</td><td>' + dirPill(c.realQ !== null ? dirPct(c.realR, c.metaR) : null) + '</td>' +
+      '<td>' + (c.metaPat ? dirR(c.metaPat) : '<span class="nd">—</span>') + '</td>' +
+      '<td>' + (c.realPat ? dirR(c.realPat) + (c.patFunil ? '<small>funil</small>' : '') : '<span class="nd">—</span>') + '</td>' +
+      '<td>' + dirPill(dirPct(c.realPat, c.metaPat)) + '</td>' +
+      '<td class="dsp">' + (c.inv ? dirR(c.inv) : '<span class="nd">—</span>') + '</td>' +
+      '<td class="dsp">' + ((c.fechado ? c.custoR : c.custoP) ? dirR(c.fechado ? c.custoR : c.custoP) + '<small>' + (c.fechado && dirN(c.d.custo_real) !== null ? 'real' : 'previsto') + '</small>' : '<span class="nd">a lançar</span>') + '</td>' +
+      '<td class="dsp">' + (c.projNF ? dirR(c.projNF) : '<span class="nd">—</span>') + '</td>' +
+      '<td class="' + (c.resM < 0 ? 'neg' : '') + '">' + dirR(c.resM) + '</td>' +
+      '<td class="res ' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</td>' +
+      '<td>' + (q ? dirR2(c.projEnt / q) : '—') + '</td>' +
+      '<td class="dsp">' + (q ? dirR2(c.projDesp / q) : '—') + '</td>' +
+      '<td class="' + (q && c.projEnt - c.projDesp < 0 ? 'neg' : 'pos') + '"><b>' + (q ? dirR2((c.projEnt - c.projDesp) / q) : '—') + '</b></td>' +
+      '</tr>';
+  });
+  h += '</tbody><tfoot><tr><td class="dir-c1">Total ' + (dirAno === 'todos' ? 'geral' : dirAno) + '<div class="cd">' + L.length + ' eventos</div></td>' +
+    '<td>' + dirR(T.metaR) + '<small>' + fmt(T.metaQ) + ' insc.</small></td><td>' + dirR(T.realR) + '<small>' + fmt(T.realQ) + ' insc.</small></td><td>' + dirPill(pIns) + '</td>' +
+    '<td>' + dirR(T.metaPat) + '</td><td>' + dirR(T.realPat) + '</td><td>' + dirPill(pPat) + '</td>' +
+    '<td>' + dirR(T.inv) + '</td><td>' + dirR(T.custo) + '</td><td>' + dirR(T.nf) + '</td>' +
+    '<td class="' + (T.resM < 0 ? 'neg' : '') + '">' + dirR(T.resM) + '</td><td class="res ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</td>' +
+    '<td>' + dirR2(entAtl) + '</td><td>' + dirR2(despAtl) + '</td><td class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '"><b>' + dirR2(entAtl - despAtl) + '</b></td></tr>';
+  if (escAno) {
+    h += '<tr class="esc"><td class="dir-c1">(−) Escritório<div class="cd">' + dirR(esc) + ' × 12 meses</div></td><td colspan="9"></td>' +
+      '<td class="neg">−' + dirR(escAno) + '</td><td class="neg">−' + dirR(escAno) + '</td><td colspan="3"></td></tr>' +
+      '<tr class="liq"><td class="dir-c1">Resultado após escritório</td><td colspan="9"></td>' +
+      '<td class="' + (T.resM - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.resM - escAno) + '</td>' +
+      '<td class="res ' + (T.projRes - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes - escAno) + '</td><td colspan="3"></td></tr>';
+  }
+  h += '</tfoot></table></div>';
+
+  /* gráficos */
+  if (dirAno === 'todos') {
+    h += '<div class="dir-leg" style="margin-top:18px;">Escolha um ano para ver os gráficos mensais.</div>';
+  } else {
+    h += '<div class="dir-graf">' +
+      '<div class="dir-gc"><div class="gt">Resultado por mês' + (esc ? ' <small>já descontado o escritório</small>' : '') + '</div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Projeção</span></div><div class="gb"><canvas id="dir-ch-m"></canvas></div></div>' +
+      '<div class="dir-gc"><div class="gt">Acumulado no ano</div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Projeção</span></div><div class="gb"><canvas id="dir-ch-a"></canvas></div></div>' +
+      '</div>';
+  }
+  el.innerHTML = h;
+  dirGraficos(dirAno === 'todos' ? [] : L);
+}
+
+function dirGraficos(L){
+  if (dirChartM) { dirChartM.destroy(); dirChartM = null; }
+  if (dirChartA) { dirChartA.destroy(); dirChartA = null; }
+  const cm = document.getElementById('dir-ch-m'), ca = document.getElementById('dir-ch-a');
+  if (!cm || !ca || !window.Chart) return;
+  const esc = Number(dirCfg.escritorio_mes) || 0;
+  const meta = new Array(12).fill(-esc), proj = new Array(12).fill(-esc);
+  L.forEach(function(c){
+    const m = parseInt(c.ev.inicio.slice(5, 7), 10) - 1;
+    meta[m] += c.resM; proj[m] += c.projRes;
+  });
+  const acM = [], acP = [];
+  meta.reduce(function(s, v, i){ acM[i] = s + v; return acM[i]; }, 0);
+  proj.reduce(function(s, v, i){ acP[i] = s + v; return acP[i]; }, 0);
+  const lab = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const ROXO = '#5E17EB', LAR = '#FF751F';
+  const tick = function(v){ return 'R$ ' + (Math.abs(v) >= 1000 ? Math.round(v / 1000).toLocaleString('pt-BR') + ' mil' : Math.round(v)); };
+  const opts = {
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index', intersect:false},
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(x){ return ' ' + x.dataset.label + ': ' + dirR(x.parsed.y); }}}},
+    scales:{x:{grid:{display:false}, ticks:{color:'#7a7068', font:{family:'Ubuntu', size:11}}},
+            y:{grid:{color:'rgba(42,37,32,.07)'}, border:{display:false}, ticks:{color:'#7a7068', font:{family:'Ubuntu', size:11}, callback:tick}}}
+  };
+  dirChartM = new Chart(cm, {type:'bar', data:{labels:lab, datasets:[
+    {label:'Meta', data:meta, backgroundColor:ROXO, borderRadius:4, borderSkipped:false, maxBarThickness:22},
+    {label:'Projeção', data:proj, backgroundColor:LAR, borderRadius:4, borderSkipped:false, maxBarThickness:22}
+  ]}, options:Object.assign({}, opts, {datasets:{bar:{categoryPercentage:.7, barPercentage:.9}}})});
+  dirChartA = new Chart(ca, {type:'line', data:{labels:lab, datasets:[
+    {label:'Meta', data:acM, borderColor:ROXO, backgroundColor:ROXO, borderWidth:2, borderDash:[6, 4], pointRadius:3, pointHoverRadius:5, tension:.25},
+    {label:'Projeção', data:acP, borderColor:LAR, backgroundColor:LAR, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25}
+  ]}, options:opts});
+}
+
+async function dirCfgSalvar(){
+  const aliq = dirNum(document.getElementById('dir-aliq').value);
+  const esc = dirNum(document.getElementById('dir-esc').value);
+  try {
+    const r = await rpc('dir_config_salvar', {p_aliquota:aliq, p_escritorio:esc});
+    if (!r || !r.ok) throw new Error('erro');
+    dirCfg.aliquota_nf = aliq; dirCfg.escritorio_mes = esc;
+    dirRender();
+  } catch (e) { alert('Não consegui salvar a configuração.'); }
+}
+
+/* ── modal do evento ── */
+function dirAbrir(id){
+  const ev = dirCal.filter(function(e){ return String(e.id) === String(id); })[0];
+  if (!ev) return;
+  dirEdId = String(id);
+  const c = dirCalc(ev), d = c.d;
+  document.getElementById('dir-m-nome').textContent = ev.evento || '';
+  document.getElementById('dir-m-sub').textContent = fmtDS(ev.inicio) + (ev.cidade ? ' · ' + ev.cidade : '') + (c.fechado ? ' · Realizado' : ' · Futuro');
+  const v = function(k, val){ document.getElementById('dir-f-' + k).value = val; };
+  v('meta-q', dirN(d.meta_inscritos) !== null ? d.meta_inscritos : '');
+  document.getElementById('dir-f-meta-q').placeholder = ev.publico ? String(ev.publico) + ' (do Calendário)' : 'Ex.: 700';
+  v('meta-t', dirMoedaInp(d.meta_ticket));
+  v('real-q', dirN(d.real_inscritos) !== null ? d.real_inscritos : '');
+  v('real-t', dirMoedaInp(d.real_ticket));
+  v('inv', dirMoedaInp(d.inv_patrocinador));
+  v('custo-p', dirMoedaInp(d.custo_previsto));
+  v('custo-r', dirMoedaInp(d.custo_real));
+  v('obs', d.obs || '');
+  let op = '<option value="">— lançar à mão —</option>';
+  dirSite.slice().sort(function(a, b){ return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'); }).forEach(function(s){
+    op += '<option value="' + propEsc(s.id) + '"' + (String(d.site_evento_id || '') === String(s.id) ? ' selected' : '') + '>' + propEsc(s.nome || s.id) + ' (' + fmt(s.inscricoes_total) + ' insc.)</option>';
+  });
+  document.getElementById('dir-f-site').innerHTML = op;
+  document.getElementById('dir-f-pat').innerHTML =
+    '<div><span>Meta de patrocínio</span><b>' + dirR(c.metaPat) + '</b></div>' +
+    '<div><span>Captado' + (c.patFunil ? ' (funil)' : '') + '</span><b>' + dirR(c.realPat) + '</b></div>' +
+    '<div><span>%</span>' + dirPill(dirPct(c.realPat, c.metaPat)) + '</div>';
+  dirSiteTroca();
+  document.getElementById('dir-overlay').classList.add('open');
+}
+function dirFechar(){ document.getElementById('dir-overlay').classList.remove('open'); dirEdId = null; }
+function dirSiteTroca(){
+  const on = !!document.getElementById('dir-f-site').value;
+  document.getElementById('dir-f-real-q').disabled = on;
+  document.getElementById('dir-f-real-t').disabled = on;
+  document.getElementById('dir-f-site-hint').style.display = on ? '' : 'none';
+  dirPrevia();
+}
+function dirColetar(){
+  const g = function(k){ return document.getElementById('dir-f-' + k).value; };
+  const inteiro = function(t){ const s = String(t || '').replace(/\D/g, ''); return s === '' ? '' : String(parseInt(s, 10)); };
+  const moeda = function(t){ return String(t || '').trim() === '' ? '' : String(dirNum(t)); };
+  return {
+    meta_inscritos: inteiro(g('meta-q')), meta_ticket: moeda(g('meta-t')),
+    real_inscritos: inteiro(g('real-q')), real_ticket: moeda(g('real-t')),
+    site_evento_id: g('site'),
+    inv_patrocinador: moeda(g('inv')), custo_previsto: moeda(g('custo-p')), custo_real: moeda(g('custo-r')),
+    obs: g('obs')
+  };
+}
+function dirPrevia(){
+  if (!dirEdId) return;
+  const ev = dirCal.filter(function(e){ return String(e.id) === dirEdId; })[0];
+  const bak = dirD[dirEdId];
+  dirD[dirEdId] = Object.assign({}, bak || {}, dirColetar());
+  const c = dirCalc(ev);
+  dirD[dirEdId] = bak;
+  if (bak === undefined) delete dirD[dirEdId];
+  document.getElementById('dir-f-prev').innerHTML =
+    '<div><span>Entrada meta</span><b>' + dirR(c.metaEnt) + '</b></div>' +
+    '<div><span>Despesas meta</span><b class="neg">' + dirR(c.despM) + '</b></div>' +
+    '<div><span>Resultado meta</span><b class="' + (c.resM < 0 ? 'neg' : 'pos') + '">' + dirR(c.resM) + '</b></div>' +
+    '<div><span>Resultado projeção</span><b class="' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</b></div>';
+}
+async function dirSalvar(){
+  if (!dirEdId) return;
+  const dados = dirColetar();
+  const btn = document.getElementById('dir-m-salvar');
+  btn.disabled = true;
+  try {
+    const r = await rpc('dir_evento_salvar', {p_calendario_id:dirEdId, p_dados:dados});
+    if (!r || !r.ok) throw new Error('erro');
+    const n = function(x){ return x === '' ? null : Number(x); };
+    dirD[dirEdId] = {calendario_id:dirEdId, meta_inscritos:n(dados.meta_inscritos), meta_ticket:n(dados.meta_ticket),
+      real_inscritos:n(dados.real_inscritos), real_ticket:n(dados.real_ticket), site_evento_id:dados.site_evento_id || null,
+      inv_patrocinador:n(dados.inv_patrocinador), custo_previsto:n(dados.custo_previsto), custo_real:n(dados.custo_real), obs:dados.obs};
+    dirFechar();
+    dirRender();
+  } catch (e) { alert('Não consegui salvar. Tente de novo.'); }
+  btn.disabled = false;
+}
+
+function dirExcel(){
+  const L = dirLinhas();
+  const linhas = [['Data','Evento','Cidade','Situação','Meta inscritos','Meta ticket','Meta inscrições (R$)','Real inscritos','Real ticket','Real inscrições (R$)','% inscrições',
+    'Meta patrocínio','Captado','% patrocínio','Invest. patrocinador','Custo do evento','Nota fiscal','Resultado meta','Resultado projeção','Entrada por atleta','Despesa por atleta','Saldo por atleta','Observações']];
+  L.forEach(function(c){
+    const q = c.projQ || 0;
+    linhas.push([fmtDS(c.ev.inicio), c.ev.evento || '', c.ev.cidade || '', c.fechado ? 'Realizado' : 'Futuro',
+      c.metaQ, c.metaT, c.metaR, c.realQ === null ? '' : c.realQ, c.realQ === null ? '' : c.realT, c.realQ === null ? '' : c.realR,
+      c.realQ === null ? '' : dirPct(c.realR, c.metaR), c.metaPat, c.realPat, dirPct(c.realPat, c.metaPat),
+      c.inv, c.fechado ? c.custoR : c.custoP, c.projNF, c.resM, c.projRes,
+      q ? c.projEnt / q : '', q ? c.projDesp / q : '', q ? (c.projEnt - c.projDesp) / q : '', c.d.obs || '']);
+  });
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  ws['!cols'] = linhas[0].map(function(t, i){ return {wch: i === 1 ? 32 : 15}; });
+  XLSX.utils.book_append_sheet(wb, ws, 'Diretoria');
+  XLSX.writeFile(wb, 'diretoria_' + dirAno + '.xlsx');
+}
+
 /* ══ USUÁRIOS ══ */
 let usrLista=[], usrAtual=null;
 function usrFmtData(ts){
@@ -13846,12 +14334,13 @@ const INI_ORG=[
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
   {id:'propostas',  rot:'Propostas',    ic:'📝', cor:'#14B8A6', sub:'Briefings de empresas'},
   {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio'},
+  {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true}
 ];
 let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
-  if(id==='usuarios') return !!(admUser&&admUser.master);
+  if(id==='usuarios'||id==='diretoria') return !!(admUser&&admUser.master);
   return admTemAba(id);
 }
 function iniCard(no,cor,filho){
@@ -14709,6 +15198,53 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <div id="crz-resultado"></div>
       </div>
+
+      <div class="inner-screen" id="screen-diretoria">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h1>Diretoria</h1><div style="font-size:13px;color:var(--muted);margin-top:4px;">Meta x real de cada evento do Calendário — inscrições, patrocínio, despesas e resultado. Uso interno.</div></div>
+          <button class="mkt-btn" onclick="dirInit()">Atualizar</button>
+        </div>
+        <div id="dir-corpo"><div class="empty-state">Carregando…</div></div>
+      </div>
+
+<!-- MODAL: DIRETORIA — EVENTO -->
+<div class="modal-overlay2" id="dir-overlay" onclick="if(event.target===this)dirFechar()">
+  <div class="mkt-modal" style="max-width:720px;">
+    <div class="prp-det-hd"><div style="flex:1;"><h3 id="dir-m-nome">Evento</h3><div class="prp-sub" id="dir-m-sub"></div></div></div>
+    <div class="prp-bloco"><div class="prp-bloco-t">Inscrições</div><div style="padding:14px;">
+      <div class="dir-sub">Meta</div>
+      <div class="mkt-row2">
+        <div class="mkt-fg"><label>Inscritos (meta)</label><input id="dir-f-meta-q" inputmode="numeric" oninput="dirPrevia()"></div>
+        <div class="mkt-fg"><label>Ticket médio (meta, R$)</label><input id="dir-f-meta-t" inputmode="decimal" placeholder="Ex.: 109,90" oninput="dirPrevia()"></div>
+      </div>
+      <div class="dir-sub">Realizado</div>
+      <div class="mkt-fg"><label>Puxar do evento no site</label><select id="dir-f-site" onchange="dirSiteTroca()"></select>
+        <div class="dir-hint" id="dir-f-site-hint" style="display:none;">Inscritos e faturamento vêm automáticos do site.</div></div>
+      <div class="mkt-row2">
+        <div class="mkt-fg"><label>Inscritos (real)</label><input id="dir-f-real-q" inputmode="numeric" placeholder="Em branco = ainda não fechou" oninput="dirPrevia()"></div>
+        <div class="mkt-fg"><label>Ticket médio (real, R$)</label><input id="dir-f-real-t" inputmode="decimal" placeholder="Em branco = usa o da meta" oninput="dirPrevia()"></div>
+      </div>
+    </div></div>
+    <div class="prp-bloco"><div class="prp-bloco-t">Patrocínio</div><div style="padding:14px;">
+      <div class="dir-pat" id="dir-f-pat"></div>
+      <div class="dir-hint">A meta é editada no Calendário e o captado vem do Funil de patrocínio (marcas fechadas).</div>
+    </div></div>
+    <div class="prp-bloco"><div class="prp-bloco-t">Despesas</div><div style="padding:14px;">
+      <div class="mkt-fg"><label>Investimento no patrocinador (R$)</label><input id="dir-f-inv" inputmode="decimal" placeholder="O que a JBX gasta para entregar as contrapartidas" oninput="dirPrevia()"></div>
+      <div class="mkt-row2">
+        <div class="mkt-fg"><label>Custo total do evento — previsto (R$)</label><input id="dir-f-custo-p" inputmode="decimal" oninput="dirPrevia()"></div>
+        <div class="mkt-fg"><label>Custo total do evento — real (R$)</label><input id="dir-f-custo-r" inputmode="decimal" placeholder="Depois que o evento fechar" oninput="dirPrevia()"></div>
+      </div>
+      <div class="dir-hint">A nota fiscal é calculada pela alíquota do topo da tela, sobre inscrições + patrocínio.</div>
+    </div></div>
+    <div class="mkt-fg"><label>Observações</label><textarea id="dir-f-obs" rows="2"></textarea></div>
+    <div class="dir-prev" id="dir-f-prev"></div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" onclick="dirFechar()">Cancelar</button>
+      <button class="mkt-btn primary" id="dir-m-salvar" onclick="dirSalvar()">Salvar</button>
+    </div>
+  </div>
+</div>
 
       <div class="inner-screen" id="screen-usuarios">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
