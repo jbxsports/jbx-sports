@@ -15290,34 +15290,12 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
     </div>
 
-    <div class="prp-bloco">
-      <div class="prp-bloco-t">Gestão interna</div>
-      <div style="padding:14px;">
-        <div class="mkt-row2">
-          <div class="mkt-fg"><label>Status</label>
-            <select id="prp-d-status">
-              <option value="novo">Novo</option>
-              <option value="em_contato">Em contato</option>
-              <option value="proposta_enviada">Proposta enviada</option>
-              <option value="negociacao">Em negociação</option>
-              <option value="ganho">Ganho</option>
-              <option value="perdido">Perdido</option>
-            </select></div>
-          <div class="mkt-fg"><label>Responsável JBX</label>
-            <input id="prp-d-resp" placeholder="Ex.: Stephano"></div>
-        </div>
-        <div class="mkt-fg"><label>Notas internas</label>
-          <textarea id="prp-d-notas" placeholder="Histórico do contato, valores discutidos, próximos passos…"></textarea></div>
-      </div>
-    </div>
-
     <div class="mkt-modal-actions">
       <button class="mkt-btn" onclick="propFechar()">Fechar</button>
       <button class="mkt-btn" onclick="propImprimirUma()">🖨 Imprimir PDF</button>
       <button class="mkt-btn" onclick="propExcelUma()">⬇ Exportar Excel</button>
       <button class="mkt-btn" id="prp-d-orc" style="display:none;" onclick="propPlanilhaOrc()" title="Gera a sua planilha de custos com o que o cliente pediu — uso interno">📊 Planilha de orçamento</button>
       <button class="mkt-btn" id="prp-d-whats">WhatsApp</button>
-      <button class="mkt-btn primary" id="prp-d-salvar" onclick="propSalvar()">Salvar</button>
     </div>
   </div>
 </div>
@@ -15685,9 +15663,6 @@ function propAbrir(id){
   }
 
   document.getElementById('prp-d-corpo').innerHTML = html;
-  document.getElementById('prp-d-status').value = p.status || 'novo';
-  document.getElementById('prp-d-resp').value = p.responsavel_jbx || '';
-  document.getElementById('prp-d-notas').value = p.notas_internas || '';
 
   const bw = document.getElementById('prp-d-whats');
   const tel = String(p.whatsapp || '').replace(/\D/g, '');
@@ -16424,8 +16399,9 @@ async function propPcMontar(p){
     if (!propAtual || String(propAtual.id) !== String(p.id)) return;
     propPcVersoes = Array.isArray(r) ? r : [];
   } catch (e) {
+    const det = String(e && e.message || '').slice(0, 220);
     document.getElementById('prp-pc-versoes').innerHTML =
-      '<div class="prp-vazio" style="color:#c0392b;">Não consegui ler as versões. Já rodou o SQL 04_propostas_versoes.sql?</div>';
+      '<div class="prp-vazio" style="color:#c0392b;">Não consegui ler as versões. Já rodou o SQL 04_propostas_versoes.sql?<br><small>' + propEsc(det) + '</small></div>';
     return;
   }
   /* parte da última versão: mesmo valor, considerações e escopo ajustado */
@@ -16513,7 +16489,6 @@ async function propPcEnvio(id){
     propPcVersoes.forEach(function(v){ if (v.id === id) { v.enviado = env; v.data_envio = dt.value || null; } });
     if (env && propAtual && (propAtual.status === 'novo' || propAtual.status === 'em_contato' || !propAtual.status)) {
       propAtual.status = 'proposta_enviada';
-      document.getElementById('prp-d-status').value = 'proposta_enviada';
       document.getElementById('prp-d-badge').innerHTML = propBadge('proposta_enviada');
       propRender(); propKpis();
     }
@@ -16571,7 +16546,7 @@ async function propPcGerar(){
     propPcDocAbrir(w, snap, v);
   } catch (e) {
     w.close();
-    alert(e.message && e.message.length < 120 ? e.message : 'Erro ao gerar a proposta. Já rodou o SQL 04_propostas_versoes.sql?');
+    alert(e.message && e.message.length < 120 ? e.message : 'Erro ao gerar a proposta. Já rodou o SQL 04_propostas_versoes.sql?\n\n' + String(e && e.message || '').slice(0, 300));
   }
   btn.disabled = false;
 }
