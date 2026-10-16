@@ -10466,15 +10466,25 @@ function dirEscMesesAno(ano){
   for (let m = 1; m <= 12; m++) out.push(dirEscMes(ano + '-' + (m < 10 ? '0' : '') + m));
   return out;
 }
+/* meses liberados: do mês atual até 2 meses depois do último evento do Calendário */
 function dirEscProximos(){
   const d = new Date(), out = [];
-  for (let i = 0; i < 12; i++) {
+  let ult = '';
+  dirCal.forEach(function(e){ const f = String(e.fim || e.inicio || '').slice(0, 7); if (f > ult) ult = f; });
+  let n = 12;
+  if (ult) {
+    const p = ult.split('-');
+    n = (parseInt(p[0], 10) - d.getFullYear()) * 12 + (parseInt(p[1], 10) - 1 - d.getMonth()) + 3;
+    if (n < 1) n = 1;
+  }
+  for (let i = 0; i < n; i++) {
     const x = new Date(d.getFullYear(), d.getMonth() + i, 1);
     const m = x.getMonth() + 1;
     out.push(x.getFullYear() + '-' + (m < 10 ? '0' : '') + m);
   }
   return out;
 }
+function dirEscRot(ym){ const p = String(ym || '').split('-'); return p.length === 2 ? DIR_MESES[parseInt(p[1], 10) - 1].slice(0, 3).toLowerCase() + '/' + p[0] : ''; }
 const DIR_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 function dirEscAbrir(){
   const lista = dirEscProximos();
@@ -10485,6 +10495,7 @@ function dirEscAbrir(){
       '<label>R$ <input data-ym="' + ym + '" inputmode="decimal" value="' + (v !== null ? dirMoedaInp(v) : '') + '" placeholder="' + dirMoedaInp(Number(dirCfg.escritorio_mes) || 0) + '" oninput="dirEscSoma()"></label></div>';
   });
   document.getElementById('dir-esc-lista').innerHTML = h;
+  document.getElementById('dir-esc-tit').textContent = 'Custo do escritório — até ' + dirEscRot(lista[lista.length - 1]);
   document.getElementById('dir-esc-padrao').value = dirMoedaInp(Number(dirCfg.escritorio_mes) || 0);
   dirEscSoma();
   document.getElementById('dir-esc-overlay').classList.add('open');
@@ -10553,7 +10564,8 @@ function dirRender(){
   });
   const escMeses = dirAno === 'todos' ? [] : dirEscMesesAno(dirAno);
   const escAno = escMeses.reduce(function(a, v){ return a + v; }, 0);
-  const escProx = dirEscProximos().reduce(function(a, ym){ return a + dirEscMes(ym); }, 0);
+  const escLista = dirEscProximos();
+  const escProx = escLista.reduce(function(a, ym){ return a + dirEscMes(ym); }, 0);
 
   let h = '';
   /* barra: anos + configurações */
@@ -10562,7 +10574,7 @@ function dirRender(){
     h += '<button class="dir-ano' + (a === dirAno ? ' on' : '') + '" onclick="dirAno=\'' + a + '\';dirRender()">' + (a === 'todos' ? 'Todos' : a) + '</button>';
   });
   h += '</div><div class="dir-cfg">' +
-    '<label>Custo do escritório <span><button class="mkt-btn" onclick="dirEscAbrir()">✎ ' + dirR(escProx) + ' nos próximos 12 meses</button></span></label>' +
+    '<label>Custo do escritório <span><button class="mkt-btn" onclick="dirEscAbrir()">✎ ' + dirR(escProx) + ' até ' + dirEscRot(escLista[escLista.length - 1]) + '</button></span></label>' +
     '<button class="mkt-btn" onclick="dirExcel()">⬇ Excel</button>' +
     '</div></div>';
   const semAliq = L.filter(function(c){ return c.metaPat > 0 && !c.temAliq; }).length;
@@ -15386,8 +15398,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 <!-- MODAL: CUSTO DO ESCRITÓRIO MÊS A MÊS -->
 <div class="modal-overlay2" id="dir-esc-overlay" onclick="if(event.target===this)dirEscFechar()">
-  <div class="mkt-modal" style="max-width:460px;">
-    <h3>Custo do escritório — próximos 12 meses</h3>
+  <div class="mkt-modal" style="max-width:460px;max-height:92vh;overflow-y:auto;">
+    <h3 id="dir-esc-tit">Custo do escritório</h3>
     <div class="dir-hint" style="margin:-8px 0 12px;">Mês em branco usa o valor padrão. Esses valores formam a linha vermelha dos gráficos.</div>
     <div class="mkt-fg"><label>Valor padrão por mês (R$)</label><input id="dir-esc-padrao" inputmode="decimal" oninput="dirEscSoma()"></div>
     <div id="dir-esc-lista"></div>
