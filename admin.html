@@ -1762,7 +1762,10 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-gc .gl{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin:6px 0 8px;}
 .dir-gc .gl span{display:flex;align-items:center;gap:5px;}
 .dir-gc .gl i{width:10px;height:10px;border-radius:3px;display:inline-block;}
-.dir-gc .gl i.m{background:#5E17EB;}.dir-gc .gl i.p{background:#FF751F;}
+.dir-gc .gl i.m{background:#5E17EB;}.dir-gc .gl i.p{background:#FF751F;}.dir-gc .gl i.e{background:#dc2626;height:3px;border-radius:2px;}
+.dir-esc-l{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
+.dir-esc-l label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);}
+.dir-esc-l input{font-family:'Ubuntu',sans-serif;font-size:13px;width:120px;padding:6px 8px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#f5f3f0;text-align:right;}
 .dir-gc .gb{position:relative;height:260px;}
 .dir-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--orange);margin:2px 0 8px;}
 .dir-hint{font-size:11.5px;color:var(--muted);margin-top:4px;}
@@ -10400,7 +10403,13 @@ function dirCalc(ev){
   const projDesp = projCusto + projNF;
   const projRes = projEnt - projDesp;
   const recAtl = projQ ? projEnt / projQ : 0;
-  const saldoAtl = projQ ? projRes / projQ : 0;
+  /* resultado REAL: só o que já entrou (inscrições reais + captado) menos o custo
+     dos atletas reais e a nota fiscal sobre o que entrou */
+  const temReal = realQ !== null || realPat > 0;
+  const realEnt = (realR || 0) + realPat;
+  const realNF = realEnt * aliq;
+  const realCusto = custoAtl * (realQ || 0);
+  const realRes = realEnt - realCusto - realNF;
 
   return {id:id, ev:ev, d:d, fechado:fechado, fonte:fonte,
     metaQ:metaQ, metaQdoCal:metaQdoCal, metaT:metaT, metaR:metaR,
@@ -10409,7 +10418,91 @@ function dirCalc(ev){
     custoAtl:custoAtl, custoM:custoM,
     metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
     projQ:projQ, projEnt:projEnt, projNF:projNF, projCusto:projCusto, projDesp:projDesp, projRes:projRes,
-    recAtl:recAtl, saldoAtl:saldoAtl};
+    recAtl:recAtl, temReal:temReal, realEnt:realEnt, realNF:realNF, realCusto:realCusto, realRes:realRes};
+}
+
+/* ── escritório mês a mês ──
+   Cada mês fica em dir_eventos com calendario_id = "escritorio:AAAA-MM" e o valor em custo_previsto.
+   Mês sem valor lançado usa o custo padrão (dir_config.escritorio_mes). */
+function dirEscChave(ym){ return 'escritorio:' + ym; }
+function dirEscLancado(ym){
+  const r = dirD[dirEscChave(ym)];
+  return (r && dirN(r.custo_previsto) !== null) ? Number(r.custo_previsto) : null;
+}
+function dirEscMes(ym){
+  const v = dirEscLancado(ym);
+  return v !== null ? v : (Number(dirCfg.escritorio_mes) || 0);
+}
+function dirEscMesesAno(ano){
+  const out = [];
+  for (let m = 1; m <= 12; m++) out.push(dirEscMes(ano + '-' + (m < 10 ? '0' : '') + m));
+  return out;
+}
+function dirEscProximos(){
+  const d = new Date(), out = [];
+  for (let i = 0; i < 12; i++) {
+    const x = new Date(d.getFullYear(), d.getMonth() + i, 1);
+    const m = x.getMonth() + 1;
+    out.push(x.getFullYear() + '-' + (m < 10 ? '0' : '') + m);
+  }
+  return out;
+}
+const DIR_MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+function dirEscAbrir(){
+  const lista = dirEscProximos();
+  let h = '';
+  lista.forEach(function(ym){
+    const p = ym.split('-'), v = dirEscLancado(ym);
+    h += '<div class="dir-esc-l"><span>' + DIR_MESES[parseInt(p[1], 10) - 1] + ' ' + p[0] + '</span>' +
+      '<label>R$ <input data-ym="' + ym + '" inputmode="decimal" value="' + (v !== null ? dirMoedaInp(v) : '') + '" placeholder="' + dirMoedaInp(Number(dirCfg.escritorio_mes) || 0) + '" oninput="dirEscSoma()"></label></div>';
+  });
+  document.getElementById('dir-esc-lista').innerHTML = h;
+  document.getElementById('dir-esc-padrao').value = dirMoedaInp(Number(dirCfg.escritorio_mes) || 0);
+  dirEscSoma();
+  document.getElementById('dir-esc-overlay').classList.add('open');
+}
+function dirEscFechar(){ document.getElementById('dir-esc-overlay').classList.remove('open'); }
+function dirEscSoma(){
+  const padrao = dirNum(document.getElementById('dir-esc-padrao').value);
+  let t = 0;
+  document.querySelectorAll('#dir-esc-lista input').forEach(function(i){
+    i.placeholder = dirMoedaInp(padrao);
+    t += String(i.value).trim() === '' ? padrao : dirNum(i.value);
+  });
+  document.getElementById('dir-esc-total').textContent = dirR(t);
+}
+function dirEscCopiar(){
+  const ins = document.querySelectorAll('#dir-esc-lista input');
+  const v = ins.length ? ins[0].value : '';
+  ins.forEach(function(i){ i.value = v; });
+  dirEscSoma();
+}
+async function dirEscSalvar(){
+  const btn = document.getElementById('dir-esc-salvar');
+  btn.disabled = true;
+  try {
+    const padrao = dirNum(document.getElementById('dir-esc-padrao').value);
+    if (padrao !== (Number(dirCfg.escritorio_mes) || 0)) {
+      const r0 = await rpc('dir_config_salvar', {p_aliquota:Number(dirCfg.aliquota_nf) || 0, p_escritorio:padrao});
+      if (!r0 || !r0.ok) throw new Error('erro');
+      dirCfg.escritorio_mes = padrao;
+    }
+    const ins = document.querySelectorAll('#dir-esc-lista input');
+    for (let k = 0; k < ins.length; k++) {
+      const ym = ins[k].getAttribute('data-ym');
+      const txt = String(ins[k].value).trim();
+      const novo = txt === '' ? null : dirNum(txt);
+      if (novo === dirEscLancado(ym)) continue;
+      const dados = {meta_inscritos:'', meta_ticket:'', real_inscritos:'', real_ticket:'', site_evento_id:'',
+        inv_patrocinador:'', custo_previsto: novo === null ? '' : String(novo), custo_real:'', obs:'Custo do escritório'};
+      const r = await rpc('dir_evento_salvar', {p_calendario_id:dirEscChave(ym), p_dados:dados});
+      if (!r || !r.ok) throw new Error('erro');
+      dirD[dirEscChave(ym)] = {calendario_id:dirEscChave(ym), custo_previsto:novo, obs:dados.obs};
+    }
+    dirEscFechar();
+    dirRender();
+  } catch (e) { alert('Não consegui salvar o custo do escritório. Tente de novo.'); }
+  btn.disabled = false;
 }
 
 function dirLinhas(){
@@ -10422,17 +10515,17 @@ function dirRender(){
   const el = document.getElementById('dir-corpo');
   const L = dirLinhas();
   const anos = dirAnos();
-  const T = {metaR:0, realR:0, metaQ:0, realQ:0, metaPat:0, realPat:0, custo:0, nf:0, resM:0, projRes:0, projEnt:0, projDesp:0, projQ:0, metaEnt:0, despM:0, realEntFech:0, nRealQ:0, metaRl:0, metaQl:0};
+  const T = {metaR:0, realR:0, metaQ:0, realQ:0, metaPat:0, realPat:0, custo:0, nf:0, resM:0, realRes:0, projRes:0, projEnt:0, projDesp:0, projQ:0, metaEnt:0, despM:0, realEntFech:0, nRealQ:0, metaRl:0, metaQl:0};
   L.forEach(function(c){
     T.metaR += c.metaR; T.metaQ += c.metaQ; T.metaPat += c.metaPat; T.realPat += c.realPat;
     if (c.realQ !== null) { T.realR += c.realR; T.realQ += c.realQ; T.nRealQ++; T.metaRl += c.metaR; T.metaQl += c.metaQ; }
     T.custo += c.projCusto; T.nf += c.projNF;
-    T.resM += c.resM; T.projRes += c.projRes; T.projEnt += c.projEnt; T.projDesp += c.projDesp; T.projQ += c.projQ;
+    T.resM += c.resM; T.realRes += c.realRes; T.projRes += c.projRes; T.projEnt += c.projEnt; T.projDesp += c.projDesp; T.projQ += c.projQ;
     T.metaEnt += c.metaEnt; T.despM += c.despM;
   });
-  const esc = Number(dirCfg.escritorio_mes) || 0;
-  const meses = dirAno === 'todos' ? 0 : 12;
-  const escAno = esc * meses;
+  const escMeses = dirAno === 'todos' ? [] : dirEscMesesAno(dirAno);
+  const escAno = escMeses.reduce(function(a, v){ return a + v; }, 0);
+  const escProx = dirEscProximos().reduce(function(a, ym){ return a + dirEscMes(ym); }, 0);
 
   let h = '';
   /* barra: anos + configurações */
@@ -10442,7 +10535,7 @@ function dirRender(){
   });
   h += '</div><div class="dir-cfg">' +
     '<label>Nota fiscal (imposto) <span><input id="dir-aliq" inputmode="decimal" value="' + String(Number(dirCfg.aliquota_nf) || 0).replace('.', ',') + '" onchange="dirCfgSalvar()"> %</span></label>' +
-    '<label>Custo do escritório <span>R$ <input id="dir-esc" inputmode="decimal" value="' + dirMoedaInp(esc) + '" onchange="dirCfgSalvar()"> /mês</span></label>' +
+    '<label>Custo do escritório <span><button class="mkt-btn" onclick="dirEscAbrir()">✎ ' + dirR(escProx) + ' nos próximos 12 meses</button></span></label>' +
     '<button class="mkt-btn" onclick="dirExcel()">⬇ Excel</button>' +
     '</div></div>';
   if (!(Number(dirCfg.aliquota_nf) > 0)) h += '<div class="dir-aviso">Informe a alíquota da nota fiscal acima — sem ela o imposto entra como zero.</div>';
@@ -10462,14 +10555,14 @@ function dirRender(){
     '<div class="dir-k"><div class="t">Despesas (projeção)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
       '<div class="s">Custos ' + dirR(T.custo) + ' · NF ' + dirR(T.nf) + '</div>' +
       (semCusto ? '<div class="s"><b class="neg">' + semCusto + ' evento(s) sem custo por atleta</b></div>' : '') + '</div>' +
-    '<div class="dir-k destaque"><div class="t">Resultado dos eventos</div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div>' +
-      '<div class="s">projeção · meta ' + dirR(T.resM) + '</div>' +
-      (escAno ? '<div class="s"><b>Após escritório: ' + dirR(T.projRes - escAno) + '</b> (' + dirR(esc) + ' × 12)</div>' : '') + '</div>' +
+    '<div class="dir-k destaque"><div class="t">Resultado dos eventos</div><div class="v ' + (T.realRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.realRes) + '</div>' +
+      '<div class="s">real até agora · meta ' + dirR(T.resM) + '</div>' +
+      (escAno ? '<div class="s"><b>Meta após escritório: ' + dirR(T.resM - escAno) + '</b> (escritório ' + dirR(escAno) + ' no ano)</div>' : '') + '</div>' +
     '<div class="dir-k"><div class="t">Por atleta (projeção)</div>' +
       '<div class="dir-atl"><span>Receita</span><b>' + dirR2(entAtl) + '</b></div>' +
       '<div class="dir-atl"><span>Custo</span><b class="neg">' + dirR2(custoAtlMed) + '</b></div>' +
       '<div class="dir-atl"><span>Nota fiscal</span><b class="neg">' + dirR2(nfAtl) + '</b></div>' +
-      '<div class="dir-atl tot"><span>Saldo</span><b class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '">' + dirR2(entAtl - despAtl) + '</b></div></div>' +
+      '</div>' +
     '</div>';
 
   /* tabela */
@@ -10477,15 +10570,15 @@ function dirRender(){
     h += '<div class="empty-state">Nenhum evento do Calendário neste período.</div>';
     el.innerHTML = h; dirGraficos([]); return;
   }
-  h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e o custo por atleta. <b>Projeção</b> = real nos eventos que já aconteceram, meta nos futuros.</div>';
+  h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e o custo por atleta. <b>Real</b> = o que já entrou (inscrições + patrocínio captado) menos o custo dos inscritos reais e a nota fiscal.</div>';
   h += '<div class="dir-wrap"><table class="dir-t"><thead>' +
     '<tr class="g"><th rowspan="2" class="dir-c1">Evento</th>' +
     '<th colspan="3" class="gi">Inscrições</th><th colspan="3" class="gp">Patrocínio</th><th class="gt">Receita</th>' +
-    '<th colspan="3" class="gd">Despesas</th><th colspan="3" class="gr">Resultado</th></tr>' +
+    '<th colspan="3" class="gd">Despesas</th><th colspan="2" class="gr">Resultado</th></tr>' +
     '<tr><th>Meta</th><th>Real</th><th>%</th><th>Meta</th><th>Captado</th><th>%</th>' +
     '<th>Por atleta</th>' +
     '<th>Custo por atleta</th><th>Custo do evento</th><th>Nota fiscal</th>' +
-    '<th>Meta</th><th>Projeção</th><th>Saldo por atleta</th></tr></thead><tbody>';
+    '<th>Meta</th><th>Real</th></tr></thead><tbody>';
   L.forEach(function(c){
     const e = c.ev;
     const q = c.projQ || 0;
@@ -10505,8 +10598,7 @@ function dirRender(){
       '<td class="dsp">' + (c.projCusto ? dirR(c.projCusto) + '<small>' + fmt(q) + ' × ' + dirR2(c.custoAtl) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="dsp">' + (c.projNF ? dirR(c.projNF) : '<span class="nd">—</span>') + '</td>' +
       '<td class="' + (c.resM < 0 ? 'neg' : '') + '">' + dirR(c.resM) + '</td>' +
-      '<td class="res ' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</td>' +
-      '<td class="' + (q && c.saldoAtl < 0 ? 'neg' : 'pos') + '"><b>' + (q ? dirR2(c.saldoAtl) : '—') + '</b></td>' +
+      '<td class="res ' + (c.realRes < 0 ? 'neg' : 'pos') + '">' + (c.temReal ? dirR(c.realRes) + '<small>' + (c.fechado ? 'fechado' : 'parcial') + '</small>' : '<span class="nd">a lançar</span>') + '</td>' +
       '</tr>';
   });
   h += '</tbody><tfoot><tr><td class="dir-c1">Total ' + (dirAno === 'todos' ? 'geral' : dirAno) + '<div class="cd">' + L.length + ' eventos</div></td>' +
@@ -10514,14 +10606,13 @@ function dirRender(){
     '<td>' + dirR(T.metaPat) + '</td><td>' + dirR(T.realPat) + '</td><td>' + dirPill(pPat) + '</td>' +
     '<td class="rec">' + dirR2(entAtl) + '<small>' + fmt(T.projQ) + ' atletas</small></td>' +
     '<td>' + dirR2(custoAtlMed) + '<small>média</small></td><td>' + dirR(T.custo) + '</td><td>' + dirR(T.nf) + '</td>' +
-    '<td class="' + (T.resM < 0 ? 'neg' : '') + '">' + dirR(T.resM) + '</td><td class="res ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</td>' +
-    '<td class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '"><b>' + dirR2(entAtl - despAtl) + '</b></td></tr>';
+    '<td class="' + (T.resM < 0 ? 'neg' : '') + '">' + dirR(T.resM) + '</td><td class="res ' + (T.realRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.realRes) + '</td></tr>';
   if (escAno) {
-    h += '<tr class="esc"><td class="dir-c1">(−) Escritório<div class="cd">' + dirR(esc) + ' × 12 meses</div></td><td colspan="10"></td>' +
-      '<td class="neg">−' + dirR(escAno) + '</td><td class="neg">−' + dirR(escAno) + '</td><td></td></tr>' +
+    h += '<tr class="esc"><td class="dir-c1">(−) Escritório<div class="cd">soma dos 12 meses</div></td><td colspan="10"></td>' +
+      '<td class="neg">−' + dirR(escAno) + '</td><td class="neg">−' + dirR(escAno) + '</td></tr>' +
       '<tr class="liq"><td class="dir-c1">Resultado após escritório</td><td colspan="10"></td>' +
       '<td class="' + (T.resM - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.resM - escAno) + '</td>' +
-      '<td class="res ' + (T.projRes - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes - escAno) + '</td><td></td></tr>';
+      '<td class="res ' + (T.realRes - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.realRes - escAno) + '</td></tr>';
   }
   h += '</tfoot></table></div>';
 
@@ -10530,8 +10621,8 @@ function dirRender(){
     h += '<div class="dir-leg" style="margin-top:18px;">Escolha um ano para ver os gráficos mensais.</div>';
   } else {
     h += '<div class="dir-graf">' +
-      '<div class="dir-gc"><div class="gt">Resultado por mês' + (esc ? ' <small>já descontado o escritório</small>' : '') + '</div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Projeção</span></div><div class="gb"><canvas id="dir-ch-m"></canvas></div></div>' +
-      '<div class="dir-gc"><div class="gt">Acumulado no ano</div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Projeção</span></div><div class="gb"><canvas id="dir-ch-a"></canvas></div></div>' +
+      '<div class="dir-gc"><div class="gt">Resultado bruto por mês <small>antes do escritório</small></div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Real</span><span><i class="e"></i>Escritório</span></div><div class="gb"><canvas id="dir-ch-m"></canvas></div></div>' +
+      '<div class="dir-gc"><div class="gt">Resultado bruto acumulado <small>antes do escritório</small></div><div class="gl"><span><i class="m"></i>Meta</span><span><i class="p"></i>Real</span><span><i class="e"></i>Escritório acumulado</span></div><div class="gb"><canvas id="dir-ch-a"></canvas></div></div>' +
       '</div>';
   }
   el.innerHTML = h;
@@ -10543,15 +10634,20 @@ function dirGraficos(L){
   if (dirChartA) { dirChartA.destroy(); dirChartA = null; }
   const cm = document.getElementById('dir-ch-m'), ca = document.getElementById('dir-ch-a');
   if (!cm || !ca || !window.Chart) return;
-  const esc = Number(dirCfg.escritorio_mes) || 0;
-  const meta = new Array(12).fill(-esc), proj = new Array(12).fill(-esc);
+  const escM = dirEscMesesAno(dirAno);
+  const meta = new Array(12).fill(0), proj = new Array(12).fill(0);
   L.forEach(function(c){
     const m = parseInt(c.ev.inicio.slice(5, 7), 10) - 1;
-    meta[m] += c.resM; proj[m] += c.projRes;
+    meta[m] += c.resM; proj[m] += c.realRes;
   });
   const acM = [], acP = [];
   meta.reduce(function(s, v, i){ acM[i] = s + v; return acM[i]; }, 0);
   proj.reduce(function(s, v, i){ acP[i] = s + v; return acP[i]; }, 0);
+  const acE = [];
+  escM.reduce(function(s, v, i){ acE[i] = s + v; return acE[i]; }, 0);
+  const VERM = '#dc2626';
+  const linhaEsc = function(dados, rot){ return {type:'line', label:rot, data:dados, borderColor:VERM, backgroundColor:VERM,
+    borderWidth:2.5, pointRadius:3, pointHoverRadius:5, tension:0, order:0}; };
   const lab = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const ROXO = '#5E17EB', LAR = '#FF751F';
   const tick = function(v){ return 'R$ ' + (Math.abs(v) >= 1000 ? Math.round(v / 1000).toLocaleString('pt-BR') + ' mil' : Math.round(v)); };
@@ -10564,17 +10660,19 @@ function dirGraficos(L){
   };
   dirChartM = new Chart(cm, {type:'bar', data:{labels:lab, datasets:[
     {label:'Meta', data:meta, backgroundColor:ROXO, borderRadius:4, borderSkipped:false, maxBarThickness:22},
-    {label:'Projeção', data:proj, backgroundColor:LAR, borderRadius:4, borderSkipped:false, maxBarThickness:22}
+    {label:'Real', data:proj, backgroundColor:LAR, borderRadius:4, borderSkipped:false, maxBarThickness:22, order:1},
+    linhaEsc(escM, 'Escritório')
   ]}, options:Object.assign({}, opts, {datasets:{bar:{categoryPercentage:.7, barPercentage:.9}}})});
   dirChartA = new Chart(ca, {type:'line', data:{labels:lab, datasets:[
     {label:'Meta', data:acM, borderColor:ROXO, backgroundColor:ROXO, borderWidth:2, borderDash:[6, 4], pointRadius:3, pointHoverRadius:5, tension:.25},
-    {label:'Projeção', data:acP, borderColor:LAR, backgroundColor:LAR, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25}
+    {label:'Real', data:acP, borderColor:LAR, backgroundColor:LAR, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25},
+    linhaEsc(acE, 'Escritório acumulado')
   ]}, options:opts});
 }
 
 async function dirCfgSalvar(){
   const aliq = dirNum(document.getElementById('dir-aliq').value);
-  const esc = dirNum(document.getElementById('dir-esc').value);
+  const esc = Number(dirCfg.escritorio_mes) || 0;
   try {
     const r = await rpc('dir_config_salvar', {p_aliquota:aliq, p_escritorio:esc});
     if (!r || !r.ok) throw new Error('erro');
@@ -10641,9 +10739,9 @@ function dirPrevia(){
   if (bak === undefined) delete dirD[dirEdId];
   document.getElementById('dir-f-prev').innerHTML =
     '<div><span>Receita por atleta</span><b>' + (c.projQ ? dirR2(c.recAtl) : '—') + '</b></div>' +
-    '<div><span>Saldo por atleta</span><b class="' + (c.saldoAtl < 0 ? 'neg' : 'pos') + '">' + (c.projQ ? dirR2(c.saldoAtl) : '—') + '</b></div>' +
+    '<div><span>Custo do evento</span><b class="neg">' + dirR(c.projCusto) + '</b></div>' +
     '<div><span>Resultado meta</span><b class="' + (c.resM < 0 ? 'neg' : 'pos') + '">' + dirR(c.resM) + '</b></div>' +
-    '<div><span>Resultado projeção</span><b class="' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</b></div>';
+    '<div><span>Resultado real</span><b class="' + (c.realRes < 0 ? 'neg' : 'pos') + '">' + (c.temReal ? dirR(c.realRes) : '—') + '</b></div>';
 }
 async function dirSalvar(){
   if (!dirEdId) return;
@@ -10666,14 +10764,13 @@ async function dirSalvar(){
 function dirExcel(){
   const L = dirLinhas();
   const linhas = [['Data','Evento','Cidade','Situação','Meta inscritos','Meta ticket','Meta inscrições (R$)','Real inscritos','Real ticket','Real inscrições (R$)','% inscrições',
-    'Meta patrocínio','Captado','% patrocínio','Receita por atleta','Custo por atleta','Custo do evento','Nota fiscal','Resultado meta','Resultado projeção','Saldo por atleta','Observações']];
+    'Meta patrocínio','Captado','% patrocínio','Receita por atleta','Custo por atleta','Custo do evento','Nota fiscal','Resultado meta','Resultado real','Observações']];
   L.forEach(function(c){
     const q = c.projQ || 0;
     linhas.push([fmtDS(c.ev.inicio), c.ev.evento || '', c.ev.cidade || '', c.fechado ? 'Realizado' : 'Futuro',
       c.metaQ, c.metaT, c.metaR, c.realQ === null ? '' : c.realQ, c.realQ === null ? '' : c.realT, c.realQ === null ? '' : c.realR,
       c.realQ === null ? '' : dirPct(c.realR, c.metaR), c.metaPat, c.realPat, dirPct(c.realPat, c.metaPat),
-      q ? c.recAtl : '', c.custoAtl, c.projCusto, c.projNF, c.resM, c.projRes,
-      q ? c.saldoAtl : '', c.d.obs || '']);
+      q ? c.recAtl : '', c.custoAtl, c.projCusto, c.projNF, c.resM, c.temReal ? c.realRes : '', c.d.obs || '']);
   });
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(linhas);
@@ -15257,6 +15354,24 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="mkt-modal-actions">
       <button class="mkt-btn" onclick="dirFechar()">Cancelar</button>
       <button class="mkt-btn primary" id="dir-m-salvar" onclick="dirSalvar()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CUSTO DO ESCRITÓRIO MÊS A MÊS -->
+<div class="modal-overlay2" id="dir-esc-overlay" onclick="if(event.target===this)dirEscFechar()">
+  <div class="mkt-modal" style="max-width:460px;">
+    <h3>Custo do escritório — próximos 12 meses</h3>
+    <div class="dir-hint" style="margin:-8px 0 12px;">Mês em branco usa o valor padrão. Esses valores formam a linha vermelha dos gráficos.</div>
+    <div class="mkt-fg"><label>Valor padrão por mês (R$)</label><input id="dir-esc-padrao" inputmode="decimal" oninput="dirEscSoma()"></div>
+    <div id="dir-esc-lista"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <button class="mkt-btn sm" onclick="dirEscCopiar()">Copiar o 1º mês para todos</button>
+      <div style="font-size:13px;">Total: <b id="dir-esc-total">R$ 0</b></div>
+    </div>
+    <div class="mkt-modal-actions">
+      <button class="mkt-btn" onclick="dirEscFechar()">Cancelar</button>
+      <button class="mkt-btn primary" id="dir-esc-salvar" onclick="dirEscSalvar()">Salvar</button>
     </div>
   </div>
 </div>
