@@ -1762,7 +1762,9 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-gc .gl{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin:6px 0 8px;}
 .dir-gc .gl span{display:flex;align-items:center;gap:5px;}
 .dir-gc .gl i{width:10px;height:10px;border-radius:3px;display:inline-block;}
-.dir-gc .gl i.m{background:#5E17EB;}.dir-gc .gl i.p{background:#FF751F;}.dir-gc .gl i.e{background:#dc2626;height:3px;border-radius:2px;}
+.dir-gc .gl i.m{background:#5E17EB;}.dir-gc .gl i.p{background:#FF751F;}.dir-gc .gl i.e{background:#dc2626;height:3px;border-radius:2px;}.dir-gc .gl i.s3{background:#dc2626;}.dir-gc .gl i.s1{background:#16a34a;}.dir-gc .gl i.s2{background:#2a2520;height:3px;border-radius:2px;}
+.dir-gc-full{grid-column:1/-1;}
+.dir-gc .gt small b.pos{color:#15803d;}.dir-gc .gt small b.neg{color:#c0392b;}
 .dir-esc-l{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13.5px;}
 .dir-esc-l label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);}
 .dir-esc-l input{font-family:'Ubuntu',sans-serif;font-size:13px;width:120px;padding:6px 8px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#f5f3f0;text-align:right;}
@@ -10293,7 +10295,7 @@ async function cmpOptoutRemover(chave){
 let dirCal = [], dirExt = {}, dirCapt = {}, dirSite = [], dirSiteMap = {}, dirD = {};
 let dirCfg = {aliquota_nf:0, escritorio_mes:0};
 let dirAno = String(new Date().getFullYear());
-let dirChartM = null, dirChartA = null, dirEdId = null;
+let dirChartM = null, dirChartA = null, dirChartS = null, dirEdId = null;
 
 function dirN(v){ return (v === null || v === undefined || v === '') ? null : Number(v); }
 function dirNum(txt){ return propPcNum(txt); }
@@ -10662,6 +10664,7 @@ function dirRender(){
     h += '<div class="dir-graf">' +
       '<div class="dir-gc"><div class="gt">Resultado bruto por mês <small>antes do escritório</small></div><div class="gl"><span><i class="p"></i>Resultado projetado</span><span><i class="e"></i>Escritório</span></div><div class="gb"><canvas id="dir-ch-m"></canvas></div></div>' +
       '<div class="dir-gc"><div class="gt">Resultado bruto acumulado <small>antes do escritório</small></div><div class="gl"><span><i class="p"></i>Resultado projetado acumulado</span><span><i class="e"></i>Escritório acumulado</span></div><div class="gb"><canvas id="dir-ch-a"></canvas></div></div>' +
+      '<div class="dir-gc dir-gc-full"><div class="gt">Sobra · resultado projetado − escritório <small>no ano: <b id="dir-sobra-tot"></b></small></div><div class="gl"><span><i class="s1"></i>Sobra do mês (positiva)</span><span><i class="s3"></i>Sobra do mês (negativa)</span><span><i class="s2"></i>Sobra acumulada</span></div><div class="gb"><canvas id="dir-ch-s"></canvas></div></div>' +
       '</div>';
   }
   el.innerHTML = h;
@@ -10671,6 +10674,7 @@ function dirRender(){
 function dirGraficos(L){
   if (dirChartM) { dirChartM.destroy(); dirChartM = null; }
   if (dirChartA) { dirChartA.destroy(); dirChartA = null; }
+  if (dirChartS) { dirChartS.destroy(); dirChartS = null; }
   const cm = document.getElementById('dir-ch-m'), ca = document.getElementById('dir-ch-a');
   if (!cm || !ca || !window.Chart) return;
   const escM = dirEscMesesAno(dirAno);
@@ -10705,6 +10709,26 @@ function dirGraficos(L){
     {label:'Resultado projetado acumulado', data:acP, borderColor:LAR, backgroundColor:LAR, borderWidth:2, pointRadius:3, pointHoverRadius:5, tension:.25},
     linhaEsc(acE, 'Escritório acumulado')
   ]}, options:opts});
+
+  /* sobra = resultado projetado − custo do escritório (mês a mês e acumulado) */
+  const cs = document.getElementById('dir-ch-s');
+  if (!cs) return;
+  const sobra = proj.map(function(v, i){ return v - (escM[i] || 0); });
+  const acS = [];
+  sobra.reduce(function(s, v, i){ acS[i] = s + v; return acS[i]; }, 0);
+  const VERDE = '#16a34a';
+  dirChartS = new Chart(cs, {type:'bar', data:{labels:lab, datasets:[
+    {label:'Sobra do mês', data:sobra, backgroundColor:sobra.map(function(v){ return v < 0 ? VERM : VERDE; }),
+      borderRadius:4, borderSkipped:false, maxBarThickness:40, order:1},
+    {type:'line', label:'Sobra acumulada', data:acS, borderColor:'#2a2520', backgroundColor:'#2a2520',
+      borderWidth:2.5, pointRadius:3.5, pointHoverRadius:6, tension:.25, order:0}
+  ]}, options:Object.assign({}, opts, {datasets:{bar:{categoryPercentage:.7, barPercentage:.9}}})});
+  const tot = document.getElementById('dir-sobra-tot');
+  if (tot) {
+    const fim = acS[11] || 0;
+    tot.className = fim < 0 ? 'neg' : 'pos';
+    tot.textContent = dirR(fim);
+  }
 }
 
 async function dirCfgSalvar(){
