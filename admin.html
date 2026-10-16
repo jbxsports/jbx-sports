@@ -1779,19 +1779,44 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-prev b{font-size:15px;}
 @media(max-width:1100px){.dir-kpis{grid-template-columns:repeat(2,1fr);}.dir-graf{grid-template-columns:1fr;}}
 @media(max-width:640px){.dir-kpis{grid-template-columns:1fr;}.dir-prev{grid-template-columns:1fr 1fr;}}
-.dir-t tbody td:nth-child(2),.dir-t tbody td:nth-child(5),.dir-t tbody td:nth-child(10),.dir-t tbody td:nth-child(13),.dir-t tbody td:nth-child(15),.dir-t tbody td:nth-child(16),.dir-t tbody td:nth-child(18),
-.dir-t tfoot tr:first-child td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(10),.dir-t tfoot tr:first-child td:nth-child(13),.dir-t tfoot tr:first-child td:nth-child(15),.dir-t tfoot tr:first-child td:nth-child(16),.dir-t tfoot tr:first-child td:nth-child(18),
-.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(9),.dir-t thead tr:nth-child(2) th:nth-child(12),.dir-t thead tr:nth-child(2) th:nth-child(14),.dir-t thead tr:nth-child(2) th:nth-child(15),.dir-t thead tr:nth-child(2) th:nth-child(17),
-.dir-t thead tr.g th.gf{border-top:3px solid #0ea5e9;}
-.dir-t thead tr.g th.gc{border-top:3px solid #eab308;}
-.dir-t thead tr.g th+th{border-left:1px solid var(--border);}
+.dir-t tbody tr td:nth-child(2),.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t tbody tr td:nth-child(3),.dir-t thead tr:nth-child(2) th:nth-child(2),.dir-t tbody tr td:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(3){background:rgba(255,117,31,.06);}
+.dir-t tfoot tr:first-child td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(3),.dir-t tfoot tr:first-child td:nth-child(4){background:rgba(255,117,31,.16);}
+.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t thead tr:nth-child(2) th:nth-child(2),.dir-t thead tr:nth-child(2) th:nth-child(3){color:#FF751F;}
+.dir-t tbody tr td:nth-child(5),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t tbody tr td:nth-child(6),.dir-t thead tr:nth-child(2) th:nth-child(5),.dir-t tbody tr td:nth-child(7),.dir-t thead tr:nth-child(2) th:nth-child(6),.dir-t tbody tr td:nth-child(8),.dir-t thead tr:nth-child(2) th:nth-child(7),.dir-t tbody tr td:nth-child(9),.dir-t thead tr:nth-child(2) th:nth-child(8){background:rgba(94,23,235,.05);}
+.dir-t tfoot tr:first-child td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(6),.dir-t tfoot tr:first-child td:nth-child(7),.dir-t tfoot tr:first-child td:nth-child(8),.dir-t tfoot tr:first-child td:nth-child(9){background:rgba(94,23,235,.15);}
+.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(5),.dir-t thead tr:nth-child(2) th:nth-child(6),.dir-t thead tr:nth-child(2) th:nth-child(7),.dir-t thead tr:nth-child(2) th:nth-child(8){color:#5E17EB;}
+.dir-t tbody tr td:nth-child(10),.dir-t thead tr:nth-child(2) th:nth-child(9),.dir-t tbody tr td:nth-child(11),.dir-t thead tr:nth-child(2) th:nth-child(10),.dir-t tbody tr td:nth-child(12),.dir-t thead tr:nth-child(2) th:nth-child(11){background:rgba(14,165,233,.07);}
+.dir-t tfoot tr:first-child td:nth-child(10),.dir-t tfoot tr:first-child td:nth-child(11),.dir-t tfoot tr:first-child td:nth-child(12){background:rgba(14,165,233,.17);}
+.dir-t thead tr:nth-child(2) th:nth-child(9),.dir-t thead tr:nth-child(2) th:nth-child(10),.dir-t thead tr:nth-child(2) th:nth-child(11){color:#0ea5e9;}
+.dir-t tbody tr td:nth-child(13),.dir-t thead tr:nth-child(2) th:nth-child(12),.dir-t tbody tr td:nth-child(14),.dir-t thead tr:nth-child(2) th:nth-child(13){background:rgba(234,179,8,.09);}
+.dir-t tfoot tr:first-child td:nth-child(13),.dir-t tfoot tr:first-child td:nth-child(14){background:rgba(234,179,8,.19);}
+.dir-t thead tr:nth-child(2) th:nth-child(12),.dir-t thead tr:nth-child(2) th:nth-child(13){color:#ca8a04;}
+.dir-t tbody tr td:nth-child(15),.dir-t thead tr:nth-child(2) th:nth-child(14){background:rgba(20,184,166,.18);}
+.dir-t tfoot tr:first-child td:nth-child(15){background:rgba(20,184,166,.28);}
+.dir-t thead tr:nth-child(2) th:nth-child(14){color:#14B8A6;}
+.dir-t tbody tr td:nth-child(16),.dir-t thead tr:nth-child(2) th:nth-child(15),.dir-t tbody tr td:nth-child(17),.dir-t thead tr:nth-child(2) th:nth-child(16){background:rgba(192,57,43,.06);}
+.dir-t tfoot tr:first-child td:nth-child(16),.dir-t tfoot tr:first-child td:nth-child(17){background:rgba(192,57,43,.16);}
+.dir-t thead tr:nth-child(2) th:nth-child(15),.dir-t thead tr:nth-child(2) th:nth-child(16){color:#c0392b;}
+.dir-t tbody tr td:nth-child(18),.dir-t thead tr:nth-child(2) th:nth-child(17){background:rgba(42,37,32,.06);}
+.dir-t tfoot tr:first-child td:nth-child(18){background:rgba(42,37,32,.16);}
+.dir-t thead tr:nth-child(2) th:nth-child(17){color:#2a2520;}
+.dir-t tbody tr td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(2),.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t tbody tr td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(5),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t tbody tr td:nth-child(10),.dir-t tfoot tr:first-child td:nth-child(10),.dir-t thead tr:nth-child(2) th:nth-child(9),.dir-t tbody tr td:nth-child(13),.dir-t tfoot tr:first-child td:nth-child(13),.dir-t thead tr:nth-child(2) th:nth-child(12),.dir-t tbody tr td:nth-child(15),.dir-t tfoot tr:first-child td:nth-child(15),.dir-t thead tr:nth-child(2) th:nth-child(14),.dir-t tbody tr td:nth-child(16),.dir-t tfoot tr:first-child td:nth-child(16),.dir-t thead tr:nth-child(2) th:nth-child(15),.dir-t tbody tr td:nth-child(18),.dir-t tfoot tr:first-child td:nth-child(18),.dir-t thead tr:nth-child(2) th:nth-child(17){border-left:6px solid var(--card) !important;}
+.dir-t thead tr.g th+th{border-left:6px solid var(--card);}
+.dir-t thead tr.g th.gi{background:rgba(255,117,31,.12);color:#c2410c;}
+.dir-t thead tr.g th.gp{background:rgba(94,23,235,.1);color:#5E17EB;}
+.dir-t thead tr.g th.gf{border-top:3px solid #0ea5e9;background:rgba(14,165,233,.13);color:#0369a1;}
+.dir-t thead tr.g th.gc{border-top:3px solid #eab308;background:rgba(234,179,8,.16);color:#a16207;}
+.dir-t thead tr.g th.gt{border-top:3px solid #14B8A6;background:#14B8A6;color:#fff;}
+.dir-t thead tr.g th.gd{background:rgba(192,57,43,.1);color:#c0392b;}
+.dir-t thead tr.g th.gr{background:#2a2520;color:#fff;}
+.dir-t tbody tr:hover td{box-shadow:inset 0 0 0 999px rgba(255,117,31,.06);}
+.dir-t tbody tr td{border-bottom:1px solid rgba(42,37,32,.1);}
 .dir-t td.aliq{white-space:nowrap;cursor:default;}
 .dir-aliq-in{width:52px;font-family:'Ubuntu',sans-serif;font-size:12.5px;padding:5px 6px;border:1px solid rgba(42,37,32,.18);border-radius:6px;background:#fff;text-align:right;margin-right:3px;}
 .dir-aliq-in:focus{outline:none;border-color:var(--orange);}
-.dir-t thead tr.g th.gt{border-top:3px solid #14B8A6;}
-.dir-t td.rec{background:rgba(20,184,166,.07);}
-.dir-t tbody tr:hover td.rec{background:rgba(20,184,166,.12);}
-.dir-t thead tr.g th+th{border-left:1px solid var(--border);}
+.dir-t td.rec b{color:#0f766e;font-size:15px;font-weight:800;}
+.dir-t td.rec small{color:#0f766e;opacity:.85;}
+.dir-t thead th.rec{font-weight:800;}
 </style>
 </head>
 <body>
@@ -10651,16 +10676,17 @@ function dirRender(){
   h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e o custo por atleta. A <b>NF</b> é a alíquota do evento sobre a meta de patrocínio. <b>FOTOP</b> = inscritos × valor × %. <b>Cashback</b> = % sobre o faturamento de inscrições. <b>Projetado</b> = meta nos eventos futuros, real nos que já aconteceram.</div>';
   h += '<div class="dir-wrap"><table class="dir-t"><thead>' +
     '<tr class="g"><th rowspan="2" class="dir-c1">Evento</th>' +
-    '<th colspan="3" class="gi">Inscrições</th><th colspan="5" class="gp">Patrocínio</th><th colspan="3" class="gf">FOTOP</th><th colspan="2" class="gc">Cashback</th><th class="gt">Receita</th>' +
+    '<th colspan="3" class="gi">Inscrições</th><th colspan="5" class="gp">Patrocínio</th><th colspan="3" class="gf">FOTOP</th><th colspan="2" class="gc">Cashback</th><th class="gt">Receita total</th>' +
     '<th colspan="2" class="gd">Despesas</th><th class="gr">Resultado</th></tr>' +
     '<tr><th>Meta</th><th>Real</th><th>%</th><th>Meta</th><th>Captado</th><th>%</th><th>Alíq. NF</th><th>Nota fiscal</th>' +
     '<th>Valor por atleta</th><th>%</th><th>Receita</th><th>%</th><th>Receita</th>' +
-    '<th>Por atleta</th>' +
+    '<th class="rec">Soma das receitas</th>' +
     '<th>Custo por atleta</th><th>Custo do evento</th>' +
     '<th>Projetado</th></tr></thead><tbody>';
   L.forEach(function(c){
     const e = c.ev;
     const q = c.projQ || 0;
+    const recTit = 'Inscrições ' + dirR(c.projInsR) + ' + Patrocínio ' + dirR(c.projEnt - c.projInsR - c.fotoRec - c.cashRec) + ' + FOTOP ' + dirR(c.fotoRec) + ' + Cashback ' + dirR(c.cashRec);
     const insMeta = c.metaR ? '<b>' + dirR(c.metaR) + '</b><small>' + fmt(c.metaQ) + ' × ' + dirR2(c.metaT) + '</small>'
       : '<span class="nd">' + (c.metaQ ? fmt(c.metaQ) + ' insc. · sem ticket' : 'a lançar') + '</span>';
     const insReal = c.realQ !== null ? '<b>' + dirR(c.realR) + '</b><small>' + fmt(c.realQ) + ' × ' + dirR2(c.realT) + (c.fonte === 'site' ? ' · site' : '') + '</small>'
@@ -10679,7 +10705,7 @@ function dirRender(){
       '<td>' + (c.fotoRec ? '<b>' + dirR(c.fotoRec) + '</b><small>' + fmt(q) + ' insc.</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'cash_pct', c.cashPct, 48) + '%</td>' +
       '<td>' + (c.cashRec ? '<b>' + dirR(c.cashRec) + '</b><small>sobre ' + dirR(c.projInsR) + '</small>' : '<span class="nd">—</span>') + '</td>' +
-      '<td class="rec">' + (q ? '<b>' + dirR2(c.recAtl) + '</b><small>' + fmt(q) + ' atletas</small>' : '<span class="nd">—</span>') + '</td>' +
+      '<td class="rec" title="' + recTit + '">' + (c.projEnt ? '<b>' + dirR(c.projEnt) + '</b>' + (q ? '<small>' + dirR2(c.recAtl) + ' por atleta</small>' : '') : '<span class="nd">—</span>') + '</td>' +
       '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' : '<span class="nd">a lançar</span>') + '</td>' +
       '<td class="dsp">' + (c.projCusto ? dirR(c.projCusto) + '<small>' + fmt(q) + ' × ' + dirR2(c.custoAtl) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="res ' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</td>' +
@@ -10690,7 +10716,7 @@ function dirRender(){
     '<td>' + dirR(T.metaPat) + '</td><td>' + dirR(T.realPat) + '</td><td>' + dirPill(pPat) + '</td>' +
     '<td></td><td>' + dirR(T.nf) + '</td>' +
     '<td></td><td></td><td>' + dirR(T.foto || 0) + '</td><td></td><td>' + dirR(T.cash || 0) + '</td>' +
-    '<td class="rec">' + dirR2(entAtl) + '<small>' + fmt(T.projQ) + ' atletas</small></td>' +
+    '<td class="rec"><b>' + dirR(T.projEnt) + '</b><small>' + dirR2(entAtl) + ' por atleta</small></td>' +
     '<td>' + dirR2(custoAtlMed) + '<small>média</small></td><td>' + dirR(T.custo) + '</td>' +
     '<td class="res ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</td></tr>';
   if (escAno) {
