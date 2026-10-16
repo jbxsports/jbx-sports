@@ -1774,9 +1774,12 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-prev b{font-size:15px;}
 @media(max-width:1100px){.dir-kpis{grid-template-columns:repeat(2,1fr);}.dir-graf{grid-template-columns:1fr;}}
 @media(max-width:640px){.dir-kpis{grid-template-columns:1fr;}.dir-prev{grid-template-columns:1fr 1fr;}}
-.dir-t tbody td:nth-child(2),.dir-t tbody td:nth-child(5),.dir-t tbody td:nth-child(8),.dir-t tbody td:nth-child(11),.dir-t tbody td:nth-child(13),
-.dir-t tfoot tr:first-child td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(8),.dir-t tfoot tr:first-child td:nth-child(11),.dir-t tfoot tr:first-child td:nth-child(13),
-.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(7),.dir-t thead tr:nth-child(2) th:nth-child(10),.dir-t thead tr:nth-child(2) th:nth-child(12),
+.dir-t tbody td:nth-child(2),.dir-t tbody td:nth-child(5),.dir-t tbody td:nth-child(8),.dir-t tbody td:nth-child(9),.dir-t tbody td:nth-child(12),
+.dir-t tfoot tr:first-child td:nth-child(2),.dir-t tfoot tr:first-child td:nth-child(5),.dir-t tfoot tr:first-child td:nth-child(8),.dir-t tfoot tr:first-child td:nth-child(9),.dir-t tfoot tr:first-child td:nth-child(12),
+.dir-t thead tr:nth-child(2) th:nth-child(1),.dir-t thead tr:nth-child(2) th:nth-child(4),.dir-t thead tr:nth-child(2) th:nth-child(7),.dir-t thead tr:nth-child(2) th:nth-child(8),.dir-t thead tr:nth-child(2) th:nth-child(11),
+.dir-t thead tr.g th.gt{border-top:3px solid #14B8A6;}
+.dir-t td.rec{background:rgba(20,184,166,.07);}
+.dir-t tbody tr:hover td.rec{background:rgba(20,184,166,.12);}
 .dir-t thead tr.g th+th{border-left:1px solid var(--border);}
 </style>
 </head>
@@ -10372,42 +10375,41 @@ function dirCalc(ev){
   const funil = Number(dirCapt[id]) || 0;
   const realPat = funil > 0 ? funil : (Number(ext.captado) || 0);
 
-  const inv = Number(d.inv_patrocinador) || 0;
-  const custoP = Number(d.custo_previsto) || 0;
-  const custoR = dirN(d.custo_real) !== null ? Number(d.custo_real) : custoP;
+  /* despesa: só o custo total POR ATLETA (guardado em custo_previsto).
+     Custo do evento = custo por atleta × atletas. A nota fiscal sai da alíquota. */
+  const custoAtl = Number(d.custo_previsto) || 0;
 
   const metaEnt = metaR + metaPat;
   const nfM = metaEnt * aliq;
-  const despM = inv + custoP + nfM;
+  const custoM = custoAtl * metaQ;
+  const despM = custoM + nfM;
   const resM = metaEnt - despM;
-
-  const realEnt = (realR || 0) + realPat;
-  const nfR = realEnt * aliq;
-  const despR = inv + custoR + nfR;
-  const resR = realEnt - despR;
 
   const fechado = !!ev.realizado || ev.inicio < dirHoje();
   /* projeção: evento que já aconteceu usa o real; evento futuro usa a meta
      (patrocínio futuro usa o maior entre meta e o que já foi captado) */
-  let projQ, projEnt, projNF, projDesp, projRes, projInsR, projPat;
+  let projQ, projInsR, projPat;
   if (fechado) {
     projQ = realQ !== null ? realQ : metaQ; projInsR = realR !== null ? realR : metaR; projPat = realPat;
   } else {
     projQ = metaQ; projInsR = metaR; projPat = Math.max(metaPat, realPat);
   }
-  projEnt = projInsR + projPat;
-  projNF = projEnt * aliq;
-  projDesp = inv + (fechado ? custoR : custoP) + projNF;
-  projRes = projEnt - projDesp;
+  const projEnt = projInsR + projPat;
+  const projNF = projEnt * aliq;
+  const projCusto = custoAtl * projQ;
+  const projDesp = projCusto + projNF;
+  const projRes = projEnt - projDesp;
+  const recAtl = projQ ? projEnt / projQ : 0;
+  const saldoAtl = projQ ? projRes / projQ : 0;
 
   return {id:id, ev:ev, d:d, fechado:fechado, fonte:fonte,
     metaQ:metaQ, metaQdoCal:metaQdoCal, metaT:metaT, metaR:metaR,
     realQ:realQ, realT:realT, realR:realR,
     metaPat:metaPat, realPat:realPat, patFunil:funil > 0,
-    inv:inv, custoP:custoP, custoR:custoR,
+    custoAtl:custoAtl, custoM:custoM,
     metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
-    realEnt:realEnt, nfR:nfR, despR:despR, resR:resR,
-    projQ:projQ, projEnt:projEnt, projNF:projNF, projDesp:projDesp, projRes:projRes};
+    projQ:projQ, projEnt:projEnt, projNF:projNF, projCusto:projCusto, projDesp:projDesp, projRes:projRes,
+    recAtl:recAtl, saldoAtl:saldoAtl};
 }
 
 function dirLinhas(){
@@ -10420,11 +10422,11 @@ function dirRender(){
   const el = document.getElementById('dir-corpo');
   const L = dirLinhas();
   const anos = dirAnos();
-  const T = {metaR:0, realR:0, metaQ:0, realQ:0, metaPat:0, realPat:0, inv:0, custo:0, nf:0, resM:0, projRes:0, projEnt:0, projDesp:0, projQ:0, metaEnt:0, despM:0, realEntFech:0, nRealQ:0, metaRl:0, metaQl:0};
+  const T = {metaR:0, realR:0, metaQ:0, realQ:0, metaPat:0, realPat:0, custo:0, nf:0, resM:0, projRes:0, projEnt:0, projDesp:0, projQ:0, metaEnt:0, despM:0, realEntFech:0, nRealQ:0, metaRl:0, metaQl:0};
   L.forEach(function(c){
     T.metaR += c.metaR; T.metaQ += c.metaQ; T.metaPat += c.metaPat; T.realPat += c.realPat;
     if (c.realQ !== null) { T.realR += c.realR; T.realQ += c.realQ; T.nRealQ++; T.metaRl += c.metaR; T.metaQl += c.metaQ; }
-    T.inv += c.inv; T.custo += c.fechado ? c.custoR : c.custoP; T.nf += c.projNF;
+    T.custo += c.projCusto; T.nf += c.projNF;
     T.resM += c.resM; T.projRes += c.projRes; T.projEnt += c.projEnt; T.projDesp += c.projDesp; T.projQ += c.projQ;
     T.metaEnt += c.metaEnt; T.despM += c.despM;
   });
@@ -10448,6 +10450,8 @@ function dirRender(){
   /* KPIs */
   const pIns = T.nRealQ ? dirPct(T.realR, T.metaRl) : null, pPat = dirPct(T.realPat, T.metaPat);
   const entAtl = T.projQ ? T.projEnt / T.projQ : 0, despAtl = T.projQ ? T.projDesp / T.projQ : 0;
+  const custoAtlMed = T.projQ ? T.custo / T.projQ : 0, nfAtl = T.projQ ? T.nf / T.projQ : 0;
+  const semCusto = L.filter(function(c){ return !c.custoAtl; }).length;
   h += '<div class="dir-kpis">' +
     '<div class="dir-k"><div class="t">Inscrições</div><div class="v">' + dirR(T.realR) + '</div>' +
       '<div class="s">de ' + dirR(T.metaRl) + ' na meta ' + dirPill(pIns) + '</div>' +
@@ -10456,13 +10460,15 @@ function dirRender(){
     '<div class="dir-k"><div class="t">Patrocínio</div><div class="v">' + dirR(T.realPat) + '</div>' +
       '<div class="s">de ' + dirR(T.metaPat) + ' na meta ' + dirPill(pPat) + '</div><div class="s">captado até agora (funil + histórico)</div></div>' +
     '<div class="dir-k"><div class="t">Despesas (projeção)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
-      '<div class="s">Custos ' + dirR(T.custo) + ' · NF ' + dirR(T.nf) + ' · Patroc. ' + dirR(T.inv) + '</div></div>' +
+      '<div class="s">Custos ' + dirR(T.custo) + ' · NF ' + dirR(T.nf) + '</div>' +
+      (semCusto ? '<div class="s"><b class="neg">' + semCusto + ' evento(s) sem custo por atleta</b></div>' : '') + '</div>' +
     '<div class="dir-k destaque"><div class="t">Resultado dos eventos</div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div>' +
       '<div class="s">projeção · meta ' + dirR(T.resM) + '</div>' +
       (escAno ? '<div class="s"><b>Após escritório: ' + dirR(T.projRes - escAno) + '</b> (' + dirR(esc) + ' × 12)</div>' : '') + '</div>' +
     '<div class="dir-k"><div class="t">Por atleta (projeção)</div>' +
-      '<div class="dir-atl"><span>Entrada</span><b>' + dirR2(entAtl) + '</b></div>' +
-      '<div class="dir-atl"><span>Despesa</span><b class="neg">' + dirR2(despAtl) + '</b></div>' +
+      '<div class="dir-atl"><span>Receita</span><b>' + dirR2(entAtl) + '</b></div>' +
+      '<div class="dir-atl"><span>Custo</span><b class="neg">' + dirR2(custoAtlMed) + '</b></div>' +
+      '<div class="dir-atl"><span>Nota fiscal</span><b class="neg">' + dirR2(nfAtl) + '</b></div>' +
       '<div class="dir-atl tot"><span>Saldo</span><b class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '">' + dirR2(entAtl - despAtl) + '</b></div></div>' +
     '</div>';
 
@@ -10471,14 +10477,15 @@ function dirRender(){
     h += '<div class="empty-state">Nenhum evento do Calendário neste período.</div>';
     el.innerHTML = h; dirGraficos([]); return;
   }
-  h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e custos. <b>Projeção</b> = real nos eventos que já aconteceram, meta nos futuros.</div>';
+  h += '<div class="dir-leg">Clique no evento para lançar metas, realizado e o custo por atleta. <b>Projeção</b> = real nos eventos que já aconteceram, meta nos futuros.</div>';
   h += '<div class="dir-wrap"><table class="dir-t"><thead>' +
     '<tr class="g"><th rowspan="2" class="dir-c1">Evento</th>' +
-    '<th colspan="3" class="gi">Inscrições</th><th colspan="3" class="gp">Patrocínio</th>' +
-    '<th colspan="3" class="gd">Despesas</th><th colspan="2" class="gr">Resultado</th><th colspan="3" class="ga">Por atleta</th></tr>' +
+    '<th colspan="3" class="gi">Inscrições</th><th colspan="3" class="gp">Patrocínio</th><th class="gt">Receita</th>' +
+    '<th colspan="3" class="gd">Despesas</th><th colspan="3" class="gr">Resultado</th></tr>' +
     '<tr><th>Meta</th><th>Real</th><th>%</th><th>Meta</th><th>Captado</th><th>%</th>' +
-    '<th>Invest. patroc.</th><th>Custo evento</th><th>Nota fiscal</th>' +
-    '<th>Meta</th><th>Projeção</th><th>Entrada</th><th>Despesa</th><th>Saldo</th></tr></thead><tbody>';
+    '<th>Por atleta</th>' +
+    '<th>Custo por atleta</th><th>Custo do evento</th><th>Nota fiscal</th>' +
+    '<th>Meta</th><th>Projeção</th><th>Saldo por atleta</th></tr></thead><tbody>';
   L.forEach(function(c){
     const e = c.ev;
     const q = c.projQ || 0;
@@ -10493,28 +10500,28 @@ function dirRender(){
       '<td>' + (c.metaPat ? dirR(c.metaPat) : '<span class="nd">—</span>') + '</td>' +
       '<td>' + (c.realPat ? dirR(c.realPat) + (c.patFunil ? '<small>funil</small>' : '') : '<span class="nd">—</span>') + '</td>' +
       '<td>' + dirPill(dirPct(c.realPat, c.metaPat)) + '</td>' +
-      '<td class="dsp">' + (c.inv ? dirR(c.inv) : '<span class="nd">—</span>') + '</td>' +
-      '<td class="dsp">' + ((c.fechado ? c.custoR : c.custoP) ? dirR(c.fechado ? c.custoR : c.custoP) + '<small>' + (c.fechado && dirN(c.d.custo_real) !== null ? 'real' : 'previsto') + '</small>' : '<span class="nd">a lançar</span>') + '</td>' +
+      '<td class="rec">' + (q ? '<b>' + dirR2(c.recAtl) + '</b><small>' + fmt(q) + ' atletas</small>' : '<span class="nd">—</span>') + '</td>' +
+      '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' : '<span class="nd">a lançar</span>') + '</td>' +
+      '<td class="dsp">' + (c.projCusto ? dirR(c.projCusto) + '<small>' + fmt(q) + ' × ' + dirR2(c.custoAtl) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="dsp">' + (c.projNF ? dirR(c.projNF) : '<span class="nd">—</span>') + '</td>' +
       '<td class="' + (c.resM < 0 ? 'neg' : '') + '">' + dirR(c.resM) + '</td>' +
       '<td class="res ' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</td>' +
-      '<td>' + (q ? dirR2(c.projEnt / q) : '—') + '</td>' +
-      '<td class="dsp">' + (q ? dirR2(c.projDesp / q) : '—') + '</td>' +
-      '<td class="' + (q && c.projEnt - c.projDesp < 0 ? 'neg' : 'pos') + '"><b>' + (q ? dirR2((c.projEnt - c.projDesp) / q) : '—') + '</b></td>' +
+      '<td class="' + (q && c.saldoAtl < 0 ? 'neg' : 'pos') + '"><b>' + (q ? dirR2(c.saldoAtl) : '—') + '</b></td>' +
       '</tr>';
   });
   h += '</tbody><tfoot><tr><td class="dir-c1">Total ' + (dirAno === 'todos' ? 'geral' : dirAno) + '<div class="cd">' + L.length + ' eventos</div></td>' +
     '<td>' + dirR(T.metaR) + '<small>' + fmt(T.metaQ) + ' insc.</small></td><td>' + dirR(T.realR) + '<small>' + fmt(T.realQ) + ' insc.</small></td><td>' + dirPill(pIns) + '</td>' +
     '<td>' + dirR(T.metaPat) + '</td><td>' + dirR(T.realPat) + '</td><td>' + dirPill(pPat) + '</td>' +
-    '<td>' + dirR(T.inv) + '</td><td>' + dirR(T.custo) + '</td><td>' + dirR(T.nf) + '</td>' +
+    '<td class="rec">' + dirR2(entAtl) + '<small>' + fmt(T.projQ) + ' atletas</small></td>' +
+    '<td>' + dirR2(custoAtlMed) + '<small>média</small></td><td>' + dirR(T.custo) + '</td><td>' + dirR(T.nf) + '</td>' +
     '<td class="' + (T.resM < 0 ? 'neg' : '') + '">' + dirR(T.resM) + '</td><td class="res ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</td>' +
-    '<td>' + dirR2(entAtl) + '</td><td>' + dirR2(despAtl) + '</td><td class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '"><b>' + dirR2(entAtl - despAtl) + '</b></td></tr>';
+    '<td class="' + (entAtl - despAtl < 0 ? 'neg' : 'pos') + '"><b>' + dirR2(entAtl - despAtl) + '</b></td></tr>';
   if (escAno) {
-    h += '<tr class="esc"><td class="dir-c1">(−) Escritório<div class="cd">' + dirR(esc) + ' × 12 meses</div></td><td colspan="9"></td>' +
-      '<td class="neg">−' + dirR(escAno) + '</td><td class="neg">−' + dirR(escAno) + '</td><td colspan="3"></td></tr>' +
-      '<tr class="liq"><td class="dir-c1">Resultado após escritório</td><td colspan="9"></td>' +
+    h += '<tr class="esc"><td class="dir-c1">(−) Escritório<div class="cd">' + dirR(esc) + ' × 12 meses</div></td><td colspan="10"></td>' +
+      '<td class="neg">−' + dirR(escAno) + '</td><td class="neg">−' + dirR(escAno) + '</td><td></td></tr>' +
+      '<tr class="liq"><td class="dir-c1">Resultado após escritório</td><td colspan="10"></td>' +
       '<td class="' + (T.resM - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.resM - escAno) + '</td>' +
-      '<td class="res ' + (T.projRes - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes - escAno) + '</td><td colspan="3"></td></tr>';
+      '<td class="res ' + (T.projRes - escAno < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes - escAno) + '</td><td></td></tr>';
   }
   h += '</tfoot></table></div>';
 
@@ -10590,9 +10597,7 @@ function dirAbrir(id){
   v('meta-t', dirMoedaInp(d.meta_ticket));
   v('real-q', dirN(d.real_inscritos) !== null ? d.real_inscritos : '');
   v('real-t', dirMoedaInp(d.real_ticket));
-  v('inv', dirMoedaInp(d.inv_patrocinador));
-  v('custo-p', dirMoedaInp(d.custo_previsto));
-  v('custo-r', dirMoedaInp(d.custo_real));
+  v('custo-atl', dirMoedaInp(d.custo_previsto));
   v('obs', d.obs || '');
   let op = '<option value="">— lançar à mão —</option>';
   dirSite.slice().sort(function(a, b){ return String(a.nome || '').localeCompare(String(b.nome || ''), 'pt-BR'); }).forEach(function(s){
@@ -10622,7 +10627,7 @@ function dirColetar(){
     meta_inscritos: inteiro(g('meta-q')), meta_ticket: moeda(g('meta-t')),
     real_inscritos: inteiro(g('real-q')), real_ticket: moeda(g('real-t')),
     site_evento_id: g('site'),
-    inv_patrocinador: moeda(g('inv')), custo_previsto: moeda(g('custo-p')), custo_real: moeda(g('custo-r')),
+    inv_patrocinador: '', custo_previsto: moeda(g('custo-atl')), custo_real: '',
     obs: g('obs')
   };
 }
@@ -10635,8 +10640,8 @@ function dirPrevia(){
   dirD[dirEdId] = bak;
   if (bak === undefined) delete dirD[dirEdId];
   document.getElementById('dir-f-prev').innerHTML =
-    '<div><span>Entrada meta</span><b>' + dirR(c.metaEnt) + '</b></div>' +
-    '<div><span>Despesas meta</span><b class="neg">' + dirR(c.despM) + '</b></div>' +
+    '<div><span>Receita por atleta</span><b>' + (c.projQ ? dirR2(c.recAtl) : '—') + '</b></div>' +
+    '<div><span>Saldo por atleta</span><b class="' + (c.saldoAtl < 0 ? 'neg' : 'pos') + '">' + (c.projQ ? dirR2(c.saldoAtl) : '—') + '</b></div>' +
     '<div><span>Resultado meta</span><b class="' + (c.resM < 0 ? 'neg' : 'pos') + '">' + dirR(c.resM) + '</b></div>' +
     '<div><span>Resultado projeção</span><b class="' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</b></div>';
 }
@@ -10651,7 +10656,7 @@ async function dirSalvar(){
     const n = function(x){ return x === '' ? null : Number(x); };
     dirD[dirEdId] = {calendario_id:dirEdId, meta_inscritos:n(dados.meta_inscritos), meta_ticket:n(dados.meta_ticket),
       real_inscritos:n(dados.real_inscritos), real_ticket:n(dados.real_ticket), site_evento_id:dados.site_evento_id || null,
-      inv_patrocinador:n(dados.inv_patrocinador), custo_previsto:n(dados.custo_previsto), custo_real:n(dados.custo_real), obs:dados.obs};
+      inv_patrocinador:null, custo_previsto:n(dados.custo_previsto), custo_real:null, obs:dados.obs};
     dirFechar();
     dirRender();
   } catch (e) { alert('Não consegui salvar. Tente de novo.'); }
@@ -10661,14 +10666,14 @@ async function dirSalvar(){
 function dirExcel(){
   const L = dirLinhas();
   const linhas = [['Data','Evento','Cidade','Situação','Meta inscritos','Meta ticket','Meta inscrições (R$)','Real inscritos','Real ticket','Real inscrições (R$)','% inscrições',
-    'Meta patrocínio','Captado','% patrocínio','Invest. patrocinador','Custo do evento','Nota fiscal','Resultado meta','Resultado projeção','Entrada por atleta','Despesa por atleta','Saldo por atleta','Observações']];
+    'Meta patrocínio','Captado','% patrocínio','Receita por atleta','Custo por atleta','Custo do evento','Nota fiscal','Resultado meta','Resultado projeção','Saldo por atleta','Observações']];
   L.forEach(function(c){
     const q = c.projQ || 0;
     linhas.push([fmtDS(c.ev.inicio), c.ev.evento || '', c.ev.cidade || '', c.fechado ? 'Realizado' : 'Futuro',
       c.metaQ, c.metaT, c.metaR, c.realQ === null ? '' : c.realQ, c.realQ === null ? '' : c.realT, c.realQ === null ? '' : c.realR,
       c.realQ === null ? '' : dirPct(c.realR, c.metaR), c.metaPat, c.realPat, dirPct(c.realPat, c.metaPat),
-      c.inv, c.fechado ? c.custoR : c.custoP, c.projNF, c.resM, c.projRes,
-      q ? c.projEnt / q : '', q ? c.projDesp / q : '', q ? (c.projEnt - c.projDesp) / q : '', c.d.obs || '']);
+      q ? c.recAtl : '', c.custoAtl, c.projCusto, c.projNF, c.resM, c.projRes,
+      q ? c.saldoAtl : '', c.d.obs || '']);
   });
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.aoa_to_sheet(linhas);
@@ -15243,11 +15248,8 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="dir-hint">A meta é editada no Calendário e o captado vem do Funil de patrocínio (marcas fechadas).</div>
     </div></div>
     <div class="prp-bloco"><div class="prp-bloco-t">Despesas</div><div style="padding:14px;">
-      <div class="mkt-fg"><label>Investimento no patrocinador (R$)</label><input id="dir-f-inv" inputmode="decimal" placeholder="O que a JBX gasta para entregar as contrapartidas" oninput="dirPrevia()"></div>
-      <div class="mkt-row2">
-        <div class="mkt-fg"><label>Custo total do evento — previsto (R$)</label><input id="dir-f-custo-p" inputmode="decimal" oninput="dirPrevia()"></div>
-        <div class="mkt-fg"><label>Custo total do evento — real (R$)</label><input id="dir-f-custo-r" inputmode="decimal" placeholder="Depois que o evento fechar" oninput="dirPrevia()"></div>
-      </div>
+      <div class="mkt-fg"><label>Custo total por atleta (R$)</label><input id="dir-f-custo-atl" inputmode="decimal" placeholder="Ex.: 62,00 — tudo que o evento custa, dividido por atleta" oninput="dirPrevia()"></div>
+      <div class="dir-hint">O custo do evento é este valor × o número de atletas (real, se o evento já aconteceu; meta, se é futuro).</div>
       <div class="dir-hint">A nota fiscal é calculada pela alíquota do topo da tela, sobre inscrições + patrocínio.</div>
     </div></div>
     <div class="mkt-fg"><label>Observações</label><textarea id="dir-f-obs" rows="2"></textarea></div>
