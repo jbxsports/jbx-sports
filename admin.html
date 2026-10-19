@@ -1344,6 +1344,19 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .cp-mais{grid-column:1/-1;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:var(--muted);background:var(--card);border:0;border-bottom:1px solid var(--border);padding:10px;cursor:pointer;}
 .cp-mais:last-child{border-bottom:0;border-top:1px solid var(--border);}
 .cp-mais:hover{color:var(--orange);}
+.cp-sm{background:#fdf2f8;border:1px solid #f5c2dc;border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;}
+.cp-sm .tit{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
+.cp-sm .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;}
+.cp-sm label{display:flex;flex-direction:column;gap:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);}
+.cp-sm select,.cp-sm input[type=date],.cp-sm input[type=time]{font-family:'Ubuntu',sans-serif;font-size:13px;padding:6px 8px;border:1px solid rgba(42,37,32,.2);border-radius:8px;background:#fff;text-transform:none;letter-spacing:0;font-weight:400;color:var(--text);}
+.cp-sm .chk{flex-direction:row;align-items:center;gap:6px;font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:600;}
+.cp-sm .perfis{display:flex;gap:6px;flex-wrap:wrap;}
+.cp-sm .perfis .chk{background:#fff;border:1px solid rgba(42,37,32,.15);border-radius:8px;padding:5px 8px;}
+.cp-sm .res{font-size:13px;background:#fff;border-radius:8px;padding:10px 12px;border:1px dashed #f5c2dc;max-height:260px;overflow:auto;}
+.cp-sm .res ol{margin:6px 0 0 18px;padding:0;}
+.cp-sm .res li{margin:2px 0;}
+.cp-sm .res li.dup{color:var(--muted);text-decoration:line-through;}
+.cp-sm .res b{color:#d62976;}
 .cp-mv{background:#fff7f0;border:1px solid #ffd2b3;border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;}
 .cp-mv .tit{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
 .cp-mv .linha{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;}
@@ -9140,7 +9153,7 @@ async function cpAbrir(id){
   cpRenderCal();
   cpIrMes(cpMiHoje(),false);
 }
-function cpVoltar(){ _cpPrint=null; _cpMv=null; cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
+function cpVoltar(){ _cpPrint=null; _cpMv=null; _cpSm=null; cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
 
 function cpLimiteTopo(){
   const t=document.getElementById('cp-topo'), w=document.querySelector('.cp-wd');
@@ -9195,11 +9208,13 @@ function cpRenderCal(){
   h+='<button class="cp-btn" onclick="cpVoltar()">← Todos os calendários</button>';
   h+='<button class="cp-btn" onclick="cpEditar()">✎ Editar nome / evento</button>';
   h+='<button class="cp-btn" onclick="cpMvAbrir()">⇢ Mover dias</button>';
+  h+='<button class="cp-btn" onclick="cpSmAbrir()">📱 Enviar para Social Media</button>';
   h+='<button class="cp-btn" onclick="cpPrintAbrir()">🖨 Imprimir</button>';
   h+='<button class="cp-btn del" onclick="cpExcluir()">✕ Excluir</button>';
   h+='<span class="cp-status" id="cp-status"></span>';
   h+='</div>';
   h+='<div id="cp-mover"></div>';
+  h+='<div id="cp-sm"></div>';
   h+='<div id="cp-print"></div>';
   h+=cpFormHtml();
   h+='<div class="cp-topo" id="cp-topo">';
@@ -9256,6 +9271,7 @@ function cpRenderCal(){
   cpMesVisivel();
   cpPrintRender();
   cpMvRender();
+  cpSmRender();
   const f=document.getElementById('cp-f-nome'); if(f) f.focus();
 }
 
@@ -9372,6 +9388,146 @@ function cpMvRender(){
   h+='<button class="cp-btn" onclick="cpMvFechar()">Fechar</button></div>';
   h+='</div>';
   el.innerHTML=h;
+}
+
+/* ── ENVIAR PARA O SOCIAL MEDIA ──
+   Cada dia preenchido vira um conteúdo no Social Media (mkt_post_salvar + mkt_post_extra_salvar,
+   as mesmas chamadas do formulário de conteúdo). Título = 1ª linha do texto; briefing = texto inteiro.
+   Conteúdo que já existe (mesmo evento, mesma data e mesmo título) é pulado — dá para rodar de novo sem duplicar. */
+let _cpSm=null;
+function cpSmTitulo(t){
+  const l=String(t||'').split('\n').map(function(x){return x.trim();}).filter(Boolean);
+  return (l[0]||'').slice(0,120);
+}
+async function cpSmAbrir(){
+  cpFlushTodos();
+  const el=document.getElementById('cp-sm');
+  if(el) el.innerHTML='<div class="cp-sm"><div class="tit">📱 Enviar para Social Media</div><div class="res">Carregando o Social Media…</div></div>';
+  try{ if(!mktData) await mktRecarregar(); }catch(e){ console.error(e); }
+  if(!mktData||!(mktData.eventos||[]).length){
+    if(el) el.innerHTML='<div class="cp-sm"><div class="tit">📱 Enviar para Social Media</div><div class="res">Não encontrei eventos no Social Media. Traga o evento do Calendário para o Social Media primeiro.</div><div><button class="cp-btn" onclick="cpSmFechar()">Fechar</button></div></div>';
+    return;
+  }
+  /* evento: o ligado ao mesmo evento do Calendário; senão, pelo nome */
+  const cal=_cpAtual&&_cpAtual.evento_id!=null?String(_cpAtual.evento_id):'';
+  let ev=(mktData.eventos||[]).find(function(e){return cal&&String(e.calendario_id||'')===cal;});
+  if(!ev){
+    const ce=cpEvento(cal), nome=String(ce&&ce.evento||_cpAtual.nome||'').toLowerCase();
+    ev=(mktData.eventos||[]).find(function(e){const n=String(e.nome||'').toLowerCase(); return n&&nome&&(nome.indexOf(n)>=0||n.indexOf(nome)>=0);})||null;
+  }
+  const hoje=cpHojeKey();
+  const ks=Object.keys(_cpDias).sort();
+  const de=ks.find(function(k){return k>=hoje;})||ks[0]||hoje;
+  _cpSm={ev:ev?ev.id:'', perfis:['jbx'], canal:'instagram', formato:'post', hora:'19:00', status:'a_criar', tipo:'obrigatorio', designer:true,
+    de:de, ate:ks.length?ks[ks.length-1]:de, rodando:false, ok:''};
+  cpSmRender();
+}
+function cpSmFechar(){ _cpSm=null; cpSmRender(); }
+function cpSmSet(campo,v){
+  if(!_cpSm) return;
+  if(campo==='perfil'){ const i=_cpSm.perfis.indexOf(v); if(i>=0) _cpSm.perfis.splice(i,1); else _cpSm.perfis.push(v); }
+  else _cpSm[campo]=v;
+  if(campo==='canal'){ const ok=MKT_FORMATOS_CANAL[v]||[]; if(ok.indexOf(_cpSm.formato)<0) _cpSm.formato=ok[0]||'post'; }
+  _cpSm.ok='';
+  cpSmRender();
+}
+function cpSmItens(){
+  if(!_cpSm) return [];
+  return Object.keys(_cpDias).sort().filter(function(k){
+    const d=_cpDias[k]; return k>=_cpSm.de&&k<=_cpSm.ate&&d&&String(d.texto||'').trim();
+  }).map(function(k){
+    const texto=String(_cpDias[k].texto||'').trim(), titulo=cpSmTitulo(texto);
+    const dup=(mktData.posts||[]).some(function(p){return p.evento_id===_cpSm.ev&&p.data_post===k&&String(p.titulo||'').trim()===titulo;});
+    return {data:k, titulo:titulo, briefing:texto, dup:dup};
+  });
+}
+function cpSmRender(){
+  const el=document.getElementById('cp-sm'); if(!el) return;
+  if(!_cpSm){ el.innerHTML=''; return; }
+  const S=_cpSm, itens=cpSmItens(), novos=itens.filter(function(x){return !x.dup;});
+  let h='<div class="cp-sm"><div class="tit">📱 Enviar para Social Media</div>';
+  h+='<div class="grade">';
+  h+='<label>Evento do Social Media<select onchange="cpSmSet(\'ev\',this.value)"><option value="">— escolha —</option>'+mktSelectEventosHtml(S.ev)+'</select></label>';
+  h+='<label>Canal<select onchange="cpSmSet(\'canal\',this.value)">';
+  MKT_CANAIS.forEach(function(c){h+='<option value="'+c.id+'"'+(c.id===S.canal?' selected':'')+'>'+c.label+'</option>';});
+  h+='</select></label>';
+  h+='<label>Formato<select onchange="cpSmSet(\'formato\',this.value)">';
+  (MKT_FORMATOS_CANAL[S.canal]||Object.keys(MKT_FORMATOS)).forEach(function(k){h+='<option value="'+k+'"'+(k===S.formato?' selected':'')+'>'+MKT_FORMATOS[k]+'</option>';});
+  h+='</select></label>';
+  h+='<label>Horário<input type="time" value="'+S.hora+'" onchange="cpSmSet(\'hora\',this.value)"></label>';
+  h+='<label>Status<select onchange="cpSmSet(\'status\',this.value)">';
+  MKT_STATUS.forEach(function(x){h+='<option value="'+x.id+'"'+(x.id===S.status?' selected':'')+'>'+x.label+'</option>';});
+  h+='</select></label>';
+  h+='<label>Tipo<select onchange="cpSmSet(\'tipo\',this.value)"><option value="obrigatorio"'+(S.tipo==='obrigatorio'?' selected':'')+'>Obrigatório</option><option value="outro"'+(S.tipo==='outro'?' selected':'')+'>Outro</option></select></label>';
+  h+='<label>De<input type="date" value="'+S.de+'" onchange="cpSmSet(\'de\',this.value)"></label>';
+  h+='<label>Até<input type="date" value="'+S.ate+'" onchange="cpSmSet(\'ate\',this.value)"></label>';
+  h+='</div>';
+  if(MKT_CANAIS_COM_PERFIL.indexOf(S.canal)>=0){
+    h+='<div class="perfis">';
+    MKT_PERFIS.forEach(function(p){h+='<label class="chk"><input type="checkbox"'+(S.perfis.indexOf(p.id)>=0?' checked':'')+' onchange="cpSmSet(\'perfil\',\''+p.id+'\')">'+p.label+'</label>';});
+    h+='</div>';
+  }
+  h+='<label class="chk"><input type="checkbox"'+(S.designer?' checked':'')+' onchange="cpSmSet(\'designer\',this.checked)">✎ Designer precisa criar a arte destes conteúdos</label>';
+  if(S.ok) h+='<div class="res">'+S.ok+'</div>';
+  else if(!itens.length) h+='<div class="res">Nenhum dia com texto nesse período.</div>';
+  else{
+    h+='<div class="res"><b>'+novos.length+(novos.length===1?' conteúdo novo':' conteúdos novos')+'</b>'
+      +(itens.length>novos.length?' · '+(itens.length-novos.length)+((itens.length-novos.length)===1?' já existe no Social Media (riscado, será pulado)':' já existem no Social Media (riscados, serão pulados)'):'')+'<ol>';
+    itens.forEach(function(x){h+='<li'+(x.dup?' class="dup"':'')+'>'+cpDataBR(x.data)+' · '+cpEsc(x.titulo)+'</li>';});
+    h+='</ol></div>';
+  }
+  const pode=!S.rodando&&S.ev&&novos.length&&S.hora&&(MKT_CANAIS_COM_PERFIL.indexOf(S.canal)<0||S.perfis.length);
+  h+='<div class="linha" style="display:flex;gap:8px;flex-wrap:wrap">';
+  if(!S.ok) h+='<button class="cp-btn novo" onclick="cpSmEnviar()"'+(pode?'':' disabled')+'>'+(S.rodando?'Enviando…':'Enviar '+novos.length+(novos.length===1?' conteúdo':' conteúdos'))+'</button>';
+  h+='<button class="cp-btn" onclick="cpSmFechar()">Fechar</button>';
+  if(S.ok) h+='<button class="cp-btn" onclick="showInner(\'social\')">Abrir o Social Media →</button>';
+  h+='</div></div>';
+  el.innerHTML=h;
+}
+async function cpSmEnviar(){
+  const S=_cpSm; if(!S||S.rodando) return;
+  const novos=cpSmItens().filter(function(x){return !x.dup;});
+  if(!novos.length||!S.ev) return;
+  const ev=mktEv(S.ev);
+  if(!confirm('Criar '+novos.length+' conteúdos no Social Media'+(ev?' para '+ev.nome:'')+'?\n\n'
+    +MKT_FORMATOS[S.formato]+' · '+S.hora+' · '+((MKT_STATUS.find(function(x){return x.id===S.status;})||{}).label||S.status))) return;
+  S.rodando=true; cpSmRender();
+  const perfis=MKT_CANAIS_COM_PERFIL.indexOf(S.canal)>=0?S.perfis.join(','):'';
+  let feitos=0, semExtra=0;
+  try{
+    for(const it of novos){
+      cpSetStatus('Enviando para o Social Media… '+(feitos+1)+' de '+novos.length);
+      let id=await rpc('mkt_post_salvar',{p_id:null,p_evento_id:S.ev,p_patrocinador_id:null,p_titulo:it.titulo,p_tipo:S.tipo,
+        p_formato:S.formato,p_perfis:perfis,p_briefing:it.briefing,p_status:S.status,p_arte_url:null,p_comentario:null,
+        p_data_post:it.data,p_hora:S.hora});
+      if(typeof id!=='string'||!id) id=null;
+      it.id=id;
+      feitos++;
+    }
+    await mktRecarregar();
+    for(const it of novos){
+      let id=it.id;
+      if(!id){
+        const c=(mktData.posts||[]).filter(function(p){return p.evento_id===S.ev&&p.data_post===it.data&&String(p.titulo||'').trim()===it.titulo;});
+        if(c.length) id=c[c.length-1].id;
+      }
+      if(!id){ semExtra++; continue; }
+      try{ await rpc('mkt_post_extra_salvar',{p_id:id,p_canal:S.canal,p_designer:!!S.designer}); }
+      catch(e1){ try{ await rpc('mkt_post_canal_salvar',{p_id:id,p_canal:S.canal}); }catch(e2){ semExtra++; } }
+      const alvo=(mktData.posts||[]).find(function(p){return p.id===id;}); if(alvo){alvo.canal=S.canal; alvo.designer=!!S.designer;}
+    }
+    try{ mktRender(); }catch(e){}
+    S.rodando=false;
+    S.ok='✓ <b>'+feitos+(feitos===1?' conteúdo criado':' conteúdos criados')+'</b> no Social Media'+(ev?' em '+cpEsc(ev.nome):'')+'.'
+      +(semExtra?'<br><span style="color:#D23A3A">Em '+semExtra+' não consegui gravar canal/designer — confira no Social Media.</span>':'');
+    cpSetStatus('✓ Enviado','#1D8A55');
+  }catch(e){
+    console.error(e); S.rodando=false;
+    S.ok='<span style="color:#D23A3A">Parou com erro depois de '+feitos+' de '+novos.length+'. Clique em Fechar e abra de novo: os que já foram aparecem riscados e não duplicam.</span>';
+    cpSetStatus('Erro ao enviar','#D23A3A');
+    try{ await mktRecarregar(); }catch(e2){}
+  }
+  cpSmRender();
 }
 
 /* ── IMPRIMIR (calendário mês a mês ou lista) ── */
