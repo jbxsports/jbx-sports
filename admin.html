@@ -1344,6 +1344,13 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .cp-mais{grid-column:1/-1;font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:var(--muted);background:var(--card);border:0;border-bottom:1px solid var(--border);padding:10px;cursor:pointer;}
 .cp-mais:last-child{border-bottom:0;border-top:1px solid var(--border);}
 .cp-mais:hover{color:var(--orange);}
+.cp-mv{background:#fff7f0;border:1px solid #ffd2b3;border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;}
+.cp-mv .tit{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
+.cp-mv .linha{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;}
+.cp-mv input[type=date]{font-family:'Ubuntu',sans-serif;font-size:13px;padding:6px 8px;border:1px solid rgba(42,37,32,.2);border-radius:8px;background:#fff;}
+.cp-mv .res{font-size:13px;color:var(--text);background:#fff;border-radius:8px;padding:10px 12px;border:1px dashed #ffd2b3;}
+.cp-mv .res b{color:#FF751F;}
+.cp-mv .aviso{color:#D23A3A;font-weight:700;}
 .cp-pr{background:#f5f3f0;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;display:grid;gap:12px;}
 .cp-pr .tit{font-family:'Ubuntu',sans-serif;font-weight:700;font-size:14px;color:var(--text);}
 .cp-pr .linha{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;}
@@ -9133,7 +9140,7 @@ async function cpAbrir(id){
   cpRenderCal();
   cpIrMes(cpMiHoje(),false);
 }
-function cpVoltar(){ _cpPrint=null; cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
+function cpVoltar(){ _cpPrint=null; _cpMv=null; cpFlushTodos(); _cpAtual=null; _cpForm=null; cpInit(); window.scrollTo(0,0); }
 
 function cpLimiteTopo(){
   const t=document.getElementById('cp-topo'), w=document.querySelector('.cp-wd');
@@ -9187,10 +9194,12 @@ function cpRenderCal(){
   let h='<div class="cp-bar">';
   h+='<button class="cp-btn" onclick="cpVoltar()">← Todos os calendários</button>';
   h+='<button class="cp-btn" onclick="cpEditar()">✎ Editar nome / evento</button>';
+  h+='<button class="cp-btn" onclick="cpMvAbrir()">⇢ Mover dias</button>';
   h+='<button class="cp-btn" onclick="cpPrintAbrir()">🖨 Imprimir</button>';
   h+='<button class="cp-btn del" onclick="cpExcluir()">✕ Excluir</button>';
   h+='<span class="cp-status" id="cp-status"></span>';
   h+='</div>';
+  h+='<div id="cp-mover"></div>';
   h+='<div id="cp-print"></div>';
   h+=cpFormHtml();
   h+='<div class="cp-topo" id="cp-topo">';
@@ -9246,6 +9255,7 @@ function cpRenderCal(){
   window.scrollTo(0,scrollAntes);
   cpMesVisivel();
   cpPrintRender();
+  cpMvRender();
   const f=document.getElementById('cp-f-nome'); if(f) f.focus();
 }
 
@@ -9255,6 +9265,114 @@ function cpAjustaTopo(){
   document.querySelectorAll('.cp-wd').forEach(function(w){w.style.top=top+'px';});
 }
 window.addEventListener('resize',function(){cpAjustaTopo();});
+
+/* ── MOVER DIAS ──
+   Empurra (ou puxa) todos os dias preenchidos a partir de uma data.
+   Ex.: o que começa dia 13 passa a começar dia 25 → tudo dali para frente anda 12 dias.
+   Grava dia a dia com admin_calplan_dia_salvar (dia vazio apaga). Guarda a versão
+   anterior para o botão Desfazer. */
+let _cpMv=null; // null = fechado | {de:'aaaa-mm-dd', para:'aaaa-mm-dd', ok:'', antes:{...}|null, rodando:bool}
+function cpSomaDias(key,n){
+  const d=new Date(key+'T12:00:00'); d.setDate(d.getDate()+n);
+  return cpKey(d.getFullYear(),d.getMonth(),d.getDate());
+}
+function cpDifDias(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5); }
+function cpDataBR(key){ const p=String(key).split('-'); const wd=CP_WD[new Date(key+'T12:00:00').getDay()]; return p[2]+'/'+p[1]+'/'+p[0]+' ('+wd.toLowerCase()+')'; }
+function cpMvAbrir(){
+  cpFlushTodos();
+  const ks=Object.keys(_cpDias).sort();
+  const de=ks.length?ks[0]:cpHojeKey();
+  _cpMv={de:de, para:de, ok:'', antes:null, rodando:false};
+  cpMvRender();
+}
+function cpMvFechar(){ _cpMv=null; cpMvRender(); }
+function cpMvSet(campo,v){ if(!_cpMv||!v) return; _cpMv[campo]=v; _cpMv.ok=''; cpMvRender(); }
+function cpMvNovoMapa(origem,de,n){
+  const novo={};
+  Object.keys(origem).forEach(function(k){ if(k<de) novo[k]=Object.assign({},origem[k]); });
+  Object.keys(origem).forEach(function(k){
+    if(k<de) return;
+    const alvo=cpSomaDias(k,n), v=origem[k];
+    if(novo[alvo]){ // caiu em cima de um dia que não mexeu: junta os textos
+      novo[alvo]={texto:[novo[alvo].texto,v.texto].filter(function(t){return t&&t.trim();}).join('\n\n'), tag:v.tag||novo[alvo].tag};
+    }else novo[alvo]=Object.assign({},v);
+  });
+  return novo;
+}
+async function cpMvGravar(novo){
+  const calId=_cpAtual.id;
+  const chaves={};
+  Object.keys(_cpDias).forEach(function(k){chaves[k]=1;}); Object.keys(novo).forEach(function(k){chaves[k]=1;});
+  const mudar=Object.keys(chaves).filter(function(k){
+    const a=_cpDias[k]||{}, b=novo[k]||{};
+    return (a.texto||'')!==(b.texto||'')||(a.tag||'')!==(b.tag||'');
+  }).sort();
+  let feitos=0;
+  for(const k of mudar){
+    const v=novo[k]||{};
+    cpSetStatus('Movendo… '+(++feitos)+' de '+mudar.length);
+    await rpc('admin_calplan_dia_salvar',{p_id:calId,p_data:k,p_texto:v.texto||'',p_tag:v.tag||null});
+  }
+  _cpDias=novo;
+  return mudar.length;
+}
+async function cpMvExecutar(){
+  if(!_cpMv||_cpMv.rodando) return;
+  const n=cpDifDias(_cpMv.de,_cpMv.para);
+  const qtd=Object.keys(_cpDias).filter(function(k){return k>=_cpMv.de;}).length;
+  if(!n||!qtd) return;
+  _cpMv.rodando=true; cpMvRender();
+  const antes=JSON.parse(JSON.stringify(_cpDias));
+  try{
+    await cpMvGravar(cpMvNovoMapa(_cpDias,_cpMv.de,n));
+    _cpMv={de:_cpMv.para, para:_cpMv.para, antes:antes, rodando:false,
+      ok:'✓ '+qtd+(qtd===1?' dia movido ':' dias movidos ')+Math.abs(n)+(Math.abs(n)===1?' dia':' dias')+(n>0?' para frente.':' para trás.')};
+    cpSetStatus('✓ Salvo','#1D8A55');
+  }catch(e){
+    console.error(e); _cpMv.rodando=false;
+    cpSetStatus('Erro ao mover — confira a internet e tente de novo','#D23A3A');
+  }
+  cpCalcFaixa(); cpRenderCal();
+}
+async function cpMvDesfazer(){
+  if(!_cpMv||!_cpMv.antes||_cpMv.rodando) return;
+  _cpMv.rodando=true; cpMvRender();
+  try{
+    await cpMvGravar(_cpMv.antes);
+    _cpMv.antes=null; _cpMv.rodando=false; _cpMv.ok='↺ Desfeito — tudo voltou para as datas anteriores.';
+    cpSetStatus('✓ Salvo','#1D8A55');
+  }catch(e){ console.error(e); _cpMv.rodando=false; cpSetStatus('Erro ao desfazer — tente de novo','#D23A3A'); }
+  cpCalcFaixa(); cpRenderCal();
+}
+function cpMvRender(){
+  const el=document.getElementById('cp-mover'); if(!el) return;
+  if(!_cpMv){ el.innerHTML=''; return; }
+  const n=cpDifDias(_cpMv.de,_cpMv.para);
+  const afetados=Object.keys(_cpDias).filter(function(k){return k>=_cpMv.de;}).sort();
+  let h='<div class="cp-mv">';
+  h+='<div class="tit">⇢ Mover dias</div>';
+  h+='<div class="linha">Tudo que está a partir de <input type="date" value="'+_cpMv.de+'" onchange="cpMvSet(\'de\',this.value)">';
+  h+=' passa a começar em <input type="date" value="'+_cpMv.para+'" onchange="cpMvSet(\'para\',this.value)"></div>';
+  if(_cpMv.ok) h+='<div class="res">'+_cpMv.ok+'</div>';
+  else if(!afetados.length) h+='<div class="res">Nenhum dia preenchido a partir de '+cpDataBR(_cpMv.de)+'.</div>';
+  else if(!n) h+='<div class="res">Escolha a nova data de início.</div>';
+  else{
+    const ult=afetados[afetados.length-1];
+    h+='<div class="res"><b>'+afetados.length+(afetados.length===1?' dia preenchido':' dias preenchidos')+'</b> vão andar <b>'+Math.abs(n)+(Math.abs(n)===1?' dia':' dias')+(n>0?' para frente':' para trás')+'</b>.<br>'
+      +'Primeiro: '+cpDataBR(afetados[0])+' → <b>'+cpDataBR(cpSomaDias(afetados[0],n))+'</b><br>'
+      +'Último: '+cpDataBR(ult)+' → <b>'+cpDataBR(cpSomaDias(ult,n))+'</b>';
+    if(n%7) h+='<br><small>Obs.: '+Math.abs(n)+' dias não é múltiplo de 7, então os posts mudam de dia da semana.</small>';
+    const ev=cpEvento(_cpAtual&&_cpAtual.evento_id);
+    if(ev&&ev.inicio&&n>0&&cpSomaDias(ult,n)>String(ev.inicio).slice(0,10)&&ult<=String(ev.inicio).slice(0,10)) h+='<br><span class="aviso">Atenção: algum dia vai passar da data do evento ('+fmtDS(ev.inicio)+').</span>';
+    h+='</div>';
+  }
+  h+='<div class="linha">';
+  if(!_cpMv.ok) h+='<button class="cp-btn novo" onclick="cpMvExecutar()"'+((!n||!afetados.length||_cpMv.rodando)?' disabled':'')+'>'+(_cpMv.rodando?'Movendo…':'Mover')+'</button>';
+  if(_cpMv.antes) h+='<button class="cp-btn" onclick="cpMvDesfazer()"'+(_cpMv.rodando?' disabled':'')+'>↺ Desfazer</button>';
+  h+='<button class="cp-btn" onclick="cpMvFechar()">Fechar</button></div>';
+  h+='</div>';
+  el.innerHTML=h;
+}
 
 /* ── IMPRIMIR (calendário mês a mês ou lista) ── */
 let _cpPrint=null; // null = painel fechado | {fmt:'cal'|'lista', meses:{mi:true}}
