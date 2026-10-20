@@ -11095,8 +11095,9 @@ function dirAbrir(id){
   document.getElementById('dir-m-nome').textContent = ev.evento || '';
   document.getElementById('dir-m-sub').textContent = fmtDS(ev.inicio) + (ev.cidade ? ' · ' + ev.cidade : '') + (c.fechado ? ' · Realizado' : ' · Futuro');
   const v = function(k, val){ document.getElementById('dir-f-' + k).value = val; };
-  v('meta-q', dirN(d.meta_inscritos) !== null ? d.meta_inscritos : '');
-  document.getElementById('dir-f-meta-q').placeholder = ev.publico ? String(ev.publico) + ' (do Calendário)' : 'Ex.: 700';
+  v('meta-q', c.metaQ ? String(c.metaQ) : '');
+  document.getElementById('dir-f-meta-q').placeholder = 'Ex.: 700';
+  v('meta-pat', c.metaPat ? dirMoedaInp(c.metaPat) : '');
   v('meta-t', dirMoedaInp(d.meta_ticket));
   v('real-q', dirN(d.real_inscritos) !== null ? d.real_inscritos : '');
   v('real-t', dirMoedaInp(d.real_ticket));
@@ -11108,10 +11109,6 @@ function dirAbrir(id){
     op += '<option value="' + propEsc(s.id) + '"' + (String(d.site_evento_id || '') === String(s.id) ? ' selected' : '') + '>' + propEsc(s.nome || s.id) + ' (' + fmt(s.inscricoes_total) + ' insc.)</option>';
   });
   document.getElementById('dir-f-site').innerHTML = op;
-  document.getElementById('dir-f-pat').innerHTML =
-    '<div><span>Meta de patrocínio</span><b>' + dirR(c.metaPat) + '</b></div>' +
-    '<div><span>Captado' + (c.patFunil ? ' (funil)' : '') + '</span><b>' + dirR(c.realPat) + '</b></div>' +
-    '<div><span>%</span>' + dirPill(dirPct(c.realPat, c.metaPat)) + '</div>';
   dirSiteTroca();
   document.getElementById('dir-overlay').classList.add('open');
 }
@@ -11135,30 +11132,71 @@ function dirColetar(){
     obs: g('obs')
   };
 }
+function dirPatMetaDigitada(){
+  const t = document.getElementById('dir-f-meta-pat').value;
+  return String(t).trim() === '' ? 0 : dirNum(t);
+}
 function dirPrevia(){
   if (!dirEdId) return;
   const ev = dirCal.filter(function(e){ return String(e.id) === dirEdId; })[0];
-  const bak = dirD[dirEdId];
+  const bak = dirD[dirEdId], bakE = dirExt[dirEdId];
   dirD[dirEdId] = Object.assign({}, bak || {}, dirColetar());
+  dirExt[dirEdId] = Object.assign({}, bakE || {}, {meta_patrocinio: dirPatMetaDigitada()});
   const c = dirCalc(ev);
-  dirD[dirEdId] = bak;
-  if (bak === undefined) delete dirD[dirEdId];
+  dirD[dirEdId] = bak; if (bak === undefined) delete dirD[dirEdId];
+  dirExt[dirEdId] = bakE; if (bakE === undefined) delete dirExt[dirEdId];
+  document.getElementById('dir-f-pat').innerHTML =
+    '<div><span>Captado' + (c.patFunil ? ' (funil)' : '') + '</span><b>' + dirR(c.realPat) + '</b></div>' +
+    '<div><span>% da meta</span>' + dirPill(dirPct(c.realPat, c.metaPat)) + '</div>';
   document.getElementById('dir-f-prev').innerHTML =
     '<div><span>Receita por atleta</span><b>' + (c.projQ ? dirR2(c.recAtl) : '—') + '</b></div>' +
     '<div><span>Custo do evento</span><b class="neg">' + dirR(c.projCusto) + '</b></div>' +
     '<div><span>Nota fiscal</span><b class="neg">' + dirR(c.projNF) + '</b></div>' +
     '<div><span>Resultado projetado</span><b class="' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</b></div>';
 }
+/* mantém o Calendário (se já estiver aberto nesta sessão) com o mesmo número */
+function dirSyncCal(id, campos){
+  const e = (_calDados || []).find(function(x){ return String(x.id) === String(id); });
+  if (e) Object.assign(e, campos);
+  _calBuilt = {};
+}
 async function dirSalvar(){
   if (!dirEdId) return;
+  const id = dirEdId;
+  const ev = dirCal.filter(function(e){ return String(e.id) === id; })[0];
   const dados = dirColetar();
   const btn = document.getElementById('dir-m-salvar');
   btn.disabled = true;
   try {
-    const r = await rpc('dir_evento_salvar', {p_calendario_id:dirEdId, p_dados:dados});
+    /* 1) inscritos (meta) → público do Calendário */
+    const novoQ = dados.meta_inscritos === '' ? null : Number(dados.meta_inscritos);
+    if (ev && novoQ !== null) {
+      if (novoQ !== (Number(ev.publico) || 0)) {
+        await rpc('admin_calendario_salvar', {dados: calPayload(Object.assign({}, ev, {
+          fim: String(ev.fim || ev.inicio).slice(0, 10), publico: novoQ
+        }))});
+        ev.publico = novoQ;
+        dirSyncCal(id, {publico: novoQ});
+      }
+      dados.meta_inscritos = '';   /* daqui pra frente a meta segue sempre o Calendário */
+    }
+    /* 2) meta de patrocínio → Calendário */
+    const ext = dirExt[id] || {};
+    const novaPat = dirPatMetaDigitada();
+    if (ev && novaPat !== (Number(ext.meta_patrocinio) || 0)) {
+      await rpc('admin_calendario_extra_salvar', {
+        p_id: ev.id, p_meta: novaPat,
+        p_captado: Number(ext.captado) || 0,   /* captado histórico, não a soma do funil */
+        p_drive: ext.drive_url || null
+      });
+      dirExt[id] = Object.assign({}, ext, {id: id, meta_patrocinio: novaPat});
+      dirSyncCal(id, {meta_patrocinio: novaPat});
+    }
+    /* 3) resto da Diretoria */
+    const r = await rpc('dir_evento_salvar', {p_calendario_id:id, p_dados:dados});
     if (!r || !r.ok) throw new Error('erro');
     const n = function(x){ return x === '' ? null : Number(x); };
-    dirD[dirEdId] = {calendario_id:dirEdId, meta_inscritos:n(dados.meta_inscritos), meta_ticket:n(dados.meta_ticket),
+    dirD[id] = {calendario_id:id, meta_inscritos:n(dados.meta_inscritos), meta_ticket:n(dados.meta_ticket),
       real_inscritos:n(dados.real_inscritos), real_ticket:n(dados.real_ticket), site_evento_id:dados.site_evento_id || null,
       inv_patrocinador:n(dados.inv_patrocinador), custo_previsto:n(dados.custo_previsto), custo_real:null, obs:dados.obs};
     dirFechar();
@@ -15735,7 +15773,7 @@ document.addEventListener('DOMContentLoaded',function(){
     <div class="prp-bloco"><div class="prp-bloco-t">Inscrições</div><div style="padding:14px;">
       <div class="dir-sub">Meta</div>
       <div class="mkt-row2">
-        <div class="mkt-fg"><label>Inscritos (meta)</label><input id="dir-f-meta-q" inputmode="numeric" oninput="dirPrevia()"></div>
+        <div class="mkt-fg"><label>Inscritos (meta) · altera o Calendário</label><input id="dir-f-meta-q" inputmode="numeric" oninput="dirPrevia()"></div>
         <div class="mkt-fg"><label>Ticket médio (meta, R$)</label><input id="dir-f-meta-t" inputmode="decimal" placeholder="Ex.: 109,90" oninput="dirPrevia()"></div>
       </div>
       <div class="dir-sub">Realizado</div>
@@ -15747,9 +15785,12 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
     </div></div>
     <div class="prp-bloco"><div class="prp-bloco-t">Patrocínio</div><div style="padding:14px;">
+      <div class="mkt-row2">
+        <div class="mkt-fg"><label>Meta de patrocínio (R$) · altera o Calendário</label><input id="dir-f-meta-pat" inputmode="decimal" placeholder="Ex.: 80.000,00" oninput="dirPrevia()"></div>
+        <div class="mkt-fg"><label>Alíquota da nota fiscal (%)</label><input id="dir-f-aliq" inputmode="decimal" placeholder="Ex.: 6" oninput="dirPrevia()"></div>
+      </div>
       <div class="dir-pat" id="dir-f-pat"></div>
-      <div class="mkt-fg" style="margin-top:12px;max-width:260px;"><label>Alíquota da nota fiscal (%)</label><input id="dir-f-aliq" inputmode="decimal" placeholder="Ex.: 6" oninput="dirPrevia()"></div>
-      <div class="dir-hint">A NF é este % sobre a meta de patrocínio. A meta é editada no Calendário e o captado vem do Funil de patrocínio (marcas fechadas).</div>
+      <div class="dir-hint">A NF é este % sobre a meta de patrocínio. O captado vem do Funil de patrocínio (marcas fechadas).</div>
     </div></div>
     <div class="prp-bloco"><div class="prp-bloco-t">Despesas</div><div style="padding:14px;">
       <div class="mkt-fg"><label>Custo total por atleta (R$)</label><input id="dir-f-custo-atl" inputmode="decimal" placeholder="Ex.: 62,00 — tudo que o evento custa, dividido por atleta" oninput="dirPrevia()"></div>
