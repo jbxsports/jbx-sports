@@ -1742,7 +1742,9 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .dir-pc.bx{background:rgba(192,57,43,.11);color:#c0392b;}
 .dir-pc.nd{color:#c9c1b8;}
 .dir-leg{font-size:12px;color:var(--muted);margin-bottom:8px;}
-.dir-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+.dir-wrap{overflow:auto;max-height:calc(100vh - 80px);border:1px solid var(--border);border-radius:12px;background:var(--card);}
+/* cabeçalho da tabela da Diretoria travado ao rolar (fundo branco por baixo das cores) */
+.dir-t thead{position:sticky;top:0;z-index:5;background:var(--card);box-shadow:0 2px 4px rgba(42,37,32,.10);}
 table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
 .dir-t th,.dir-t td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;vertical-align:middle;}
 .dir-t thead th{background:#f5f3f0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
