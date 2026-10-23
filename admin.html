@@ -1914,6 +1914,48 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .pp-vz{font-size:12.5px;color:var(--muted);padding:6px 0;}
 @media(max-width:760px){.pp-tab thead{display:none;}.pp-tab tr{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;}.pp-tab td{border:none!important;border-radius:0!important;}}
 
+.pp-ev{background:var(--card);border:1px solid color-mix(in srgb,#FF751F 28%,var(--border));border-left:6px solid #FF751F;border-radius:14px;margin-bottom:16px;overflow:hidden;--c:#FF751F;}
+.pp-ev-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px;background:linear-gradient(90deg,color-mix(in srgb,#FF751F 15%,#fff),color-mix(in srgb,#FF751F 3%,#fff) 70%);border-bottom:1px solid color-mix(in srgb,#FF751F 22%,transparent);}
+.pp-ev-nm{flex:1;min-width:180px;}
+.pp-ev-nm b{display:block;font-size:16px;color:#7c2d12;}
+.pp-ev-nm small{font-size:12px;color:var(--muted);}
+.pp-tab-wrap{overflow-x:auto;}
+.pp-t{width:100%;border-collapse:collapse;font-size:13px;min-width:1050px;table-layout:fixed;}
+.pp-t td.pp-parc{min-width:0;}
+.pp-sit{white-space:normal!important;}
+.pp-t th{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);text-align:left;padding:9px 12px;background:#faf9f7;border-bottom:1px solid var(--border);}
+.pp-t th.r,.pp-t td.r{text-align:right;white-space:nowrap;}
+.pp-t td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.pp-t tbody tr:nth-child(even) td{background:#fcfbfa;}
+.pp-t tr.tr-atr td:first-child{box-shadow:inset 4px 0 0 #dc2626;}
+.pp-t tr.tr-ok td:first-child{box-shadow:inset 4px 0 0 #16a34a;}
+.pp-emp-c{display:flex;align-items:center;gap:10px;min-width:170px;}
+.pp-emp-c .pp-lg{width:36px;height:36px;}
+.pp-emp-c b{display:block;font-size:13.5px;}
+.pp-emp-c small{font-size:11px;color:var(--muted);text-transform:capitalize;}
+.pp-parc{min-width:430px;}
+.pp-p{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:8px;margin-bottom:4px;background:#f5f5f4;border-left:3px solid #d6d3d1;flex-wrap:wrap;}
+.pp-p.pago{background:#f0fdf4;border-left-color:#16a34a;}
+.pp-p.atraso{background:#fef2f2;border-left-color:#dc2626;}
+.pp-p.hoje{background:#fffbeb;border-left-color:#f59e0b;}
+.pp-p > input[type=checkbox]{width:18px;height:18px;accent-color:#16a34a;cursor:pointer;flex:none;}
+.pp-p .n{font-weight:700;width:22px;}
+.pp-p label{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;}
+.pp-p label.pg{color:#15803d;}
+.pp-p input[type=date],.pp-p input[type=number]{font-family:'Ubuntu',sans-serif;font-size:12.5px;padding:3px 6px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#fff;color:var(--text);}
+.pp-p input[type=number]{width:92px;}
+.pp-p .st{font-size:10.5px;font-weight:700;text-transform:uppercase;color:var(--muted);}
+.pp-p.atraso .st{color:#dc2626;}.pp-p.hoje .st{color:#d97706;}
+.pp-p .pp-del{margin-left:auto;font-size:12px;}
+.pp-mini{font-family:'Ubuntu',sans-serif;font-size:11.5px;font-weight:700;color:var(--orange);background:#fff;border:1px dashed rgba(255,117,31,.5);border-radius:7px;padding:4px 10px;cursor:pointer;}
+.pp-mini:hover{background:var(--orange);color:#fff;border-style:solid;}
+.pp-sit{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:3px 8px;margin:0 4px 4px 0;white-space:nowrap;}
+.pp-sit.sem{color:#b45309;background:#fef3c7;}
+.pp-sit.atr{color:#b91c1c;background:#fee2e2;}
+.pp-sit.ok{color:#15803d;background:#dcfce7;}
+.pp-sit.ab{color:#1d4ed8;background:#dbeafe;}
+.pp-sit.dif{color:#92400e;background:#fff7ed;border:1px dashed #fdba74;}
+
 /* ══ LINKS / DRIVES ══ */
 .lk-hero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,#17140f,#2a2117);border-radius:16px;padding:20px 24px;margin-bottom:18px;color:#fff;box-shadow:0 10px 30px rgba(23,20,15,.18);}
 .lk-hero h1{font-size:22px;font-weight:700;letter-spacing:-.4px;color:#fff;}
@@ -15290,57 +15332,68 @@ function ppRender(){
     +'<div class="pp-kpi" style="--c:#2563eb"><span>A receber</span><b>'+ppBRL(Math.max(0,tFech-tPago))+'</b><small>&nbsp;</small></div>'
     +'<div class="pp-kpi" style="--c:#dc2626"><span>Atrasado</span><b>'+ppBRL(tAtr)+'</b><small>'+nAtr+' parcela(s) vencida(s)</small></div>'
     +'<div class="pp-kpi" style="--c:#d97706"><span>Sem parcelas</span><b>'+nSem+'</b><small>fechamento(s) sem datas</small></div>';
-  /* agrupa por empresa */
-  const porMarca={};
-  ppFech.forEach(f=>{ (porMarca[f.marca_id]=porMarca[f.marca_id]||[]).push(f); });
-  const emps=Object.keys(porMarca).map(id=>({id:id,m:patMarca(id)||{nome:'Marca removida'},fs:porMarca[id]}))
-    .sort((a,b)=>String(a.m.nome).localeCompare(String(b.m.nome)));
+  /* seletor de evento */
+  const sel=document.getElementById('pp-ev'), selVal=sel?sel.value:'';
+  const evs={}; ppFech.forEach(f=>{ if(!evs[f.evento_id]) evs[f.evento_id]={id:f.evento_id,nome:f.evento,data:f.data,fs:[]}; evs[f.evento_id].fs.push(f); });
+  const lista=Object.keys(evs).map(k=>evs[k]).sort((a,b)=>String(a.data||'9999').localeCompare(String(b.data||'9999'))||String(a.nome).localeCompare(String(b.nome)));
+  if(sel){
+    sel.innerHTML='<option value="">Todos os eventos</option>'+lista.map(e=>'<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+(e.data?' · '+ppDtBR(e.data):'')+'</option>').join('');
+    sel.value=selVal; if(sel.value!==selVal) sel.value='';
+  }
+  const evSel=sel?sel.value:'';
   let h='', n=0;
-  emps.forEach(function(E){
-    const nomeBate=!q||String(E.m.nome).toLowerCase().indexOf(q)>-1;
-    const fs=E.fs.filter(f=>{ const r=ppResumoFech(f); return ppPassa(f,r)&&(nomeBate||String(f.evento).toLowerCase().indexOf(q)>-1); })
-      .sort((a,b)=>String(a.data||'9').localeCompare(String(b.data||'9')));
+  lista.forEach(function(E){
+    if(evSel&&E.id!==evSel) return;
+    const evBate=!q||String(E.nome).toLowerCase().indexOf(q)>-1;
+    const fs=E.fs.filter(f=>{ const r=ppResumoFech(f); const m=patMarca(f.marca_id)||{};
+      return ppPassa(f,r)&&(evBate||String(m.nome||'').toLowerCase().indexOf(q)>-1); })
+      .sort((a,b)=>String((patMarca(a.marca_id)||{}).nome||'').localeCompare(String((patMarca(b.marca_id)||{}).nome||'')));
     if(!fs.length) return;
     n++;
-    let eF=0,eP=0; E.fs.forEach(f=>{ const r=ppResumoFech(f); eF+=r.base; eP+=r.pago; });
+    let eF=0,eP=0,eA=0; E.fs.forEach(f=>{ const r=ppResumoFech(f); eF+=r.base; eP+=r.pago; eA+=r.atrValor; });
     const pct=eF?Math.min(100,Math.round(eP/eF*100)):0;
-    h+='<div class="pp-emp"><div class="pp-emp-hd">'+ppLogo(E.m)
-      +'<div class="pp-emp-nm"><b>'+patEsc(E.m.nome)+'</b><small>'+E.fs.length+(E.fs.length===1?' fechamento':' fechamentos')+(E.m.responsavel?' · '+patEsc(E.m.responsavel):'')+'</small></div>'
-      +'<div class="pp-tot"><div><span>Fechado</span><b>'+ppBRL(eF)+'</b></div><div><span>Recebido</span><b style="color:#16a34a">'+ppBRL(eP)+'</b></div><div><span>Falta</span><b style="color:#2563eb">'+ppBRL(Math.max(0,eF-eP))+'</b></div></div>'
-      +'<div class="pp-bar" title="'+pct+'% recebido"><i style="width:'+pct+'%"></i></div></div>';
-    fs.forEach(function(f){ h+=ppFechHtml(f); });
-    h+='</div>';
+    let dt='<div class="lk-dt" style="font-size:18px;padding:8px 0;">📅</div>';
+    if(E.data){ const pp=E.data.split('-'); dt='<div class="lk-dt"><b>'+pp[2]+'</b><span>'+LNK_MES[parseInt(pp[1],10)-1]+'/'+pp[0].slice(2)+'</span></div>'; }
+    h+='<div class="pp-ev"><div class="pp-ev-hd">'+dt
+      +'<div class="pp-ev-nm"><b>'+patEsc(E.nome)+'</b><small>'+E.fs.length+(E.fs.length===1?' marca fechada':' marcas fechadas')+' · '+pct+'% recebido</small></div>'
+      +'<div class="pp-tot"><div><span>Fechado</span><b>'+ppBRL(eF)+'</b></div><div><span>Recebido</span><b style="color:#16a34a">'+ppBRL(eP)+'</b></div>'
+      +'<div><span>A receber</span><b style="color:#2563eb">'+ppBRL(Math.max(0,eF-eP))+'</b></div>'
+      +(eA?'<div><span>Atrasado</span><b style="color:#dc2626">'+ppBRL(eA)+'</b></div>':'')+'</div></div>'
+      +'<div class="pp-tab-wrap"><table class="pp-t"><colgroup><col style="width:19%"><col style="width:11%"><col style="width:42%"><col style="width:9%"><col style="width:9%"><col style="width:10%"></colgroup><thead><tr><th>Empresa</th><th class="r">Valor fechado</th><th>Parcelas — marque ✓ quando pagar</th><th class="r">Recebido</th><th class="r">Falta</th><th>Situação</th></tr></thead><tbody>';
+    fs.forEach(function(f){ h+=ppLinhaHtml(f); });
+    h+='</tbody></table></div></div>';
   });
   el.innerHTML=n?h:'<div class="empty-state">'+(ppFech.length?'Nada com esse filtro.':'Nenhuma marca fechada no Funil de Patrocínio ainda.')+'</div>';
 }
-function ppFechHtml(f){
-  const r=ppResumoFech(f), ck=jsAttr(f.chave);
-  let av='';
-  if(r.atr.length) av='<span class="pp-aviso atr">'+r.atr.length+' atrasada(s)</span>';
-  else if(r.quitado) av='<span class="pp-aviso ok">✓ Quitado</span>';
-  if(r.ps.length&&f.valor&&Math.abs(r.parc-f.valor)>0.009) av+=' <span class="pp-aviso dif" title="Soma das parcelas diferente do valor fechado no funil">Parcelas somam '+ppBRL(r.parc)+'</span>';
-  let h='<div class="pp-fech"><div class="pp-fech-hd"><b>'+patEsc(f.evento)+'</b>'
-    +(f.data?'<span class="ev-dt">Evento '+ppDtBR(f.data)+'</span>':'')+av
-    +'<span class="vl">'+(f.orfao?'':'Fechado: '+ppBRL(f.valor))+'</span></div>';
-  if(r.ps.length){
-    h+='<table class="pp-tab"><thead><tr><th>Pago?</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Pago em</th><th>Obs.</th><th></th></tr></thead><tbody>';
-    r.ps.slice().sort((a,b)=>(a.parcela||0)-(b.parcela||0)||String(a.vencimento||'').localeCompare(String(b.vencimento||''))).forEach(function(p){
-      const st=ppStatus(p), id=jsAttr(p.id);
-      const stTxt={pago:'<span class="pp-st" style="color:#16a34a">pago</span>',atraso:'<span class="pp-st" style="color:#dc2626">atrasado</span>',hoje:'<span class="pp-st" style="color:#d97706">vence hoje</span>',aberto:'<span class="pp-st" style="color:var(--muted)">a vencer</span>'}[st];
-      h+='<tr class="'+st+'">'
-        +'<td><label class="pp-ck"><input type="checkbox" '+(p.pago?'checked':'')+' onchange="ppMarcarPago(\''+id+'\',this.checked)">'+stTxt+'</label></td>'
-        +'<td>'+(p.parcela||1)+'ª</td>'
-        +'<td><input type="date" value="'+patEsc(p.vencimento||'')+'" onchange="ppCampo(\''+id+'\',\'vencimento\',this.value)"></td>'
-        +'<td><input type="number" step="0.01" min="0" value="'+(Number(p.valor)||0)+'" onchange="ppCampo(\''+id+'\',\'valor\',this.value)"></td>'
-        +'<td><input type="date" value="'+patEsc(p.pago_em||'')+'" '+(p.pago?'':'disabled ')+'onchange="ppCampo(\''+id+'\',\'pago_em\',this.value)"></td>'
-        +'<td><input type="text" value="'+patEsc(p.obs||'')+'" placeholder="Ex.: PIX, NF 123" onchange="ppCampo(\''+id+'\',\'obs\',this.value)"></td>'
-        +'<td><button class="pp-del" title="Excluir parcela" onclick="ppExcluir(\''+id+'\')">🗑</button></td></tr>';
-    });
-    h+='</tbody></table>';
-  } else h+='<div class="pp-vz">Nenhuma data de pagamento cadastrada para este fechamento.</div>';
-  h+='<div class="pp-acs"><button class="mkt-btn sm" onclick="ppNovaParcela(\''+ck+'\')">＋ Parcela</button>'
-    +'<button class="mkt-btn sm" onclick="ppDividir(\''+ck+'\')">÷ Dividir em parcelas</button></div></div>';
-  return h;
+function ppLinhaHtml(f){
+  const r=ppResumoFech(f), ck=jsAttr(f.chave), m=patMarca(f.marca_id)||{nome:'Marca removida'};
+  let sit;
+  if(!r.ps.length) sit='<span class="pp-sit sem">Sem parcelas</span>';
+  else if(r.atr.length) sit='<span class="pp-sit atr">'+r.atr.length+' atrasada(s)</span>';
+  else if(r.quitado) sit='<span class="pp-sit ok">✓ Quitado</span>';
+  else sit='<span class="pp-sit ab">Em dia</span>';
+  if(r.ps.length&&f.valor&&Math.abs(r.parc-f.valor)>0.009) sit+='<span class="pp-sit dif" title="Soma das parcelas diferente do valor fechado">Parcelas = '+ppBRL(r.parc)+'</span>';
+  let parc='';
+  r.ps.slice().sort((a,b)=>(a.parcela||0)-(b.parcela||0)||String(a.vencimento||'').localeCompare(String(b.vencimento||''))).forEach(function(p){
+    const st=ppStatus(p), id=jsAttr(p.id);
+    parc+='<div class="pp-p '+st+'">'
+      +'<input type="checkbox" title="Pago?" '+(p.pago?'checked':'')+' onchange="ppMarcarPago(\''+id+'\',this.checked)">'
+      +'<span class="n">'+(p.parcela||1)+'ª</span>'
+      +'<label>Vence<input type="date" value="'+patEsc(p.vencimento||'')+'" onchange="ppCampo(\''+id+'\',\'vencimento\',this.value)"></label>'
+      +'<label>R$<input type="number" step="0.01" min="0" value="'+(Number(p.valor)||0)+'" onchange="ppCampo(\''+id+'\',\'valor\',this.value)"></label>'
+      +(p.pago?'<label class="pg">Pago em<input type="date" value="'+patEsc(p.pago_em||'')+'" onchange="ppCampo(\''+id+'\',\'pago_em\',this.value)"></label>'
+              :'<span class="st">'+({atraso:'atrasada',hoje:'vence hoje',aberto:'a vencer'}[st])+'</span>')
+      +'<button class="pp-del" title="Excluir parcela" onclick="ppExcluir(\''+id+'\')">✕</button></div>';
+  });
+  parc+='<div class="pp-acs"><button class="pp-mini" onclick="ppNovaParcela(\''+ck+'\')">＋ Parcela</button>'
+    +'<button class="pp-mini" onclick="ppDividir(\''+ck+'\')">÷ Dividir</button></div>';
+  return '<tr class="'+(r.atr.length?'tr-atr':(r.quitado?'tr-ok':''))+'">'
+    +'<td><div class="pp-emp-c">'+ppLogo(m)+'<div><b>'+patEsc(m.nome)+'</b>'+(f.cota?'<small>'+patEsc(f.cota)+'</small>':'')+'</div></div></td>'
+    +'<td class="r"><b>'+ppBRL(f.valor)+'</b></td>'
+    +'<td class="pp-parc">'+parc+'</td>'
+    +'<td class="r" style="color:#16a34a;font-weight:700;">'+ppBRL(r.pago)+'</td>'
+    +'<td class="r" style="color:#2563eb;font-weight:700;">'+ppBRL(r.aberto)+'</td>'
+    +'<td>'+sit+'</td></tr>';
 }
 function ppAcharFech(chave){ return ppFech.find(f=>f.chave===chave); }
 async function ppGravar(p){
@@ -17092,6 +17145,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="pp-kpis" id="pp-kpis"></div>
         <div class="lk-bar">
           <input type="text" class="lk-busca" id="pp-busca" placeholder="Buscar empresa ou evento…" oninput="ppRender()">
+          <select class="pt-sel" id="pp-ev" onchange="ppRender()" style="max-width:280px;"><option value="">Todos os eventos</option></select>
           <div class="lk-seg" id="pp-seg">
             <button data-f="todos" class="on" onclick="ppFiltro('todos')">Todos</button>
             <button data-f="aberto" onclick="ppFiltro('aberto')">A receber</button>
