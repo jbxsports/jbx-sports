@@ -14037,9 +14037,6 @@ async function patCarregar(){
       const rows=await rpc('admin_calendario_listar');
       patEventos=(rows||[]).map(r=>({id:String(r.id),nome:r.evento||r.nome||r.titulo||'Evento',data:String(r.inicio||'').slice(0,10)}))
         .filter(e=>e.data).sort((a,b)=>a.data.localeCompare(b.data));
-      const hoje=new Date().toISOString().slice(0,10);
-      const futuros=patEventos.filter(e=>e.data>=hoje);
-      if(futuros.length)patEventos=futuros;
     }catch(e){ console.warn('Calendário indisponível para o seletor de eventos.',e); }
     try{
       const ext=await rpc('admin_calendario_extra_listar');
@@ -14048,7 +14045,8 @@ async function patCarregar(){
     }catch(e){}
     patEventos=PAT_PACOTES.map(p=>Object.assign({data:'',meta:0},p)).concat(patEventos);
   }
-  if(!patEvSel){ const real=patEventos.find(e=>!e.pacote)||patEventos[0]; if(real)patEvSel=real.id; }
+  if(!patEvSel){ const hj=new Date().toISOString().slice(0,10);
+    const real=patEventos.find(e=>!e.pacote&&e.data>=hj)||patEventos.filter(e=>!e.pacote).pop()||patEventos[0]; if(real)patEvSel=real.id; }
   patCarregando=false;
   patRenderMarcas(); patRenderFunil();
 }
@@ -14267,8 +14265,13 @@ function patRenderFunil(){
   if(!bandas||!patDados)return;
   const sel=document.getElementById('pt-evento');
   if(sel){
+    const hj=new Date().toISOString().slice(0,10);
+    const opt=e=>'<option value="'+patEsc(e.id)+'"'+(e.pacote?' style="font-weight:700;color:#FF751F;"':'')+'>'+patEsc(e.nome)+(e.data?' · '+e.data.split('-').reverse().join('/'):'')+'</option>';
+    const pacs=patEventos.filter(e=>e.pacote), prox=patEventos.filter(e=>!e.pacote&&e.data>=hj), real=patEventos.filter(e=>!e.pacote&&e.data<hj).reverse();
     sel.innerHTML=patEventos.length
-      ? patEventos.map(e=>'<option value="'+patEsc(e.id)+'"'+(e.pacote?' style="font-weight:700;color:#FF751F;"':'')+'>'+patEsc(e.nome)+(e.data?' · '+e.data.split('-').reverse().join('/'):'')+'</option>').join('')
+      ? pacs.map(opt).join('')
+        +(prox.length?'<optgroup label="Próximos eventos">'+prox.map(opt).join('')+'</optgroup>':'')
+        +(real.length?'<optgroup label="Já realizados">'+real.map(opt).join('')+'</optgroup>':'')
       : '<option value="">Nenhum evento no calendário</option>';
     if(patEvSel)sel.value=patEvSel;
   }
