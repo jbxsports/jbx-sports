@@ -1673,6 +1673,11 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .pt-ent-hd b{font-size:14px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;}
 .pt-ent-cont{font-size:12px;font-weight:700;color:var(--orange);white-space:nowrap;}
 .pt-ent-grupo{margin-bottom:12px;}
+.pt-ent-grupo.retirada{background:#eff8ff;border:1px solid #bfdbfe;border-radius:10px;padding:8px 10px 6px;}
+.pt-ent-grupo.retirada > span{background:#1d4ed8;}
+.pt-ent-txt{flex:1 1 220px;min-width:180px;font-family:'Ubuntu',sans-serif;font-size:13px;padding:5px 9px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#fff;margin-left:26px;}
+.pt-ent-txt:focus{outline:none;border-color:var(--orange);}
+
 .pt-ent-grupo > span{display:block;font-size:11px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:#fff;background:var(--text);border-radius:6px;padding:5px 10px;margin-bottom:8px;}
 .pt-ent-item{display:flex;align-items:center;gap:9px;padding:5px 2px;flex-wrap:wrap;}
 .pt-ent-item label{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--text);cursor:pointer;flex:1 1 auto;}
@@ -1856,6 +1861,58 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-t td.rec b{color:#0f766e;font-size:15px;font-weight:800;}
 .dir-t td.rec small{color:#0f766e;opacity:.85;}
 .dir-t thead th.rec{font-weight:800;}
+
+/* ══ PAGAMENTOS DE PATROCÍNIO ══ */
+.pp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;}
+.pp-kpi{background:var(--card);border:1px solid var(--border);border-top:4px solid var(--c);border-radius:12px;padding:12px 14px;}
+.pp-kpi span{display:block;font-size:10.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.pp-kpi b{display:block;font-size:21px;font-weight:700;color:var(--c);margin-top:3px;}
+.pp-kpi small{font-size:11.5px;color:var(--muted);}
+.pp-emp{background:var(--card);border:1px solid var(--border);border-left:6px solid #06B6D4;border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 10px -5px rgba(6,182,212,.4);}
+.pp-emp-hd{display:flex;align-items:center;gap:14px;padding:13px 16px;background:linear-gradient(90deg,#ecfeff,#fff 70%);border-bottom:1px solid #cffafe;flex-wrap:wrap;}
+.pp-lg{flex:none;width:44px;height:44px;border-radius:10px;background:#fff;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;font-weight:700;color:#fff;font-size:14px;}
+.pp-lg img{max-width:88%;max-height:88%;object-fit:contain;}
+.pp-emp-nm{flex:1;min-width:160px;}
+.pp-emp-nm b{display:block;font-size:16px;color:var(--text);}
+.pp-emp-nm small{font-size:12px;color:var(--muted);}
+.pp-tot{display:flex;gap:18px;flex-wrap:wrap;}
+.pp-tot div{text-align:right;}
+.pp-tot span{display:block;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.pp-tot b{font-size:15px;}
+.pp-bar{flex-basis:100%;height:6px;border-radius:4px;background:#e5e7eb;overflow:hidden;}
+.pp-bar i{display:block;height:100%;background:#16a34a;border-radius:4px;}
+.pp-fech{padding:12px 16px 14px;border-top:1px solid var(--border);}
+.pp-fech:first-of-type{border-top:none;}
+.pp-fech-hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.pp-fech-hd b{font-size:14px;}
+.pp-fech-hd .ev-dt{font-size:12px;color:var(--muted);}
+.pp-fech-hd .vl{margin-left:auto;font-size:13px;font-weight:700;}
+.pp-aviso{font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;}
+.pp-aviso.dif{color:#b45309;background:#fef3c7;}
+.pp-aviso.ok{color:#15803d;background:#dcfce7;}
+.pp-aviso.atr{color:#b91c1c;background:#fee2e2;}
+.pp-tab{width:100%;border-collapse:separate;border-spacing:0 5px;font-size:13px;}
+.pp-tab th{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 8px;}
+.pp-tab td{padding:6px 8px;background:#fafaf9;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.pp-tab td:first-child{border-left:4px solid #d6d3d1;border-radius:8px 0 0 8px;}
+.pp-tab td:last-child{border-right:1px solid var(--border);border-radius:0 8px 8px 0;text-align:right;}
+.pp-tab tr.pago td{background:#f0fdf4;}
+.pp-tab tr.pago td:first-child{border-left-color:#16a34a;}
+.pp-tab tr.atraso td{background:#fef2f2;}
+.pp-tab tr.atraso td:first-child{border-left-color:#dc2626;}
+.pp-tab tr.hoje td:first-child{border-left-color:#f59e0b;}
+.pp-tab input[type=date],.pp-tab input[type=number],.pp-tab input[type=text]{font-family:'Ubuntu',sans-serif;font-size:13px;padding:5px 7px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#fff;color:var(--text);}
+.pp-tab input[type=number]{width:110px;}
+.pp-tab input[type=text]{width:100%;min-width:120px;}
+.pp-tab input:disabled{background:transparent;border-color:transparent;color:var(--muted);}
+.pp-ck{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-weight:700;white-space:nowrap;}
+.pp-ck input{width:19px;height:19px;accent-color:#16a34a;cursor:pointer;}
+.pp-st{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.pp-del{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;}
+.pp-del:hover{color:#dc2626;}
+.pp-acs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.pp-vz{font-size:12.5px;color:var(--muted);padding:6px 0;}
+@media(max-width:760px){.pp-tab thead{display:none;}.pp-tab tr{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px;}.pp-tab td{border:none!important;border-radius:0!important;}}
 
 /* ══ LINKS / DRIVES ══ */
 .lk-hero{display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,#17140f,#2a2117);border-radius:16px;padding:20px 24px;margin-bottom:18px;color:#fff;box-shadow:0 10px 30px rgba(23,20,15,.18);}
@@ -2971,7 +3028,7 @@ let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={}
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
-const RPC_PROTEGIDAS=['mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
+const RPC_PROTEGIDAS=['pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_camp_tarefas_listar','admin_camp_tarefa_salvar','admin_camp_tarefa_excluir',
   'admin_camp_lote_criar',
   'admin_camp_alvos_definir','admin_camp_alvos_listar','admin_camp_marcar',
@@ -3080,7 +3137,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'||abaReq==='diretoria'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
@@ -3103,6 +3160,7 @@ function showInner(name){
   if(name==='social'){document.getElementById('nav-social').classList.add('active');mktInit();}
   if(name==='marcas'){document.getElementById('nav-marcas').classList.add('active');patInit('marcas');}
   if(name==='funil'){document.getElementById('nav-marcas').classList.add('active');patInit('funil');}
+  if(name==='patpag'){document.getElementById('nav-marcas').classList.add('active');ppInit();}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
@@ -14580,7 +14638,7 @@ async function patResumoLogos(){
     let blocoGrupo='';
     g.itens.forEach(function(it){
       const com=validos.filter(d=>d.itens[it.id]&&d.itens[it.id].on)
-        .map(d=>({o:d.o,m:d.m,qtd:(it.qtd&&d.itens[it.id].qtd)?(d.itens[it.id].qtd+' '+(Number(d.itens[it.id].qtd)===1&&/s$/.test(it.qtd)&&it.qtd!=='%'?it.qtd.replace(/ões$/,'ão').replace(/s$/,''):it.qtd)):'',subs:d.itens[it.id].subs||{}}));
+        .map(d=>({o:d.o,m:d.m,qtd:(it.txt&&d.itens[it.id].txt)?d.itens[it.id].txt:(it.qtd&&d.itens[it.id].qtd)?(d.itens[it.id].qtd+' '+(Number(d.itens[it.id].qtd)===1&&/s$/.test(it.qtd)&&it.qtd!=='%'?it.qtd.replace(/ões$/,'ão').replace(/s$/,''):it.qtd)):'',subs:d.itens[it.id].subs||{}}));
       if(!com.length){ vazios.push(it.t); return; }
       let corpo='';
       if(it.subs){
@@ -14757,9 +14815,14 @@ const PT_ENTREGAVEIS=[
     {id:'trofeus',t:'Logo nos troféus'}]},
   {g:'Experiência do evento',itens:[
     {id:'sampling',t:'Produtos no kit do atleta (sampling)'},
-    {id:'ativacao_kits',t:'Ativação na retirada de kits'},
     {id:'stand',t:'Ativação / stand na arena'},
     {id:'locutor',t:'Menção da marca pelo locutor'}]},
+  {g:'📍 Local de retirada de kit',cls:'retirada',itens:[
+    {id:'retirada_local',t:'A marca é o local de retirada de kits',txt:'Endereço / unidade'},
+    {id:'retirada_datas',t:'Dias e horários da retirada',txt:'Ex.: 15 e 16/01 · 10h às 20h'},
+    {id:'ativacao_kits',t:'Ativação na retirada de kits'},
+    {id:'retirada_material',t:'Material da marca no local (banner, wind banner, balcão)'},
+    {id:'retirada_divulgacao',t:'Local divulgado no site, regulamento e redes'}]},
   {g:'Mídia e conteúdo',itens:[
     {id:'post',t:'Post no Instagram',qtd:'posts'},
     {id:'stories',t:'Stories no Instagram',qtd:'stories'},
@@ -14789,7 +14852,7 @@ function patEntregPintar(){
   const alvo=document.getElementById('pt-ent-lista'); if(!alvo)return;
   alvo.innerHTML='';
   PT_ENTREGAVEIS.forEach(function(g){
-    const box=document.createElement('div'); box.className='pt-ent-grupo';
+    const box=document.createElement('div'); box.className='pt-ent-grupo'+(g.cls?' '+g.cls:'');
     const tit=document.createElement('span'); tit.textContent=g.g; box.appendChild(tit);
     g.itens.forEach(function(it){
       const v=patEntreg[it.id]||{};
@@ -14809,6 +14872,16 @@ function patEntregPintar(){
           patEntreg[it.id]=patEntreg[it.id]||{};
           patEntreg[it.id].qtd=num.value;
           if(num.value&&!patEntreg[it.id].on){patEntreg[it.id].on=true;ck.checked=true;patEntregContar();}
+        });
+      }
+      if(it.txt){
+        const tx2=document.createElement('input'); tx2.type='text'; tx2.className='pt-ent-txt'; tx2.placeholder=it.txt;
+        tx2.value=v.txt||'';
+        linha.appendChild(tx2);
+        tx2.addEventListener('input',function(){
+          patEntreg[it.id]=patEntreg[it.id]||{};
+          patEntreg[it.id].txt=tx2.value;
+          if(tx2.value.trim()&&!patEntreg[it.id].on){patEntreg[it.id].on=true;ck.checked=true;patEntregContar();}
         });
       }
       box.appendChild(linha);
@@ -15047,7 +15120,8 @@ const INI_ORG=[
      {id:'mapas',        rot:'Mapas',           ic:'🧠'},
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
   {id:'propostas',  rot:'Propostas',    ic:'📝', cor:'#14B8A6', sub:'Briefings de empresas', cima:true},
-  {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio'},
+  {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
+     {id:'patpag',       rot:'Pagamentos',      ic:'💳'}]},
   {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
@@ -15126,6 +15200,209 @@ window.addEventListener('resize',function(){
   const t=document.getElementById('screen-inicio');
   if(t&&t.classList.contains('active')) iniRender();
 });
+
+/* ══════════════ PAGAMENTOS DE PATROCÍNIO ══════════════
+   Uma linha por fechamento (marca × evento) do Funil, agrupadas por empresa.
+   Parcelas em pat_pagamentos (RPCs pat_pag_*). Pacote de calendário conta
+   como um contrato só: os eventos replicados pelo pacote não se repetem. */
+let ppPags=[], ppFech=[], ppFiltroAtual='todos';
+function ppBRL(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
+function ppHoje(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function ppDtBR(d){ return d?String(d).slice(0,10).split('-').reverse().join('/'):''; }
+function ppStatus(p){
+  if(p.pago) return 'pago';
+  if(p.vencimento&&p.vencimento<ppHoje()) return 'atraso';
+  if(p.vencimento&&p.vencimento===ppHoje()) return 'hoje';
+  return 'aberto';
+}
+function ppLogo(m){
+  if(m&&m.logo_url) return '<span class="pp-lg"><img src="'+patEsc(m.logo_url)+'" alt=""></span>';
+  const n=(m&&m.nome)||'?';
+  return '<span class="pp-lg" style="background:'+patCorDe(n)+';border:none;">'+patEsc(patIniciais(n))+'</span>';
+}
+async function ppInit(){
+  const el=document.getElementById('pp-lista');
+  el.innerHTML='<div class="empty-state">Carregando…</div>';
+  try{
+    if(!patDados) await patCarregar();
+    ppPags=await rpc('pat_pag_listar',{}); if(!Array.isArray(ppPags)) ppPags=[];
+  }catch(e){
+    el.innerHTML='<div class="empty-state">Não consegui carregar os pagamentos. Já rodou o <b>03_pagamentos_patrocinio.sql</b> no Supabase?<br><small>'+patEsc(String(e&&e.message||'').slice(0,200))+'</small></div>';
+    return;
+  }
+  /* fechamentos do funil */
+  const ops=((patDados&&patDados.oportunidades)||[]).filter(o=>o.etapa==='fechado');
+  /* eventos que vieram de um pacote não viram contrato separado */
+  const doPacote={};
+  await Promise.all(ops.filter(o=>patEhPacote(o.evento_id)).map(async function(o){
+    try{ const r=await rpc('pat_entreg_ler',{p_marca:String(o.marca_id),p_evento:String(o.evento_id)});
+      const evs=(r&&r.itens&&r.itens._eventos)||{};
+      Object.keys(evs).forEach(id=>{ doPacote[String(o.marca_id)+'|'+id]=1; });
+    }catch(e){}
+  }));
+  const datas={}; (patEventos||[]).forEach(e=>{ datas[String(e.id)]=e.data; });
+  try{ const rows=await rpc('admin_calendario_listar'); (rows||[]).forEach(r=>{ datas[String(r.id)]=String(r.inicio||'').slice(0,10); }); }catch(e){}
+  ppFech=ops.filter(o=>!doPacote[String(o.marca_id)+'|'+String(o.evento_id)]).map(function(o){
+    const pac=PAT_PACOTES.find(p=>p.id===String(o.evento_id));
+    return {chave:String(o.marca_id)+'|'+String(o.evento_id), marca_id:String(o.marca_id), evento_id:String(o.evento_id),
+      evento:pac?pac.nome:(o.evento_nome||'Evento'), data:pac?'':(datas[String(o.evento_id)]||''),
+      valor:Number(o.valor_estimado)||0, cota:o.cota_alvo||''};
+  });
+  /* parcelas de fechamentos que saíram do funil continuam aparecendo */
+  ppPags.forEach(function(p){
+    if(ppFech.some(f=>f.chave===p.chave)) return;
+    if(ppFech.some(f=>f.chave===p.chave+'#orf')) return;
+    ppFech.push({chave:p.chave,marca_id:p.marca_id,evento_id:p.evento_id,evento:'(fora do funil)',data:'',valor:0,cota:'',orfao:true});
+  });
+  ppRender();
+}
+function ppFiltro(f){
+  ppFiltroAtual=f;
+  document.querySelectorAll('#pp-seg button').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  ppRender();
+}
+function ppResumoFech(f){
+  const ps=ppPags.filter(p=>p.chave===f.chave);
+  const pago=ps.filter(p=>p.pago).reduce((a,p)=>a+(Number(p.valor)||0),0);
+  const parc=ps.reduce((a,p)=>a+(Number(p.valor)||0),0);
+  const atr=ps.filter(p=>ppStatus(p)==='atraso');
+  const base=f.valor||parc;
+  return {ps:ps,pago:pago,parc:parc,base:base,aberto:Math.max(0,base-pago),atr:atr,
+    atrValor:atr.reduce((a,p)=>a+(Number(p.valor)||0),0),quitado:base>0&&pago>=base-0.009};
+}
+function ppPassa(f,r){
+  const F=ppFiltroAtual;
+  if(F==='aberto') return !r.quitado;
+  if(F==='atraso') return r.atr.length>0;
+  if(F==='sem') return !r.ps.length;
+  if(F==='quitado') return r.quitado;
+  return true;
+}
+function ppRender(){
+  const el=document.getElementById('pp-lista'); if(!el) return;
+  const q=(document.getElementById('pp-busca').value||'').trim().toLowerCase();
+  /* KPIs gerais */
+  let tFech=0,tPago=0,tAtr=0,nAtr=0,nSem=0;
+  ppFech.forEach(f=>{ const r=ppResumoFech(f); tFech+=r.base; tPago+=r.pago; tAtr+=r.atrValor; nAtr+=r.atr.length; if(!r.ps.length)nSem++; });
+  document.getElementById('pp-kpis').innerHTML=
+     '<div class="pp-kpi" style="--c:#2a2520"><span>Total fechado</span><b>'+ppBRL(tFech)+'</b><small>'+ppFech.length+' fechamento(s)</small></div>'
+    +'<div class="pp-kpi" style="--c:#16a34a"><span>Recebido</span><b>'+ppBRL(tPago)+'</b><small>'+(tFech?Math.round(tPago/tFech*100):0)+'% do total</small></div>'
+    +'<div class="pp-kpi" style="--c:#2563eb"><span>A receber</span><b>'+ppBRL(Math.max(0,tFech-tPago))+'</b><small>&nbsp;</small></div>'
+    +'<div class="pp-kpi" style="--c:#dc2626"><span>Atrasado</span><b>'+ppBRL(tAtr)+'</b><small>'+nAtr+' parcela(s) vencida(s)</small></div>'
+    +'<div class="pp-kpi" style="--c:#d97706"><span>Sem parcelas</span><b>'+nSem+'</b><small>fechamento(s) sem datas</small></div>';
+  /* agrupa por empresa */
+  const porMarca={};
+  ppFech.forEach(f=>{ (porMarca[f.marca_id]=porMarca[f.marca_id]||[]).push(f); });
+  const emps=Object.keys(porMarca).map(id=>({id:id,m:patMarca(id)||{nome:'Marca removida'},fs:porMarca[id]}))
+    .sort((a,b)=>String(a.m.nome).localeCompare(String(b.m.nome)));
+  let h='', n=0;
+  emps.forEach(function(E){
+    const nomeBate=!q||String(E.m.nome).toLowerCase().indexOf(q)>-1;
+    const fs=E.fs.filter(f=>{ const r=ppResumoFech(f); return ppPassa(f,r)&&(nomeBate||String(f.evento).toLowerCase().indexOf(q)>-1); })
+      .sort((a,b)=>String(a.data||'9').localeCompare(String(b.data||'9')));
+    if(!fs.length) return;
+    n++;
+    let eF=0,eP=0; E.fs.forEach(f=>{ const r=ppResumoFech(f); eF+=r.base; eP+=r.pago; });
+    const pct=eF?Math.min(100,Math.round(eP/eF*100)):0;
+    h+='<div class="pp-emp"><div class="pp-emp-hd">'+ppLogo(E.m)
+      +'<div class="pp-emp-nm"><b>'+patEsc(E.m.nome)+'</b><small>'+E.fs.length+(E.fs.length===1?' fechamento':' fechamentos')+(E.m.responsavel?' · '+patEsc(E.m.responsavel):'')+'</small></div>'
+      +'<div class="pp-tot"><div><span>Fechado</span><b>'+ppBRL(eF)+'</b></div><div><span>Recebido</span><b style="color:#16a34a">'+ppBRL(eP)+'</b></div><div><span>Falta</span><b style="color:#2563eb">'+ppBRL(Math.max(0,eF-eP))+'</b></div></div>'
+      +'<div class="pp-bar" title="'+pct+'% recebido"><i style="width:'+pct+'%"></i></div></div>';
+    fs.forEach(function(f){ h+=ppFechHtml(f); });
+    h+='</div>';
+  });
+  el.innerHTML=n?h:'<div class="empty-state">'+(ppFech.length?'Nada com esse filtro.':'Nenhuma marca fechada no Funil de Patrocínio ainda.')+'</div>';
+}
+function ppFechHtml(f){
+  const r=ppResumoFech(f), ck=jsAttr(f.chave);
+  let av='';
+  if(r.atr.length) av='<span class="pp-aviso atr">'+r.atr.length+' atrasada(s)</span>';
+  else if(r.quitado) av='<span class="pp-aviso ok">✓ Quitado</span>';
+  if(r.ps.length&&f.valor&&Math.abs(r.parc-f.valor)>0.009) av+=' <span class="pp-aviso dif" title="Soma das parcelas diferente do valor fechado no funil">Parcelas somam '+ppBRL(r.parc)+'</span>';
+  let h='<div class="pp-fech"><div class="pp-fech-hd"><b>'+patEsc(f.evento)+'</b>'
+    +(f.data?'<span class="ev-dt">Evento '+ppDtBR(f.data)+'</span>':'')+av
+    +'<span class="vl">'+(f.orfao?'':'Fechado: '+ppBRL(f.valor))+'</span></div>';
+  if(r.ps.length){
+    h+='<table class="pp-tab"><thead><tr><th>Pago?</th><th>Parcela</th><th>Vencimento</th><th>Valor</th><th>Pago em</th><th>Obs.</th><th></th></tr></thead><tbody>';
+    r.ps.slice().sort((a,b)=>(a.parcela||0)-(b.parcela||0)||String(a.vencimento||'').localeCompare(String(b.vencimento||''))).forEach(function(p){
+      const st=ppStatus(p), id=jsAttr(p.id);
+      const stTxt={pago:'<span class="pp-st" style="color:#16a34a">pago</span>',atraso:'<span class="pp-st" style="color:#dc2626">atrasado</span>',hoje:'<span class="pp-st" style="color:#d97706">vence hoje</span>',aberto:'<span class="pp-st" style="color:var(--muted)">a vencer</span>'}[st];
+      h+='<tr class="'+st+'">'
+        +'<td><label class="pp-ck"><input type="checkbox" '+(p.pago?'checked':'')+' onchange="ppMarcarPago(\''+id+'\',this.checked)">'+stTxt+'</label></td>'
+        +'<td>'+(p.parcela||1)+'ª</td>'
+        +'<td><input type="date" value="'+patEsc(p.vencimento||'')+'" onchange="ppCampo(\''+id+'\',\'vencimento\',this.value)"></td>'
+        +'<td><input type="number" step="0.01" min="0" value="'+(Number(p.valor)||0)+'" onchange="ppCampo(\''+id+'\',\'valor\',this.value)"></td>'
+        +'<td><input type="date" value="'+patEsc(p.pago_em||'')+'" '+(p.pago?'':'disabled ')+'onchange="ppCampo(\''+id+'\',\'pago_em\',this.value)"></td>'
+        +'<td><input type="text" value="'+patEsc(p.obs||'')+'" placeholder="Ex.: PIX, NF 123" onchange="ppCampo(\''+id+'\',\'obs\',this.value)"></td>'
+        +'<td><button class="pp-del" title="Excluir parcela" onclick="ppExcluir(\''+id+'\')">🗑</button></td></tr>';
+    });
+    h+='</tbody></table>';
+  } else h+='<div class="pp-vz">Nenhuma data de pagamento cadastrada para este fechamento.</div>';
+  h+='<div class="pp-acs"><button class="mkt-btn sm" onclick="ppNovaParcela(\''+ck+'\')">＋ Parcela</button>'
+    +'<button class="mkt-btn sm" onclick="ppDividir(\''+ck+'\')">÷ Dividir em parcelas</button></div></div>';
+  return h;
+}
+function ppAcharFech(chave){ return ppFech.find(f=>f.chave===chave); }
+async function ppGravar(p){
+  const r=await rpc('pat_pag_salvar',{dados:{id:p.id||'',marca_id:p.marca_id,evento_id:p.evento_id,parcela:p.parcela,
+    vencimento:p.vencimento||'',valor:p.valor,pago:!!p.pago,pago_em:p.pago_em||'',obs:p.obs||'',por:(admUser&&admUser.nome)||''}});
+  if(!r||!r.ok) throw new Error('Não salvou.');
+  return r;
+}
+async function ppNovaParcela(chave){
+  const f=ppAcharFech(chave); if(!f) return;
+  const ps=ppPags.filter(p=>p.chave===chave);
+  const r=ppResumoFech(f);
+  const ult=ps.map(p=>p.vencimento).filter(Boolean).sort().pop();
+  let venc=ppHoje();
+  if(ult){ const d=new Date(ult+'T12:00:00'); d.setMonth(d.getMonth()+1); venc=d.toISOString().slice(0,10); }
+  const novo={marca_id:f.marca_id,evento_id:f.evento_id,parcela:ps.length+1,vencimento:venc,valor:Math.max(0,Math.round((r.base-r.parc)*100)/100),pago:false};
+  try{ const res=await ppGravar(novo); novo.id=res.id; novo.chave=chave; ppPags.push(novo); ppRender(); }
+  catch(e){ alert('Erro: '+e.message); }
+}
+async function ppDividir(chave){
+  const f=ppAcharFech(chave); if(!f) return;
+  const ps=ppPags.filter(p=>p.chave===chave);
+  if(ps.some(p=>p.pago)){ alert('Este fechamento já tem parcela paga. Ajuste as parcelas uma a uma.'); return; }
+  const nTxt=prompt('Dividir '+ppBRL(f.valor)+' em quantas parcelas?','3'); if(nTxt==null) return;
+  const n=parseInt(nTxt,10); if(!(n>=1&&n<=36)){ alert('Use um número de 1 a 36.'); return; }
+  const dTxt=prompt('Vencimento da 1ª parcela (dd/mm/aaaa). As outras vencem no mesmo dia dos meses seguintes.',ppDtBR(ppHoje())); if(dTxt==null) return;
+  const m=String(dTxt).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(!m){ alert('Data inválida. Use dd/mm/aaaa.'); return; }
+  if(ps.length&&!confirm('Isso substitui as '+ps.length+' parcela(s) que já estão cadastradas. Continuar?')) return;
+  try{
+    for(const p of ps) await rpc('pat_pag_excluir',{p_id:p.id});
+    ppPags=ppPags.filter(p=>p.chave!==chave);
+    const cent=Math.round((f.valor||0)*100), base=Math.floor(cent/n), resto=cent-base*n;
+    for(let i=0;i<n;i++){
+      const d=new Date(+m[3],+m[2]-1+i,+m[1],12);
+      const novo={marca_id:f.marca_id,evento_id:f.evento_id,parcela:i+1,vencimento:d.toISOString().slice(0,10),
+        valor:(base+(i===n-1?resto:0))/100,pago:false,chave:chave};
+      const res=await ppGravar(novo); novo.id=res.id; ppPags.push(novo);
+    }
+  }catch(e){ alert('Erro: '+e.message); }
+  ppRender();
+}
+async function ppCampo(id,campo,valor){
+  const p=ppPags.find(x=>x.id===id); if(!p) return;
+  const antes=p[campo];
+  p[campo]=(campo==='valor')?(Number(valor)||0):valor;
+  try{ await ppGravar(p); }catch(e){ p[campo]=antes; alert('Erro: '+e.message); }
+  ppRender();
+}
+async function ppMarcarPago(id,on){
+  const p=ppPags.find(x=>x.id===id); if(!p) return;
+  const antes={pago:p.pago,pago_em:p.pago_em};
+  p.pago=on; p.pago_em=on?(p.pago_em||ppHoje()):'';
+  try{ const r=await ppGravar(p); if(on&&r.pago_em) p.pago_em=String(r.pago_em).slice(0,10); }
+  catch(e){ p.pago=antes.pago; p.pago_em=antes.pago_em; alert('Erro: '+e.message); }
+  ppRender();
+}
+async function ppExcluir(id){
+  const p=ppPags.find(x=>x.id===id); if(!p) return;
+  if(!confirm('Excluir a '+(p.parcela||1)+'ª parcela ('+ppBRL(p.valor)+')?')) return;
+  try{ await rpc('pat_pag_excluir',{p_id:id}); ppPags=ppPags.filter(x=>x.id!==id); ppRender(); }
+  catch(e){ alert('Erro: '+e.message); }
+}
 
 /* ══════════════ LINKS / DRIVES ══════════════
    Vários links por evento do Calendário (ou gerais, sem evento).
@@ -16430,6 +16707,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
           <h1>Marcas</h1>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="mkt-btn" onclick="showInner('patpag')">💳 Pagamentos</button>
             <button class="mkt-btn" onclick="showInner('funil')">Funil de Patrocínio →</button>
             <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
           </div>
@@ -16497,6 +16775,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
             <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
             <h1>Funil de Patrocínio</h1>
+            <button class="mkt-btn sm" onclick="showInner('patpag')">💳 Pagamentos</button>
           </div>
           <select class="pt-sel grande" id="pt-evento" onchange="patTrocarEvento()"></select>
         </div>
@@ -16800,6 +17079,29 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
   </div>
 </div>
+
+      <!-- TELA: PAGAMENTOS DE PATROCÍNIO -->
+      <div class="inner-screen" id="screen-patpag">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
+            <h1>Pagamentos de patrocínio</h1>
+          </div>
+          <button class="mkt-btn sm" onclick="showInner('funil')">Funil de Patrocínio →</button>
+        </div>
+        <div class="pp-kpis" id="pp-kpis"></div>
+        <div class="lk-bar">
+          <input type="text" class="lk-busca" id="pp-busca" placeholder="Buscar empresa ou evento…" oninput="ppRender()">
+          <div class="lk-seg" id="pp-seg">
+            <button data-f="todos" class="on" onclick="ppFiltro('todos')">Todos</button>
+            <button data-f="aberto" onclick="ppFiltro('aberto')">A receber</button>
+            <button data-f="atraso" onclick="ppFiltro('atraso')">Atrasados</button>
+            <button data-f="sem" onclick="ppFiltro('sem')">Sem parcelas</button>
+            <button data-f="quitado" onclick="ppFiltro('quitado')">Quitados</button>
+          </div>
+        </div>
+        <div id="pp-lista"><div class="empty-state">Carregando…</div></div>
+      </div>
 
       <!-- TELA: LINKS / DRIVES -->
       <div class="inner-screen" id="screen-links">
