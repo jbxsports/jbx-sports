@@ -15048,7 +15048,7 @@ const LNK_CATS=[
 ];
 const LNK_TIPO_COR={corrida:'#FF751F',beach:'#c9a227',especial:'#C94F4F',hyrox:'#1d4e89'};
 const LNK_PALETA=['#FF751F','#2563eb','#16a34a','#9333ea','#0891b2','#db2777','#ca8a04','#4f46e5','#0d9488','#dc2626'];
-function lnkCorEv(nome){ let h=0; const n=String(nome||'').toLowerCase().replace(/^[0-9ºª°\s]+/,''); for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))>>>0; return LNK_PALETA[h%LNK_PALETA.length]; }
+function lnkCorEv(nome){ return '#FF751F'; let h=0; const n=String(nome||'').toLowerCase().replace(/^[0-9ºª°\s]+/,''); for(let i=0;i<n.length;i++) h=(h*31+n.charCodeAt(i))>>>0; return LNK_PALETA[h%LNK_PALETA.length]; }
 const LNK_MES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 let lnkLista=[], lnkEvs=[], lnkCat='', lnkPer='prox', lnkFechados={}, lnkCatSel='fotos';
 
@@ -15146,7 +15146,7 @@ function lnkRender(){
   /* grupos */
   const grupos=[];
   const gerais=lnkLista.filter(l=>!l.calendario_id||!idsEv[l.calendario_id]);
-  grupos.push({k:'__geral',nome:'Geral',sub:'Links que não são de um evento específico',cor:'#2a2520',dt:null,links:gerais,geral:true});
+  grupos.push({k:'__geral',nome:'Geral',sub:'Links que não são de um evento específico',cor:'#FF751F',dt:null,links:gerais,geral:true});
   let evs=lnkEvs.slice();
   if(lnkPer==='prox') evs=evs.filter(e=>e.inicio>=hoje&&!e.realizado);
   else if(lnkPer==='real') evs=evs.filter(e=>e.inicio<hoje||e.realizado).reverse();
