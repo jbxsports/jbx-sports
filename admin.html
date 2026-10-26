@@ -1518,11 +1518,15 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .prp-pc-q{width:110px;font-family:inherit;font-size:12px;padding:4px 8px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#f5f3f0;}
 .prp-pc-q:disabled{opacity:.4;}
 .prp-pc-vt{margin:16px 0 6px;font-size:10.5px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);}
-.prp-pc-vh,.prp-pc-v{display:grid;grid-template-columns:52px 1fr 86px 70px 140px 90px;gap:8px;align-items:center;padding:7px 10px;font-size:13px;}
+.prp-pc-vh,.prp-pc-v{display:grid;grid-template-columns:118px 1fr 64px 70px 140px 90px;gap:8px;align-items:center;padding:7px 10px;font-size:13px;}
 .prp-pc-vh{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding-bottom:3px;}
 .prp-pc-v{border:1px solid var(--border);border-radius:8px;margin-bottom:6px;background:#fff;}
 .prp-pc-v.env{border-color:rgba(46,204,113,.5);background:rgba(46,204,113,.06);}
 .prp-pc-v b{color:var(--orange);}
+.prp-pc-g{font-size:12px;color:var(--muted);}
+.prp-pc-rot{display:flex;align-items:center;gap:2px;font-weight:700;color:var(--muted);}
+.prp-pc-rot input{width:36px;font-family:inherit;font-size:13px;font-weight:700;text-align:center;padding:4px 2px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#f5f3f0;}
+.prp-pc-rot.on{color:var(--orange);}.prp-pc-rot.on input{color:var(--orange);border-color:var(--orange);background:#fff3ea;}
 .prp-pc-v input[type=date]{font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid rgba(42,37,32,.15);border-radius:6px;background:#f5f3f0;width:100%;}
 .prp-pc-v .mkt-btn{padding:5px 8px;font-size:12px;}
 .prp-pc-env{display:flex;align-items:center;gap:5px;cursor:pointer;}
@@ -3104,6 +3108,7 @@ const RPC_PROTEGIDAS=['pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_o
   'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
+  'admin_proposta_versao_rotulo','admin_proposta_versoes_rotulos',
   'dir_dados','dir_evento_salvar','dir_config_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
@@ -17249,9 +17254,10 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <div class="mkt-fg"><label>Considerações (aparecem na proposta)</label>
           <textarea id="prp-pc-cons" rows="4" placeholder="Ex.: condições de pagamento, o que está incluso no valor, observações para o cliente…"></textarea></div>
-        <button class="mkt-btn primary" id="prp-pc-gerar" onclick="propPcGerar()">📄 Gerar proposta V0</button>
+        <button class="mkt-btn primary" id="prp-pc-gerar" onclick="propPcGerar()">📄 Gerar proposta</button>
         <div class="prp-pc-hint" style="margin-top:6px;">Abre a proposta pronta — na janela de impressão escolha <b>Salvar como PDF</b>.</div>
-        <div class="prp-pc-vt">Versões geradas</div>
+        <div class="prp-pc-vt">Propostas geradas</div>
+        <div class="prp-pc-hint" style="margin-bottom:6px;">Gere quantas vezes precisar. Quando for mandar para o cliente, escreva o número da versão (0, 1, 2…) — ela passa a aparecer no PDF.</div>
         <div id="prp-pc-versoes"></div>
       </div>
     </div>
@@ -18134,7 +18140,7 @@ function propDocHTML(p, o){
   const valor = Number(o.valor) || 0;
   const atletas = Number(String(p.participantes == null ? '' : p.participantes).replace(/\D/g, '')) || 0;
   const porAtleta = atletas ? valor / atletas : 0;
-  const versao = o.versao || 'V0';
+  const versao = o.versao || '';
   const dataDoc = o.data || new Date().toISOString().slice(0, 10);
   const validade = Number(o.validade) || 15;
   const empresa = p.empresa || 'Cliente';
@@ -18157,7 +18163,7 @@ function propDocHTML(p, o){
     '<div class="cs"><b>' + E(p.cidade_evento || 'A definir') + '</b><span>cidade</span></div>';
   const capa =
     '<section class="capa">' +
-      '<div class="capa-top"><img class="logo" src="' + E(o.logo || '') + '" alt="JBX Sports"><span class="capa-proto">' + E(p.protocolo || '') + ' · ' + E(versao) + '</span></div>' +
+      '<div class="capa-top"><img class="logo" src="' + E(o.logo || '') + '" alt="JBX Sports"><span class="capa-proto">' + E(p.protocolo || '') + (versao ? ' · ' + E(versao) : '') + '</span></div>' +
       '<div class="capa-meio">' +
         '<div class="capa-tag">Proposta comercial</div>' +
         '<h1>' + E(evento) + '</h1>' +
@@ -18294,14 +18300,14 @@ function propDocHTML(p, o){
       considHtml +
       '<div class="cond">' +
         '<div><b>Validade</b><span>' + validade + ' dias a partir de ' + E(propDocDataCurta(dataDoc)) + '</span></div>' +
-        '<div><b>Versão</b><span>' + E(versao) + ' · ' + E(p.protocolo || '') + '</span></div>' +
+        '<div><b>' + (versao ? 'Versão' : 'Protocolo') + '</b><span>' + (versao ? E(versao) + ' · ' : '') + E(p.protocolo || '') + '</span></div>' +
         '<div><b>Opcionais</b><span>Itens não solicitados podem ser incluídos com revisão de valor</span></div>' +
       '</div>' +
       '<div class="assina"><img class="logo" src="' + E(o.logo || '') + '" alt=""><div><b>Stephano Bachim</b><span>Diretor Comercial · JBX Sports</span><span>sb@jbxsports.com.br · jbxsports.com.br</span></div></div>' +
     '</section>';
 
   const css =
-    '@page{size:A4;margin:16mm 15mm 18mm;@bottom-left{content:"JBX Sports · ' + E(p.protocolo || '') + ' · ' + E(versao) + '";font:500 8pt Ubuntu,sans-serif;color:#a59b92}@bottom-right{content:counter(page);font:700 8pt Ubuntu,sans-serif;color:#FF751F}}' +
+    '@page{size:A4;margin:16mm 15mm 18mm;@bottom-left{content:"JBX Sports · ' + E(p.protocolo || '') + (versao ? ' · ' + E(versao) : '') + '";font:500 8pt Ubuntu,sans-serif;color:#a59b92}@bottom-right{content:counter(page);font:700 8pt Ubuntu,sans-serif;color:#FF751F}}' +
     '@page:first{margin:0;@bottom-left{content:none}@bottom-right{content:none}}' +
     '*{box-sizing:border-box;margin:0;padding:0}' +
     'html{-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
@@ -18358,7 +18364,7 @@ function propDocHTML(p, o){
     '.assina div{border-left:1px solid #e5ded6;padding-left:6mm}';
 
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-    '<title>Proposta ' + E(p.protocolo || '') + ' ' + E(versao) + ' — ' + E(empresa) + '</title>' +
+    '<title>Proposta ' + E(p.protocolo || '') + (versao ? ' ' + E(versao) : '') + ' — ' + E(empresa) + '</title>' +
     (o.fontes || '<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">') +
     '<style>' + css + '</style></head><body>' + capa + sobre + briefing + escopoSec + invest + '</body></html>';
 }
@@ -18402,6 +18408,8 @@ async function propPcMontar(p){
     const r = await rpc('admin_proposta_versoes', {p_proposta: String(p.id)});
     if (!propAtual || String(propAtual.id) !== String(p.id)) return;
     propPcVersoes = Array.isArray(r) ? r : [];
+    await propPcRotulosCarregar(p.id);
+    if (!propAtual || String(propAtual.id) !== String(p.id)) return;
   } catch (e) {
     const det = String(e && e.message || '').slice(0, 220);
     document.getElementById('prp-pc-versoes').innerHTML =
@@ -18459,19 +18467,19 @@ function propPcQtd(i, v){ propPcEsc[i].qtd = v; }
 
 function propPcBotao(){
   const b = document.getElementById('prp-pc-gerar');
-  const n = propPcVersoes.length ? (Number(propPcVersoes[0].versao) + 1) : 0;
-  b.textContent = '📄 Gerar proposta V' + n;
+  b.textContent = '📄 Gerar proposta';
 }
 
 function propPcVersoesRender(){
   const el = document.getElementById('prp-pc-versoes');
-  if (!propPcVersoes.length) { el.innerHTML = '<div class="prp-vazio">Nenhuma versão gerada ainda.</div>'; return; }
-  let h = '<div class="prp-pc-vh"><span>Versão</span><span>Valor</span><span>Gerada</span><span>Enviada?</span><span>Data de envio</span><span></span></div>';
+  if (!propPcVersoes.length) { el.innerHTML = '<div class="prp-vazio">Nenhuma proposta gerada ainda.</div>'; return; }
+  let h = '<div class="prp-pc-vh"><span>Gerada</span><span>Valor</span><span>Versão</span><span>Enviada?</span><span>Data de envio</span><span></span></div>';
   propPcVersoes.forEach(function(v){
+    const rot = propPcRotulo(v);
     h += '<div class="prp-pc-v' + (v.enviado ? ' env' : '') + '">' +
-      '<b>V' + v.versao + '</b>' +
+      '<span class="prp-pc-g">' + propQuando(v.criado_em) + '</span>' +
       '<span>' + brl(v.valor) + '</span>' +
-      '<span>' + fmtDS(propPcDataLocal(v.criado_em)) + '</span>' +
+      '<label class="prp-pc-rot' + (rot ? ' on' : '') + '">V<input type="text" inputmode="numeric" maxlength="4" placeholder="—" id="prp-pc-r-' + v.id + '" value="' + propEsc(rot) + '" title="Escreva a versão quando for enviar ao cliente" onchange="propPcRotuloSalvar(' + v.id + ')"></label>' +
       '<label class="prp-pc-env"><input type="checkbox" ' + (v.enviado ? 'checked ' : '') + 'onchange="propPcEnvio(' + v.id + ')" id="prp-pc-e-' + v.id + '"> ' + (v.enviado ? 'Sim' : 'Não') + '</label>' +
       '<input type="date" id="prp-pc-d-' + v.id + '" value="' + (v.data_envio || '') + '" onchange="propPcEnvio(' + v.id + ')">' +
       '<button class="mkt-btn" onclick="propPcAbrir(' + v.id + ')">Abrir PDF</button>' +
@@ -18502,11 +18510,45 @@ async function propPcEnvio(id){
   }
 }
 
+/* versão que vai para o cliente: escrita à mão (0, 1, 2…); em branco = rascunho */
+function propPcRotulo(v){
+  const r = v && v.versao_cliente != null ? String(v.versao_cliente).trim() : '';
+  return r.replace(/^v\s*/i, '');
+}
+async function propPcRotulosCarregar(pid){
+  if (!propPcVersoes.length || propPcVersoes.some(function(v){ return 'versao_cliente' in v; })) return;
+  try {
+    const r = await rpc('admin_proposta_versoes_rotulos', {p_proposta: String(pid)});
+    const m = {};
+    (Array.isArray(r) ? r : []).forEach(function(x){ m[String(x.id)] = x.versao_cliente; });
+    propPcVersoes.forEach(function(v){ v.versao_cliente = m[String(v.id)] == null ? null : m[String(v.id)]; });
+  } catch (e) { /* SQL 05 ainda não rodado: segue sem versão */ }
+}
+async function propPcRotuloSalvar(id){
+  const inp = document.getElementById('prp-pc-r-' + id);
+  if (!inp) return;
+  const atual = propPcVersoes.filter(function(v){ return String(v.id) === String(id); })[0];
+  const val = inp.value.trim().replace(/^v\s*/i, '');
+  if (val && !/^\d{1,3}$/.test(val)) { alert('Escreva só o número da versão (ex.: 0, 1, 2).'); inp.value = propPcRotulo(atual); return; }
+  const dup = val && propPcVersoes.some(function(v){ return String(v.id) !== String(id) && propPcRotulo(v) === val; });
+  if (dup && !confirm('Já existe outra proposta marcada como V' + val + '. Usar V' + val + ' nesta também?')) { inp.value = propPcRotulo(atual); return; }
+  try {
+    const r = await rpc('admin_proposta_versao_rotulo', {p_id: String(id), p_rotulo: val || null});
+    if (!r || !r.ok) throw new Error('erro');
+    if (atual) atual.versao_cliente = val || null;
+    propPcVersoesRender();
+  } catch (e) {
+    inp.value = propPcRotulo(atual);
+    alert('Não consegui salvar a versão. Já rodou o SQL 05_propostas_versao_cliente.sql no Supabase?');
+  }
+}
+
 function propPcDocAbrir(w, snap, v){
+  const rot = propPcRotulo(v);
   const html = propDocHTML(snap, {
     valor: Number(v.valor),
     consideracoes: v.consideracoes || '',
-    versao: 'V' + v.versao,
+    versao: rot ? 'V' + rot : '',
     data: v.data_envio || propPcDataLocal(v.criado_em),
     validade: v.validade_dias || 15,
     logo: propPcLogo()
@@ -18543,7 +18585,7 @@ async function propPcGerar(){
     });
     if (!r || !r.ok) throw new Error(r && r.erro === 'sem_valor' ? 'Escreva o valor global.' : 'Não consegui salvar a versão.');
     const v = {id:r.id, versao:r.versao, valor:valor, consideracoes:cons, validade_dias:validade,
-               snapshot:snap, enviado:false, data_envio:null, criado_em:new Date().toISOString()};
+               snapshot:snap, enviado:false, data_envio:null, versao_cliente:null, criado_em:new Date().toISOString()};
     propPcVersoes.unshift(v);
     propPcVersoesRender();
     propPcBotao();
