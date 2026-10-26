@@ -18282,26 +18282,6 @@ function propDocHTML(p, o){
     considHtml = '<div class="consid"><h3>Considerações</h3>' +
       consid.split(/\n+/).map(function(l){ return '<p>' + E(l) + '</p>'; }).join('') + '</div>';
   }
-  /* conta rápida: inscrições × ticket informado − investimento */
-  const ticket = Number(String(p.valor_inscricao == null ? '' : p.valor_inscricao).replace(',', '.')) || 0;
-  let contaHtml = '';
-  if (ticket > 0 && atletas > 0 && valor > 0) {
-    const receita = atletas * ticket;
-    const saldo = receita - valor;
-    const pos = saldo >= 0;
-    contaHtml =
-      '<div class="conta">' +
-        '<h3>Conta rápida do evento</h3>' +
-        '<div class="ct-l"><span>Inscrições · ' + atletas.toLocaleString('pt-BR') + ' pagantes × ' + E(propDocBRL(ticket)) + '</span><b>' + E(propDocBRL(receita)) + '</b></div>' +
-        '<div class="ct-l"><span>Investimento JBX Sports</span><b>− ' + E(propDocBRL(valor)) + '</b></div>' +
-        '<div class="ct-l ct-s ' + (pos ? 'pos' : 'neg') + '"><span>Saldo</span><b>' + (pos ? '' : '− ') + E(propDocBRL(Math.abs(saldo))) + '</b></div>' +
-        '<p class="ct-n">' + (pos
-          ? 'Só com as inscrições o evento já se paga. Com <b>patrocinadores</b>, o resultado cresce ainda mais — a prova comporta cotas de marcas parceiras no kit, na arena e na divulgação.'
-          : 'Só com as inscrições, faltam ' + E(propDocBRL(Math.abs(saldo))) + ' para fechar a conta. Esse saldo pode ser coberto — e virar resultado positivo — com <b>patrocinadores</b>: a prova comporta cotas de marcas parceiras no kit, na arena e na divulgação.') +
-        '</p>' +
-        '<p class="ct-r">Valores brutos, com o ticket de inscrição informado no briefing.</p>' +
-      '</div>';
-  }
   const invest =
     '<section class="pg quebra">' +
       '<div class="kick">04 · Investimento</div>' +
@@ -18311,7 +18291,6 @@ function propDocHTML(p, o){
         (porAtleta ? '<div class="valor-x"><b>' + E(propDocBRL(porAtleta)) + '</b><span>por atleta, considerando ' + atletas.toLocaleString('pt-BR') + ' participantes</span></div>' : '') +
         '<div class="valor-x"><b>' + nInc + '</b><span>itens de escopo inclusos</span></div>' +
       '</div>' +
-      contaHtml +
       considHtml +
       '<div class="cond">' +
         '<div><b>Validade</b><span>' + validade + ' dias a partir de ' + E(propDocDataCurta(dataDoc)) + '</span></div>' +
@@ -18368,12 +18347,6 @@ function propDocHTML(p, o){
     '.valor-n{background:#fff3ea;color:#0a0a0a;padding:7mm;border-left:2mm solid #FF751F}.valor-n span{display:block;font-size:8.5pt;letter-spacing:.14em;text-transform:uppercase;color:#7a7068;margin-bottom:2mm}' +
     '.valor-n b{font-size:26pt;font-weight:700;color:#FF751F;line-height:1}' +
     '.valor-x{background:#faf9f7;padding:7mm 6mm;border-left:1px solid #eee9e3}.valor-x b{display:block;font-size:16pt;font-weight:700;color:#0a0a0a}.valor-x span{font-size:8.8pt;color:#7a7068}' +
-    '.conta{border:1px solid #eee9e3;border-radius:3mm;padding:5mm 6mm;margin-bottom:7mm;break-inside:avoid}' +
-    '.conta h3{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0a0a0a;margin-bottom:2mm}' +
-    '.ct-l{display:flex;justify-content:space-between;padding:2.2mm 0;border-bottom:1px solid #f3efea;font-size:10pt}.ct-l b{font-weight:700}' +
-    '.ct-s{border-bottom:none;border-top:2px solid #0a0a0a;margin-top:1mm;font-size:12pt}.ct-s.neg b{color:#c0392b}.ct-s.pos b{color:#1e8449}' +
-    '.ct-n{margin-top:3mm;background:#fff3ea;border-left:3px solid #FF751F;padding:3mm 4mm;border-radius:0 2mm 2mm 0}.ct-n b{color:#e05a08}' +
-    '.ct-r{margin-top:2mm;font-size:8pt;color:#a59b92}' +
     '.consid{margin-bottom:7mm;break-inside:avoid}.consid p{margin-bottom:2mm}' +
     '.cond{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}.cond div{border-top:2px solid #5E17EB;padding-top:2.5mm}.cond b{display:block;font-size:9pt}.cond span{font-size:8.8pt;color:#7a7068}' +
     '.passos{margin-top:2mm;list-style:none;counter-reset:ps;display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}' +
