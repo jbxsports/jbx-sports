@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pesquisa de satisfação · JBX Sports</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--orange:#ff751f;--orange-dark:#e05a08;--bg:#faf9f7;--card:#fff;--border:rgba(42,37,32,.10);--text:#2a2520;--muted:#7a7068;--ok:#16a34a;--bad:#dc2626;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+.topo{background:#0a0a0a;padding:18px 20px;display:flex;justify-content:center;}
+.topo .logo{height:22px;fill:#fff;display:block;}
+.wrap{max-width:640px;margin:0 auto;padding:22px 16px 60px;}
+.hero{margin:6px 0 18px;}
+.hero .ey{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange);}
+.hero h1{font-size:26px;line-height:1.15;letter-spacing:-.5px;margin:6px 0 4px;}
+.hero p{color:var(--muted);font-size:14px;}
+.prog{display:flex;align-items:center;gap:10px;margin:0 0 16px;}
+.prog-bar{flex:1;height:6px;background:#ece8e2;border-radius:99px;overflow:hidden;}
+.prog-bar i{display:block;height:100%;background:var(--orange);border-radius:99px;transition:width .3s;}
+.prog span{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px 18px;box-shadow:0 2px 10px rgba(42,37,32,.05);}
+.card h2{font-size:19px;letter-spacing:-.3px;}
+.card .desc{color:var(--muted);font-size:13.5px;margin:4px 0 6px;}
+.q{padding:16px 0;border-top:1px solid var(--border);}
+.q:first-of-type{border-top:none;}
+.q-rot{font-size:15px;font-weight:500;line-height:1.35;margin-bottom:10px;}
+.q-rot .ob{color:var(--orange);}
+.q.erro .q-rot{color:var(--bad);}
+.q.erro .q-rot::after{content:" · responda esta";font-size:12px;font-weight:700;}
+.esc{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.esc button,.nps button,.op button{font-family:inherit;cursor:pointer;border:1.5px solid rgba(42,37,32,.14);background:#fff;color:var(--text);border-radius:10px;transition:all .12s;}
+.esc button{padding:9px 2px 7px;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.esc button b{font-size:17px;}
+.esc button small{font-size:10px;color:var(--muted);}
+.esc button.on{background:var(--orange);border-color:var(--orange);color:#fff;}
+.esc button.on small{color:#fff;}
+.na{margin-top:7px;font-size:12.5px !important;padding:7px 12px !important;color:var(--muted) !important;}
+.na.on{background:#2a2520 !important;border-color:#2a2520 !important;color:#fff !important;}
+.nps{display:grid;grid-template-columns:repeat(11,1fr);gap:4px;}
+.nps button{padding:11px 0;font-size:15px;font-weight:700;}
+.nps button.on.d{background:var(--bad);border-color:var(--bad);color:#fff;}
+.nps button.on.n{background:#a8a29e;border-color:#a8a29e;color:#fff;}
+.nps button.on.p{background:var(--ok);border-color:var(--ok);color:#fff;}
+.nps-leg{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;}
+.op{display:flex;flex-direction:column;gap:7px;}
+.op button{padding:12px 14px;text-align:left;font-size:14.5px;display:flex;align-items:center;gap:10px;}
+.op button::before{content:"";width:16px;height:16px;border-radius:50%;border:2px solid rgba(42,37,32,.25);flex:none;}
+.op button.on{border-color:var(--orange);background:#fff5ee;}
+.op button.on::before{border-color:var(--orange);background:radial-gradient(circle,var(--orange) 45%,transparent 50%);}
+textarea,input[type=text],input[type=email],input[type=tel]{width:100%;font-family:inherit;font-size:15px;color:var(--text);background:#f7f5f2;border:1.5px solid rgba(42,37,32,.12);border-radius:10px;padding:12px 13px;}
+textarea{min-height:90px;resize:vertical;}
+textarea:focus,input:focus{outline:none;border-color:var(--orange);background:#fff;}
+.campo{margin-bottom:12px;}
+.campo label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.aceite{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.4;margin:6px 0 4px;cursor:pointer;}
+.aceite input{width:18px;height:18px;accent-color:var(--orange);flex:none;margin-top:1px;}
+.lgpd{font-size:12px;color:var(--muted);line-height:1.45;margin-top:12px;background:#f7f5f2;border-radius:10px;padding:10px 12px;}
+.nav{display:flex;gap:10px;margin-top:18px;}
+.btn{flex:1;font-family:inherit;font-size:15.5px;font-weight:700;border-radius:12px;padding:15px;cursor:pointer;border:none;background:var(--orange);color:#fff;}
+.btn:hover{background:var(--orange-dark);}
+.btn:disabled{opacity:.6;cursor:wait;}
+.btn.sec{flex:0 0 auto;background:#ece8e2;color:var(--text);padding:15px 20px;}
+.msg{font-size:13.5px;color:var(--bad);margin-top:10px;min-height:18px;text-align:center;}
+.centro{text-align:center;padding:34px 20px;}
+.centro .ic{font-size:46px;margin-bottom:10px;}
+.centro h2{font-size:22px;margin-bottom:8px;}
+.centro p{color:var(--muted);font-size:14.5px;line-height:1.5;}
+.intro-lista{list-style:none;margin:14px 0 4px;display:grid;gap:6px;}
+.intro-lista li{font-size:14px;display:flex;gap:10px;align-items:center;}
+.intro-lista li b{width:24px;height:24px;border-radius:50%;background:#fff1e6;color:var(--orange);font-size:12px;display:flex;align-items:center;justify-content:center;flex:none;}
+.rodape{text-align:center;font-size:12px;color:var(--muted);margin-top:24px;}
+@media(max-width:420px){.nps{grid-template-columns:repeat(6,1fr);}.esc button small{font-size:9px;}.hero h1{font-size:22px;}}
+</style>
+</head>
+<body>
+<div class="topo">
+<svg  viewBox="0 0 3500 810" xmlns="http://www.w3.org/2000/svg" class="logo">
+<path fill-rule="evenodd" d="m1170.65 669.74c-26.75 0-48.37-21.74-48.37-48.65 0-26.91 21.62-48.65 48.37-48.65 26.75 0 48.37 21.74 48.37 48.65 0 26.91-21.62 48.65-48.37 48.65zm1322.28-236.47q0 53.82-15.21 97.85-15.76 45.12-44.57 76.65-30.43 31.53-71.19 48.38-40.22 17.4-91.85 17.4-50.55 0-91.31-17.4-40.76-16.85-70.65-48.38-28.8-31.53-45.65-76.65-16.3-44.03-16.3-97.85 0-53.28 16.84-97.85 17.39-43.49 46.74-75.57 29.35-30.44 70.65-47.29 41.85-17.94 89.68-17.94 48.37 0 89.67 17.94 41.85 16.85 70.65 47.29 29.9 32.08 46.2 75.57 16.3 44.57 16.3 97.85zm-131.52 0q0-59.8-23.37-93.51-23.91-34.24-67.93-34.24-44.02 0-67.94 34.24-25 33.71-25 93.51 0 59.25 25 94.59 23.92 34.79 67.94 34.79 44.02 0 67.93-34.79 23.37-35.34 23.37-94.59zm-339.13-3.81q0 52.19-13.04 94.59-12.5 42.41-36.96 72.85-25.54 30.44-61.41 47.84-36.96 16.85-84.78 16.85-26.09 0-49.46-5.44-22.28-4.34-44.02-13.59v167.44h-126.63v-588.75q17.39-4.89 39.13-10.87 22.28-3.8 46.19-7.06 24.46-3.81 50-5.98 25-2.18 47.83-2.18 54.89 0 98.37 16.85 42.93 16.86 73.37 46.76 29.89 30.44 45.11 73.93 16.3 42.94 16.3 96.76zm-129.89 3.26q0-59.25-25.54-94.04-26.63-35.88-78.26-35.88-17.39 0-32.07 1.63-14.67 1.63-23.91 2.72v229.41q12.5 7.06 31.52 13.04 19.02 4.35 38.59 4.35 89.67 0 89.67-121.23zm894.02-109.26q-16.85-4.35-40.21-9.79-22.83-4.35-49.46-4.35-11.41 0-28.26 2.72-16.31 1.09-25 4.35v340.85h-126.63v-421.85q34.24-12.5 80.98-22.83 45.65-10.88 102.17-10.88 10.87 0 25.54 1.64 14.13 1.08 28.81 3.26 13.58 2.17 28.26 5.43 14.13 2.72 25 6.53zm526.09 240.82q34.23 0 48.91-5.98 14.67-7.61 14.67-26.64 0-15.22-18.48-26.63-18.47-11.42-56.52-25.55-29.35-10.88-53.26-22.84-24.46-11.41-40.76-27.72-17.39-16.85-26.09-39.14-9.24-23.38-9.24-54.91 0-61.43 45.66-98.39 46.74-36.43 127.17-36.43 40.22 0 77.17 7.61 36.42 7.07 59.24 15.77l-22.82 97.31q-21.2-7.61-46.74-12.5-25-6.53-57.61-6.53-59.24 0-59.24 32.62 0 7.07 3.26 13.05 2.18 5.98 9.78 11.96 7.61 4.89 20.66 10.87 13.04 6.52 33.15 13.59 41.3 15.22 67.93 30.44 26.63 15.22 42.39 31.53 15.76 17.94 21.74 39.14 6.53 21.2 6.53 48.39 0 65.23-49.46 98.94-48.91 33.7-138.59 33.7-59.24 0-97.82-9.79-39.13-10.32-53.81-17.39l20.65-101.66q32.07 12.5 65.22 20.12 33.7 7.06 66.31 7.06zm-480.98-473.49l130.43-20.12v135.36h155.98v107.64h-155.98v161.46q0 40.77 14.13 65.23 14.13 23.92 58.15 23.92 20.66 0 42.4-3.26 22.82-3.8 41.3-10.87l18.48 101.66q-23.92 9.78-52.72 15.76-28.8 7.07-70.65 7.07-53.26 0-88.59-13.59-34.24-14.68-54.89-40.77-21.2-25.55-29.89-61.98-8.15-37.51-8.15-81.54zm-1436.96 474.04q34.78 0 49.46-5.98 14.13-7.07 14.13-26.64 0-14.68-18.48-26.64-18.48-10.87-55.98-25.55-29.35-10.87-53.26-22.28-24.46-11.42-40.76-28.27-17.39-16.31-26.63-39.14-8.7-22.84-8.7-53.82 0-63.06 45.65-98.94 46.74-36.43 127.18-36.43 39.67 0 77.17 7.62 36.42 7.06 58.7 15.76l-22.28 97.31q-21.2-7.61-46.74-13.59-26.09-5.98-57.61-5.98-59.24 0-59.24 33.16 0 7.07 2.72 13.05 2.71 5.98 10.32 11.96 8.15 4.89 20.65 10.87 13.05 7.07 33.16 13.59 41.3 15.22 67.93 30.44 26.63 14.68 42.39 31.53 15.22 17.94 21.2 38.6 7.06 21.2 7.06 49.47 0 64.15-49.45 98.4-49.46 33.16-139.13 33.16-58.16 0-97.83-9.79-39.13-9.78-53.26-16.31l20.11-102.74q32.06 13.04 66.3 20.66 33.16 6.52 65.22 6.52zm-1308.15 244.63q-11.96 0-35.87-2.72-24.46-2.72-45.11-9.78l17.93-104.92q12.5 4.35 23.92 5.98 10.32 1.08 27.17 1.08 30.44 0 42.94-17.94 11.41-17.93 11.41-53.27v-438.16h129.89v441.42q0 90.79-44.56 134.82-44.03 43.49-127.72 43.49zm608.69-376.19q0 53.28-15.76 95.68-15.21 43.49-44.56 73.39-29.35 30.44-71.74 47.29-42.39 15.77-97.83 15.77-22.28 0-47.28-1.63-25-2.18-48.91-5.44-23.92-3.8-46.2-8.15-21.19-5.44-38.04-9.79v-618.1l125-19.57v220.17q21.19-9.24 44.02-14.13 22.28-5.44 47.83-5.44 47.28 0 84.23 16.31 35.33 16.31 59.79 47.29 24.45 29.9 36.95 71.76 12.5 42.4 12.5 94.59zm-127.17-2.72q0-121.22-89.13-121.22-19.57 0-38.59 4.89-18.48 5.43-30.43 12.5v228.32q8.69 1.09 23.91 2.18 14.13 2.17 30.44 2.17 51.63 0 77.17-35.88 26.63-35.33 26.63-92.96zm303.26-89.15l89.67-136.99h130.98l-153.8 216.36q51.63 64.15 92.93 125.03 41.85 60.34 67.39 108.73h-136.95q-6.52-13.59-16.85-32.62-10.33-19.03-22.83-39.68-13.58-21.21-27.71-41.86-14.13-21.21-27.18-38.06-13.04 16.31-26.63 35.34-13.04 19.57-25 40.23-11.41 19.57-23.37 39.14-11.41 20.65-20.11 37.51h-129.34q9.78-21.75 27.71-50.56 17.94-29.36 39.13-60.34 20.66-30.99 43.48-62.52 22.83-30.99 45.65-58.17-38.58-54.9-77.17-109.27-37.5-54.9-75.54-109.26h137.5z"/>
+</svg></div>
+<div class="wrap">
+  <div class="hero" id="hero" style="display:none;">
+    <div class="ey">Pesquisa de satisfação</div>
+    <h1 id="h-titulo"></h1>
+    <p id="h-sub"></p>
+  </div>
+  <div class="prog" id="prog" style="display:none;"><div class="prog-bar"><i id="prog-i"></i></div><span id="prog-t"></span></div>
+  <div class="card" id="palco"><div class="centro"><p>Carregando pesquisa…</p></div></div>
+  <div class="msg" id="msg"></div>
+  <div class="rodape">JBX Sports · jbxsports.com.br</div>
+</div>
+<script>
+const SB_URL = 'https://acxfzdtzxaahsqnlxdgw.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFjeGZ6ZHR6eGFhaHNxbmx4ZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njc5NTAsImV4cCI6MjA5NjE0Mzk1MH0.uZ_G55BKmV24tn62ZmjjFzYxtBypoq7OLWjTMmKfRRk';
+const ESC_ROT = ['','Péssimo','Ruim','Regular','Bom','Excelente'];
+const ERROS = {
+  nao_encontrada:'Não encontramos esta pesquisa. Confira o link que você recebeu.',
+  encerrada:'Esta pesquisa já foi encerrada. Obrigado pelo interesse!',
+  ja_respondeu:'Já recebemos uma resposta com esse WhatsApp ou e-mail. Obrigado!',
+  muitas:'Muitas respostas seguidas desta conexão. Tente de novo mais tarde.',
+  faltou:'Faltou responder uma pergunta obrigatória',
+  sem_nota:'Faltou a nota de 0 a 10.'
+};
+let PESQ = null, slug = '', etapa = -1, resp = {};
+try { const s = sessionStorage.getItem('jbx_nps_' + location.search); if (s) resp = JSON.parse(s) || {}; } catch (e) {}
+
+async function rpc(fn, params) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, { method:'POST',
+    headers:{ 'apikey':SB_KEY, 'Authorization':'Bearer ' + SB_KEY, 'Content-Type':'application/json' },
+    body: JSON.stringify(params) });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function msg(t) { document.getElementById('msg').textContent = t || ''; }
+function guardar() { try { sessionStorage.setItem('jbx_nps_' + location.search, JSON.stringify(resp)); } catch (e) {} }
+function totalEtapas() { return PESQ.blocos.length + 1; } // + identificação
+
+function centro(ic, tit, txt) {
+  const p = document.getElementById('palco'); p.innerHTML = '';
+  const c = el('div', 'centro'); c.appendChild(el('div', 'ic', ic)); c.appendChild(el('h2', null, tit)); c.appendChild(el('p', null, txt));
+  p.appendChild(c); return c;
+}
+
+async function iniciar() {
+  const qs = new URLSearchParams(location.search);
+  slug = (qs.get('p') || qs.get('pesquisa') || '').trim().toLowerCase();
+  if (!slug) { centro('🔎', 'Link incompleto', ERROS.nao_encontrada); return; }
+  try {
+    const r = await rpc('nps_pesquisa_publica', { p_slug: slug });
+    if (!r || !r.ok) { centro('🔎', 'Pesquisa não encontrada', ERROS.nao_encontrada); return; }
+    PESQ = r;
+  } catch (e) { centro('⚠️', 'Não foi possível carregar', 'Verifique sua conexão e recarregue a página.'); return; }
+  document.title = PESQ.titulo + ' · Pesquisa de satisfação';
+  document.getElementById('hero').style.display = '';
+  document.getElementById('h-titulo').textContent = PESQ.titulo;
+  document.getElementById('h-sub').textContent = PESQ.subtitulo || '';
+  if (!PESQ.aberta) { centro('🏁', 'Pesquisa encerrada', ERROS.encerrada); return; }
+  if (sessionStorage.getItem('jbx_nps_ok_' + slug)) { telaFim(); return; }
+  telaIntro();
+}
+
+function telaIntro() {
+  etapa = -1; document.getElementById('prog').style.display = 'none';
+  const p = document.getElementById('palco'); p.innerHTML = '';
+  const c = el('div'); c.style.padding = '4px 2px';
+  c.appendChild(el('h2', null, 'Sua opinião faz a próxima edição'));
+  c.appendChild(el('p', 'desc', 'São ' + PESQ.blocos.length + ' blocos rápidos — leva uns 3 minutos. Responda com sinceridade: é isso que usamos para melhorar.'));
+  const ul = el('ul', 'intro-lista');
+  PESQ.blocos.forEach(function (b, i) { const li = el('li'); li.appendChild(el('b', null, String(i + 1))); li.appendChild(el('span', null, b.titulo)); ul.appendChild(li); });
+  c.appendChild(ul);
+  const nav = el('div', 'nav'); const b = el('button', 'btn', 'Começar'); b.onclick = function () { irPara(0); };
+  nav.appendChild(b); c.appendChild(nav); p.appendChild(c);
+}
+
+function irPara(i) {
+  etapa = i; msg('');
+  const tot = totalEtapas();
+  document.getElementById('prog').style.display = '';
+  document.getElementById('prog-i').style.width = Math.round((i + 1) / tot * 100) + '%';
+  document.getElementById('prog-t').textContent = 'Bloco ' + (i + 1) + ' de ' + tot;
+  if (i < PESQ.blocos.length) renderBloco(PESQ.blocos[i]); else renderIdent();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderBloco(b) {
+  const p = document.getElementById('palco'); p.innerHTML = '';
+  p.appendChild(el('h2', null, b.titulo));
+  if (b.descricao) p.appendChild(el('p', 'desc', b.descricao));
+  (b.perguntas || []).forEach(function (q) { p.appendChild(renderPergunta(q)); });
+  p.appendChild(navBotoes(etapa === totalEtapas() - 1 ? 'Enviar' : 'Continuar'));
+}
+
+function renderPergunta(q) {
+  const box = el('div', 'q'); box.dataset.id = q.id;
+  const rot = el('div', 'q-rot', q.rotulo);
+  if (q.obrig) { const o = el('span', 'ob', ' *'); rot.appendChild(o); }
+  box.appendChild(rot);
+  const atual = resp[q.id];
+  if (q.tipo === 'escala') {
+    const g = el('div', 'esc');
+    for (let n = 1; n <= 5; n++) {
+      const bt = el('button'); bt.type = 'button';
+      bt.appendChild(el('b', null, String(n))); bt.appendChild(el('small', null, ESC_ROT[n]));
+      if (String(atual) === String(n)) bt.classList.add('on');
+      bt.onclick = function () { marcar(q.id, String(n), box); };
+      g.appendChild(bt);
+    }
+    box.appendChild(g);
+    if (q.na) {
+      const na = el('button', 'na', 'Não usei / não se aplica'); na.type = 'button';
+      if (String(atual) === '0') na.classList.add('on');
+      na.onclick = function () { marcar(q.id, '0', box); };
+      box.appendChild(na);
+    }
+  } else if (q.tipo === 'nps') {
+    const g = el('div', 'nps');
+    for (let n = 0; n <= 10; n++) {
+      const bt = el('button', n <= 6 ? 'd' : (n <= 8 ? 'n' : 'p'), String(n)); bt.type = 'button';
+      if (String(atual) === String(n)) bt.classList.add('on');
+      bt.onclick = function () { marcar(q.id, String(n), box); };
+      g.appendChild(bt);
+    }
+    box.appendChild(g);
+    const leg = el('div', 'nps-leg'); leg.appendChild(el('span', null, '0 · Não recomendaria')); leg.appendChild(el('span', null, '10 · Recomendaria muito'));
+    box.appendChild(leg);
+  } else if (q.tipo === 'opcao') {
+    const g = el('div', 'op');
+    (q.opcoes || []).forEach(function (o) {
+      const bt = el('button', null, o); bt.type = 'button';
+      if (atual === o) bt.classList.add('on');
+      bt.onclick = function () { marcar(q.id, o, box); };
+      g.appendChild(bt);
+    });
+    box.appendChild(g);
+  } else {
+    const t = el('textarea'); t.maxLength = 1000; t.placeholder = 'Escreva aqui (opcional)';
+    t.value = atual || '';
+    t.oninput = function () { resp[q.id] = t.value; guardar(); };
+    box.appendChild(t);
+  }
+  return box;
+}
+
+function marcar(id, valor, box) {
+  resp[id] = valor; guardar();
+  box.classList.remove('erro');
+  box.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
+  const bts = box.querySelectorAll('button');
+  bts.forEach(function (b) {
+    const v = b.classList.contains('na') ? '0' : (b.querySelector('b') ? b.querySelector('b').textContent : b.textContent);
+    if (v === valor) b.classList.add('on');
+  });
+}
+
+function navBotoes(rotulo) {
+  const nav = el('div', 'nav');
+  const v = el('button', 'btn sec', '← Voltar'); v.type = 'button';
+  v.onclick = function () { if (etapa <= 0) telaIntro(); else irPara(etapa - 1); };
+  const a = el('button', 'btn', rotulo); a.type = 'button'; a.id = 'btn-avancar';
+  a.onclick = avancar;
+  nav.appendChild(v); nav.appendChild(a); return nav;
+}
+
+function validarBloco(b) {
+  let primeiro = null;
+  (b.perguntas || []).forEach(function (q) {
+    const v = resp[q.id];
+    const vazio = v == null || String(v).trim() === '';
+    if (q.obrig && vazio) {
+      const box = document.querySelector('.q[data-id="' + q.id + '"]');
+      if (box) { box.classList.add('erro'); if (!primeiro) primeiro = box; }
+    }
+  });
+  if (primeiro) { msg('Responda as perguntas marcadas para continuar.'); primeiro.scrollIntoView({ behavior:'smooth', block:'center' }); return false; }
+  return true;
+}
+
+function avancar() {
+  if (etapa < PESQ.blocos.length) {
+    if (!validarBloco(PESQ.blocos[etapa])) return;
+    irPara(etapa + 1);
+  } else enviar();
+}
+
+function renderIdent() {
+  const p = document.getElementById('palco'); p.innerHTML = '';
+  p.appendChild(el('h2', null, 'Identificação (opcional)'));
+  p.appendChild(el('p', 'desc', 'Se quiser, deixe seu contato. Assim podemos falar com você sobre a sua resposta. Pode deixar em branco e enviar.'));
+  const campos = [['nome','Nome','text','Seu nome'],['whatsapp','WhatsApp','tel','(16) 99999-9999'],['email','E-mail','email','voce@email.com']];
+  campos.forEach(function (c) {
+    const d = el('div', 'campo'); d.appendChild(el('label', null, c[1]));
+    const i = el('input'); i.type = c[2]; i.placeholder = c[3]; i.id = 'id-' + c[0]; i.value = resp['_' + c[0]] || '';
+    if (c[0] === 'whatsapp') i.inputMode = 'tel';
+    i.oninput = function () {
+      if (c[0] === 'whatsapp') i.value = mascTel(i.value);
+      resp['_' + c[0]] = i.value; guardar();
+    };
+    d.appendChild(i); p.appendChild(d);
+  });
+  const lb = el('label', 'aceite'); const ck = el('input'); ck.type = 'checkbox'; ck.id = 'id-aceite'; ck.checked = !!resp._aceite;
+  ck.onchange = function () { resp._aceite = ck.checked; guardar(); };
+  lb.appendChild(ck); lb.appendChild(el('span', null, 'Autorizo a JBX Sports a entrar em contato comigo sobre esta pesquisa.'));
+  p.appendChild(lb);
+  p.appendChild(el('div', 'lgpd', 'Suas respostas são usadas somente pela JBX Sports e pela organização da prova para melhorar o evento. Os dados de contato são opcionais, não são compartilhados e só serão usados para contato se você autorizar acima (LGPD).'));
+  p.appendChild(navBotoes('Enviar respostas'));
+}
+
+function mascTel(v) {
+  const d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 2) return d.length ? '(' + d : '';
+  if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+  if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+  return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+}
+
+async function enviar() {
+  const email = (resp._email || '').trim();
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg('Confira o e-mail — ou deixe em branco.'); return; }
+  const wpp = (resp._whatsapp || '').replace(/\D/g, '');
+  if (wpp && wpp.length < 10) { msg('Confira o WhatsApp com DDD — ou deixe em branco.'); return; }
+  const respostas = {};
+  PESQ.blocos.forEach(function (b) { (b.perguntas || []).forEach(function (q) { if (resp[q.id] != null) respostas[q.id] = String(resp[q.id]); }); });
+  const btn = document.getElementById('btn-avancar'); btn.disabled = true; btn.textContent = 'Enviando…'; msg('');
+  try {
+    const r = await rpc('nps_responder', { p_slug: slug, p_dados: {
+      respostas: respostas, nome: (resp._nome || '').trim(), whatsapp: wpp, email: email, aceita_contato: !!resp._aceite } });
+    if (!r || !r.ok) {
+      const e = r && r.erro;
+      if (e === 'ja_respondeu') { finalizar(); return; }
+      let t = ERROS[e] || 'Não foi possível enviar. Tente novamente.';
+      if (e === 'faltou' && r.pergunta) t += ': "' + r.pergunta + '".';
+      msg(t); btn.disabled = false; btn.textContent = 'Enviar respostas'; return;
+    }
+    finalizar();
+  } catch (e) {
+    msg('Falha de conexão. Suas respostas estão guardadas — tente enviar de novo.');
+    btn.disabled = false; btn.textContent = 'Enviar respostas';
+  }
+}
+
+function finalizar() {
+  try { sessionStorage.removeItem('jbx_nps_' + location.search); sessionStorage.setItem('jbx_nps_ok_' + slug, '1'); } catch (e) {}
+  resp = {}; telaFim();
+}
+function telaFim() {
+  document.getElementById('prog').style.display = 'none';
+  centro('🧡', 'Obrigado pela sua resposta!', 'Sua avaliação já chegou para a nossa equipe. Ela vai direto para o planejamento da próxima edição. Nos vemos na largada!');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+iniciar();
+</script>
+</body>
+</html>
