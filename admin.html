@@ -3398,9 +3398,11 @@ function npsCalcular(p,lista){
   const qv=npsPerguntas(p).find(function(q){return q.id==='voltar';});
   return {n:n,cont:cont,pct:{p:pct(cont.p),n:pct(cont.n),d:pct(cont.d)},score:score,zona:zona,notas:notas,
     media:n?soma/n:null,perg:perg,fortes:ord.slice(0,3),atencao:ord.slice(-3).reverse(),
-    voltar:qv&&perg.voltar?perg.voltar:null};
+    voltar:qv&&perg.voltar?perg.voltar:null,
+    geral:(function(){let s=0,k=0;lista.forEach(function(r){const m=npsMediaResp(p,r);if(m!=null){s+=m;k++;}});return k?s/k:null;})()};
 }
 
+function npsMediaResp(p,r){let s=0,k=0;const rs=r.respostas||{};npsPerguntas(p).forEach(function(q){if(q.tipo!=='escala')return;const x=Number(rs[q.id]);if(x>=1&&x<=5){s+=x;k++;}});return k?s/k:null;}
 function npsCorMedia(m){return m==null?'var(--muted)':m>=4.3?'#15803d':m>=3.7?'#65a30d':m>=3?'#d97706':'#dc2626';}
 function npsF1(x){return x==null?'—':x.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});}
 
@@ -3416,8 +3418,9 @@ function npsRender(){
   }
   let h='';
   /* NPS + distribuição */
-  h+='<div class="nps-hero"><div class="nps-score"><small>NPS</small><b class="nps-zona-'+c.zona[0]+'">'+c.score+'</b><span class="nps-zona-'+c.zona[0]+'">'+c.zona[1]+'</span>'
-    +'<div style="margin-top:10px;">'+estado+'</div></div>';
+  h+='<div class="nps-hero"><div class="nps-score"><small>Recomendação (NPS)</small><b class="nps-zona-'+c.zona[0]+'">'+c.score+'</b><span class="nps-zona-'+c.zona[0]+'">'+c.zona[1]+'</span>'
+    +'<div style="margin-top:10px;">'+estado+'</div>'
+    +'<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);"><small>Nota geral da prova</small><b style="font-size:34px;margin:6px 0 2px;color:'+npsCorMedia(c.geral)+'">'+npsF1(c.geral)+'</b><span style="color:var(--muted);font-weight:400;">média das notas de 1 a 5</span></div></div>';
   h+='<div class="nps-dist"><div style="display:flex;justify-content:space-between;font-size:13px;"><b>'+c.n+' resposta'+(c.n==1?'':'s')+'</b><span style="color:var(--muted);">Nota média '+npsF1(c.media)+' de 10</span></div>';
   h+='<div class="nps-barra">';
   [['d','Detratores'],['n','Neutros'],['p','Promotores']].forEach(function(x){if(c.cont[x[0]])h+='<div style="width:'+c.pct[x[0]]+'%;background:'+NPS_COR[x[0]]+'" title="'+x[1]+'">'+c.pct[x[0]].toLocaleString('pt-BR')+'%</div>';});
@@ -3470,19 +3473,20 @@ function npsRender(){
 
   /* tabela de respostas */
   const filtr=lista.filter(function(r){return npsCat==='todos'||npsCatDe(r.nota)===npsCat;});
+  const temMod=npsPerguntas(p).some(function(q){return q.id==='modalidade';});
   h+='<div class="page-hd" style="margin:6px 0 10px;"><h1 style="font-size:19px;">Respostas</h1></div><div class="nps-chips">';
   [['todos','Todas',c.n],['d','Detratores',c.cont.d],['n','Neutros',c.cont.n],['p','Promotores',c.cont.p]].forEach(function(x){
     h+='<button class="nps-chip'+(npsCat===x[0]?' on':'')+'" onclick="npsCat=\''+x[0]+'\';npsRender()">'+x[1]+' ('+x[2]+')</button>';});
-  h+='</div><div class="table-wrap"><table class="data-table" id="nps-tabela"><thead><tr><th>Data</th><th>Nota</th><th>Modalidade</th><th>Nome</th><th>Contato</th><th>O que melhorar</th></tr></thead><tbody>';
+  h+='</div><div class="table-wrap"><table class="data-table" id="nps-tabela"><thead><tr><th>Data</th><th>Recomendação</th><th>Média 1–5</th>'+(temMod?'<th>Modalidade</th>':'')+'<th>Nome</th><th>Contato</th><th>O que melhorar</th></tr></thead><tbody>';
   filtr.forEach(function(r){
     const k=npsCatDe(r.nota), rs=r.respostas||{};
     const cont=r.aceita_contato?((r.whatsapp?'📱 ':'')+(r.email?'✉️':'')||'—'):(r.whatsapp||r.email?'<span style="color:var(--muted)">sem autorização</span>':'—');
     h+='<tr onclick="npsVerResp(\''+r.id+'\')"><td style="white-space:nowrap;">'+npsEsc(fmtData(r.criado_em))+'</td>'
-      +'<td><span class="nps-pill '+k+'">'+r.nota+'</span></td><td>'+npsEsc(rs.modalidade||'—')+'</td>'
+      +'<td><span class="nps-pill '+k+'">'+r.nota+'</span></td><td><b style="color:'+npsCorMedia(npsMediaResp(p,r))+'">'+npsF1(npsMediaResp(p,r))+'</b></td>'+(temMod?'<td>'+npsEsc(rs.modalidade||'—')+'</td>':'')
       +'<td>'+npsEsc(r.nome||'—')+'</td><td>'+cont+'</td>'
       +'<td style="max-width:360px;">'+npsEsc((rs.melhorar||'').slice(0,140))+((rs.melhorar||'').length>140?'…':'')+'</td></tr>';
   });
-  if(!filtr.length)h+='<tr><td colspan="6" style="text-align:center;color:var(--muted);">Nenhuma resposta nessa categoria.</td></tr>';
+  if(!filtr.length)h+='<tr><td colspan="'+(temMod?7:6)+'" style="text-align:center;color:var(--muted);">Nenhuma resposta nessa categoria.</td></tr>';
   h+='</tbody></table></div>';
   corpo.innerHTML=h;
 }
@@ -3497,7 +3501,9 @@ function npsVerResp(id){
   const p=npsPesq(), r=npsResp.find(function(x){return x.id===id;}); if(!p||!r)return;
   const k=npsCatDe(r.nota), rs=r.respostas||{};
   let h='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;"><div><h2>'+npsEsc(r.nome||'Resposta anônima')+'</h2>'
-    +'<div class="sub">'+npsEsc(fmtData(r.criado_em))+'</div></div><span class="nps-pill '+k+'" style="font-size:18px;padding:6px 12px;">'+r.nota+'</span></div>';
+    +'<div class="sub">'+npsEsc(fmtData(r.criado_em))+'</div></div><div style="display:flex;gap:16px;text-align:center;">'
+    +'<div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;">Média 1–5</div><b style="font-size:24px;color:'+npsCorMedia(npsMediaResp(p,r))+'">'+npsF1(npsMediaResp(p,r))+'</b></div>'
+    +'<div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;">Recomendação</div><span class="nps-pill '+k+'" style="font-size:18px;padding:5px 12px;margin-top:3px;">'+r.nota+'</span></div></div></div>';
   if(r.whatsapp||r.email){
     h+='<h4>Contato '+(r.aceita_contato?'(autorizou contato)':'(não autorizou contato)')+'</h4>';
     if(r.whatsapp)h+='<div class="ln"><span>WhatsApp</span><span>'+(r.aceita_contato?'<a href="https://wa.me/55'+npsEsc(r.whatsapp)+'" target="_blank" rel="noopener" style="color:var(--orange);">'+npsEsc(r.whatsapp)+'</a>':npsEsc(r.whatsapp))+'</span></div>';
@@ -3576,18 +3582,19 @@ function npsExportar(){
   const p=npsPesq(), lista=npsFiltradas();
   if(!p||!lista.length){npsMsg('Nada para exportar.','#e74c3c');return;}
   const qs=npsPerguntas(p).filter(function(q){return q.tipo!=='nps';});
-  const cab=['Data','Nota NPS','Categoria'].concat(qs.map(function(q){return q.rotulo;})).concat(['Nome','WhatsApp','E-mail','Autorizou contato']);
+  const cab=['Data','Nota NPS','Categoria','Média 1–5'].concat(qs.map(function(q){return q.rotulo;})).concat(['Nome','WhatsApp','E-mail','Autorizou contato']);
   const linhas=[cab];
   const cat={p:'Promotor',n:'Neutro',d:'Detrator'};
   lista.forEach(function(r){
     const rs=r.respostas||{};
-    linhas.push([r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'',r.nota,cat[npsCatDe(r.nota)]]
+    const mr=npsMediaResp(p,r);
+    linhas.push([r.criado_em?new Date(r.criado_em).toLocaleString('pt-BR'):'',r.nota,cat[npsCatDe(r.nota)],mr!=null?Math.round(mr*100)/100:'']
       .concat(qs.map(function(q){const v=rs[q.id];if(v==null||v==='')return '';if(q.tipo==='escala')return Number(v)===0?'Não usou':Number(v);return String(v);}))
       .concat([r.nome||'',r.aceita_contato?(r.whatsapp||''):'',r.aceita_contato?(r.email||''):'',r.aceita_contato?'Sim':'Não']));
   });
   /* aba resumo */
   const c=npsCalcular(p,lista);
-  const res=[['Pesquisa',p.titulo],['Respostas',c.n],['NPS',c.score],['Promotores',c.cont.p],['Neutros',c.cont.n],['Detratores',c.cont.d],['Nota média (0–10)',c.media!=null?Math.round(c.media*10)/10:''],[],['Pergunta','Média (1–5)','Avaliações','Não usou']];
+  const res=[['Pesquisa',p.titulo],['Respostas',c.n],['NPS',c.score],['Promotores',c.cont.p],['Neutros',c.cont.n],['Detratores',c.cont.d],['Nota média (0–10)',c.media!=null?Math.round(c.media*10)/10:''],['Nota geral da prova (1–5)',c.geral!=null?Math.round(c.geral*100)/100:''],[],['Pergunta','Média (1–5)','Avaliações','Não usou']];
   qs.forEach(function(q){const x=c.perg[q.id];if(q.tipo==='escala'&&x)res.push([q.rotulo,x.media!=null?Math.round(x.media*100)/100:'',x.n,x.na]);});
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(res),'Resumo');
@@ -3604,6 +3611,7 @@ function npsRelatorio(){
   const corZ={exc:'#15803d',qual:'#65a30d',aper:'#d97706',crit:'#dc2626'}[c.zona[0]];
   let h='<div class="cap"><div class="ey">Pesquisa de satisfação · NPS</div><h1>'+npsEsc(p.titulo)+'</h1><p>'+npsEsc(p.subtitulo||'')+(f?' · Modalidade: '+npsEsc(f):'')+'</p></div>';
   h+='<div class="kp"><div class="k big"><small>NPS</small><b style="color:'+corZ+'">'+c.score+'</b><span style="color:'+corZ+'">'+c.zona[1]+'</span></div>'
+    +'<div class="k"><small>Nota geral (1–5)</small><b style="color:'+npsCorMedia(c.geral)+'">'+npsF1(c.geral)+'</b></div>'
     +'<div class="k"><small>Respostas</small><b>'+c.n+'</b></div>'
     +'<div class="k"><small>Promotores</small><b style="color:#16a34a">'+c.pct.p.toLocaleString('pt-BR')+'%</b></div>'
     +'<div class="k"><small>Neutros</small><b style="color:#78716c">'+c.pct.n.toLocaleString('pt-BR')+'%</b></div>'
@@ -3628,7 +3636,7 @@ function npsRelatorio(){
   const css='@page{size:A4;margin:14mm}*{box-sizing:border-box}body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:0;font-size:12.5px}'
     +'.cap{border-bottom:3px solid #ff751f;padding-bottom:10px;margin-bottom:14px}.ey{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#ff751f;font-weight:700}'
     +'h1{font-size:24px;margin:4px 0}.cap p{color:#7a7068;margin:0}h2{font-size:14px;margin:18px 0 6px;color:#2a2520;border-left:4px solid #ff751f;padding-left:8px;break-after:avoid}'
-    +'.kp{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:8px}.k{border:1px solid #e7e2dc;border-radius:10px;padding:10px;text-align:center}.k small{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7068;font-weight:700}'
+    +'.kp{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr 1fr;gap:8px}.k{border:1px solid #e7e2dc;border-radius:10px;padding:10px;text-align:center}.k small{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:#7a7068;font-weight:700}'
     +'.k b{display:block;font-size:24px;margin-top:4px}.k.big b{font-size:40px}.k span{font-size:11px;font-weight:700}.bar{display:flex;height:14px;border-radius:6px;overflow:hidden;margin:10px 0 6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}.bar i{display:block}'
     +'.nt{color:#7a7068}table{width:100%;border-collapse:collapse;break-inside:avoid}td{padding:6px 4px;border-bottom:1px solid #eee}.r{text-align:right;white-space:nowrap}.m{color:#7a7068}'
     +'ul{margin:0;padding-left:18px}li{margin:3px 0;break-inside:avoid}.rod{margin-top:22px;color:#a8a29e;font-size:10px;text-align:center}';
