@@ -1260,6 +1260,31 @@ body{font-family:'Ubuntu',sans-serif;background:var(--bg);color:var(--text);min-
 .pt-card .sg{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
 .pt-card .evs{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-top:2px;}
 .pt-tag{font-size:9px;font-weight:700;border-radius:5px;padding:2px 6px;letter-spacing:.3px;}
+.pt-val{font-size:13px;font-weight:700;color:#15803d;line-height:1.1;}
+.pt-val small{display:block;font-size:9.5px;font-weight:700;color:var(--muted);letter-spacing:.3px;margin-top:2px;}
+.pt-val small.atr{color:#dc2626;}
+.nps-modal.mf-modal{max-width:860px;}
+.mf-hd{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.mf-hd .nm{font-size:20px;font-weight:700;}
+.mf-hd .sg{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:700;}
+.mf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.mf-k{border:1px solid var(--border);border-top:4px solid var(--c);border-radius:12px;padding:12px 14px;}
+.mf-k span{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.mf-k b{display:block;font-size:20px;margin-top:4px;color:var(--c);}
+.mf-k small{font-size:11px;color:var(--muted);}
+.mf-ev{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.mf-ev-hd{display:grid;grid-template-columns:1.6fr repeat(3,1fr) 110px;gap:10px;align-items:center;padding:11px 14px;background:#faf9f7;font-size:13px;}
+.mf-ev-hd .ev b{display:block;font-size:13.5px;}
+.mf-ev-hd .ev small{font-size:11px;color:var(--muted);}
+.mf-ev-hd .r{text-align:right;}
+.mf-ev-hd .r span{display:block;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.mf-ps{padding:6px 14px 10px;display:flex;flex-wrap:wrap;gap:6px;}
+.mf-p{font-size:11.5px;border-radius:8px;padding:5px 9px;background:#f4f1ed;color:var(--text);}
+.mf-p.pago{background:rgba(22,163,74,.12);color:#15803d;}
+.mf-p.atraso{background:rgba(220,38,38,.12);color:#b91c1c;font-weight:700;}
+.mf-p.hoje{background:rgba(217,119,6,.14);color:#b45309;}
+.mf-vazio{padding:30px;text-align:center;color:var(--muted);font-size:13.5px;}
+@media(max-width:760px){.mf-kpis{grid-template-columns:1fr 1fr;}.mf-ev-hd{grid-template-columns:1fr 1fr;}.mf-ev-hd .ev{grid-column:1/-1;}}
 .pt-form{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px 18px;margin-bottom:18px;}
 .pt-form-l{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
 .pt-fg label{display:block;font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
@@ -14460,6 +14485,76 @@ function patOportsDoEvento(){
 async function patInit(tela){
   if(!patDados){ await patCarregar(); }
   else { if(tela==='marcas')patRenderMarcas(); else patRenderFunil(); }
+  if(tela==='marcas') patFinAtualizar();
+}
+/* ── Financeiro por marca (lê os mesmos dados da tela Pagamentos) ── */
+let patFinCarregando=null;
+function patFinAtualizar(){
+  if(!patFinCarregando) patFinCarregando=ppMontar().then(function(){ patRenderMarcas(); })
+    .catch(function(e){ console.warn('Financeiro das marcas indisponível.',e); })
+    .finally(function(){ patFinCarregando=null; });
+  return patFinCarregando;
+}
+function patFinFechs(id){ return ppMontado?ppFech.filter(f=>String(f.marca_id)===String(id)):null; }
+function patFinMarca(id){
+  const fs=patFinFechs(id); if(!fs) return null;
+  const t={fechado:0,pago:0,aberto:0,atrasado:0,nAtr:0,n:fs.length};
+  fs.forEach(function(f){ const r=ppResumoFech(f); t.fechado+=r.base; t.pago+=r.pago; t.aberto+=r.aberto; t.atrasado+=r.atrValor; t.nAtr+=r.atr.length; });
+  return t;
+}
+async function patFinAbrir(id){
+  const m=patMarca(id); if(!m) return;
+  const ov=document.getElementById('mf-ov'), box=document.getElementById('mf-modal');
+  ov.classList.add('aberto');
+  if(!ppMontado){ box.innerHTML='<div class="mf-vazio">Carregando financeiro…</div>'; await patFinAtualizar(); }
+  const fs=(patFinFechs(id)||[]).slice().sort((a,b)=>String(b.data||'0').localeCompare(String(a.data||'0')));
+  const t=patFinMarca(id)||{fechado:0,pago:0,aberto:0,atrasado:0,nAtr:0,n:0};
+  const ops=(patDados.oportunidades||[]).filter(o=>o.marca_id===m.id&&o.etapa!=='fechado'&&o.etapa!=='sem_interesse'&&!patEhPacote(o.evento_id));
+  let h='<div class="mf-hd">'+patLogoHtml(m,'g')+'<div style="flex:1;"><div class="nm">'+patEsc(m.nome)+'</div>'
+    +(m.segmento?'<div class="sg">'+patEsc(m.segmento)+'</div>':'')+'</div>'
+    +'<button class="mkt-btn sm" onclick="patFinFechar();patAbrirMarca(\''+m.id+'\')">✏️ Editar cadastro</button></div>';
+  h+='<div class="mf-kpis">'
+    +'<div class="mf-k" style="--c:#2a2520"><span>Total fechado</span><b>'+ppBRL(t.fechado)+'</b><small>'+t.n+' fechamento(s)</small></div>'
+    +'<div class="mf-k" style="--c:#16a34a"><span>Total pago</span><b>'+ppBRL(t.pago)+'</b><small>'+(t.fechado?Math.round(t.pago/t.fechado*100):0)+'% do fechado</small></div>'
+    +'<div class="mf-k" style="--c:#2563eb"><span>Total a pagar</span><b>'+ppBRL(t.aberto)+'</b><small>&nbsp;</small></div>'
+    +'<div class="mf-k" style="--c:#dc2626"><span>Total atrasado</span><b>'+ppBRL(t.atrasado)+'</b><small>'+t.nAtr+' parcela(s) vencida(s)</small></div></div>';
+  if(!fs.length) h+='<div class="mf-vazio">Nenhum patrocínio fechado com esta marca ainda.'+(ops.length?'<br>Em negociação em '+ops.length+' evento(s) no Funil.':'')+'</div>';
+  fs.forEach(function(f){
+    const r=ppResumoFech(f);
+    let sit;
+    if(!r.ps.length) sit='<span class="pp-sit sem">Sem parcelas</span>';
+    else if(r.atr.length) sit='<span class="pp-sit atr">'+r.atr.length+' atrasada(s)</span>';
+    else if(r.quitado) sit='<span class="pp-sit ok">✓ Quitado</span>';
+    else sit='<span class="pp-sit ab">Em dia</span>';
+    h+='<div class="mf-ev"><div class="mf-ev-hd"><div class="ev"><b>'+patEsc(f.evento)+'</b><small>'+(f.data?ppDtBR(f.data):'')
+      +(f.cota?' · '+patEsc(f.cota):'')+(f.via?' · via '+patEsc(String(f.via.nome).replace(/^\W+\s*/,'')):'')+'</small></div>'
+      +'<div class="r"><span>Fechado</span><b>'+ppBRL(r.base)+'</b></div>'
+      +'<div class="r"><span>Pago</span><b style="color:#16a34a">'+ppBRL(r.pago)+'</b></div>'
+      +'<div class="r"><span>A pagar</span><b style="color:#2563eb">'+ppBRL(r.aberto)+'</b></div>'
+      +'<div class="r">'+sit+'</div></div>';
+    if(r.ps.length){
+      h+='<div class="mf-ps">';
+      r.ps.slice().sort((a,b)=>(a.parcela||0)-(b.parcela||0)||String(a.vencimento||'').localeCompare(String(b.vencimento||''))).forEach(function(p){
+        const st=ppStatus(p);
+        h+='<span class="mf-p '+st+'">'+(p.parcela||1)+'ª · '+ppBRL(p.valor)+' · '
+          +(p.pago?'pago'+(p.pago_em?' em '+ppDtBR(p.pago_em):''):(p.vencimento?(st==='atraso'?'venceu ':'vence ')+ppDtBR(p.vencimento):'sem vencimento'))
+          +(p.forma?' · '+patEsc(p.forma):'')+'</span>';
+      });
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+  if(fs.length&&ops.length) h+='<div style="font-size:12px;color:var(--muted);margin-top:4px;">Em negociação em mais '+ops.length+' evento(s) no Funil.</div>';
+  h+='<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">'
+    +(fs.length?'<button class="mkt-btn" onclick="patFinIrPagamentos(\''+m.id+'\')">Lançar / editar parcelas →</button>':'')
+    +'<button class="mkt-btn" onclick="patFinFechar()">Fechar</button></div>';
+  box.innerHTML=h;
+}
+function patFinFechar(){ document.getElementById('mf-ov').classList.remove('aberto'); }
+function patFinIrPagamentos(id){
+  const m=patMarca(id); patFinFechar();
+  const bu=document.getElementById('pp-busca'); if(bu&&m) bu.value=m.nome;
+  showInner('patpag');
 }
 async function patCarregar(){
   if(patCarregando)return;
@@ -14531,13 +14626,21 @@ function patRenderMarcas(){
     const ativos=ops.filter(o=>o.etapa!=='fechado'&&o.etapa!=='sem_interesse').length;
     if(ativos)tags+='<span class="pt-tag" style="background:rgba(255,117,31,.14);color:var(--orange);">'+ativos+' no funil</span>';
     if(!ops.length)tags='<span class="pt-tag" style="background:rgba(42,37,32,.07);color:var(--muted);">fora do funil</span>';
+    const fin=patFinMarca(m.id);
+    let val='';
+    if(fin&&fin.fechado>0){
+      const pc=Math.round(fin.pago/fin.fechado*100);
+      val='<div class="pt-val">'+ppBRL(fin.fechado).replace(',00','')
+        +(fin.atrasado>0?'<small class="atr">'+ppBRL(fin.atrasado).replace(',00','')+' atrasado</small>'
+          :'<small>'+(pc>=100?'✓ tudo pago':pc+'% pago')+'</small>')+'</div>';
+    }
     const nc=patContatosDe(m.id).length;
     if(nc)tags+='<span class="pt-tag" style="background:rgba(42,37,32,.06);color:var(--muted);">👤 '+nc+'</span>';
-    return '<div class="pt-card" onclick="patAbrirMarca(\''+m.id+'\')">'
+    return '<div class="pt-card" onclick="patFinAbrir(\''+m.id+'\')" title="Ver histórico financeiro">'
       +patLogoHtml(m,'g')
       +'<div><div class="nm">'+patEsc(m.nome)+'</div>'
       +(m.segmento?'<div class="sg">'+patEsc(m.segmento)+'</div>':'')+'</div>'
-      +'<div class="evs">'+tags+'</div></div>';
+      +val+'<div class="evs">'+tags+'</div></div>';
   }).join('');
 }
 function patNovaMarca(){ patAbrirMarca(null); }
@@ -15784,7 +15887,7 @@ async function pfSalvar(){
    Uma linha por fechamento (marca × evento) do Funil, agrupadas por empresa.
    Parcelas em pat_pagamentos (RPCs pat_pag_*). Pacote de calendário conta
    como um contrato só: os eventos replicados pelo pacote não se repetem. */
-let ppPags=[], ppFech=[], ppFiltroAtual='todos';
+let ppPags=[], ppFech=[], ppFiltroAtual='todos', ppMontado=false;
 function ppBRL(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function ppHoje(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
 function ppDtBR(d){ return d?String(d).slice(0,10).split('-').reverse().join('/'):''; }
@@ -15799,16 +15902,10 @@ function ppLogo(m){
   const n=(m&&m.nome)||'?';
   return '<span class="pp-lg" style="background:'+patCorDe(n)+';border:none;">'+patEsc(patIniciais(n))+'</span>';
 }
-async function ppInit(){
-  const el=document.getElementById('pp-lista');
-  el.innerHTML='<div class="empty-state">Carregando…</div>';
-  try{
-    if(!patDados) await patCarregar();
-    ppPags=await rpc('pat_pag_listar',{}); if(!Array.isArray(ppPags)) ppPags=[];
-  }catch(e){
-    el.innerHTML='<div class="empty-state">Não consegui carregar os pagamentos. Já rodou o <b>03_pagamentos_patrocinio.sql</b> no Supabase?<br><small>'+patEsc(String(e&&e.message||'').slice(0,200))+'</small></div>';
-    return;
-  }
+/* Monta ppPags e ppFech (usado pela tela de Pagamentos e pelo financeiro das Marcas) */
+async function ppMontar(){
+  if(!patDados) await patCarregar();
+  ppPags=await rpc('pat_pag_listar',{}); if(!Array.isArray(ppPags)) ppPags=[];
   /* fechamentos do funil */
   const ops=((patDados&&patDados.oportunidades)||[]).filter(o=>o.etapa==='fechado');
   /* eventos que vieram de um pacote não viram contrato separado */
@@ -15853,6 +15950,16 @@ async function ppInit(){
     if(ppFech.some(f=>f.chave===p.chave+'#orf')) return;
     ppFech.push({chave:p.chave,marca_id:p.marca_id,evento_id:p.evento_id,evento:'(fora do funil)',data:'',valor:0,cota:'',orfao:true});
   });
+  ppMontado=true;
+}
+async function ppInit(){
+  const el=document.getElementById('pp-lista');
+  el.innerHTML='<div class="empty-state">Carregando…</div>';
+  try{ await ppMontar(); }
+  catch(e){
+    el.innerHTML='<div class="empty-state">Não consegui carregar os pagamentos. Já rodou o <b>03_pagamentos_patrocinio.sql</b> no Supabase?<br><small>'+patEsc(String(e&&e.message||'').slice(0,200))+'</small></div>';
+    return;
+  }
   ppRender();
 }
 function ppFiltro(f){
@@ -17718,6 +17825,10 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="form-feedback" id="nps-msg" style="text-align:left;min-height:20px;margin:-8px 0 8px;"></div>
 
         <div id="nps-corpo"><div class="nps-vazio">Carregando…</div></div>
+      </div>
+
+      <div class="nps-ov" id="mf-ov" onclick="if(event.target===this)patFinFechar()">
+        <div class="nps-modal mf-modal" id="mf-modal"></div>
       </div>
 
       <div class="nps-ov" id="nps-ov" onclick="if(event.target===this)npsFecharResp()">
