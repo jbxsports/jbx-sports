@@ -16045,7 +16045,8 @@ function ppRender(){
   el.innerHTML=n?h:'<div class="empty-state">'+(ppFech.length?'Nada com esse filtro.':'Nenhuma marca fechada no Funil de Patrocínio ainda.')+'</div>';
   ppBotaoTodos();
 }
-let ppAgrupar=(function(){try{return localStorage.getItem('jbx_pp_agrupar')==='1';}catch(e){return false;}})();
+/* Sempre por evento: marca de pacote (Calendário 2027) entra no card de cada evento. */
+let ppAgrupar=false; try{localStorage.removeItem('jbx_pp_agrupar');}catch(e){}
 function ppAlternarAgrupar(){ ppAgrupar=!ppAgrupar; try{localStorage.setItem('jbx_pp_agrupar',ppAgrupar?'1':'0');}catch(e){} ppRender(); }
 let ppRecolhidos=(function(){try{return JSON.parse(localStorage.getItem('jbx_pp_recolhidos')||'[]')||[];}catch(e){return [];}})();
 function ppGuardarRecolhidos(){try{localStorage.setItem('jbx_pp_recolhidos',JSON.stringify(ppRecolhidos));}catch(e){}}
@@ -17946,7 +17947,6 @@ document.addEventListener('DOMContentLoaded',function(){
             <button data-f="sem" onclick="ppFiltro('sem')">Sem parcelas</button>
             <button data-f="quitado" onclick="ppFiltro('quitado')">Quitados</button>
           </div>
-          <button class="mkt-btn sm" id="pp-btn-agrupar" onclick="ppAlternarAgrupar()" style="display:none;" title="Junta num só bloco as marcas fechadas por pacote (ex.: Calendário 2027). Os valores continuam vindo de cada evento.">📅 Agrupar pacotes</button>
           <button class="mkt-btn sm" id="pp-btn-todos" onclick="ppTodos()" style="display:none;">▲ Recolher todos</button>
         </div>
         <div id="pp-lista"><div class="empty-state">Carregando…</div></div>
