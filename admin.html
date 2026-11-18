@@ -15985,14 +15985,31 @@ function ppPassa(f,r){
   if(F==='quitado') return r.quitado;
   return true;
 }
+function ppAnoDe(f){
+  if(f.data) return String(f.data).slice(0,4);
+  const pac=PAT_PACOTES.find(p=>p.id===String(f.evento_id)); return pac?String(pac.ano):'';
+}
+function ppAnoSel(){ const s=document.getElementById('pp-ano'); return s?s.value:''; }
+function ppFiltrarAno(lista){ const a=ppAnoSel(); return a?lista.filter(f=>ppAnoDe(f)===a):lista; }
+function ppMontarAnos(){
+  const sel=document.getElementById('pp-ano'); if(!sel) return;
+  let atual=sel.value; if(!sel.dataset.pronto){ try{atual=localStorage.getItem('jbx_pp_ano')||'';}catch(e){} }
+  const anos={}; ppFech.forEach(f=>{ const a=ppAnoDe(f); if(a) anos[a]=1; });
+  const lista=Object.keys(anos).sort();
+  sel.innerHTML='<option value="">Todos os anos (global)</option>'+lista.map(a=>'<option value="'+a+'">'+a+'</option>').join('');
+  sel.value=lista.indexOf(atual)>-1?atual:''; sel.dataset.pronto='1';
+}
+function ppTrocarAno(){ try{localStorage.setItem('jbx_pp_ano',ppAnoSel());}catch(e){} const ev=document.getElementById('pp-ev'); if(ev) ev.value=''; ppRender(); }
 function ppRender(){
+  ppMontarAnos();
+  const FS=ppFiltrarAno(ppFech);
   const el=document.getElementById('pp-lista'); if(!el) return;
   const q=(document.getElementById('pp-busca').value||'').trim().toLowerCase();
   /* KPIs gerais */
   let tFech=0,tPago=0,tAtr=0,nAtr=0,nSem=0;
-  ppFech.forEach(f=>{ const r=ppResumoFech(f); tFech+=r.base; tPago+=r.pago; tAtr+=r.atrValor; nAtr+=r.atr.length; if(!r.ps.length&&!f.historico)nSem++; });
+  FS.forEach(f=>{ const r=ppResumoFech(f); tFech+=r.base; tPago+=r.pago; tAtr+=r.atrValor; nAtr+=r.atr.length; if(!r.ps.length&&!f.historico)nSem++; });
   document.getElementById('pp-kpis').innerHTML=
-     '<div class="pp-kpi" style="--c:#2a2520"><span>Total fechado</span><b>'+ppBRL(tFech)+'</b><small>'+ppFech.length+' fechamento(s)</small></div>'
+     '<div class="pp-kpi" style="--c:#2a2520"><span>Total fechado</span><b>'+ppBRL(tFech)+'</b><small>'+FS.length+' fechamento(s)'+(ppAnoSel()?' em '+ppAnoSel():' · todos os anos')+'</small></div>'
     +'<div class="pp-kpi" style="--c:#16a34a"><span>Recebido</span><b>'+ppBRL(tPago)+'</b><small>'+(tFech?Math.round(tPago/tFech*100):0)+'% do total</small></div>'
     +'<div class="pp-kpi" style="--c:#2563eb"><span>A receber</span><b>'+ppBRL(Math.max(0,tFech-tPago))+'</b><small>&nbsp;</small></div>'
     +'<div class="pp-kpi" style="--c:#dc2626"><span>Atrasado</span><b>'+ppBRL(tAtr)+'</b><small>'+nAtr+' parcela(s) vencida(s)</small></div>'
@@ -16000,14 +16017,14 @@ function ppRender(){
   /* seletor de evento */
   const sel=document.getElementById('pp-ev'), selVal=sel?sel.value:'';
   const evs={};
-  ppFech.forEach(function(f){
+  FS.forEach(function(f){
     let k=f.evento_id, nome=f.evento, data=f.data, pac=false;
     if(ppAgrupar&&(f.via||f.pacoteAntigo)){ k=f.via?f.via.id:f.evento_id; nome=f.via?f.via.nome:f.evento; data=''; pac=true; }
     if(!evs[k]) evs[k]={id:k,nome:nome,data:data,pac:pac,fs:[]};
     evs[k].fs.push(f);
   });
   const bAg=document.getElementById('pp-btn-agrupar');
-  if(bAg){ bAg.style.display=ppFech.some(f=>f.via||f.pacoteAntigo)?'':'none'; bAg.classList.toggle('on',ppAgrupar);
+  if(bAg){ bAg.style.display=FS.some(f=>f.via||f.pacoteAntigo)?'':'none'; bAg.classList.toggle('on',ppAgrupar);
     bAg.textContent=ppAgrupar?'📅 Pacotes agrupados':'📅 Agrupar pacotes'; }
   const lista=Object.keys(evs).map(k=>evs[k]).sort((a,b)=>String(a.data||'9999').localeCompare(String(b.data||'9999'))||String(a.nome).localeCompare(String(b.nome)));
   if(sel){
@@ -16042,7 +16059,7 @@ function ppRender(){
     fs.forEach(function(f){ h+=ppLinhaHtml(f,E.pac); });
     h+='</tbody></table></div></div>';
   });
-  el.innerHTML=n?h:'<div class="empty-state">'+(ppFech.length?'Nada com esse filtro.':'Nenhuma marca fechada no Funil de Patrocínio ainda.')+'</div>';
+  el.innerHTML=n?h:'<div class="empty-state">'+(FS.length?'Nada com esse filtro.':'Nenhuma marca fechada no Funil de Patrocínio ainda.')+'</div>';
   ppBotaoTodos();
 }
 /* Sempre por evento: marca de pacote (Calendário 2027) entra no card de cada evento. */
@@ -17939,6 +17956,7 @@ document.addEventListener('DOMContentLoaded',function(){
         <div class="pp-kpis" id="pp-kpis"></div>
         <div class="lk-bar">
           <input type="text" class="lk-busca" id="pp-busca" placeholder="Buscar empresa ou evento…" oninput="ppRender()">
+          <select class="pt-sel" id="pp-ano" onchange="ppTrocarAno()" style="max-width:190px;font-weight:700;"><option value="">Todos os anos (global)</option></select>
           <select class="pt-sel" id="pp-ev" onchange="ppRender()" style="max-width:280px;"><option value="">Todos os eventos</option></select>
           <div class="lk-seg" id="pp-seg">
             <button data-f="todos" class="on" onclick="ppFiltro('todos')">Todos</button>
