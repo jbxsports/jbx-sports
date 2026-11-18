@@ -1782,6 +1782,9 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .dir-k .v{font-size:22px;font-weight:700;letter-spacing:-.5px;color:var(--text);}
 .dir-k .s{font-size:12px;color:var(--muted);margin-top:4px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
 .dir-k .s b{color:var(--text);}
+.dir-res2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.dir-res2 .apos{border-left:1px solid rgba(255,117,31,.3);padding-left:12px;}
+.dir-res2 .s{margin-top:2px;font-weight:700;}
 .dir-atl{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;}
 .dir-atl span{color:var(--muted);}
 .dir-atl.tot{border-top:1px solid var(--border);margin-top:3px;padding-top:6px;}
@@ -1793,9 +1796,12 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .dir-pc.bx{background:rgba(192,57,43,.11);color:#c0392b;}
 .dir-pc.nd{color:#c9c1b8;}
 .dir-leg{font-size:12px;color:var(--muted);margin-bottom:8px;}
-.dir-wrap{overflow:auto;max-height:calc(100vh - 80px);border:1px solid var(--border);border-radius:12px;background:var(--card);}
+.dir-wrap{overflow:visible;border:1px solid var(--border);border-radius:12px;background:var(--card);}
+/* tela estreita: se a tabela não couber na largura, volta a rolar dentro da caixa (dirAjustarWrap) */
+.dir-wrap.rola{overflow:auto;max-height:calc(100vh - 80px);}
+.dir-wrap.rola .dir-t thead{top:0;}
 /* cabeçalho da tabela da Diretoria travado ao rolar (fundo branco por baixo das cores) */
-.dir-t thead{position:sticky;top:0;z-index:5;background:var(--card);box-shadow:0 2px 4px rgba(42,37,32,.10);}
+.dir-t thead{position:sticky;top:60px;z-index:5;background:var(--card);box-shadow:0 2px 4px rgba(42,37,32,.10);}
 table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px;}
 .dir-t th,.dir-t td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;vertical-align:middle;}
 .dir-t thead th{background:#f5f3f0;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);}
@@ -11374,7 +11380,7 @@ function dirCalc(ev){
     custoAtl:custoAtl, custoM:custoM,
     metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
     projQ:projQ, projEnt:projEnt, projNF:projNF, projCusto:projCusto, projDesp:projDesp, projRes:projRes,
-    recAtl:recAtl, aliqPct:aliqPct, projInsR:projInsR,
+    recAtl:recAtl, aliqPct:aliqPct, projInsR:projInsR, projPat:projPat,
     fotoVal:fotoVal, fotoPct:fotoPct, fotoRec:fotoRec, cashPct:cashPct, cashRec:cashRec};
 }
 
@@ -11534,6 +11540,13 @@ function dirLinhas(){
     .map(dirCalc);
 }
 
+function dirAjustarWrap(){
+  const w=document.querySelector('.dir-wrap'), t=w&&w.querySelector('.dir-t'); if(!w||!t) return;
+  w.classList.remove('rola');
+  const livre=document.documentElement.clientWidth-w.getBoundingClientRect().left-16;
+  if(t.scrollWidth>livre) w.classList.add('rola');
+}
+window.addEventListener('resize',function(){ clearTimeout(window._dirRz); window._dirRz=setTimeout(dirAjustarWrap,150); });
 function dirRender(){
   const el = document.getElementById('dir-corpo');
   const L = dirLinhas();
@@ -11545,6 +11558,7 @@ function dirRender(){
     T.custo += c.projCusto; T.nf += c.projNF; T.foto = (T.foto || 0) + c.fotoRec; T.cash = (T.cash || 0) + c.cashRec;
     T.resM += c.resM; T.projRes += c.projRes; T.projEnt += c.projEnt; T.projDesp += c.projDesp; T.projQ += c.projQ;
     T.metaEnt += c.metaEnt; T.despM += c.despM;
+    T.projInsR = (T.projInsR || 0) + c.projInsR; T.projPat = (T.projPat || 0) + c.projPat;
   });
   const escMeses = dirAno === 'todos' ? [] : dirEscMesesAno(dirAno);
   const escAno = escMeses.reduce(function(a, v){ return a + v; }, 0);
@@ -11570,18 +11584,23 @@ function dirRender(){
   const custoAtlMed = T.projQ ? T.custo / T.projQ : 0, nfAtl = T.projQ ? T.nf / T.projQ : 0;
   const semCusto = L.filter(function(c){ return !c.custoAtl; }).length;
   h += '<div class="dir-kpis">' +
-    '<div class="dir-k"><div class="t">Inscrições</div><div class="v">' + dirR(T.realR) + '</div>' +
-      '<div class="s">de ' + dirR(T.metaRl) + ' na meta ' + dirPill(pIns) + '</div>' +
-      '<div class="s">' + fmt(T.realQ) + ' de ' + fmt(T.metaQl) + ' inscritos · ' + T.nRealQ + ' evento(s) lançado(s)</div>' +
-      '<div class="s">Meta do ano: ' + dirR(T.metaR) + '</div></div>' +
-    '<div class="dir-k"><div class="t">Patrocínio</div><div class="v">' + dirR(T.realPat) + '</div>' +
-      '<div class="s">de ' + dirR(T.metaPat) + ' na meta ' + dirPill(pPat) + '</div><div class="s">captado até agora (funil + histórico)</div></div>' +
-    '<div class="dir-k"><div class="t">Despesas (projeção)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
+    /* cabeçalho = ano inteiro (projeção). O executado até agora fica na linha de total da tabela. */
+    '<div class="dir-k"><div class="t">Inscrições (ano)</div><div class="v">' + dirR(T.projInsR || 0) + '</div>' +
+      '<div class="s">' + fmt(T.projQ) + ' inscritos projetados no ano</div>' +
+      '<div class="s">meta do ano ' + dirR(T.metaR) + ' · ' + fmt(T.metaQ) + ' inscritos</div></div>' +
+    '<div class="dir-k"><div class="t">Patrocínio (ano)</div><div class="v">' + dirR(T.projPat || 0) + '</div>' +
+      '<div class="s">projeção do ano inteiro</div>' +
+      '<div class="s">meta do ano ' + dirR(T.metaPat) + '</div></div>' +
+    '<div class="dir-k"><div class="t">Despesas (ano)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
       '<div class="s">Custos ' + dirR(T.custo) + ' · NF do patrocínio ' + dirR(T.nf) + '</div>' +
       (semCusto ? '<div class="s"><b class="neg">' + semCusto + ' evento(s) sem custo por atleta</b></div>' : '') + '</div>' +
-    '<div class="dir-k destaque"><div class="t">Resultado dos eventos</div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div>' +
-      '<div class="s">resultado projetado</div>' +
-      (escAno ? '<div class="s"><b>Após escritório: ' + dirR(T.projRes - escAno) + '</b> (escritório ' + dirR(escAno) + ' no ano)</div>' : '') + '</div>' +
+    (escAno
+      ? '<div class="dir-k destaque"><div class="t">Resultado dos eventos (ano)</div><div class="dir-res2">' +
+          '<div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div><div class="s">projetado</div></div>' +
+          '<div class="apos"><div class="v ' + ((T.projRes - escAno) < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes - escAno) + '</div><div class="s">após escritório</div></div>' +
+        '</div><div class="s">escritório ' + dirR(escAno) + ' no ano</div></div>'
+      : '<div class="dir-k destaque"><div class="t">Resultado dos eventos (ano)</div><div class="v ' + (T.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(T.projRes) + '</div>' +
+        '<div class="s">resultado projetado do ano</div></div>') +
     '<div class="dir-k"><div class="t">Por atleta (projeção)</div>' +
       '<div class="dir-atl"><span>Receita</span><b>' + dirR2(entAtl) + '</b></div>' +
       '<div class="dir-atl"><span>Custo</span><b class="neg">' + dirR2(custoAtlMed) + '</b></div>' +
@@ -11657,7 +11676,7 @@ function dirRender(){
       '<div class="dir-gc dir-gc-full"><div class="gt">Sobra · resultado projetado − escritório <small>no ano: <b id="dir-sobra-tot"></b></small></div><div class="gl"><span><i class="s1"></i>Sobra do mês (positiva)</span><span><i class="s3"></i>Sobra do mês (negativa)</span><span><i class="s2"></i>Sobra acumulada</span></div><div class="gb"><canvas id="dir-ch-s"></canvas></div></div>' +
       '</div>';
   }
-  el.innerHTML = h;
+  el.innerHTML = h; dirAjustarWrap();
   dirGraficos(dirAno === 'todos' ? [] : L);
 }
 
