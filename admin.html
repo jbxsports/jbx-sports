@@ -2243,6 +2243,12 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-modal{background:var(--card);border-radius:14px;max-width:520px;width:100%;padding:22px 24px;box-shadow:0 20px 50px rgba(0,0,0,.25);}
 .orc-modal h2{font-size:19px;margin-bottom:14px;}
 .orc-modal .form-g{margin-bottom:12px;}
+.od-op{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.od-card{display:block;border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;}
+.od-card:has(input:checked){border-color:var(--orange);background:#fff4ec;}
+.od-card input{accent-color:var(--orange);margin-right:6px;}
+.od-card b{font-size:14px;}
+.od-card span{display:block;font-size:12px;color:var(--muted);margin-top:4px;}
 .orc-modal label.ck{display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 8px;cursor:pointer;}
 @media(max-width:1100px){.orc-kpis{grid-template-columns:repeat(2,1fr);}.orc-fim{grid-template-columns:1fr 1fr;}.orc-t .c-desc{display:none;}}
 </style>
@@ -3938,6 +3944,153 @@ async function orcExcluir(){
   if(!confirm('Excluir o orçamento "'+orcCab.nome+'" ('+orcItens.length+' itens, '+orcR(t.total)+')? Não dá para desfazer.'))return;
   try{ await rpc('orc_excluir',{p_id:orcAtual}); orcAtual=null; try{localStorage.removeItem('jbx_orc_atual');}catch(e){} await orcInit(); }
   catch(e){ alert('Não consegui excluir: '+orcErro(e)); }
+}
+
+/* ══ ORÇAMENTO → PDF descritivo do escopo (mesmo visual da proposta comercial) ══ */
+function orcDocAbrir(){
+  if(!orcCab) return;
+  document.getElementById('od-valores').checked=false; document.getElementById('od-semv').checked=true;
+  document.getElementById('od-sobre').checked=true;
+  document.getElementById('od-semvalor').checked=true;
+  document.getElementById('orc-doc-ov').classList.add('aberto');
+}
+function orcDocFechar(){ document.getElementById('orc-doc-ov').classList.remove('aberto'); }
+function orcDocGerar(){
+  const op={valores:document.getElementById('od-valores').checked, sobre:document.getElementById('od-sobre').checked,
+    semValor:document.getElementById('od-semvalor').checked};
+  const w=window.open('','_blank');
+  if(!w){ alert('O navegador bloqueou a janela. Libere pop-ups para o admin e tente de novo.'); return; }
+  orcDocFechar();
+  w.document.open(); w.document.write(orcDocHTML(op)); w.document.close();
+  const imprimir=function(){ try{ w.focus(); w.print(); }catch(e){} };
+  setTimeout(function(){
+    if(w.document.fonts&&w.document.fonts.ready) w.document.fonts.ready.then(function(){ setTimeout(imprimir,300); });
+    else imprimir();
+  },400);
+}
+function orcDocHTML(op){
+  const E=propDocEsc, c=orcCab, logo=propPcLogo();
+  const ev=orcCal.find(function(x){return String(x.id)===String(c.calendario_id||'');})||{};
+  const atl=Number(c.atletas)||0;
+  const hoje=new Date(); const dataDoc=hoje.getFullYear()+'-'+String(hoje.getMonth()+1).padStart(2,'0')+'-'+String(hoje.getDate()).padStart(2,'0');
+  const nomeEv=c.modelo?'Escopo padrão JBX':(ev.evento||c.nome);
+  /* itens que entram: tira quantidade zero; sem valores, tira descontos/ajustes (negativos) */
+  const usa=function(i){
+    if(i.qtde!=null&&i.qtde!==''&&Number(i.qtde)===0) return false;
+    const v=orcTotalItem(i);
+    if(v<0&&!op.valores) return false;
+    if(!op.semValor&&(i.v_unit==null||i.v_unit===''||v===0)) return false;
+    return String(i.item||'').trim()!=='';
+  };
+  const grupos=[]; let nItens=0, total=0;
+  c.grupos.forEach(function(g){
+    const its=orcGrupoItens(g).filter(usa); if(!its.length) return;
+    let s=0; its.forEach(function(i){ s+=orcTotalItem(i); });
+    grupos.push({g:g,its:its,s:s}); nItens+=its.length; total+=s;
+  });
+  const qtdTxt=function(i){ if(i.qtde==null||i.qtde==='') return ''; const n=Number(i.qtde); return n>1?n.toLocaleString('pt-BR',{maximumFractionDigits:2}):''; };
+
+  /* capa */
+  const capa='<section class="capa">'
+    +'<div class="capa-top"><img class="logo" src="'+E(logo)+'" alt="JBX Sports"><span class="capa-proto">ESCOPO DO EVENTO</span></div>'
+    +'<div class="capa-meio"><div class="capa-tag">Descritivo de escopo</div><h1>'+E(nomeEv)+'</h1>'
+    +'<div class="capa-para">Tudo o que a JBX Sports entrega <b>do planejamento ao dia da prova</b></div></div>'
+    +'<div class="capa-stats">'
+      +'<div class="cs"><b>'+(atl?atl.toLocaleString('pt-BR'):'—')+'</b><span>atletas</span></div>'
+      +'<div class="cs"><b>'+E(c.evento_data?propDocDataCurta(c.evento_data):'A definir')+'</b><span>data</span></div>'
+      +'<div class="cs"><b>'+E(ev.cidade||'—')+'</b><span>cidade</span></div>'
+      +'<div class="cs"><b>'+nItens+'</b><span>itens de escopo</span></div></div>'
+    +'<div class="capa-pe"><span>'+E(propDocDataLonga(dataDoc))+'</span><span>jbxsports.com.br · @jbx.sports</span></div></section>';
+
+  /* quem somos */
+  let n=0; const kick=function(t){ n++; return '<div class="kick">'+String(n).padStart(2,'0')+' · '+t+'</div>'; };
+  const sobre=!op.sobre?'':'<section class="pg">'+kick('Quem somos')
+    +'<h2>Apaixonados por projetos diferentes.</h2>'
+    +'<p class="lead">A JBX Sports é a maior organizadora de corridas de rua da região de Ribeirão Preto. Planejamos, produzimos e executamos o evento de ponta a ponta — do alvará à medalha no peito do último atleta.</p>'
+    +'<p>Já fechamos ruas, avenidas e dois aeroportos para corridas. Cada prova é desenhada para o objetivo de quem contrata: engajar colaboradores, ativar uma marca, celebrar uma data ou movimentar uma cidade.</p>'
+    +'<div class="pilares"><div><b>Projeto sob medida</b><span>Percurso, formato e experiência pensados para o seu público.</span></div>'
+    +'<div><b>Execução ponta a ponta</b><span>Estrutura, equipe, cronometragem, segurança e licenças.</span></div>'
+    +'<div><b>Inscrição online</b><span>Plataforma própria com pagamento, área do atleta e relatórios.</span></div>'
+    +'<div><b>Divulgação</b><span>Base de mais de 20 mil corredores e os canais da JBX.</span></div></div></section>';
+
+  /* escopo */
+  let gh='';
+  grupos.forEach(function(G,gi){
+    let li='';
+    G.its.forEach(function(i){
+      const q=qtdTxt(i), v=orcTotalItem(i), semV=(i.v_unit==null||i.v_unit==='');
+      const dir=op.valores?((semV||v===0)?'<span class="st nv">Incluso</span>':'<span class="st'+(v<0?' neg':'')+'">'+E(propDocBRL(v))+'</span>'):'';
+      li+='<li class="sim"><i></i><span class="it">'+E(i.item)+(i.descricao?'<small>'+E(i.descricao)+'</small>':'')+'</span>'
+        +(q?'<span class="qt">'+E(q)+'</span>':'')+dir+'</li>';
+    });
+    gh+='<div class="grp"><h3><span><em>'+(gi+1)+'</em>'+E(G.g)+'</span><small>'+(op.valores?E(propDocBRL(G.s)):G.its.length+(G.its.length===1?' item':' itens'))+'</small></h3><ul>'+li+'</ul></div>';
+  });
+  const escopo='<section class="pg'+(op.sobre?' quebra':'')+'">'+kick('Escopo')
+    +'<h2>O que está no evento</h2>'
+    +'<p class="sub">'+nItens+' itens em '+grupos.length+' frentes de trabalho'+(atl?', dimensionados para '+atl.toLocaleString('pt-BR')+' atletas':'')+'. Quantidades indicadas quando há mais de uma unidade.</p>'
+    +'<div class="grps">'+gh+'</div></section>';
+
+  /* investimento (só com valores) */
+  let invest='';
+  if(op.valores){
+    const gest=Number(c.gestao)||0, fim=total+gest;
+    let tb='';
+    grupos.forEach(function(G,gi){
+      tb+='<tr><td><em>'+(gi+1)+'</em>'+E(G.g)+'</td><td class="r">'+(atl?E(propDocBRL(G.s/atl)):'—')+'</td><td class="r">'+(total?Math.round(G.s/total*100):0)+'%</td><td class="r"><b>'+E(propDocBRL(G.s))+'</b></td></tr>';
+    });
+    if(gest) tb+='<tr><td><em>+</em>Gestão JBX Sports</td><td class="r">'+(atl?E(propDocBRL(gest/atl)):'—')+'</td><td class="r"></td><td class="r"><b>'+E(propDocBRL(gest))+'</b></td></tr>';
+    invest='<section class="pg quebra">'+kick('Investimento')+'<h2>Valores por frente</h2>'
+      +'<div class="valor"><div class="valor-n"><span>Investimento total</span><b>'+E(propDocBRL(fim))+'</b></div>'
+      +(atl?'<div class="valor-x"><b>'+E(propDocBRL(fim/atl))+'</b><span>por atleta, considerando '+atl.toLocaleString('pt-BR')+' participantes</span></div>':'')
+      +'<div class="valor-x"><b>'+nItens+'</b><span>itens de escopo</span></div></div>'
+      +'<table class="tb"><thead><tr><th>Frente</th><th class="r">Por atleta</th><th class="r">% do total</th><th class="r">Valor</th></tr></thead><tbody>'+tb
+      +'</tbody><tfoot><tr><td>Total</td><td class="r">'+(atl?E(propDocBRL(fim/atl)):'')+'</td><td class="r">100%</td><td class="r">'+E(propDocBRL(fim))+'</td></tr></tfoot></table></section>';
+  }
+  const assina='<div class="assina"><img class="logo" src="'+E(logo)+'" alt=""><div><b>Stephano Bachim</b><span>Diretor Comercial · JBX Sports</span><span>sb@jbxsports.com.br · jbxsports.com.br</span></div></div>';
+  if(invest) invest=invest.replace(/<\/section>$/,assina+'</section>');
+  const corpoEscopo=invest?escopo:escopo.replace(/<\/section>$/,assina+'</section>');
+
+  const css='@page{size:A4;margin:16mm 15mm 18mm;@bottom-left{content:"JBX Sports · Escopo · '+E(nomeEv).replace(/"/g,'')+'";font:500 8pt Ubuntu,sans-serif;color:#a59b92}@bottom-right{content:counter(page);font:700 8pt Ubuntu,sans-serif;color:#FF751F}}'
+    +'@page:first{margin:0;@bottom-left{content:none}@bottom-right{content:none}}'
+    +'*{box-sizing:border-box;margin:0;padding:0}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+    +'body{font-family:Ubuntu,sans-serif;color:#2a2520;font-size:10pt;line-height:1.5;background:#fff}'
+    +'.capa{position:relative;width:210mm;height:297mm;background:#fff;color:#0a0a0a;padding:22mm 20mm;border-top:3mm solid #FF751F;display:flex;flex-direction:column;overflow:hidden;break-after:page}'
+    +'.capa-top{display:flex;justify-content:space-between;align-items:center}.capa .logo{height:11mm;filter:invert(1)}'
+    +'.capa-proto{font-size:9pt;letter-spacing:.12em;color:#a59b92;font-weight:500}.capa-meio{margin-top:auto}'
+    +'.capa-tag{display:inline-block;background:#FF751F;color:#fff;font-weight:700;font-size:9pt;letter-spacing:.16em;text-transform:uppercase;padding:2mm 4mm;border-radius:1mm}'
+    +'.capa h1{font-size:44pt;line-height:1.02;font-weight:700;margin:7mm 0 5mm;max-width:160mm;letter-spacing:-.01em}'
+    +'.capa-para{font-size:14pt;color:#7a7068;font-weight:300}.capa-para b{color:#0a0a0a;font-weight:500}'
+    +'.capa-stats{display:flex;margin-top:16mm;border-top:1px solid #e5ded6}'
+    +'.cs{flex:1;padding:6mm 0 0 6mm;border-right:1px solid #eee9e3}.cs:first-child{padding-left:0}.cs:last-child{border-right:none}'
+    +'.cs b{display:block;font-size:19pt;font-weight:700;color:#FF751F;line-height:1.1}.cs span{font-size:8.5pt;color:#7a7068;text-transform:uppercase;letter-spacing:.1em}'
+    +'.capa-pe{display:flex;justify-content:space-between;margin-top:14mm;font-size:9pt;color:#a59b92}'
+    +'.pg{padding-top:2mm}.quebra{break-before:page}'
+    +'.kick{font-size:8.5pt;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#FF751F;margin-bottom:3mm}'
+    +'h2{font-size:24pt;line-height:1.1;font-weight:700;color:#0a0a0a;margin-bottom:5mm;letter-spacing:-.01em}'
+    +'.lead{font-size:13pt;line-height:1.45;font-weight:300;margin-bottom:4mm;max-width:160mm}.pg>p{max-width:165mm;margin-bottom:3mm}.sub{color:#7a7068;margin-bottom:6mm}'
+    +'.pilares{display:grid;grid-template-columns:1fr 1fr;gap:4mm;margin-top:8mm}'
+    +'.pilares div{border-left:3px solid #FF751F;background:#faf9f7;padding:4mm 5mm;border-radius:0 2mm 2mm 0}.pilares b{display:block;font-size:11pt;margin-bottom:1mm}.pilares span{color:#7a7068;font-size:9.5pt}'
+    +'.grp{margin-bottom:6mm}'
+    +'.grp h3{font-size:10.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0a0a0a;margin-bottom:1.5mm;padding:2.5mm 3mm;background:#fff4ec;border-left:1.2mm solid #FF751F;border-radius:0 1.5mm 1.5mm 0;display:flex;justify-content:space-between;align-items:center;gap:3mm;break-after:avoid}'
+    +'.grp h3 em,.tb em{font-style:normal;display:inline-flex;align-items:center;justify-content:center;width:5mm;height:5mm;border-radius:1.2mm;background:#FF751F;color:#fff;font-size:7.5pt;margin-right:2mm;vertical-align:1px;letter-spacing:0}'
+    +'.grp h3 small{font-size:8.3pt;color:#a59b92;letter-spacing:.02em;font-weight:700;white-space:nowrap}'
+    +'.grp ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;column-gap:7mm;padding:0 1mm}.grp li{display:flex;align-items:flex-start;gap:2.5mm;padding:1.6mm 0;border-bottom:1px solid #f3efea;font-size:9.2pt;break-inside:avoid}'
+    +'.grp li i{flex:0 0 3.8mm;height:3.8mm;margin-top:.6mm;border-radius:50%;background:#FF751F;display:inline-flex;align-items:center;justify-content:center}'
+    +'.grp li i::after{content:"";width:1.5mm;height:.85mm;border-left:.45mm solid #fff;border-bottom:.45mm solid #fff;transform:rotate(-45deg) translate(.1mm,-.1mm)}'
+    +'.grp .it{flex:1}.grp .it small{display:block;color:#7a7068;font-size:8.2pt;line-height:1.35}'
+    +'.grp .qt{font-size:8.2pt;font-weight:700;color:#5e554d;background:#f4f0eb;border-radius:1mm;padding:.2mm 1.6mm;white-space:nowrap}'
+    +'.grp .st{font-size:8.3pt;font-weight:700;white-space:nowrap;color:#FF751F}.grp .st.nv{color:#b8aea5;font-weight:500}.grp .st.neg{color:#16a34a}'
+    +'.valor{display:grid;grid-template-columns:1.5fr 1fr 1fr;border-radius:3mm;overflow:hidden;margin:2mm 0 7mm}'
+    +'.valor-n{background:#fff3ea;padding:7mm;border-left:2mm solid #FF751F}.valor-n span{display:block;font-size:8.5pt;letter-spacing:.14em;text-transform:uppercase;color:#7a7068;margin-bottom:2mm}'
+    +'.valor-n b{font-size:26pt;font-weight:700;color:#FF751F;line-height:1}'
+    +'.valor-x{background:#faf9f7;padding:7mm 6mm;border-left:1px solid #eee9e3}.valor-x b{display:block;font-size:16pt;font-weight:700;color:#0a0a0a}.valor-x span{font-size:8.8pt;color:#7a7068}'
+    +'.tb{width:100%;border-collapse:collapse;font-size:9.6pt;break-inside:avoid}.tb th{font-size:8pt;letter-spacing:.1em;text-transform:uppercase;color:#7a7068;text-align:left;padding:2mm;border-bottom:2px solid #FF751F}'
+    +'.tb td{padding:2.2mm 2mm;border-bottom:1px solid #f0ebe5}.tb .r{text-align:right;white-space:nowrap}.tb tfoot td{font-weight:700;font-size:11pt;border-top:2px solid #0a0a0a;border-bottom:none;padding-top:3mm}'
+    +'.assina{display:flex;align-items:center;gap:6mm;margin-top:10mm;padding:6mm;background:#faf9f7;border:1px solid #eee9e3;border-radius:3mm;color:#0a0a0a;break-inside:avoid}'
+    +'.assina .logo{height:8mm;filter:invert(1)}.assina b{display:block;font-size:11pt}.assina span{display:block;font-size:8.8pt;color:#7a7068}.assina div{border-left:1px solid #e5ded6;padding-left:6mm}';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Escopo — '+E(nomeEv)+'</title>'
+    +'<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">'
+    +'<style>'+css+'</style></head><body>'+capa+sobre+corpoEscopo+invest+'</body></html>';
 }
 
 /* ── Excel ── */
@@ -18481,11 +18634,30 @@ document.addEventListener('DOMContentLoaded',function(){
         </div>
         <div class="orc-top">
           <div class="form-g"><label>Orçamento</label><select id="orc-sel" onchange="orcTrocar(this.value)"></select></div>
+          <button class="mkt-btn" onclick="orcDocAbrir()">📄 PDF do escopo</button>
           <button class="mkt-btn" onclick="orcExportar()">⬇ Excel</button>
           <button class="mkt-btn" id="orc-btn-del" onclick="orcExcluir()">Excluir orçamento</button>
           <span class="orc-salvo" id="orc-salvo"></span>
         </div>
         <div id="orc-corpo"><div class="orc-vazio">Carregando…</div></div>
+      </div>
+
+      <div class="orc-ov" id="orc-doc-ov" onclick="if(event.target===this)orcDocFechar()">
+        <div class="orc-modal" style="max-width:460px;">
+          <h2 style="margin-bottom:4px;">PDF do escopo</h2>
+          <div style="font-size:12.5px;color:var(--muted);margin-bottom:16px;">Descritivo completo do evento, no visual da proposta comercial. Fornecedores e pagamentos nunca aparecem.</div>
+          <div class="od-op">
+            <label class="od-card"><input type="radio" name="od-v" id="od-semv" checked onchange="document.getElementById('od-valores').checked=false"><b>Sem valores</b><span>Só o escopo — para mostrar ao cliente ou parceiro.</span></label>
+            <label class="od-card"><input type="radio" name="od-v" onchange="document.getElementById('od-valores').checked=true"><b>Com valores</b><span>Valor de cada item, subtotais e página de investimento.</span></label>
+          </div>
+          <input type="checkbox" id="od-valores" style="display:none;">
+          <label class="ck"><input type="checkbox" id="od-sobre" checked> Incluir a página "Quem somos"</label>
+          <label class="ck"><input type="checkbox" id="od-semvalor" checked> Incluir itens que ainda estão sem valor</label>
+          <div style="display:flex;gap:10px;margin-top:14px;">
+            <button class="mkt-btn primary" onclick="orcDocGerar()">Gerar PDF</button>
+            <button class="mkt-btn" onclick="orcDocFechar()">Cancelar</button>
+          </div>
+        </div>
       </div>
 
       <div class="orc-ov" id="orc-pg-ov" onclick="if(event.target===this)orcPgFechar()">
