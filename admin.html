@@ -2251,6 +2251,11 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .od-card span{display:block;font-size:12px;color:var(--muted);margin-top:4px;}
 .orc-modal label.ck{display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0 8px;cursor:pointer;}
 @media(max-width:1100px){.orc-kpis{grid-template-columns:repeat(2,1fr);}.orc-fim{grid-template-columns:1fr 1fr;}.orc-t .c-desc{display:none;}}
+.dir-orc{display:block;margin-top:2px;font-size:10.5px !important;font-weight:700 !important;color:#c2410c !important;cursor:pointer;white-space:nowrap;}
+.dir-orc:hover{text-decoration:underline;}
+.dir-orc-hint{margin-top:6px;font-size:12px;line-height:1.45;color:#9a3412;background:#fff4ec;border:1px solid rgba(255,117,31,.3);border-radius:8px;padding:8px 10px;}
+.dir-orc-hint a{color:var(--orange);font-weight:700;}
+#dir-f-custo-atl:disabled{background:#f4f0eb;color:var(--text);font-weight:700;}
 </style>
 </head>
 <body>
@@ -12049,7 +12054,7 @@ async function cmpOptoutRemover(chave){
 }
 
 /* ══ DIRETORIA — meta x real por evento (só master) ══ */
-let dirCal = [], dirExt = {}, dirCapt = {}, dirSite = [], dirSiteMap = {}, dirD = {};
+let dirCal = [], dirExt = {}, dirCapt = {}, dirSite = [], dirSiteMap = {}, dirD = {}, dirOrc = {};
 let dirCfg = {aliquota_nf:0, escritorio_mes:0};
 let dirAno = String(new Date().getFullYear());
 let dirChartM = null, dirChartA = null, dirChartS = null, dirEdId = null;
@@ -12081,8 +12086,19 @@ async function dirInit(){
     rpc('admin_calendario_listar').catch(function(){ return []; }),
     rpc('admin_calendario_extra_listar').catch(function(){ return []; }),
     rpc('pat_dados').catch(function(){ return null; }),
-    rpc('admin_eventos_stats').catch(function(){ return []; })
+    rpc('admin_eventos_stats').catch(function(){ return []; }),
+    rpc('orc_listar', {}).catch(function(){ return []; })
   ]);
+  /* custo por atleta vindo da aba Orçamentos (orçamento vinculado ao evento do Calendário) */
+  dirOrc = {};
+  (Array.isArray(res[4]) ? res[4] : []).forEach(function(o){
+    if (o.modelo || !o.calendario_id) return;
+    const tot = Number(o.total) || 0, atl = Number(o.atletas) || 0;
+    if (!(tot > 0 && atl > 0)) return;
+    const k = String(o.calendario_id), atual = dirOrc[k];
+    if (atual && String(atual.atualizado_em || '') > String(o.atualizado_em || '')) return;
+    dirOrc[k] = {id:o.id, nome:o.nome, total:tot, atletas:atl, custoAtl:tot / atl, atualizado_em:o.atualizado_em};
+  });
   dirCal = (Array.isArray(res[0]) ? res[0] : []).map(function(r){
     return Object.assign({}, r, {inicio:String(r.inicio || '').slice(0, 10)});
   }).filter(function(r){ return r.inicio; });
@@ -12145,7 +12161,9 @@ function dirCalc(ev){
 
   /* despesa: só o custo total POR ATLETA (guardado em custo_previsto).
      Custo do evento = custo por atleta × atletas. A nota fiscal sai da alíquota. */
-  const custoAtl = Number(d.custo_previsto) || 0;
+  /* se o evento tem orçamento na aba Orçamentos, o custo por atleta vem de lá (total ÷ atletas) */
+  const orc = dirOrc[id] || null;
+  const custoAtl = orc ? orc.custoAtl : (Number(d.custo_previsto) || 0);
 
   const metaEnt = metaR + metaPat;
   /* NF: só sobre o valor total da meta de patrocínio */
@@ -12181,7 +12199,7 @@ function dirCalc(ev){
     metaQ:metaQ, metaQdoCal:metaQdoCal, metaT:metaT, metaR:metaR,
     realQ:realQ, realT:realT, realR:realR,
     metaPat:metaPat, realPat:realPat, patFunil:funil > 0, temAliq:dirN(d.inv_patrocinador) !== null && Number(d.inv_patrocinador) <= 100,
-    custoAtl:custoAtl, custoM:custoM,
+    custoAtl:custoAtl, custoM:custoM, orc:orc,
     metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
     projQ:projQ, projEnt:projEnt, projNF:projNF, projCusto:projCusto, projDesp:projDesp, projRes:projRes,
     recAtl:recAtl, aliqPct:aliqPct, projInsR:projInsR, projPat:projPat,
@@ -12449,7 +12467,7 @@ function dirRender(){
       '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'cash_pct', c.cashPct, 48) + '%</td>' +
       '<td>' + (c.cashRec ? '<b>' + dirR(c.cashRec) + '</b><small>sobre ' + dirR(c.projInsR) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="rec" title="' + recTit + '">' + (c.projEnt ? '<b>' + dirR(c.projEnt) + '</b>' + (q ? '<small>' + dirR2(c.recAtl) + ' por atleta</small>' : '') : '<span class="nd">—</span>') + '</td>' +
-      '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' : '<span class="nd">a lançar</span>') + '</td>' +
+      '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' + (c.orc ? '<small class="dir-orc" title="Vem da aba Orçamentos: ' + propEsc(c.orc.nome) + ' — ' + propEsc(dirR(c.orc.total)) + ' ÷ ' + fmt(c.orc.atletas) + ' atletas. Clique para abrir." onclick="event.stopPropagation();dirAbrirOrc(\'' + propEsc(c.orc.id) + '\')">🧾 do orçamento</small>' : '') : '<span class="nd">a lançar</span>') + '</td>' +
       '<td class="dsp">' + (c.projCusto ? dirR(c.projCusto) + '<small>' + fmt(q) + ' × ' + dirR2(c.custoAtl) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="res ' + (c.projRes < 0 ? 'neg' : 'pos') + '">' + dirR(c.projRes) + '</td>' +
       '</tr>';
@@ -12570,7 +12588,12 @@ function dirAbrir(id){
   v('meta-t', dirMoedaInp(d.meta_ticket));
   v('real-q', dirN(d.real_inscritos) !== null ? d.real_inscritos : '');
   v('real-t', dirMoedaInp(d.real_ticket));
-  v('custo-atl', dirMoedaInp(d.custo_previsto));
+  v('custo-atl', dirMoedaInp(c.orc ? c.orc.custoAtl : d.custo_previsto));
+  const ci = document.getElementById('dir-f-custo-atl'), ch = document.getElementById('dir-f-custo-hint');
+  ci.disabled = !!c.orc;
+  ci.dataset.manual = dirMoedaInp(d.custo_previsto);
+  ch.style.display = c.orc ? '' : 'none';
+  if (c.orc) ch.innerHTML = '🧾 Vem do orçamento <b>' + propEsc(c.orc.nome) + '</b>: ' + dirR(c.orc.total) + ' ÷ ' + fmt(c.orc.atletas) + ' atletas. Para mudar, edite o orçamento. <a href="#" onclick="event.preventDefault();dirFechar();dirAbrirOrc(\'' + propEsc(c.orc.id) + '\')">Abrir orçamento →</a>';
   v('aliq', dirAliqTxt(dirAliqEv(d)));
   v('obs', d.obs || '');
   let op = '<option value="">— lançar à mão —</option>';
@@ -12580,6 +12603,10 @@ function dirAbrir(id){
   document.getElementById('dir-f-site').innerHTML = op;
   dirSiteTroca();
   document.getElementById('dir-overlay').classList.add('open');
+}
+function dirAbrirOrc(id){
+  orcAtual = String(id); try { localStorage.setItem('jbx_orc_atual', orcAtual); } catch (e) {}
+  showInner('orcamentos');
 }
 function dirFechar(){ document.getElementById('dir-overlay').classList.remove('open'); dirEdId = null; }
 function dirSiteTroca(){
@@ -12597,7 +12624,7 @@ function dirColetar(){
     meta_inscritos: inteiro(g('meta-q')), meta_ticket: moeda(g('meta-t')),
     real_inscritos: inteiro(g('real-q')), real_ticket: moeda(g('real-t')),
     site_evento_id: g('site'),
-    inv_patrocinador: String(g('aliq') || '').trim() === '' ? '' : String(Math.min(100, Math.max(0, dirNum(g('aliq'))))), custo_previsto: moeda(g('custo-atl')), custo_real: '',
+    inv_patrocinador: String(g('aliq') || '').trim() === '' ? '' : String(Math.min(100, Math.max(0, dirNum(g('aliq'))))), custo_previsto: moeda(document.getElementById('dir-f-custo-atl').disabled ? document.getElementById('dir-f-custo-atl').dataset.manual : g('custo-atl')), custo_real: '',
     obs: g('obs')
   };
 }
@@ -18066,7 +18093,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <div class="dir-hint">A NF é este % sobre a meta de patrocínio. O captado vem do Funil de patrocínio (marcas fechadas).</div>
     </div></div>
     <div class="prp-bloco"><div class="prp-bloco-t">Despesas</div><div style="padding:14px;">
-      <div class="mkt-fg"><label>Custo total por atleta (R$)</label><input id="dir-f-custo-atl" inputmode="decimal" placeholder="Ex.: 62,00 — tudo que o evento custa, dividido por atleta" oninput="dirPrevia()"></div>
+      <div class="mkt-fg"><label>Custo total por atleta (R$)</label><input id="dir-f-custo-atl" inputmode="decimal" placeholder="Ex.: 62,00 — tudo que o evento custa, dividido por atleta" oninput="dirPrevia()"><div class="dir-orc-hint" id="dir-f-custo-hint" style="display:none;"></div></div>
       <div class="dir-hint">O custo do evento é este valor × o número de atletas (real, se o evento já aconteceu; meta, se é futuro).</div>
     </div></div>
     <div class="mkt-fg"><label>Observações</label><textarea id="dir-f-obs" rows="2"></textarea></div>
