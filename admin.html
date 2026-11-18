@@ -15821,7 +15821,11 @@ async function ppInit(){
     }catch(e){}
   }));
   const datas={}; (patEventos||[]).forEach(e=>{ datas[String(e.id)]=e.data; });
-  try{ const rows=await rpc('admin_calendario_listar'); (rows||[]).forEach(r=>{ datas[String(r.id)]=String(r.inicio||'').slice(0,10); }); }catch(e){}
+  let calRows=[];
+  try{ calRows=await rpc('admin_calendario_listar')||[]; calRows.forEach(r=>{ datas[String(r.id)]=String(r.inicio||'').slice(0,10); }); }catch(e){}
+  try{ const ext=await rpc('admin_calendario_extra_listar');
+    if(Array.isArray(ext)) ext.forEach(x=>{ const r=calRows.find(d=>String(d.id)===String(x.id)); if(r) r.captado=Number(x.captado)||0; });
+  }catch(e){}
   /* pacote (ex.: CALENDÁRIO 2027): o pagamento é controlado em cada evento replicado.
      A linha do pacote em si só aparece se já tiver parcelas lançadas nela (lançamentos antigos). */
   ppFech=ops.filter(function(o){
@@ -15833,6 +15837,15 @@ async function ppInit(){
     return {chave:String(o.marca_id)+'|'+String(o.evento_id), marca_id:String(o.marca_id), evento_id:String(o.evento_id),
       evento:pac?pac.nome:(o.evento_nome||'Evento'), data:pac?'':(datas[String(o.evento_id)]||''),
       valor:Number(o.valor_estimado)||0, cota:o.cota_alvo||'', via:via, pacoteAntigo:!!pac};
+  });
+  /* valores antigos: eventos já realizados sem marca fechada no funil, com captado lançado à mão
+     no Calendário (antes deste controle). Entram como quitados, só para leitura. */
+  const comFunil={}; ops.forEach(o=>{ comFunil[String(o.evento_id)]=1; });
+  calRows.forEach(function(r){
+    const id=String(r.id), v=Number(r.captado)||0, d=String(r.inicio||'').slice(0,10);
+    if(v<=0||comFunil[id]) return;
+    if(!(r.realizado||(d&&d<=ppHoje()))) return;
+    ppFech.push({chave:'hist|'+id,marca_id:'',evento_id:id,evento:r.evento||'Evento',data:d,valor:v,cota:'',historico:true});
   });
   /* parcelas de fechamentos que saíram do funil continuam aparecendo */
   ppPags.forEach(function(p){
@@ -15848,6 +15861,7 @@ function ppFiltro(f){
   ppRender();
 }
 function ppResumoFech(f){
+  if(f.historico) return {ps:[],pago:f.valor,parc:0,base:f.valor,aberto:0,atr:[],atrValor:0,quitado:true};
   const ps=ppPags.filter(p=>p.chave===f.chave);
   const pago=ps.filter(p=>p.pago).reduce((a,p)=>a+(Number(p.valor)||0),0);
   const parc=ps.reduce((a,p)=>a+(Number(p.valor)||0),0);
@@ -15860,7 +15874,7 @@ function ppPassa(f,r){
   const F=ppFiltroAtual;
   if(F==='aberto') return !r.quitado;
   if(F==='atraso') return r.atr.length>0;
-  if(F==='sem') return !r.ps.length;
+  if(F==='sem') return !r.ps.length&&!f.historico;
   if(F==='quitado') return r.quitado;
   return true;
 }
@@ -15869,7 +15883,7 @@ function ppRender(){
   const q=(document.getElementById('pp-busca').value||'').trim().toLowerCase();
   /* KPIs gerais */
   let tFech=0,tPago=0,tAtr=0,nAtr=0,nSem=0;
-  ppFech.forEach(f=>{ const r=ppResumoFech(f); tFech+=r.base; tPago+=r.pago; tAtr+=r.atrValor; nAtr+=r.atr.length; if(!r.ps.length)nSem++; });
+  ppFech.forEach(f=>{ const r=ppResumoFech(f); tFech+=r.base; tPago+=r.pago; tAtr+=r.atrValor; nAtr+=r.atr.length; if(!r.ps.length&&!f.historico)nSem++; });
   document.getElementById('pp-kpis').innerHTML=
      '<div class="pp-kpi" style="--c:#2a2520"><span>Total fechado</span><b>'+ppBRL(tFech)+'</b><small>'+ppFech.length+' fechamento(s)</small></div>'
     +'<div class="pp-kpi" style="--c:#16a34a"><span>Recebido</span><b>'+ppBRL(tPago)+'</b><small>'+(tFech?Math.round(tPago/tFech*100):0)+'% do total</small></div>'
@@ -15913,7 +15927,7 @@ function ppRender(){
       +'<div class="pp-ev-nm"><b>'+patEsc(E.nome)+'</b><small>'+(E.pac
         ?(function(){ const ms={},es={}; E.fs.forEach(f=>{ms[f.marca_id]=1;es[f.evento_id]=1;}); const nm=Object.keys(ms).length,ne=Object.keys(es).length;
             return nm+(nm===1?' marca':' marcas')+' · '+ne+(ne===1?' evento':' eventos')+' · somado de cada evento'; })()
-        :E.fs.length+(E.fs.length===1?' marca fechada':' marcas fechadas'))+' · '+pct+'% recebido</small></div>'
+        :(E.fs.every(f=>f.historico)?'valor lançado no Calendário':E.fs.length+(E.fs.length===1?' marca fechada':' marcas fechadas')))+' · '+pct+'% recebido</small></div>'
       +'<div class="pp-tot"><div><span>Fechado</span><b>'+ppBRL(eF)+'</b></div><div><span>Recebido</span><b style="color:#16a34a">'+ppBRL(eP)+'</b></div>'
       +'<div><span>A receber</span><b style="color:#2563eb">'+ppBRL(Math.max(0,eF-eP))+'</b></div>'
       +(eA?'<div><span>Atrasado</span><b style="color:#dc2626">'+ppBRL(eA)+'</b></div>':'')+'</div></div>'
@@ -15949,6 +15963,13 @@ function ppBotaoTodos(){
   b.textContent=boxes.some(x=>!x.classList.contains('fechado'))?'▲ Recolher todos':'▼ Abrir todos';
 }
 function ppLinhaHtml(f,agrupado){
+  if(f.historico) return '<tr class="tr-ok"><td><div class="pp-emp-c"><span class="pp-lg" style="background:#f0ede8;border:none;font-size:15px;">📜</span>'
+    +'<div><b>Patrocínios anteriores ao controle</b><small style="text-transform:none;">Valor lançado à mão no Calendário</small></div></div></td>'
+    +'<td class="r"><b>'+ppBRL(f.valor)+'</b></td>'
+    +'<td class="pp-parc"><span style="font-size:12px;color:var(--muted);">Considerado recebido. Para detalhar por marca, feche as marcas no Funil deste evento.</span></td>'
+    +'<td class="r" style="color:#16a34a;font-weight:700;">'+ppBRL(f.valor)+'</td>'
+    +'<td class="r" style="color:#2563eb;font-weight:700;">'+ppBRL(0)+'</td>'
+    +'<td><span class="pp-sit ok">✓ Quitado</span></td></tr>';
   const r=ppResumoFech(f), ck=jsAttr(f.chave), m=patMarca(f.marca_id)||{nome:'Marca removida'};
   let sit;
   if(!r.ps.length) sit='<span class="pp-sit sem">Sem parcelas</span>';
