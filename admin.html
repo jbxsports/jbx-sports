@@ -2172,6 +2172,7 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-g-nm{flex:1;min-width:0;}
 .orc-g-nm b{font-size:15px;letter-spacing:-.2px;}
 .orc-g-nm small{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+.orc-g-atl{display:inline-block;margin-left:10px;font-size:12px;font-weight:700;color:#c2410c;background:#fff;border:1px solid rgba(255,117,31,.35);border-radius:99px;padding:2px 9px;vertical-align:2px;}
 .orc-g-ed{background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted);padding:2px 6px;border-radius:6px;}
 .orc-g-ed:hover{background:#fff;color:var(--orange);}
 .orc-g-tot{text-align:right;}
@@ -3608,7 +3609,7 @@ function orcRenderGrupos(){
     const ge=orcEsc(g).replace(/'/g,'&#39;');
     h+='<div class="orc-g'+(fech?' fechado':'')+'" data-g="'+orcEsc(g)+'">'
       +'<div class="orc-g-hd" onclick="orcAlternarGrupo(this)" ondragover="orcDragSobre(event)" ondragleave="orcDragSai(event)" ondrop="orcSoltar(event)"><span class="orc-g-tg">▼</span><span class="orc-g-n">'+(gi+1)+'</span>'
-      +'<div class="orc-g-nm"><b>'+orcEsc(g)+'</b> <button class="orc-g-ed" title="Renomear grupo" onclick="event.stopPropagation();orcRenomearGrupo('+gi+')">✏️</button>'
+      +'<div class="orc-g-nm"><b>'+orcEsc(g)+'</b><span class="orc-g-atl" id="orc-ga-'+gi+'"></span> <button class="orc-g-ed" title="Renomear grupo" onclick="event.stopPropagation();orcRenomearGrupo('+gi+')">✏️</button>'
       +'<small id="orc-gs-'+gi+'"></small></div>'
       +'<div class="orc-g-tot" id="orc-gt-'+gi+'"></div></div>'
       +'<div class="orc-g-bd"><table class="orc-t"><thead><tr><th class="orc-num">#</th><th>Item</th><th class="c-desc">Descrição</th><th class="r">Qtde</th><th class="r">V. unit</th><th class="r">V. total</th><th>Fornecedor</th><th>Pagamento</th><th></th></tr></thead><tbody>';
@@ -3637,6 +3638,8 @@ function orcAtualizarTotais(){
     const a=document.getElementById('orc-gt-'+gi), b=document.getElementById('orc-gs-'+gi);
     if(a) a.innerHTML='<b>'+orcR(s)+'</b><small>'+(s?(p>=s&&s>0?'✓ tudo pago':orcR(p)+' pago'):'')+'</small>';
     if(b) b.textContent=its.length+(its.length===1?' item':' itens')+' · '+np+' pago'+(np===1?'':'s');
+    const ga=document.getElementById('orc-ga-'+gi), atl=Number(orcCab.atletas)||0;
+    if(ga){ ga.textContent=(atl&&s)?orcR(s/atl)+' por atleta':''; ga.style.display=(atl&&s)?'':'none'; }
   });
   const f=document.getElementById('orc-fim');
   if(f&&!f.contains(document.activeElement)) f.innerHTML=
