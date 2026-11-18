@@ -1775,7 +1775,7 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .dir-cfg label span{font-size:13px;text-transform:none;letter-spacing:0;color:var(--text);font-weight:500;display:flex;align-items:center;gap:5px;}
 .dir-cfg input{font-family:'Ubuntu',sans-serif;font-size:13px;width:90px;padding:6px 8px;border:1px solid rgba(42,37,32,.15);border-radius:7px;background:#f5f3f0;text-align:right;}
 .dir-aviso{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:8px;padding:8px 12px;font-size:12.5px;margin-bottom:12px;}
-.dir-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px;}
+.dir-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
 .dir-k{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
 .dir-k.destaque{border-color:rgba(255,117,31,.45);box-shadow:0 0 0 3px rgba(255,117,31,.08);}
 .dir-k .t{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
@@ -11587,12 +11587,11 @@ function dirRender(){
   const semCusto = L.filter(function(c){ return !c.custoAtl; }).length;
   h += '<div class="dir-kpis">' +
     /* cabeçalho = ano inteiro (projeção). O executado até agora fica na linha de total da tabela. */
-    '<div class="dir-k"><div class="t">Inscrições (ano)</div><div class="v">' + dirR(T.projInsR || 0) + '</div>' +
-      '<div class="s">' + fmt(T.projQ) + ' inscritos projetados no ano</div>' +
-      '<div class="s">meta do ano ' + dirR(T.metaR) + ' · ' + fmt(T.metaQ) + ' inscritos</div></div>' +
-    '<div class="dir-k"><div class="t">Patrocínio (ano)</div><div class="v">' + dirR(T.projPat || 0) + '</div>' +
-      '<div class="s">projeção do ano inteiro</div>' +
-      '<div class="s">meta do ano ' + dirR(T.metaPat) + '</div></div>' +
+    '<div class="dir-k"><div class="t">Faturamento total (ano)</div><div class="v">' + dirR(T.projEnt) + '</div>' +
+      '<div class="dir-atl"><span>Inscrições <small>(' + fmt(T.projQ) + ' insc.)</small></span><b>' + dirR(T.projInsR || 0) + '</b></div>' +
+      '<div class="dir-atl"><span>Patrocínio</span><b>' + dirR(T.projPat || 0) + '</b></div>' +
+      '<div class="dir-atl"><span>FOTOP</span><b>' + dirR(T.foto || 0) + '</b></div>' +
+      '<div class="dir-atl"><span>Cashback</span><b>' + dirR(T.cash || 0) + '</b></div></div>' +
     '<div class="dir-k"><div class="t">Despesas (ano)</div><div class="v neg">' + dirR(T.projDesp) + '</div>' +
       '<div class="s">Custos ' + dirR(T.custo) + ' · NF do patrocínio ' + dirR(T.nf) + '</div>' +
       (semCusto ? '<div class="s"><b class="neg">' + semCusto + ' evento(s) sem custo por atleta</b></div>' : '') + '</div>' +
