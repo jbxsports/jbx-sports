@@ -2228,6 +2228,12 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-fim .big b{font-size:26px;color:#ff9a57;}
 .orc-fim input{width:150px;font-family:'Ubuntu',sans-serif;font-size:17px;font-weight:700;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;text-align:right;}
 .orc-fim input:focus{outline:none;border-color:#ff9a57;}
+.orc-graf{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+.orc-gbox{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px;}
+.orc-gbox h3{font-size:14px;letter-spacing:-.2px;margin-bottom:2px;}
+.orc-gbox small{display:block;font-size:12px;color:var(--muted);margin-bottom:10px;}
+.orc-gcv{position:relative;height:300px;}
+@media(max-width:1100px){.orc-graf{grid-template-columns:1fr;}}
 .orc-vazio{padding:50px 20px;text-align:center;color:var(--muted);}
 .orc-novo-g{margin-top:4px;font-family:'Ubuntu',sans-serif;font-size:12.5px;font-weight:700;color:var(--muted);background:none;border:1.5px dashed #d6cfc6;border-radius:12px;padding:12px;width:100%;cursor:pointer;}
 .orc-novo-g:hover{color:var(--orange);border-color:var(--orange);}
@@ -3560,6 +3566,8 @@ function orcRender(){
   h+='<div id="orc-grupos"></div>';
   h+='<button class="orc-novo-g" onclick="orcNovoGrupo()">＋ Novo grupo</button>';
   h+='<div class="orc-fim" id="orc-fim"></div>';
+  h+='<div class="orc-graf"><div class="orc-gbox"><h3>Custo por atleta de cada grupo</h3><small id="orc-gr-atl-sub"></small><div class="orc-gcv" id="orc-gcv-atl"><canvas id="orc-gr-atl"></canvas></div></div>'
+    +'<div class="orc-gbox"><h3>Pago x a pagar</h3><small id="orc-gr-pg-sub"></small><div class="orc-gcv" id="orc-gcv-pg"><canvas id="orc-gr-pg"></canvas></div></div></div>';
   h+='<datalist id="orc-dl-forn"></datalist>';
   corpo.innerHTML=h;
   orcRenderGrupos(); orcAtualizarTotais(); orcDatalist();
@@ -3637,6 +3645,46 @@ function orcAtualizarTotais(){
    +'<div><span>Gestão JBX Sports</span><input value="'+orcNumFmt(orcCab.gestao,2)+'" onchange="orcCabNum(\'gestao\',this)"></div>'
    +'<div class="big"><span>Projeto + ISS + gestão</span><b>'+orcR(t.final)+'</b></div>';
   const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it){ it.total=t.total; it.pago=t.pago; }
+  clearTimeout(window._orcGr); window._orcGr=setTimeout(orcGraficos,250);
+}
+
+/* ── gráficos no fim da aba ── */
+let orcChAtl=null, orcChPg=null;
+function orcGraficos(){
+  const ca=document.getElementById('orc-gr-atl'), cp=document.getElementById('orc-gr-pg');
+  if(!ca||!cp||typeof Chart==='undefined'||!orcCab) return;
+  const atl=Number(orcCab.atletas)||0;
+  const G=orcCab.grupos.map(function(g){ let s=0,p=0; orcGrupoItens(g).forEach(function(i){ s+=orcTotalItem(i); p+=orcPagoValor(i); }); return {g:g,s:s,p:p,a:s-p}; })
+    .filter(function(x){return x.s!==0;});
+  const alt=Math.max(220,G.length*34+50);
+  document.getElementById('orc-gcv-atl').style.height=alt+'px'; document.getElementById('orc-gcv-pg').style.height=alt+'px';
+  const ordA=G.slice().sort(function(a,b){return b.s-a.s;});
+  const fmt=function(v){return orcR(v);};
+  const eixo={grid:{color:'rgba(42,37,32,.06)'},ticks:{font:{family:'Ubuntu',size:11},color:'#7a7068',maxRotation:0}};
+  /* escreve o valor no fim de cada barra */
+  const rotulos=function(txt){ return {id:'orcRot',afterDatasetsDraw:function(ch){ const c=ch.ctx, n=ch.data.datasets.length, meta=ch.getDatasetMeta(n-1);
+    c.save(); c.font='700 11.5px Ubuntu, sans-serif'; c.fillStyle='#2a2520'; c.textBaseline='middle';
+    meta.data.forEach(function(bar,k){ c.fillText(txt(k),bar.x+6,bar.y); }); c.restore(); }}; };
+  const rot={grid:{display:false},ticks:{font:{family:'Ubuntu',size:12},color:'#2a2520',autoSkip:false}};
+  /* custo por atleta */
+  const tot=G.reduce(function(a,x){return a+x.s;},0);
+  document.getElementById('orc-gr-atl-sub').textContent=atl?('Total '+orcR(tot/atl)+' por atleta · '+atl.toLocaleString('pt-BR')+' atletas'):'Informe o número de atletas lá em cima para ver por atleta (mostrando o valor total).';
+  if(orcChAtl) orcChAtl.destroy();
+  orcChAtl=new Chart(ca,{type:'bar',data:{labels:ordA.map(function(x){return x.g;}),datasets:[{data:ordA.map(function(x){return atl?Math.round(x.s/atl*100)/100:x.s;}),backgroundColor:'#FF751F',borderRadius:5,barThickness:20}]},
+    plugins:[rotulos(function(k){ const x=ordA[k]; return atl?orcR(x.s/atl):orcR0(x.s); })],
+    options:{indexAxis:'y',maintainAspectRatio:false,animation:false,layout:{padding:{right:90}},plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){ const x=ordA[c.dataIndex]; return atl?(fmt(c.raw)+' por atleta · '+fmt(x.s)+' no total · '+(tot?Math.round(x.s/tot*100):0)+'% do custo'):fmt(x.s); }}}},
+      scales:{x:Object.assign({},eixo,{ticks:Object.assign({},eixo.ticks,{callback:function(v){return 'R$ '+Number(v).toLocaleString('pt-BR');}})}),y:rot}}});
+  /* pago x a pagar */
+  const pg=G.reduce(function(a,x){return a+x.p;},0);
+  document.getElementById('orc-gr-pg-sub').textContent='Pago '+orcR(pg)+' · a pagar '+orcR(tot-pg)+' · '+(tot?Math.round(pg/tot*100):0)+'% pago';
+  if(orcChPg) orcChPg.destroy();
+  orcChPg=new Chart(cp,{type:'bar',data:{labels:ordA.map(function(x){return x.g;}),datasets:[
+      {label:'Pago',data:ordA.map(function(x){return Math.round(x.p*100)/100;}),backgroundColor:'#16a34a',borderRadius:4,barThickness:20},
+      {label:'A pagar',data:ordA.map(function(x){return Math.round(x.a*100)/100;}),backgroundColor:'#93b4f5',borderRadius:4,barThickness:20}]},
+    plugins:[rotulos(function(k){ const x=ordA[k]; return x.s?Math.round(x.p/x.s*100)+'% pago':''; })],
+    options:{indexAxis:'y',maintainAspectRatio:false,animation:false,layout:{padding:{right:70}},
+      plugins:{legend:{position:'top',align:'end',labels:{font:{family:'Ubuntu',size:12},boxWidth:12,boxHeight:12}},tooltip:{callbacks:{label:function(c){return c.dataset.label+': '+fmt(c.raw);}}}},
+      scales:{x:Object.assign({},eixo,{stacked:true,ticks:Object.assign({},eixo.ticks,{callback:function(v){return 'R$ '+Number(v/1000).toLocaleString('pt-BR')+' mil';}})}),y:Object.assign({},rot,{stacked:true})}}});
 }
 
 function orcDatalist(){
