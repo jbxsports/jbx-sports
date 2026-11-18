@@ -2136,6 +2136,9 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .nps-modal .ln span:last-child{font-weight:700;text-align:right;}
 .nps-vazio{padding:50px 20px;text-align:center;color:var(--muted);}
 @media(max-width:860px){.nps-hero,.nps-dest{grid-template-columns:1fr;}.nps-q{grid-template-columns:1fr 60px;}.nps-q .nps-pilha{grid-column:1/-1;grid-row:2;}.nps-op{grid-template-columns:1fr 80px;}.nps-op .tr{grid-column:1/-1;}}
+.prz-obs{display:block;max-width:150px;margin-top:5px;font-family:'Ubuntu',sans-serif;font-size:10.5px;font-weight:500;color:var(--muted);background:none;border:1px dashed #d6cfc6;border-radius:6px;padding:3px 7px;cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.75;}
+.prz-obs:hover{opacity:1;border-color:var(--orange);color:var(--orange);}
+.prz-obs.tem{opacity:1;border:1px solid rgba(255,117,31,.35);background:#fff4ec;color:#9a3412;font-weight:700;}
 </style>
 </head>
 <body>
@@ -3192,7 +3195,7 @@ let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={}
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
-const RPC_PROTEGIDAS=['nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
+const RPC_PROTEGIDAS=['admin_prazos_obs_listar','admin_prazos_obs_salvar','nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_camp_tarefas_listar','admin_camp_tarefa_salvar','admin_camp_tarefa_excluir',
   'admin_camp_lote_criar',
   'admin_camp_alvos_definir','admin_camp_alvos_listar','admin_camp_marcar',
@@ -9202,7 +9205,7 @@ function calBuildResumido(){
 // ── Filtra eventos pelo ano selecionado (usada por stats e builds) ──
 
 /* ══ PRAZOS (vista do calendário) ══ */
-let _przAssuntos=[], _przStatus={}, _przCarregado=false;
+let _przAssuntos=[], _przStatus={}, _przCarregado=false, _przObs={};
 
 async function calPrazosInit(){
   const pane=document.getElementById('cal-pane-prazos');
@@ -9214,6 +9217,9 @@ async function calPrazosInit(){
       _przAssuntos=ass||[];
       _przStatus={};
       (st||[]).forEach(r=>{_przStatus[r.calendario_id+'|'+r.assunto_id]=r;});
+      _przObs={};
+      try{ const ob=await rpc('admin_prazos_obs_listar'); (ob||[]).forEach(r=>{ _przObs[r.calendario_id+'|'+r.assunto_id]=r.texto; }); }
+      catch(e){ console.warn('Nome do contratado indisponível — rode 05_prazos_nome_contratado.sql.',e); }
       _przCarregado=true;
     }catch(e){
       pane.innerHTML='<div class="empty-state">Rode a migração SQL dos prazos no Supabase para ativar esta vista.</div>';
@@ -9262,7 +9268,7 @@ function calBuildPrazos(){
         +'<button class="cal-check-btn'+(feito?' checked':'')+'" onclick="przToggleFeito(\''+evId+'\',\''+calEsc(a.id)+'\')" title="Marcar como feito">'+(feito?'✓':'')+'</button>'
         +'<input type="number" min="0" class="prz-dias" value="'+calEsc(dias)+'" title="Dias antes do evento (só para este evento)" onchange="przEditarDias(\''+evId+'\',\''+calEsc(a.id)+'\',this.value)">'
         +'<span style="font-size:9px;color:var(--muted);">d</span>'
-        +'</span></div></td>';
+        +'</span>'+przObsHtml(e.id,a)+'</div></td>';
     }).join('');
     return '<tr'+(e.realizado?' style="opacity:.55;"':'')+'>'
       +'<td class="cal-col-evt" style="min-width:150px;">'+calEsc(e.evento)+'<div style="font-size:10px;color:var(--muted);font-weight:400;">'+fmtDS(e.inicio)+' · '+calEsc(e.cidade)+'</div></td>'
@@ -9274,6 +9280,26 @@ function calBuildPrazos(){
     +'<div class="cal-tab-wrap"><table class="cal-lista cal-prazos"><thead><tr><th>Evento</th>'+ths+'</tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
+function przRotuloObs(a){ return /locu/i.test(a.nome||'')?'locutor':'contratado'; }
+function przObsHtml(evId,a){
+  const t=_przObs[evId+'|'+a.id]||'', rot=przRotuloObs(a);
+  const on='przEditarObs(\''+calEsc(evId)+'\',\''+calEsc(a.id)+'\')';
+  if(t) return '<button class="prz-obs tem" onclick="'+on+'" title="'+calEsc(rot==='locutor'?'Locutor contratado':'Contratado')+' — clique para editar">'+(rot==='locutor'?'🎤 ':'👤 ')+calEsc(t)+'</button>';
+  return '<button class="prz-obs" onclick="'+on+'">+ '+rot+'</button>';
+}
+async function przEditarObs(evId,assId){
+  const a=_przAssuntos.find(x=>String(x.id)===String(assId))||{}, k=evId+'|'+assId;
+  const rot=przRotuloObs(a)==='locutor'?'Nome do locutor contratado':'Nome do contratado ('+(a.nome||'')+')';
+  const v=prompt(rot+' (deixe vazio para apagar):',_przObs[k]||'');
+  if(v===null) return;
+  const t=v.trim().slice(0,200);
+  const antes=_przObs[k];
+  if(t) _przObs[k]=t; else delete _przObs[k];
+  przRefresh(); calSalvandoUI(1);
+  try{ const r=await rpc('admin_prazos_obs_salvar',{p_calendario_id:String(evId),p_assunto_id:String(assId),p_texto:t}); if(!r||!r.ok) throw new Error('falhou'); calSalvandoUI(2); }
+  catch(e){ if(antes) _przObs[k]=antes; else delete _przObs[k]; przRefresh(); calSalvandoUI(3); console.error(e);
+    alert('Não consegui salvar o nome. Confira se o arquivo 05_prazos_nome_contratado.sql já foi rodado no Supabase.'); }
+}
 function przRefresh(){ document.getElementById('cal-pane-prazos').innerHTML=calBuildPrazos(); }
 
 // ── TAREFAS (checklist com responsável) ──
