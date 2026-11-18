@@ -2280,13 +2280,13 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
         <button class="nav-btn" id="nav-config" onclick="abrirConfiguracoes()" style="display:none;"></button>
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
+        <button class="nav-btn" id="nav-orcamentos" onclick="showInner('orcamentos')">Orçamentos</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
         <button class="nav-btn" id="nav-propostas" onclick="showInner('propostas')">Propostas</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-nps" onclick="showInner('nps')">Pesquisas NPS</button>
-        <button class="nav-btn" id="nav-orcamentos" onclick="showInner('orcamentos')">Orçamentos</button>
         <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
         <button class="nav-btn" id="nav-links" onclick="showInner('links')">Links / Drives</button>
         <button class="nav-btn" id="nav-diretoria" onclick="showInner('diretoria')" style="display:none;">Diretoria</button>
@@ -16364,7 +16364,8 @@ async function patTirarDoFunil(){
    Irmãos = assuntos (colunas). Filhos = telas daquele assunto.
    Nó com id abre a tela; nó com "grupo" é só o título do assunto. */
 const INI_ORG=[
-  {id:'calendario', rot:'Calendário',   ic:'📅', cor:'#3B82F6', sub:'Eventos e datas'},
+  {id:'calendario', rot:'Calendário',   ic:'📅', cor:'#3B82F6', sub:'Eventos e datas', filhos:[
+     {id:'orcamentos',   rot:'Orçamentos',      ic:'🧾'}]},
   {id:'dash',       rot:'Dashboard',    ic:'📊', cor:'#FF751F', sub:'Números gerais', filhos:[
      {id:'cupons',       rot:'Cupons',          ic:'🎟️'},
      {id:'links',        rot:'Links / Drives',  ic:'🔗'}]},
@@ -16380,8 +16381,7 @@ const INI_ORG=[
   {grupo:'Planejamento',                 ic:'🗂️', cor:'#FB923C', filhos:[
      {id:'planos',       rot:'Plano de Evento', ic:'📋'},
      {id:'mapas',        rot:'Mapas',           ic:'🧠'},
-     {id:'reunioes',     rot:'Reuniões',        ic:'🤝'},
-     {id:'orcamentos',   rot:'Orçamentos',      ic:'🧾'}]},
+     {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
   {id:'propostas',  rot:'Propostas',    ic:'📝', cor:'#14B8A6', sub:'Briefings de empresas', cima:true},
   {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'}]},
