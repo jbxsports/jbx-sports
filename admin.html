@@ -2256,6 +2256,8 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-orc-hint{margin-top:6px;font-size:12px;line-height:1.45;color:#9a3412;background:#fff4ec;border:1px solid rgba(255,117,31,.3);border-radius:8px;padding:8px 10px;}
 .dir-orc-hint a{color:var(--orange);font-weight:700;}
 #dir-f-custo-atl:disabled{background:#f4f0eb;color:var(--text);font-weight:700;}
+.orc-prop-aviso{background:#ecfdf5;border:1px solid #99f6e4;color:#115e59;border-radius:10px;padding:10px 14px;font-size:12.5px;line-height:1.5;margin-bottom:14px;}
+.orc-prop-aviso a{color:#0f766e;font-weight:700;}
 </style>
 </head>
 <body>
@@ -2292,9 +2294,9 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
         <button class="nav-btn" id="nav-financeiro" onclick="showInner('financeiro')">Financeiro</button>
         <button class="nav-btn" id="nav-calendario" onclick="showInner('calendario')">Calendário</button>
         <button class="nav-btn" id="nav-orcamentos" onclick="showInner('orcamentos')">Orçamentos</button>
+        <button class="nav-btn" id="nav-propostas" onclick="showInner('propostas')">Propostas</button>
         <button class="nav-btn" id="nav-social" onclick="showInner('social')">Social Media</button>
         <button class="nav-btn" id="nav-marcas" onclick="showInner('marcas')">Marcas</button>
-        <button class="nav-btn" id="nav-propostas" onclick="showInner('propostas')">Propostas</button>
         <button class="nav-btn" id="nav-reunioes" onclick="showInner('reunioes')">Reuniões</button>
         <button class="nav-btn" id="nav-divulgadores" onclick="showInner('divulgadores')">Divulgadores</button>
         <button class="nav-btn" id="nav-nps" onclick="showInner('nps')">Pesquisas NPS</button>
@@ -3313,7 +3315,7 @@ let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={}
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
-const RPC_PROTEGIDAS=['orc_itens_ordenar','orc_listar','orc_ler','orc_criar','orc_salvar','orc_excluir','orc_item_salvar','orc_item_excluir','orc_grupo_renomear','admin_prazos_obs_listar','admin_prazos_obs_salvar','nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
+const RPC_PROTEGIDAS=['orc_de_proposta','orc_itens_ordenar','orc_listar','orc_ler','orc_criar','orc_salvar','orc_excluir','orc_item_salvar','orc_item_excluir','orc_grupo_renomear','admin_prazos_obs_listar','admin_prazos_obs_salvar','nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_camp_tarefas_listar','admin_camp_tarefa_salvar','admin_camp_tarefa_excluir',
   'admin_camp_lote_criar',
   'admin_camp_alvos_definir','admin_camp_alvos_listar','admin_camp_marcar',
@@ -3510,10 +3512,12 @@ async function orcInit(){
 
 function orcMontarSelect(){
   const sel=document.getElementById('orc-sel'); sel.innerHTML='';
-  const mods=orcLista.filter(function(o){return o.modelo;}), provas=orcLista.filter(function(o){return !o.modelo;});
+  const mods=orcLista.filter(function(o){return o.modelo;}), provas=orcLista.filter(function(o){return !o.modelo&&!o.proposta_id;}),
+    props=orcLista.filter(function(o){return !o.modelo&&o.proposta_id;});
   function add(par,o){ const op=document.createElement('option'); op.value=o.id;
-    op.textContent=(o.modelo?'⭐ ':'')+o.nome+(o.evento_data?' · '+orcDataBR(o.evento_data):'')+' — '+orcR0(o.total); par.appendChild(op); }
+    op.textContent=(o.modelo?'⭐ ':o.proposta_id?'📝 ':'')+(o.protocolo?o.protocolo+' · ':'')+o.nome+(o.evento_data?' · '+orcDataBR(o.evento_data):'')+' — '+orcR0(o.total); par.appendChild(op); }
   if(provas.length){ const g=document.createElement('optgroup'); g.label='Provas'; provas.forEach(function(o){add(g,o);}); sel.appendChild(g); }
+  if(props.length){ const g=document.createElement('optgroup'); g.label='Vindos de propostas (briefings do site)'; props.forEach(function(o){add(g,o);}); sel.appendChild(g); }
   if(mods.length){ const g=document.createElement('optgroup'); g.label='Modelos (base para novos orçamentos)'; mods.forEach(function(o){add(g,o);}); sel.appendChild(g); }
 }
 
@@ -3568,6 +3572,10 @@ function orcRender(){
     +(c.modelo?'':'<div><label>Evento do Calendário</label><select onchange="orcVincular(this.value)" style="max-width:300px;">'+evOpts+'</select></div>')
     +'<div><label>Atletas</label><input type="number" min="0" value="'+orcEsc(c.atletas||'')+'" style="width:110px;" onchange="orcCabSalvar({atletas:this.value})"></div>'
     +'<div><label>Nome</label><input value="'+orcEsc(c.nome)+'" style="width:230px;" onchange="orcRenomear(this.value)"></div></div>';
+  if(c.proposta_id){ const it=orcLista.find(function(o){return o.id===orcAtual;})||{};
+    h+='<div class="orc-prop-aviso">📝 Criado automaticamente do briefing <b>'+orcEsc(it.protocolo||'')+'</b>'+(it.empresa?' · '+orcEsc(it.empresa):'')
+      +' — itens que o cliente marcou, com preço e fornecedor do Modelo base. Confira quantidades e complete o que for interno (equipe, fretes, cronometragem…).'
+      +' <a href="#" onclick="event.preventDefault();orcAbrirProposta(\''+orcEsc(c.proposta_id)+'\')">Abrir proposta →</a></div>'; }
   if(c.modelo) h+='<div class="orc-modelo-aviso">⭐ Você está editando o <b>modelo base</b>. O que mudar aqui vale para os <b>próximos</b> orçamentos criados a partir dele; os orçamentos já criados não mudam.</div>';
   /* KPIs */
   h+='<div class="orc-kpis" id="orc-kpis"></div>';
@@ -4096,6 +4104,27 @@ function orcDocHTML(op){
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Escopo — '+E(nomeEv)+'</title>'
     +'<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">'
     +'<style>'+css+'</style></head><body>'+capa+sobre+corpoEscopo+invest+'</body></html>';
+}
+
+/* ── ligação com a aba Propostas ── */
+async function orcAbrirProposta(pid){
+  showInner('propostas');
+  for(let k=0;k<40;k++){
+    if(typeof propLista!=='undefined'&&propLista.some(function(p){return String(p.id)===String(pid);})){ propAbrir(pid); return; }
+    await new Promise(function(r){setTimeout(r,150);});
+  }
+}
+async function propIrOrcamento(){
+  const p=propAtual; if(!p)return;
+  const btn=document.getElementById('prp-d-orc2'), txt=btn.textContent; btn.disabled=true; btn.textContent='Abrindo…';
+  try{
+    const r=await rpc('orc_de_proposta',{p_proposta:String(p.id)});
+    if(!r||!r.ok) throw new Error((r&&r.erro)||'falhou');
+    orcAtual=r.id; try{localStorage.setItem('jbx_orc_atual',r.id);}catch(e){}
+    if(typeof propFechar==='function') propFechar();
+    showInner('orcamentos');
+  }catch(e){ alert('Não consegui abrir o orçamento: '+orcErro(e)+'\nJá rodou o 14_orc_de_proposta.sql no Supabase?'); }
+  finally{ btn.disabled=false; btn.textContent=txt; }
 }
 
 /* ── Excel ── */
@@ -16545,7 +16574,8 @@ async function patTirarDoFunil(){
    Nó com id abre a tela; nó com "grupo" é só o título do assunto. */
 const INI_ORG=[
   {id:'calendario', rot:'Calendário',   ic:'📅', cor:'#3B82F6', sub:'Eventos e datas', filhos:[
-     {id:'orcamentos',   rot:'Orçamentos',      ic:'🧾'}]},
+     {id:'orcamentos',   rot:'Orçamentos',      ic:'🧾'},
+     {id:'propostas',    rot:'Propostas',       ic:'📝', sub:'Briefings de empresas'}]},
   {id:'dash',       rot:'Dashboard',    ic:'📊', cor:'#FF751F', sub:'Números gerais', filhos:[
      {id:'cupons',       rot:'Cupons',          ic:'🎟️'},
      {id:'links',        rot:'Links / Drives',  ic:'🔗'}]},
@@ -16562,7 +16592,6 @@ const INI_ORG=[
      {id:'planos',       rot:'Plano de Evento', ic:'📋'},
      {id:'mapas',        rot:'Mapas',           ic:'🧠'},
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
-  {id:'propostas',  rot:'Propostas',    ic:'📝', cor:'#14B8A6', sub:'Briefings de empresas', cima:true},
   {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'}]},
   {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
@@ -18868,6 +18897,7 @@ document.addEventListener('DOMContentLoaded',function(){
       <button class="mkt-btn" onclick="propImprimirUma()">🖨 Imprimir PDF</button>
       <button class="mkt-btn" onclick="propExcelUma()">⬇ Exportar Excel</button>
       <button class="mkt-btn" id="prp-d-orc" style="display:none;" onclick="propPlanilhaOrc()" title="Gera a sua planilha de custos com o que o cliente pediu — uso interno">📊 Planilha de orçamento</button>
+      <button class="mkt-btn primary" id="prp-d-orc2" onclick="propIrOrcamento()" title="Abre na aba Orçamentos o orçamento deste briefing (cria se ainda não existir)">🧾 Orçamento</button>
       <button class="mkt-btn" id="prp-d-whats">WhatsApp</button>
     </div>
   </div>
