@@ -2223,7 +2223,7 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-add{display:flex;gap:8px;padding:8px 12px 12px;}
 .orc-add button{font-family:'Ubuntu',sans-serif;font-size:12px;font-weight:700;color:var(--orange);background:none;border:1px dashed rgba(255,117,31,.5);border-radius:8px;padding:7px 14px;cursor:pointer;}
 .orc-add button:hover{background:#fff4ec;}
-.orc-fim{background:#1c1814;color:#fff;border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:center;margin-top:16px;}
+.orc-fim{background:#1c1814;color:#fff;border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:center;margin-top:16px;}
 .orc-fim span{display:block;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:5px;}
 .orc-fim b{font-size:20px;letter-spacing:-.3px;}
 .orc-fim .big b{font-size:26px;color:#ff9a57;}
@@ -3542,7 +3542,8 @@ function orcTotais(){
   const t={total:0,pago:0,apagar:0,semForn:0,semValor:0,n:orcItens.length};
   orcItens.forEach(function(i){ const v=orcTotalItem(i), pg=orcPagoValor(i); t.total+=v; t.pago+=pg; t.apagar+=v-pg;
     if(!i.fornecedor&&v!==0)t.semForn++; if(i.v_unit==null||i.v_unit==='')t.semValor++; });
-  t.iss=Number(orcCab.iss)||0; t.gestao=Number(orcCab.gestao)||0; t.final=t.total+t.iss+t.gestao;
+  /* ISS agora é lançado como item (ex.: Autorizações / alvarás) — não soma mais à parte */
+  t.gestao=Number(orcCab.gestao)||0; t.final=t.total+t.gestao;
   return t;
 }
 
@@ -3644,9 +3645,8 @@ function orcAtualizarTotais(){
   const f=document.getElementById('orc-fim');
   if(f&&!f.contains(document.activeElement)) f.innerHTML=
     '<div><span>Custo real do projeto</span><b>'+orcR(t.total)+'</b></div>'
-   +'<div><span>Imposto ISS</span><input value="'+orcNumFmt(orcCab.iss,2)+'" onchange="orcCabNum(\'iss\',this)"></div>'
    +'<div><span>Gestão JBX Sports</span><input value="'+orcNumFmt(orcCab.gestao,2)+'" onchange="orcCabNum(\'gestao\',this)"></div>'
-   +'<div class="big"><span>Projeto + ISS + gestão</span><b>'+orcR(t.final)+'</b></div>';
+   +'<div class="big"><span>Projeto + gestão JBX</span><b>'+orcR(t.final)+'</b></div>';
   const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it){ it.total=t.total; it.pago=t.pago; }
   clearTimeout(window._orcGr); window._orcGr=setTimeout(orcGraficos,250);
 }
@@ -3954,9 +3954,8 @@ function orcExportar(){
   });
   const t=orcTotais();
   L.push(['','CUSTO REAL DO PROJETO','','','',Math.round(t.total*100)/100]);
-  L.push(['','IMPOSTO ISS','','','',t.iss]);
   L.push(['','GESTÃO JBX SPORTS','','','',t.gestao]);
-  L.push(['','PROJETO + ISS + GESTÃO','','','',Math.round(t.final*100)/100]);
+  L.push(['','PROJETO + GESTÃO JBX','','','',Math.round(t.final*100)/100]);
   L.push(['','PAGO','','','',Math.round(t.pago*100)/100]);
   L.push(['','A PAGAR','','','',Math.round(t.apagar*100)/100]);
   const ws=XLSX.utils.aoa_to_sheet(L);
