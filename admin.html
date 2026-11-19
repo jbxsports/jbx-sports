@@ -2318,6 +2318,9 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-lig{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f4f0eb;color:#6b5f55;}
 .orc-lig.on{background:#e8f7ee;color:#15803d;}
 .orc-lig.off{background:#fdecec;color:#b91c1c;}
+.orc-auto{display:block;width:max-content;margin:0 0 2px auto;font-size:9.5px;font-weight:800;letter-spacing:.3px;color:#15803d;background:#e8f7ee;border-radius:999px;padding:1px 6px;cursor:help;}
+.orc-auto.man{color:#9a3412;background:#fff4ec;cursor:pointer;}
+.orc-auto.man:hover{text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -3600,7 +3603,9 @@ async function orcAtlMudar(inp){
   }
   const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it) it.atletas=q;
   await orcCabSalvar({atletas:q});
-  if(ev) orcRender();
+  orcCab.atletas=q;
+  const mud=await orcAplicarRegras();
+  if(ev||mud) orcRender();
 }
 async function orcInit(){
   try{ try{orcFechados=JSON.parse(localStorage.getItem('jbx_orc_fechados')||'[]')||[];}catch(e){orcFechados=[];}
@@ -3727,6 +3732,7 @@ async function orcCarregar(){
     if(mesmos.length===1){ orcCab.calendario_id=String(mesmos[0].id); rpc('orc_salvar',{p_dados:{id:orcAtual,calendario_id:orcCab.calendario_id}}).catch(function(){}); }
   }
   orcSyncCal(orcCab);
+  await orcAplicarRegras();
   orcRender();
 }
 
@@ -3820,7 +3826,10 @@ function orcLinhaHtml(i,num){
     +'<td class="orc-num"><span class="orc-alca" title="Arraste para mover" onmousedown="orcAlca(this)" ontouchstart="orcAlca(this)">⠿</span>'+num+'</td>'
     +'<td style="width:30%;min-width:260px;"><input class="orc-in item" value="'+orcEsc(i.item)+'" placeholder="Item" onchange="orcCampo(\''+id+'\',\'item\',this.value)"></td>'
     +'<td class="c-desc" style="min-width:150px;"><input class="orc-in desc" value="'+orcEsc(i.descricao||'')+'" placeholder="Descrição" onchange="orcCampo(\''+id+'\',\'descricao\',this.value)"></td>'
-    +'<td style="width:86px;"><input class="orc-in n" inputmode="decimal" value="'+orcEsc(orcNumFmt(i.qtde,0))+'" placeholder="—" onchange="orcCampo(\''+id+'\',\'qtde\',this.value,this)"></td>'
+    +'<td style="width:86px;">'+(function(){ const rg=orcRegra(i); if(!rg) return '';
+        return orcAuto(i)?'<span class="orc-auto" title="Automático: '+orcEsc(rg.txt)+'. Digite outra quantidade para fixar manual.">⚡ auto</span>'
+          :'<span class="orc-auto man" title="Quantidade manual. Clique para voltar a seguir a regra ('+orcEsc(rg.txt)+')." onclick="orcAutoVoltar(\''+id+'\')">✋ manual</span>'; })()
+      +'<input class="orc-in n" inputmode="decimal" value="'+orcEsc(orcNumFmt(i.qtde,0))+'" placeholder="—" onchange="orcCampo(\''+id+'\',\'qtde\',this.value,this)"></td>'
     +'<td style="width:120px;"><input class="orc-in n" inputmode="decimal" value="'+orcEsc(orcNumFmt(i.v_unit,2))+'" placeholder="R$" onchange="orcCampo(\''+id+'\',\'v_unit\',this.value,this)"></td>'
     +tot
     +'<td style="min-width:160px;"><input class="orc-in forn" list="orc-dl-forn" value="'+orcEsc(i.fornecedor||'')+'" placeholder="Fornecedor" onchange="orcCampo(\''+id+'\',\'fornecedor\',this.value)"></td>'
@@ -3935,6 +3944,45 @@ function orcDatalist(){
 }
 
 /* ── gravação ── */
+/* ── regras de quantidade: itens que acompanham o número de atletas ──
+   valem enquanto o item estiver no automático (qtde_auto); digitou a quantidade → vira manual (⚡ volta pro automático) */
+const ORC_REGRAS=[
+  {re:/^seguro/,                 txt:'atletas',          f:function(n){return n;}},
+  {re:/^camisetas? (de )?atleta/, txt:'atletas + 2%',    f:function(n){return Math.ceil(n*1.02);}},
+  {re:/^numera(l|is)/,           txt:'atletas + 2%',     f:function(n){return Math.ceil(n*1.02);}},
+  {re:/^medalhas?\b/,            txt:'atletas + 2%',     f:function(n){return Math.ceil(n*1.02);}},
+  {re:/^agua (para )?(os )?atleta/, txt:'atletas × 5 ÷ 48', f:function(n){return Math.ceil(n*5/48);}},
+  {re:/^sacolas?\b/,             txt:'atletas',          f:function(n){return n;}},
+  {re:/^banheiros?\b/,           txt:'atletas ÷ 90',     f:function(n){return Math.ceil(n/90);}}
+];
+function orcRegra(i){
+  const nome=String(i&&i.item||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  for(const r of ORC_REGRAS){ if(r.re.test(nome)) return r; }
+  return null;
+}
+function orcAuto(i){ return i.qtde_auto!==false; }
+/* recalcula as quantidades automáticas pelo número de atletas e grava só o que mudou */
+async function orcAplicarRegras(soItem){
+  if(!orcCab) return 0;
+  const n=Number(orcCab.atletas)||0; if(!n) return 0;
+  const mudar=[];
+  orcItens.forEach(function(i){
+    if(soItem&&i.id!==soItem) return;
+    const r=orcRegra(i); if(!r||!orcAuto(i)||i.pago) return;
+    const q=r.f(n); if(Number(i.qtde)===q) return;
+    i.qtde=q; mudar.push(i);
+  });
+  if(!mudar.length) return 0;
+  orcSalvo(1);
+  try{ await Promise.all(mudar.map(function(i){ return rpc('orc_item_salvar',{p_dados:{id:i.id,qtde:i.qtde}}); })); orcSalvo(2); }
+  catch(e){ orcSalvo(3); console.error(e); }
+  return mudar.length;
+}
+async function orcAutoVoltar(id){
+  const i=orcItens.find(function(x){return x.id===id;}); if(!i)return;
+  i.qtde_auto=true; await orcSalvarItem({id:id,qtde_auto:true});
+  await orcAplicarRegras(id); orcRender();
+}
 async function orcSalvarItem(dados){
   orcSalvo(1);
   try{ const r=await rpc('orc_item_salvar',{p_dados:dados}); if(!r||!r.ok) throw new Error('falhou'); orcSalvo(2); return r; }
@@ -3952,7 +4000,11 @@ async function orcCampo(id,campo,valor,inp){
     else { const tr=document.getElementById('orc-tr-'+id); if(tr){ const gi=orcCab.grupos.indexOf(i.grupo); const tmp=document.createElement('tbody'); tmp.innerHTML=orcLinhaHtml(i,tr.dataset.num); tr.replaceWith(tmp.firstChild); } }
   }
   orcAtualizarTotais(); if(campo==='fornecedor') orcDatalist();
-  const d={id:id}; d[campo]=(v==null?'':v); await orcSalvarItem(d);
+  const d={id:id}; d[campo]=(v==null?'':v);
+  if(campo==='qtde'&&orcRegra(i)&&orcAuto(i)){ const r=orcRegra(i), n=Number(orcCab.atletas)||0; if(!n||Number(v)!==r.f(n)){ i.qtde_auto=false; d.qtde_auto=false; } }
+  await orcSalvarItem(d);
+  if(campo==='qtde'&&orcRegra(i)){ orcRender(); return; }
+  if(campo==='item'&&orcRegra(i)&&orcAuto(i)){ if(await orcAplicarRegras(id)) orcRender(); }
 }
 /* ── pagamento (integral ou parcial) ── */
 let orcPgId=null;
@@ -4091,7 +4143,7 @@ async function orcDirMeta(qual,inp){
   else { const v=orcParse(inp.value); t=v==null?null:v; inp.value=v==null?'':orcNumFmt(v,2); }
   orcSalvo(1);
   try{ await dirSalvarMetaInsc(orcCab.calendario_id,q,t); orcSalvo(2);
-    if(q!==undefined){ const ev=orcEvCal(orcCab); if(ev) ev.publico=q; const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it) it.atletas=q; await orcCabSalvar({atletas:q}); orcRender(); return; } }
+    if(q!==undefined){ const ev=orcEvCal(orcCab); if(ev) ev.publico=q; const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it) it.atletas=q; await orcCabSalvar({atletas:q}); orcCab.atletas=q; await orcAplicarRegras(); orcRender(); return; } }
   catch(e){ orcSalvo(3); alert('Não consegui salvar na Diretoria: '+orcErro(e)); }
   orcAtualizarTotais();
 }
@@ -12351,7 +12403,7 @@ async function dirInit(){
   dirRender();
 }
 /* carrega tudo que a Diretoria usa (também usado pela aba Orçamentos, para os dois mostrarem os mesmos números) */
-let dirCarregadoEm = 0;
+var dirCarregadoEm = 0;
 async function dirCarregar(){
   const d = await rpc('dir_dados');
   const res = await Promise.all([
