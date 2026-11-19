@@ -12366,10 +12366,11 @@ async function dirCarregar(){
   (Array.isArray(res[4]) ? res[4] : []).forEach(function(o){
     if (o.modelo || !o.calendario_id || o.status !== 'real') return;   /* só o orçamento verde alimenta a Diretoria */
     const tot = Number(o.total) || 0, atl = Number(o.atletas) || 0;
-    if (!(tot > 0)) return;
+    if (!(tot > 0) && !(Number(o.valor_contrato) > 0)) return;
     const k = String(o.calendario_id), atual = dirOrc[k];
     if (atual && String(atual.atualizado_em || '') > String(o.atualizado_em || '')) return;
-    dirOrc[k] = {id:o.id, nome:o.nome, total:tot, atletas:atl, custoAtl:atl ? tot / atl : 0, atualizado_em:o.atualizado_em};
+    dirOrc[k] = {id:o.id, nome:o.nome, total:tot, atletas:atl, custoAtl:atl ? tot / atl : 0, atualizado_em:o.atualizado_em,
+      contrato:o.tipo_contrato === 'interno' ? 0 : (Number(o.valor_contrato) || 0) + (Number(o.extras_valor) || 0)};
   });
   dirCal = (Array.isArray(res[0]) ? res[0] : []).map(function(r){
     return Object.assign({}, r, {inicio:String(r.inicio || '').slice(0, 10)});
@@ -12430,7 +12431,7 @@ function dirCalc(ev){
   const metaQdoCal = (Number(ev.publico) || 0) > 0 || dirN(d.meta_inscritos) === null;
   const metaQ = metaQdoCal ? (Number(ev.publico) || 0) : Number(d.meta_inscritos);
   const metaT = Number(d.meta_ticket) || 0;
-  const metaR = metaQ * metaT;
+  let metaR = metaQ * metaT;
 
   let realQ = null, realT = null, realR = null, fonte = '';
   const site = d.site_evento_id ? dirSiteMap[String(d.site_evento_id)] : null;
@@ -12457,10 +12458,20 @@ function dirCalc(ev){
   if (orc) { const atlO = metaQ || orc.atletas; orc = Object.assign({}, orc, {atletas:atlO, custoAtl:atlO ? orc.total / atlO : 0}); }
   const custoAtl = orc ? orc.custoAtl : (Number(d.custo_previsto) || 0);
 
+  /* evento de preço global (orçamento verde): a receita é o contrato + extras do orçamento, no lugar das inscrições.
+     O cashback continua sobre o faturamento de inscrições (ticket), guardado em cashBase. */
+  const contrato = orc && orc.contrato > 0 ? orc.contrato : 0;
+  const insTicketMeta = metaR, insTicketReal = realR;
+  if (contrato) {
+    metaR = contrato;
+    if (realQ === null) realQ = metaQ;
+    realR = contrato; realT = realQ ? contrato / realQ : 0; fonte = 'contrato';
+  }
+
   const metaEnt = metaR + metaPat;
   /* NF: só sobre o valor total da meta de patrocínio */
   const nfM = metaPat * aliq;
-  const custoM = custoAtl * metaQ;
+  const custoM = orc ? orc.total : custoAtl * metaQ;
   const despM = custoM + nfM;
   const resM = metaEnt - despM;
 
@@ -12480,10 +12491,11 @@ function dirCalc(ev){
   const fotoPct = Number(ex.real_ticket) || 0;
   const cashPct = Number(ex.custo_previsto) || 0;
   const fotoRec = projQ * fotoVal * fotoPct / 100;
-  const cashRec = projInsR * cashPct / 100;
+  const cashBase = contrato ? ((fechado && insTicketReal !== null) ? insTicketReal : insTicketMeta) : projInsR;
+  const cashRec = cashBase * cashPct / 100;
   const projEnt = projInsR + projPat + fotoRec + cashRec;
   const projNF = nfM;
-  const projCusto = custoAtl * projQ;
+  const projCusto = orc ? orc.total : custoAtl * projQ;
   const projDesp = projCusto + projNF;
   const projRes = projEnt - projDesp;
   const recAtl = projQ ? projEnt / projQ : 0;
@@ -12495,7 +12507,7 @@ function dirCalc(ev){
     metaEnt:metaEnt, nfM:nfM, despM:despM, resM:resM,
     projQ:projQ, projEnt:projEnt, projNF:projNF, projCusto:projCusto, projDesp:projDesp, projRes:projRes,
     recAtl:recAtl, aliqPct:aliqPct, projInsR:projInsR, projPat:projPat,
-    fotoVal:fotoVal, fotoPct:fotoPct, fotoRec:fotoRec, cashPct:cashPct, cashRec:cashRec};
+    fotoVal:fotoVal, fotoPct:fotoPct, fotoRec:fotoRec, cashPct:cashPct, cashRec:cashRec, cashBase:cashBase, contrato:contrato};
 }
 
 /* ── alíquota da NF por evento ──
@@ -12739,10 +12751,12 @@ function dirRender(){
   L.forEach(function(c){
     const e = c.ev;
     const q = c.projQ || 0;
-    const recTit = 'Inscrições ' + dirR(c.projInsR) + ' + Patrocínio ' + dirR(c.projEnt - c.projInsR - c.fotoRec - c.cashRec) + ' + FOTOP ' + dirR(c.fotoRec) + ' + Cashback ' + dirR(c.cashRec);
-    const insMeta = c.metaR ? '<b>' + dirR(c.metaR) + '</b><small>' + fmt(c.metaQ) + ' × ' + dirR2(c.metaT) + '</small>'
+    const recTit = (c.contrato ? 'Contrato ' : 'Inscrições ') + dirR(c.projInsR) + ' + Patrocínio ' + dirR(c.projEnt - c.projInsR - c.fotoRec - c.cashRec) + ' + FOTOP ' + dirR(c.fotoRec) + ' + Cashback ' + dirR(c.cashRec);
+    const insMeta = c.contrato ? '<b>' + dirR(c.metaR) + '</b><small class="dir-orc" title="Valor do contrato + extras do orçamento (preço global). Clique para abrir." onclick="event.stopPropagation();dirAbrirOrc(\'' + propEsc(c.orc.id) + '\')">🧾 contrato</small>'
+      : c.metaR ? '<b>' + dirR(c.metaR) + '</b><small>' + fmt(c.metaQ) + ' × ' + dirR2(c.metaT) + '</small>'
       : '<span class="nd">' + (c.metaQ ? fmt(c.metaQ) + ' insc. · sem ticket' : 'a lançar') + '</span>';
-    const insReal = c.realQ !== null ? '<b>' + dirR(c.realR) + '</b><small>' + fmt(c.realQ) + ' × ' + dirR2(c.realT) + (c.fonte === 'site' ? ' · site' : '') + '</small>'
+    const insReal = c.contrato ? '<b>' + dirR(c.realR) + '</b><small>contrato</small>'
+      : c.realQ !== null ? '<b>' + dirR(c.realR) + '</b><small>' + fmt(c.realQ) + ' × ' + dirR2(c.realT) + (c.fonte === 'site' ? ' · site' : '') + '</small>'
       : '<span class="nd">a lançar</span>';
     h += '<tr onclick="dirAbrir(\'' + c.id + '\')" class="' + (c.fechado ? 'fech' : 'fut') + '">' +
       '<td class="dir-c1"><div class="dt">' + fmtDS(e.inicio) + ' · ' + (c.fechado ? '<span class="st f">Realizado</span>' : '<span class="st p">Futuro</span>') + '</div>' +
@@ -12757,7 +12771,7 @@ function dirRender(){
       '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'foto_pct', c.fotoPct, 48) + '%</td>' +
       '<td>' + (c.fotoRec ? '<b>' + dirR(c.fotoRec) + '</b><small>' + fmt(q) + ' insc.</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'cash_pct', c.cashPct, 48) + '%</td>' +
-      '<td>' + (c.cashRec ? '<b>' + dirR(c.cashRec) + '</b><small>sobre ' + dirR(c.projInsR) + '</small>' : '<span class="nd">—</span>') + '</td>' +
+      '<td>' + (c.cashRec ? '<b>' + dirR(c.cashRec) + '</b><small>sobre ' + dirR(c.cashBase) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="rec" title="' + recTit + '">' + (c.projEnt ? '<b>' + dirR(c.projEnt) + '</b>' + (q ? '<small>' + dirR2(c.recAtl) + ' por atleta</small>' : '') : '<span class="nd">—</span>') + '</td>' +
       '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' + (c.orc ? '<small class="dir-orc" title="Vem da aba Orçamentos: ' + propEsc(c.orc.nome) + ' — ' + propEsc(dirR(c.orc.total)) + ' ÷ ' + fmt(c.orc.atletas) + ' atletas. Clique para abrir." onclick="event.stopPropagation();dirAbrirOrc(\'' + propEsc(c.orc.id) + '\')">🧾 do orçamento</small>' : '') : '<span class="nd">a lançar</span>') + '</td>' +
       '<td class="dsp">' + (c.projCusto ? dirR(c.projCusto) + '<small>' + fmt(q) + ' × ' + dirR2(c.custoAtl) + '</small>' : '<span class="nd">—</span>') + '</td>' +
