@@ -2258,6 +2258,34 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 #dir-f-custo-atl:disabled{background:#f4f0eb;color:var(--text);font-weight:700;}
 .orc-prop-aviso{background:#ecfdf5;border:1px solid #99f6e4;color:#115e59;border-radius:10px;padding:10px 14px;font-size:12.5px;line-height:1.5;margin-bottom:14px;}
 .orc-prop-aviso a{color:#0f766e;font-weight:700;}
+.orc-gal-fil{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px;}
+.orc-chip.f-real.on{background:#16a34a;border-color:#16a34a;}
+.orc-chip.f-estudo.on{background:#dc2626;border-color:#dc2626;}
+.orc-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.orc-card{aspect-ratio:1/1;border-radius:16px;padding:18px;display:flex;flex-direction:column;cursor:pointer;border:2px solid var(--c);background:var(--bg);box-shadow:0 2px 10px rgba(42,37,32,.06);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.orc-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(42,37,32,.12);}
+.orc-card.real{--c:#16a34a;--bg:#f0fdf4;}
+.orc-card.estudo{--c:#dc2626;--bg:#fef2f2;}
+.orc-card.modelo{--c:#f59e0b;--bg:#fffbeb;border-style:dashed;}
+.orc-card::before{content:"";position:absolute;left:0;top:0;right:0;height:6px;background:var(--c);}
+.oc-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:2px;}
+.oc-data{font-size:15px;font-weight:700;color:var(--text);}
+.oc-tag{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:var(--c);border-radius:99px;padding:3px 9px;}
+.oc-nome{font-size:17px;font-weight:700;line-height:1.25;letter-spacing:-.3px;margin-top:14px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.oc-sub{font-size:12px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.oc-pe{margin-top:auto;}
+.oc-total{font-size:24px;font-weight:700;color:var(--c);letter-spacing:-.6px;}
+.oc-pago{font-size:12px;color:var(--muted);margin-top:2px;}
+.oc-cor{position:absolute;right:14px;bottom:14px;display:flex;gap:6px;}
+.oc-cor button{width:22px;height:22px;border-radius:50%;border:2px solid #fff;cursor:pointer;box-shadow:0 0 0 1px rgba(0,0,0,.15);opacity:.45;transition:transform .12s,opacity .12s;}
+.oc-cor button:hover{opacity:1;transform:scale(1.12);}
+.oc-cor button.on{opacity:1;box-shadow:0 0 0 2px var(--text);}
+.oc-cor .g{background:#16a34a;}.oc-cor .r{background:#dc2626;}
+.orc-card.novo{--c:#d6cfc6;--bg:#fff;border-style:dashed;align-items:center;justify-content:center;gap:6px;color:var(--muted);}
+.orc-card.novo::before{display:none;}
+.orc-card.novo span{font-size:40px;line-height:1;color:var(--orange);}
+.orc-card.novo b{font-size:14px;}
+.orc-card.novo:hover{border-color:var(--orange);color:var(--orange);}
 </style>
 </head>
 <body>
@@ -3315,7 +3343,7 @@ let currentEvento=null; let todosInscritos=[]; let editingId=null; let charts={}
 let _adminEventos=[]; let klKits=[]; // kits carregados na tela kits&lotes
 
 /* ── HELPERS ── */
-const RPC_PROTEGIDAS=['orc_de_proposta','orc_itens_ordenar','orc_listar','orc_ler','orc_criar','orc_salvar','orc_excluir','orc_item_salvar','orc_item_excluir','orc_grupo_renomear','admin_prazos_obs_listar','admin_prazos_obs_salvar','nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
+const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_listar','orc_ler','orc_criar','orc_salvar','orc_excluir','orc_item_salvar','orc_item_excluir','orc_grupo_renomear','admin_prazos_obs_listar','admin_prazos_obs_salvar','nps_adm_pesquisas','nps_adm_respostas','nps_adm_pesquisa_salvar','nps_adm_pesquisa_aberta','pat_pag_listar','pat_pag_salvar','pat_pag_excluir','mkt_obrig_ocultas_listar','mkt_obrig_ocultar','mkt_obrig_restaurar','mkt_evento_vinculo_salvar','mkt_post_marca_salvar','mkt_obrigacoes_pat','pat_conteudos_marca','admin_inscritos','admin_exportar_inscritos','admin_inscritos_geral','admin_cadastros_geral','admin_leads_sem_compra','admin_excluir_evento','admin_update_inscricao',
   'admin_camp_tarefas_listar','admin_camp_tarefa_salvar','admin_camp_tarefa_excluir',
   'admin_camp_lote_criar',
   'admin_camp_alvos_definir','admin_camp_alvos_listar','admin_camp_marcar',
@@ -3500,15 +3528,66 @@ async function orcInit(){
     return;
   }
   orcMontarSelect();
-  if(!orcLista.length){ document.getElementById('orc-corpo').innerHTML='<div class="orc-vazio">Nenhum orçamento ainda.</div>'; return; }
-  if(!orcAtual||!orcLista.some(function(o){return o.id===orcAtual;})){
-    let g=null; try{g=localStorage.getItem('jbx_orc_atual');}catch(e){}
-    const prova=orcLista.find(function(o){return !o.modelo;});
-    orcAtual=(g&&orcLista.some(function(o){return o.id===g;}))?g:(prova||orcLista[0]).id;
-  }
-  document.getElementById('orc-sel').value=orcAtual;
+  /* entra direto num orçamento só quando veio de um atalho (Diretoria, Propostas, recém-criado) */
+  if(orcAbrirDireto&&orcAtual&&orcLista.some(function(o){return o.id===orcAtual;})){ orcAbrirDireto=false; await orcAbrir(orcAtual); return; }
+  orcAbrirDireto=false;
+  orcGaleria();
+}
+
+/* ── tela inicial: cards de cada orçamento ── */
+let orcAbrirDireto=false, orcGalFiltro='todos';
+function orcGaleria(){
+  orcCab=null; orcItens=[];
+  document.getElementById('orc-top').style.display='none';
+  const corpo=document.getElementById('orc-corpo');
+  const n={todos:0,real:0,estudo:0,modelo:0};
+  orcLista.forEach(function(o){ n.todos++; if(o.modelo)n.modelo++; else if(o.status==='real')n.real++; else n.estudo++; });
+  const lista=orcLista.filter(function(o){
+    if(orcGalFiltro==='real') return !o.modelo&&o.status==='real';
+    if(orcGalFiltro==='estudo') return !o.modelo&&o.status!=='real';
+    if(orcGalFiltro==='modelo') return o.modelo;
+    return true;
+  }).sort(function(a,b){
+    if(a.modelo!==b.modelo) return a.modelo?1:-1;
+    return String(b.evento_data||'0000').localeCompare(String(a.evento_data||'0000'))||String(a.nome).localeCompare(String(b.nome));
+  });
+  let h='<div class="orc-gal-fil">';
+  [['todos','Todos'],['real','<i style="color:#16a34a;font-style:normal;">●</i> Reais'],['estudo','<i style="color:#dc2626;font-style:normal;">●</i> Em estudo'],['modelo','⭐ Modelos']].forEach(function(x){
+    h+='<button class="orc-chip'+(orcGalFiltro===x[0]?' on':'')+' f-'+x[0]+'" onclick="orcGalFiltro=\''+x[0]+'\';orcGaleria()">'+x[1]+' ('+n[x[0]]+')</button>'; });
+  h+='</div><div class="orc-gal">';
+  lista.forEach(function(o){
+    const cls=o.modelo?'modelo':(o.status==='real'?'real':'estudo');
+    const pc=o.total?Math.round((Number(o.pago)||0)/Number(o.total)*100):0;
+    const id=orcEsc(o.id);
+    h+='<div class="orc-card '+cls+'" onclick="orcAbrir(\''+id+'\')" title="Abrir orçamento">'
+      +'<div class="oc-top"><span class="oc-data">'+(o.modelo?'⭐ Modelo':(o.evento_data?orcDataBR(o.evento_data):'Sem data'))+'</span>'
+      +'<span class="oc-tag">'+(o.modelo?'Base':(o.status==='real'?'Real':'Em estudo'))+'</span></div>'
+      +'<div class="oc-nome">'+orcEsc(o.nome)+'</div>'
+      +'<div class="oc-sub">'+(o.proposta_id?'📝 '+orcEsc(o.protocolo||'Proposta')+(o.empresa?' · '+orcEsc(o.empresa):''):(o.atletas?Number(o.atletas).toLocaleString('pt-BR')+' atletas':''))+'</div>'
+      +'<div class="oc-pe"><div class="oc-total">'+orcR0(o.total)+'</div>'
+      +'<div class="oc-pago">'+(o.modelo?(o.itens||0)+' itens':(pc>=100&&o.total>0?'✓ tudo pago':pc+'% pago'))+'</div>'
+      +(o.modelo?'':'<div class="oc-cor" onclick="event.stopPropagation()">'
+        +'<button class="g'+(o.status==='real'?' on':'')+'" title="Verde — orçamento real / aprovado" onclick="orcCor(\''+id+'\',\'real\')"></button>'
+        +'<button class="r'+(o.status!=='real'?' on':'')+'" title="Vermelho — versão em estudo / não aprovada" onclick="orcCor(\''+id+'\',\'estudo\')"></button></div>')
+      +'</div></div>';
+  });
+  h+='<div class="orc-card novo" onclick="orcNovoAbrir()"><span>＋</span><b>Novo orçamento</b></div></div>';
+  corpo.innerHTML=h;
+}
+async function orcCor(id,st){
+  const o=orcLista.find(function(x){return x.id===id;}); if(!o||o.status===st)return;
+  const ant=o.status; o.status=st; orcGaleria();
+  try{ const r=await rpc('orc_status',{p_id:id,p_status:st}); if(!r||!r.ok) throw new Error((r&&r.erro)||'falhou'); }
+  catch(e){ o.status=ant; orcGaleria(); alert('Não consegui mudar a cor: '+orcErro(e)+'\nJá rodou o 15_orc_status_cor.sql no Supabase?'); }
+}
+async function orcAbrir(id){
+  orcAtual=id; try{localStorage.setItem('jbx_orc_atual',id);}catch(e){}
+  document.getElementById('orc-top').style.display='';
+  document.getElementById('orc-sel').value=id;
+  window.scrollTo(0,0);
   await orcCarregar();
 }
+function orcVoltar(){ orcFiltro='todos'; orcBusca=''; orcInit(); }
 
 function orcMontarSelect(){
   const sel=document.getElementById('orc-sel'); sel.innerHTML='';
@@ -3521,7 +3600,7 @@ function orcMontarSelect(){
   if(mods.length){ const g=document.createElement('optgroup'); g.label='Modelos (base para novos orçamentos)'; mods.forEach(function(o){add(g,o);}); sel.appendChild(g); }
 }
 
-function orcTrocar(id){ orcAtual=id; try{localStorage.setItem('jbx_orc_atual',id);}catch(e){} orcCarregar(); }
+function orcTrocar(id){ orcAbrir(id); }
 
 async function orcCarregar(){
   const corpo=document.getElementById('orc-corpo');
@@ -3948,7 +4027,7 @@ async function orcNovoCriar(){
   msg.style.color='var(--muted)'; msg.textContent='Criando…';
   try{ const r=await rpc('orc_criar',{p_dados:d});
     if(!r||!r.ok){ msg.style.color='#e74c3c'; msg.textContent=(r&&r.erro)||'Não foi possível criar.'; return; }
-    orcNovoFechar(); orcAtual=r.id; try{localStorage.setItem('jbx_orc_atual',r.id);}catch(e){} await orcInit(); orcSalvo(2);
+    orcNovoFechar(); orcAtual=r.id; orcAbrirDireto=true; try{localStorage.setItem('jbx_orc_atual',r.id);}catch(e){} await orcInit(); orcSalvo(2);
   }catch(e){ msg.style.color='#e74c3c'; msg.textContent='Erro: '+orcErro(e); }
 }
 async function orcExcluir(){
@@ -4120,7 +4199,7 @@ async function propIrOrcamento(){
   try{
     const r=await rpc('orc_de_proposta',{p_proposta:String(p.id)});
     if(!r||!r.ok) throw new Error((r&&r.erro)||'falhou');
-    orcAtual=r.id; try{localStorage.setItem('jbx_orc_atual',r.id);}catch(e){}
+    orcAtual=r.id; orcAbrirDireto=true; try{localStorage.setItem('jbx_orc_atual',r.id);}catch(e){}
     if(typeof propFechar==='function') propFechar();
     showInner('orcamentos');
   }catch(e){ alert('Não consegui abrir o orçamento: '+orcErro(e)+'\nJá rodou o 14_orc_de_proposta.sql no Supabase?'); }
@@ -12634,7 +12713,7 @@ function dirAbrir(id){
   document.getElementById('dir-overlay').classList.add('open');
 }
 function dirAbrirOrc(id){
-  orcAtual = String(id); try { localStorage.setItem('jbx_orc_atual', orcAtual); } catch (e) {}
+  orcAtual = String(id); orcAbrirDireto = true; try { localStorage.setItem('jbx_orc_atual', orcAtual); } catch (e) {}
   showInner('orcamentos');
 }
 function dirFechar(){ document.getElementById('dir-overlay').classList.remove('open'); dirEdId = null; }
@@ -18688,7 +18767,8 @@ document.addEventListener('DOMContentLoaded',function(){
           <h1>Orçamentos</h1>
           <button class="mkt-btn primary" onclick="orcNovoAbrir()">＋ Novo orçamento</button>
         </div>
-        <div class="orc-top">
+        <div class="orc-top" id="orc-top" style="display:none;">
+          <button class="mkt-btn" onclick="orcVoltar()" style="align-self:flex-end;">← Todos os orçamentos</button>
           <div class="form-g"><label>Orçamento</label><select id="orc-sel" onchange="orcTrocar(this.value)"></select></div>
           <button class="mkt-btn" onclick="orcDocAbrir()">📄 PDF do escopo</button>
           <button class="mkt-btn" onclick="orcExportar()">⬇ Excel</button>
