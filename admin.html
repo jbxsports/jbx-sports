@@ -2261,8 +2261,8 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-gal-fil{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 16px;}
 .orc-chip.f-real.on{background:#16a34a;border-color:#16a34a;}
 .orc-chip.f-estudo.on{background:#dc2626;border-color:#dc2626;}
-.orc-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
-.orc-card{aspect-ratio:1/1;border-radius:16px;padding:18px;display:flex;flex-direction:column;cursor:pointer;border:2px solid var(--c);background:var(--bg);box-shadow:0 2px 10px rgba(42,37,32,.06);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+.orc-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;}
+.orc-card{aspect-ratio:1/1;min-height:250px;border-radius:16px;padding:18px;display:flex;flex-direction:column;cursor:pointer;border:2px solid var(--c);background:var(--bg);box-shadow:0 2px 10px rgba(42,37,32,.06);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
 .orc-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(42,37,32,.12);}
 .orc-card.real{--c:#16a34a;--bg:#f0fdf4;}
 .orc-card.estudo{--c:#dc2626;--bg:#fef2f2;}
@@ -2286,6 +2286,25 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-card.novo span{font-size:40px;line-height:1;color:var(--orange);}
 .orc-card.novo b{font-size:14px;}
 .orc-card.novo:hover{border-color:var(--orange);color:var(--orange);}
+.oc-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.oc-lin{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);padding:2px 0;}
+.oc-lin b{color:var(--text);font-variant-numeric:tabular-nums;}
+.oc-res{margin-top:6px;padding-top:7px;border-top:1px dashed rgba(42,37,32,.18);padding-right:58px;}
+.oc-res span{display:block;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);}
+.oc-res b{display:block;font-size:22px;letter-spacing:-.5px;line-height:1.15;}
+.oc-res.pos b{color:#15803d;}.oc-res.neg b{color:#dc2626;}
+.oc-res small{display:block;font-size:10.5px;color:var(--muted);margin-top:1px;}
+.orc-res{display:grid;grid-template-columns:repeat(3,170px) 1fr;gap:12px;align-items:stretch;background:#1c1814;color:#fff;border-radius:14px;padding:14px 16px;margin-bottom:14px;}
+.orc-res-in label{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:6px;}
+.orc-res-in input{width:100%;font-family:'Ubuntu',sans-serif;font-size:16px;font-weight:700;color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;text-align:right;}
+.orc-res-in input:focus{outline:none;border-color:#ff9a57;}
+.orc-res-out{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:12px;border-left:1px solid rgba(255,255,255,.15);padding-left:14px;}
+.orc-res-out span{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+.orc-res-out b{display:block;font-size:18px;margin-top:4px;}
+.orc-res-out .big b{font-size:24px;}
+.orc-res-out b.pos{color:#4ade80;}.orc-res-out b.neg{color:#fca5a5;}
+.orc-res-out small{display:block;font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+@media(max-width:1200px){.orc-res{grid-template-columns:repeat(3,1fr);}.orc-res-out{grid-column:1/-1;border-left:none;padding-left:0;border-top:1px solid rgba(255,255,255,.15);padding-top:10px;}}
 </style>
 </head>
 <body>
@@ -3508,6 +3527,13 @@ function orcParse(s){
   const n=parseFloat(s); if(isNaN(n))return null; return neg?-n:n;
 }
 function orcTotalItem(i){ if(i.v_unit==null||i.v_unit==='')return 0; const q=(i.qtde==null||i.qtde==='')?1:Number(i.qtde); return Math.round(q*Number(i.v_unit)*100)/100; }
+/* contrato + extras: receita = contrato + extras + imposto dos extras; resultado = receita − custo − imposto dos extras */
+function orcResultado(o,custo){
+  const ct=Number(o.valor_contrato)||0, ex=Number(o.extras_valor)||0, im=Number(o.extras_imposto)||0;
+  const tem=ct!==0||ex!==0;
+  return {tem:tem, contrato:ct, extras:ex, imposto:im, receita:ct+ex+im, custo:custo, saidas:custo+im, resultado:ct+ex-custo,
+    margem:(ct+ex)?(ct+ex-custo)/(ct+ex)*100:null};
+}
 function orcPagoValor(i){ if(i.pago) return orcTotalItem(i); return Math.max(0,Number(i.valor_pago)||0); }
 function orcParcial(i){ return !i.pago&&Number(i.valor_pago)>0; }
 function orcDataBR(d){ if(!d)return ''; const x=String(d).slice(0,10).split('-'); return x[2]+'/'+x[1]+'/'+x[0]; }
@@ -3564,8 +3590,15 @@ function orcGaleria(){
       +'<span class="oc-tag">'+(o.modelo?'Base':(o.status==='real'?'Real':'Em estudo'))+'</span></div>'
       +'<div class="oc-nome">'+orcEsc(o.nome)+'</div>'
       +'<div class="oc-sub">'+(o.proposta_id?'📝 '+orcEsc(o.protocolo||'Proposta')+(o.empresa?' · '+orcEsc(o.empresa):''):(o.atletas?Number(o.atletas).toLocaleString('pt-BR')+' atletas':''))+'</div>'
-      +'<div class="oc-pe"><div class="oc-total">'+orcR0(o.total)+'</div>'
-      +'<div class="oc-pago">'+(o.modelo?(o.itens||0)+' itens':(pc>=100&&o.total>0?'✓ tudo pago':pc+'% pago'))+'</div>'
+      +(function(){
+        const R=orcResultado(o,Number(o.total)||0);
+        if(o.modelo||!R.tem) return '<div class="oc-pe"><div class="oc-lbl">Custo do projeto</div><div class="oc-total">'+orcR0(o.total)+'</div>'
+          +'<div class="oc-pago">'+(o.modelo?(o.itens||0)+' itens':(pc>=100&&o.total>0?'✓ tudo pago':pc+'% pago')+' · sem contrato lançado')+'</div>';
+        return '<div class="oc-pe"><div class="oc-lin"><span>Contrato + extras</span><b>'+orcR0(R.receita)+'</b></div>'
+          +'<div class="oc-lin"><span>Custo + impostos</span><b>'+orcR0(R.saidas)+'</b></div>'
+          +'<div class="oc-res '+(R.resultado<0?'neg':'pos')+'"><span>Resultado</span><b>'+orcR0(R.resultado)+'</b>'
+          +(R.margem!=null?'<small>'+R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem · custo '+pc+'% pago</small>':'')+'</div>';
+      })()
       +(o.modelo?'':'<div class="oc-cor" onclick="event.stopPropagation()">'
         +'<button class="g'+(o.status==='real'?' on':'')+'" title="Verde — orçamento real / aprovado" onclick="orcCor(\''+id+'\',\'real\')"></button>'
         +'<button class="r'+(o.status!=='real'?' on':'')+'" title="Vermelho — versão em estudo / não aprovada" onclick="orcCor(\''+id+'\',\'estudo\')"></button></div>')
@@ -3656,6 +3689,12 @@ function orcRender(){
       +' — itens que o cliente marcou, com preço e fornecedor do Modelo base. Confira quantidades e complete o que for interno (equipe, fretes, cronometragem…).'
       +' <a href="#" onclick="event.preventDefault();orcAbrirProposta(\''+orcEsc(c.proposta_id)+'\')">Abrir proposta →</a></div>'; }
   if(c.modelo) h+='<div class="orc-modelo-aviso">⭐ Você está editando o <b>modelo base</b>. O que mudar aqui vale para os <b>próximos</b> orçamentos criados a partir dele; os orçamentos já criados não mudam.</div>';
+  /* contrato x custo (eventos de terceiros) */
+  if(!c.modelo) h+='<div class="orc-res" id="orc-res">'
+    +'<div class="orc-res-in"><label>Valor do contrato</label><input value="'+orcNumFmt(c.valor_contrato,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'valor_contrato\',this)"></div>'
+    +'<div class="orc-res-in"><label>Extras</label><input value="'+orcNumFmt(c.extras_valor,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_valor\',this)"></div>'
+    +'<div class="orc-res-in"><label>Imposto dos extras</label><input value="'+orcNumFmt(c.extras_imposto,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_imposto\',this)"></div>'
+    +'<div class="orc-res-out" id="orc-res-out"></div></div>';
   /* KPIs */
   h+='<div class="orc-kpis" id="orc-kpis"></div>';
   /* filtros */
@@ -3745,7 +3784,12 @@ function orcAtualizarTotais(){
     '<div><span>Custo real do projeto</span><b>'+orcR(t.total)+'</b></div>'
    +'<div><span>Gestão JBX Sports</span><input value="'+orcNumFmt(orcCab.gestao,2)+'" onchange="orcCabNum(\'gestao\',this)"></div>'
    +'<div class="big"><span>Projeto + gestão JBX</span><b>'+orcR(t.final)+'</b></div>';
-  const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it){ it.total=t.total; it.pago=t.pago; }
+  const ro=document.getElementById('orc-res-out');
+  if(ro){ const R=orcResultado(orcCab,t.total);
+    ro.innerHTML='<div><span>Total a receber</span><b>'+orcR(R.receita)+'</b><small>contrato + extras + imposto dos extras</small></div>'
+      +'<div><span>Custo real + impostos</span><b class="neg">'+orcR(R.saidas)+'</b><small>itens deste orçamento'+(R.imposto?' + imposto dos extras':'')+'</small></div>'
+      +'<div class="big"><span>Resultado do evento</span><b class="'+(R.resultado<0?'neg':'pos')+'">'+(R.tem?orcR(R.resultado):'—')+'</b><small>'+(R.tem&&R.margem!=null?R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem':'lance o valor do contrato')+'</small></div>'; }
+  const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it){ it.total=t.total; it.pago=t.pago; ['valor_contrato','extras_valor','extras_imposto'].forEach(function(k){it[k]=orcCab[k];}); }
   clearTimeout(window._orcGr); window._orcGr=setTimeout(orcGraficos,250);
 }
 
@@ -3943,7 +3987,7 @@ async function orcCabSalvar(d){
   orcAtualizarTotais(); orcSalvo(1);
   try{ await rpc('orc_salvar',{p_dados:d}); orcSalvo(2); }catch(e){ orcSalvo(3); alert('Não consegui salvar: '+orcErro(e)); }
 }
-function orcCabNum(campo,inp){ const v=orcParse(inp.value)||0; inp.value=orcNumFmt(v,2); const d={}; d[campo]=v; orcCabSalvar(d); }
+function orcCabNum(campo,inp){ const p=orcParse(inp.value); const v=(p==null&&campo!=='gestao')?null:(p||0); inp.value=v==null?'':orcNumFmt(v,2); const d={}; d[campo]=v==null?'':v; orcCabSalvar(d); orcCab[campo]=v; orcAtualizarTotais(); }
 async function orcRenomear(v){ v=String(v||'').trim(); if(v.length<2)return; await orcCabSalvar({nome:v}); const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it)it.nome=v; orcMontarSelect(); document.getElementById('orc-sel').value=orcAtual; const n=document.querySelector('.orc-info .nm'); if(n&&n.firstChild) n.firstChild.textContent=v; }
 async function orcVincular(calId){
   const e=orcCal.find(function(x){return String(x.id)===String(calId);});
