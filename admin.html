@@ -2312,6 +2312,12 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-res-in label small{text-transform:none;letter-spacing:0;font-weight:400;}
 .oc-tipo{font-size:11px;font-weight:700;color:var(--muted);margin-top:5px;}
 .oc-lin small{font-size:10px;margin-left:3px;}
+.orc-res-ro div{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:rgba(255,255,255,.6);padding:3px 0;}
+.orc-res-ro div b{color:#fff;font-size:14px;}
+.orc-res-dica{font-size:10.5px;color:rgba(255,255,255,.45);margin-top:5px;}
+.orc-lig{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:#f4f0eb;color:#6b5f55;}
+.orc-lig.on{background:#e8f7ee;color:#15803d;}
+.orc-lig.off{background:#fdecec;color:#b91c1c;}
 </style>
 </head>
 <body>
@@ -3535,11 +3541,21 @@ function orcParse(s){
 }
 function orcTotalItem(i){ if(i.v_unit==null||i.v_unit==='')return 0; const q=(i.qtde==null||i.qtde==='')?1:Number(i.qtde); return Math.round(q*Number(i.v_unit)*100)/100; }
 /* contrato + extras: receita = contrato + extras + imposto dos extras; resultado = receita − custo − imposto dos extras */
+/* evento interno vinculado ao Calendário: os números vêm da Diretoria (mesma fonte, os dois lugares mostram igual)
+   inscritos e ticket = META · patrocínio = REAL (funil + histórico) · FOTOP = projetado */
+function orcDirVals(o){
+  if(!orcLigado(o)||o.tipo_contrato!=='interno'||!dirCarregadoEm||typeof dirCalc!=='function') return null;
+  const ev=(dirCal||[]).filter(function(e){return String(e.id)===String(o.calendario_id);})[0]; if(!ev) return null;
+  const c=dirCalc(ev);
+  return {inscritos:Number(c.metaQ)||0, ticket:Number(c.metaT)||0, pat:Number(c.realPat)||0, patFunil:!!c.patFunil, foto:Number(c.fotoRec)||0};
+}
 function orcResultado(o,custo){
   if(o.tipo_contrato==='interno'){
-    /* evento nosso: inscritos × ticket médio + outras receitas (patrocínio, FOTOP...) − custo */
-    const q=Number(o.inscritos)||0, tk=Number(o.ticket_medio)||0, ou=Number(o.outras_receitas)||0, ins=q*tk, rec=ins+ou;
-    return {interno:true, tem:rec!==0, inscritos:q, ticket:tk, inscricoes:ins, outras:ou, receita:rec, custo:custo, saidas:custo,
+    /* evento nosso: inscritos × ticket médio + patrocínio + FOTOP (ou outras receitas, se não vinculado) − custo */
+    const dv=orcDirVals(o);
+    const q=dv?dv.inscritos:(Number(o.inscritos)||0), tk=dv?dv.ticket:(Number(o.ticket_medio)||0);
+    const pat=dv?dv.pat:0, foto=dv?dv.foto:0, ou=dv?pat+foto:(Number(o.outras_receitas)||0), ins=q*tk, rec=ins+ou;
+    return {interno:true, ligado:!!dv, tem:rec!==0, inscritos:q, ticket:tk, inscricoes:ins, pat:pat, foto:foto, outras:ou, receita:rec, custo:custo, saidas:custo,
       resultado:rec-custo, margem:rec?(rec-custo)/rec*100:null};
   }
   const ct=Number(o.valor_contrato)||0, ex=Number(o.extras_valor)||0, im=Number(o.extras_imposto)||0;
@@ -3558,15 +3574,43 @@ function orcSalvo(st){
 }
 function orcErro(e){ let t=(e&&e.message)||''; try{const j=JSON.parse(t); t=j.message||t;}catch(x){} return String(t).slice(0,160); }
 
+/* orçamento vinculado ao Calendário: data e atletas são sempre os do Calendário (público = meta de inscritos) */
+/* regra: só o orçamento VERDE (real) fica ligado ao Calendário e à Diretoria; vermelho (estudo) tem números próprios */
+function orcLigado(o){ return !!(o&&!o.modelo&&o.calendario_id&&o.status==='real'); }
+function orcEvCal(o){ if(!orcLigado(o))return null; return orcCal.filter(function(e){return String(e.id)===String(o.calendario_id);})[0]||null; }
+function orcSyncCal(o){
+  const ev=orcEvCal(o); if(!ev)return;
+  const d={}, data=String(ev.inicio||'').slice(0,10), pub=Number(ev.publico)||0;
+  if(data&&data!==String(o.evento_data||'').slice(0,10)){ o.evento_data=data; d.evento_data=data; }
+  if(pub>0&&pub!==(Number(o.atletas)||0)){ o.atletas=pub; d.atletas=pub; }
+  if(Object.keys(d).length&&o.id){ d.id=o.id; rpc('orc_salvar',{p_dados:d}).catch(function(){}); }
+}
+async function orcAtlMudar(inp){
+  const n=parseInt(String(inp.value||'').replace(/\D/g,''),10), q=isNaN(n)?0:n;
+  const ev=orcEvCal(orcCab);
+  if(ev){
+    orcSalvo(1);
+    try{
+      if(!dirCarregadoEm) await dirCarregar();
+      await dirSalvarMetaInsc(orcCab.calendario_id,q);
+      ev.publico=q;
+    }catch(e){ orcSalvo(3); alert('Não consegui salvar no Calendário: '+orcErro(e)); return; }
+  }
+  const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it) it.atletas=q;
+  await orcCabSalvar({atletas:q});
+  if(ev) orcRender();
+}
 async function orcInit(){
   try{ try{orcFechados=JSON.parse(localStorage.getItem('jbx_orc_fechados')||'[]')||[];}catch(e){orcFechados=[];}
     const [l,cal]=await Promise.all([rpc('orc_listar',{}), rpc('admin_calendario_listar').catch(function(){return [];})]);
     orcLista=Array.isArray(l)?l:[]; orcCal=(Array.isArray(cal)?cal:[]).slice().sort(function(a,b){return String(a.inicio||'').localeCompare(String(b.inicio||''));});
+    orcLista.forEach(orcSyncCal);
   }catch(e){
     document.getElementById('orc-corpo').innerHTML='<div class="orc-vazio">Não consegui carregar os orçamentos — '+orcEsc(orcErro(e))+'.<br>Confira se o arquivo <b>06_orcamentos.sql</b> já foi rodado no Supabase.</div>';
     return;
   }
   orcMontarSelect();
+  await orcGarantirDir();
   /* entra direto num orçamento só quando veio de um atalho (Diretoria, Propostas, recém-criado) */
   if(orcAbrirDireto&&orcAtual&&orcLista.some(function(o){return o.id===orcAtual;})){ orcAbrirDireto=false; await orcAbrir(orcAtual); return; }
   orcAbrirDireto=false;
@@ -3609,7 +3653,8 @@ function orcGaleria(){
         if(o.modelo||!R.tem) return '<div class="oc-pe"><div class="oc-lbl">Custo do projeto</div><div class="oc-total">'+orcR0(o.total)+'</div>'
           +'<div class="oc-pago">'+(o.modelo?(o.itens||0)+' itens':(pc>=100&&o.total>0?'✓ tudo pago':pc+'% pago')+' · '+(R.interno?'sem receita lançada':'sem contrato lançado'))+'</div>';
         if(R.interno) return '<div class="oc-pe"><div class="oc-lin"><span>Inscrições <small>'+R.inscritos.toLocaleString('pt-BR')+' × '+orcR(R.ticket)+'</small></span><b>'+orcR0(R.inscricoes)+'</b></div>'
-          +(R.outras?'<div class="oc-lin"><span>Outras receitas</span><b>'+orcR0(R.outras)+'</b></div>':'')
+          +(R.ligado?'<div class="oc-lin"><span>Patrocínio <small>real</small></span><b>'+orcR0(R.pat)+'</b></div><div class="oc-lin"><span>FOTOP <small>projetado</small></span><b>'+orcR0(R.foto)+'</b></div>'
+            :(R.outras?'<div class="oc-lin"><span>Outras receitas</span><b>'+orcR0(R.outras)+'</b></div>':''))
           +'<div class="oc-lin"><span>Custo</span><b>'+orcR0(R.custo)+'</b></div>'
           +'<div class="oc-res '+(R.resultado<0?'neg':'pos')+'"><span>Resultado</span><b>'+orcR0(R.resultado)+'</b>'
           +(R.margem!=null?'<small>'+R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem · custo '+pc+'% pago</small>':'')+'</div>';
@@ -3628,7 +3673,14 @@ function orcGaleria(){
 }
 async function orcCor(id,st){
   const o=orcLista.find(function(x){return x.id===id;}); if(!o||o.status===st)return;
-  const ant=o.status; o.status=st; orcGaleria();
+  /* só um verde por evento do Calendário */
+  let outros=[];
+  if(st==='real'&&o.calendario_id){
+    outros=orcLista.filter(function(x){return x.id!==id&&!x.modelo&&x.status==='real'&&String(x.calendario_id)===String(o.calendario_id);});
+    if(outros.length&&!confirm('"'+outros.map(function(x){return x.nome;}).join('", "')+'" já é o orçamento verde deste evento.\n\nSó um orçamento fica ligado ao Calendário e à Diretoria. Ele vai virar vermelho (estudo). Continuar?')) return;
+  }
+  for(const x of outros){ try{ await rpc('orc_status',{p_id:x.id,p_status:'estudo'}); x.status='estudo'; }catch(e){ alert('Não consegui tirar o verde de "'+x.nome+'": '+orcErro(e)); return; } }
+  const ant=o.status; o.status=st; if(st==='real') orcSyncCal(o); orcGaleria();
   try{ const r=await rpc('orc_status',{p_id:id,p_status:st}); if(!r||!r.ok) throw new Error((r&&r.erro)||'falhou'); }
   catch(e){ o.status=ant; orcGaleria(); alert('Não consegui mudar a cor: '+orcErro(e)+'\nJá rodou o 15_orc_status_cor.sql no Supabase?'); }
 }
@@ -3670,6 +3722,7 @@ async function orcCarregar(){
     const mesmos=orcCal.filter(function(e){return String(e.inicio||'').slice(0,10)===String(orcCab.evento_data).slice(0,10);});
     if(mesmos.length===1){ orcCab.calendario_id=String(mesmos[0].id); rpc('orc_salvar',{p_dados:{id:orcAtual,calendario_id:orcCab.calendario_id}}).catch(function(){}); }
   }
+  orcSyncCal(orcCab);
   orcRender();
 }
 
@@ -3699,9 +3752,10 @@ function orcRender(){
   /* evento vinculado */
   let evOpts='<option value="">— sem evento vinculado —</option>';
   orcCal.forEach(function(e){ evOpts+='<option value="'+orcEsc(e.id)+'"'+(String(c.calendario_id||'')===String(e.id)?' selected':'')+'>'+orcEsc(orcDataBR(String(e.inicio||'').slice(0,10))+' · '+(e.evento||''))+'</option>'; });
-  h+='<div class="orc-info"><div class="nm">'+orcEsc(c.nome)+'<small>'+(c.modelo?'Modelo base — usado para começar novos orçamentos':(c.evento_data?'Prova em '+orcDataBR(c.evento_data):'Sem data'))+'</small></div>'
+  h+='<div class="orc-info"><div class="nm">'+orcEsc(c.nome)+'<small>'+(c.modelo?'Modelo base — usado para começar novos orçamentos':(c.evento_data?'Prova em '+orcDataBR(c.evento_data):'Sem data'))+'</small>'
+    +(c.modelo?'':orcLigado(c)?'<span class="orc-lig on">🟢 Ligado ao Calendário e à Diretoria</span>':c.status==='real'?'<span class="orc-lig">🟢 Verde — vincule ao evento do Calendário para ligar</span>':'<span class="orc-lig off">🔴 Em estudo — números próprios, não mexe no Calendário nem na Diretoria</span>')+'</div>'
     +(c.modelo?'':'<div><label>Evento do Calendário</label><select onchange="orcVincular(this.value)" style="max-width:300px;">'+evOpts+'</select></div>')
-    +'<div><label>Atletas</label><input type="number" min="0" value="'+orcEsc(c.atletas||'')+'" style="width:110px;" onchange="orcCabSalvar({atletas:this.value})"></div>'
+    +'<div><label>Atletas'+(orcEvCal(c)?' <small title="Mesmo número do público no Calendário e da meta de inscritos na Diretoria">= Calendário</small>':'')+'</label><input type="number" min="0" value="'+orcEsc(c.atletas||'')+'" style="width:110px;" onchange="orcAtlMudar(this)"></div>'
     +'<div><label>Nome</label><input value="'+orcEsc(c.nome)+'" style="width:230px;" onchange="orcRenomear(this.value)"></div></div>';
   if(c.proposta_id){ const it=orcLista.find(function(o){return o.id===orcAtual;})||{};
     h+='<div class="orc-prop-aviso">📝 Criado automaticamente do briefing <b>'+orcEsc(it.protocolo||'')+'</b>'+(it.empresa?' · '+orcEsc(it.empresa):'')
@@ -3715,10 +3769,15 @@ function orcRender(){
       +'<div class="orc-tipo-sel"><label>Modelo do contrato</label>'
       +'<button class="'+(interno?'':'on')+'" onclick="orcTipo(\'global\')">🤝 Preço global<small>evento para cliente</small></button>'
       +'<button class="'+(interno?'on':'')+'" onclick="orcTipo(\'interno\')">🏃 Evento interno<small>evento nosso</small></button></div>'
-      +(interno
+      +(interno&&orcDirVals(c)
+        ?(function(){ const dv=orcDirVals(c);
+          return '<div class="orc-res-in"><label>Inscritos <small>meta · Diretoria</small></label><input value="'+orcEsc(dv.inscritos?dv.inscritos.toLocaleString('pt-BR'):'')+'" placeholder="0" onchange="orcDirMeta(\'q\',this)"></div>'
+           +'<div class="orc-res-in"><label>Ticket médio <small>meta · Diretoria</small></label><input value="'+orcNumFmt(dv.ticket||null,2)+'" placeholder="R$ 0,00" onchange="orcDirMeta(\'t\',this)"></div>'
+           +'<div class="orc-res-in orc-res-ro"><label>Da Diretoria</label><div><span>Patrocínio real'+(dv.patFunil?' (funil)':'')+'</span><b>'+orcR(dv.pat)+'</b></div><div><span>FOTOP projetado</span><b>'+orcR(dv.foto)+'</b></div></div>'; })()
+        :interno
         ?'<div class="orc-res-in"><label>Total de inscritos</label><input value="'+orcEsc(c.inscritos==null?'':Number(c.inscritos).toLocaleString('pt-BR'))+'" placeholder="0" onchange="orcCabInt(\'inscritos\',this)"></div>'
          +'<div class="orc-res-in"><label>Ticket médio</label><input value="'+orcNumFmt(c.ticket_medio,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'ticket_medio\',this)"></div>'
-         +'<div class="orc-res-in"><label title="Patrocínio, FOTOP, cashback e outras receitas do evento">Outras receitas</label><input value="'+orcNumFmt(c.outras_receitas,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'outras_receitas\',this)"></div>'
+         +'<div class="orc-res-in"><label title="Patrocínio, FOTOP, cashback e outras receitas do evento">Outras receitas</label><input value="'+orcNumFmt(c.outras_receitas,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'outras_receitas\',this)"><div class="orc-res-dica">'+(c.status==='real'?'Vincule ao evento do Calendário para puxar tudo da Diretoria.':'Orçamento vermelho (estudo): números próprios, não mexe no Calendário nem na Diretoria.')+'</div></div>'
         :'<div class="orc-res-in"><label>Valor do contrato</label><input value="'+orcNumFmt(c.valor_contrato,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'valor_contrato\',this)"></div>'
          +'<div class="orc-res-in"><label>Extras</label><input value="'+orcNumFmt(c.extras_valor,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_valor\',this)"></div>'
          +'<div class="orc-res-in"><label>Imposto dos extras</label><input value="'+orcNumFmt(c.extras_imposto,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_imposto\',this)"></div>')
@@ -3816,7 +3875,7 @@ function orcAtualizarTotais(){
   const ro=document.getElementById('orc-res-out');
   if(ro){ const R=orcResultado(orcCab,t.total);
     if(R.interno) ro.innerHTML='<div><span>Faturado em inscrições</span><b>'+orcR(R.inscricoes)+'</b><small>'+R.inscritos.toLocaleString('pt-BR')+' inscritos × '+orcR(R.ticket)+'</small></div>'
-      +'<div><span>Receita total</span><b>'+orcR(R.receita)+'</b><small>inscrições + outras receitas · custo <b class="neg" style="display:inline;font-size:11px;">'+orcR(R.custo)+'</b></small></div>'
+      +'<div><span>Receita total</span><b>'+orcR(R.receita)+'</b><small>'+(R.ligado?'inscrições + patrocínio real + FOTOP':'inscrições + outras receitas')+' · custo <b class="neg" style="display:inline;font-size:11px;">'+orcR(R.custo)+'</b></small></div>'
       +'<div class="big"><span>Resultado do evento</span><b class="'+(R.resultado<0?'neg':'pos')+'">'+(R.tem?orcR(R.resultado):'—')+'</b><small>'+(R.tem&&R.margem!=null?R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem':'lance inscritos e ticket médio')+'</small></div>';
     else ro.innerHTML='<div><span>Total a receber</span><b>'+orcR(R.receita)+'</b><small>contrato + extras + imposto dos extras</small></div>'
       +'<div><span>Custo real + impostos</span><b class="neg">'+orcR(R.saidas)+'</b><small>itens deste orçamento'+(R.imposto?' + imposto dos extras':'')+'</small></div>'
@@ -4020,13 +4079,28 @@ async function orcCabSalvar(d){
   try{ await rpc('orc_salvar',{p_dados:d}); orcSalvo(2); }catch(e){ orcSalvo(3); alert('Não consegui salvar: '+orcErro(e)); }
 }
 function orcCabInt(campo,inp){ const n=parseInt(String(inp.value||'').replace(/\D/g,''),10); const v=isNaN(n)?null:n; inp.value=v==null?'':v.toLocaleString('pt-BR'); const d={}; d[campo]=v==null?'':v; orcCabSalvar(d); orcCab[campo]=v; orcAtualizarTotais(); }
-function orcTipo(t){ if(!orcCab||orcCab.tipo_contrato===t)return; orcCab.tipo_contrato=t; orcCabSalvar({tipo_contrato:t}); orcRender(); }
+async function orcDirMeta(qual,inp){
+  const dv=orcDirVals(orcCab); if(!dv)return;
+  let q, t;
+  if(qual==='q'){ const n=parseInt(String(inp.value||'').replace(/\D/g,''),10); q=isNaN(n)?0:n; inp.value=q?q.toLocaleString('pt-BR'):''; }
+  else { const v=orcParse(inp.value); t=v==null?null:v; inp.value=v==null?'':orcNumFmt(v,2); }
+  orcSalvo(1);
+  try{ await dirSalvarMetaInsc(orcCab.calendario_id,q,t); orcSalvo(2);
+    if(q!==undefined){ const ev=orcEvCal(orcCab); if(ev) ev.publico=q; const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it) it.atletas=q; await orcCabSalvar({atletas:q}); orcRender(); return; } }
+  catch(e){ orcSalvo(3); alert('Não consegui salvar na Diretoria: '+orcErro(e)); }
+  orcAtualizarTotais();
+}
+async function orcGarantirDir(){
+  if(!orcLista.some(function(o){return o.calendario_id;})&&!(orcCab&&orcCab.calendario_id)) return;
+  try{ await dirCarregar(); }catch(e){ console.warn('Diretoria indisponível para os orçamentos internos.',e); }
+}
+async function orcTipo(t){ if(!orcCab||orcCab.tipo_contrato===t)return; orcCab.tipo_contrato=t; orcCabSalvar({tipo_contrato:t}); if(t==='interno'&&!dirCarregadoEm) await orcGarantirDir(); orcRender(); }
 function orcCabNum(campo,inp){ const p=orcParse(inp.value); const v=(p==null&&campo!=='gestao')?null:(p||0); inp.value=v==null?'':orcNumFmt(v,2); const d={}; d[campo]=v==null?'':v; orcCabSalvar(d); orcCab[campo]=v; orcAtualizarTotais(); }
 async function orcRenomear(v){ v=String(v||'').trim(); if(v.length<2)return; await orcCabSalvar({nome:v}); const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it)it.nome=v; orcMontarSelect(); document.getElementById('orc-sel').value=orcAtual; const n=document.querySelector('.orc-info .nm'); if(n&&n.firstChild) n.firstChild.textContent=v; }
 async function orcVincular(calId){
   const e=orcCal.find(function(x){return String(x.id)===String(calId);});
   const d={calendario_id:calId||''}; if(e) d.evento_data=String(e.inicio||'').slice(0,10);
-  if(e&&!orcCab.atletas&&e.publico) d.atletas=e.publico;
+  if(e&&Number(e.publico)&&orcCab.status==='real') d.atletas=Number(e.publico);
   await orcCabSalvar(d);
   const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it&&d.evento_data){ it.evento_data=d.evento_data; orcMontarSelect(); document.getElementById('orc-sel').value=orcAtual; }
   orcRender();
@@ -12262,12 +12336,19 @@ async function dirInit(){
   const el = document.getElementById('dir-corpo');
   if (!(admUser && admUser.master)) { el.innerHTML = '<div class="empty-state">Somente a diretoria acessa este painel.</div>'; return; }
   el.innerHTML = '<div class="empty-state">Carregando números…</div>';
-  let d;
-  try { d = await rpc('dir_dados'); }
+  try { await dirCarregar(); }
   catch (e) {
     el.innerHTML = '<div class="empty-state">Não consegui abrir o painel. Já rodou o SQL <b>05_diretoria.sql</b>?<br><small>' + propEsc(String(e && e.message || '').slice(0, 200)) + '</small></div>';
     return;
   }
+  const anos = dirAnos();
+  if (anos.indexOf(dirAno) < 0 && dirAno !== 'todos') dirAno = anos.length ? anos[anos.length - 1] : dirAno;
+  dirRender();
+}
+/* carrega tudo que a Diretoria usa (também usado pela aba Orçamentos, para os dois mostrarem os mesmos números) */
+let dirCarregadoEm = 0;
+async function dirCarregar(){
+  const d = await rpc('dir_dados');
   const res = await Promise.all([
     rpc('admin_calendario_listar').catch(function(){ return []; }),
     rpc('admin_calendario_extra_listar').catch(function(){ return []; }),
@@ -12278,12 +12359,12 @@ async function dirInit(){
   /* custo por atleta vindo da aba Orçamentos (orçamento vinculado ao evento do Calendário) */
   dirOrc = {};
   (Array.isArray(res[4]) ? res[4] : []).forEach(function(o){
-    if (o.modelo || !o.calendario_id) return;
+    if (o.modelo || !o.calendario_id || o.status !== 'real') return;   /* só o orçamento verde alimenta a Diretoria */
     const tot = Number(o.total) || 0, atl = Number(o.atletas) || 0;
-    if (!(tot > 0 && atl > 0)) return;
+    if (!(tot > 0)) return;
     const k = String(o.calendario_id), atual = dirOrc[k];
     if (atual && String(atual.atualizado_em || '') > String(o.atualizado_em || '')) return;
-    dirOrc[k] = {id:o.id, nome:o.nome, total:tot, atletas:atl, custoAtl:tot / atl, atualizado_em:o.atualizado_em};
+    dirOrc[k] = {id:o.id, nome:o.nome, total:tot, atletas:atl, custoAtl:atl ? tot / atl : 0, atualizado_em:o.atualizado_em};
   });
   dirCal = (Array.isArray(res[0]) ? res[0] : []).map(function(r){
     return Object.assign({}, r, {inicio:String(r.inicio || '').slice(0, 10)});
@@ -12302,9 +12383,27 @@ async function dirInit(){
   dirD = {};
   ((d && d.eventos) || []).forEach(function(x){ dirD[String(x.calendario_id)] = x; });
   dirCfg = (d && d.config) || {aliquota_nf:0, escritorio_mes:0};
-  const anos = dirAnos();
-  if (anos.indexOf(dirAno) < 0 && dirAno !== 'todos') dirAno = anos.length ? anos[anos.length - 1] : dirAno;
-  dirRender();
+  dirCarregadoEm = Date.now();
+}
+/* grava meta de inscritos (→ público do Calendário) e ticket médio (→ Diretoria) de um evento — usado pelo Orçamento */
+async function dirSalvarMetaInsc(calId, metaQ, metaT){
+  const id = String(calId);
+  const ev = dirCal.filter(function(e){ return String(e.id) === id; })[0];
+  if (!ev) throw new Error('evento não encontrado no Calendário');
+  if (metaQ !== undefined && metaQ !== null && metaQ !== (Number(ev.publico) || 0)) {
+    await rpc('admin_calendario_salvar', {dados: calPayload(Object.assign({}, ev, {fim: String(ev.fim || ev.inicio).slice(0, 10), publico: metaQ}))});
+    ev.publico = metaQ; dirSyncCal(id, {publico: metaQ});
+  }
+  /* a meta de inscritos mora no Calendário: se a Diretoria tinha uma meta própria, ela sai para valer a do Calendário */
+  const a = dirD[id] || {};
+  const temOverride = metaQ !== undefined && metaQ !== null && dirN(a.meta_inscritos) !== null;
+  if (metaT !== undefined || temOverride) {
+    const d = Object.assign({}, a, {meta_inscritos:null});
+    if (metaT !== undefined) d.meta_ticket = metaT === null ? null : Number(metaT);
+    const r = await rpc('dir_evento_salvar', {p_calendario_id:id, p_dados:dirDadosDe(d)});
+    if (!r || !r.ok) throw new Error('erro ao salvar na Diretoria');
+    d.calendario_id = id; dirD[id] = d;
+  }
 }
 
 function dirAnos(){
@@ -12322,8 +12421,9 @@ function dirCalc(ev){
   const aliqPct = dirAliqEv(d);
   const aliq = aliqPct / 100;
 
-  const metaQ = dirN(d.meta_inscritos) !== null ? Number(d.meta_inscritos) : (Number(ev.publico) || 0);
-  const metaQdoCal = dirN(d.meta_inscritos) === null;
+  /* a meta de inscritos é o público do Calendário (mesmo número no Calendário, Diretoria e Orçamentos) */
+  const metaQdoCal = (Number(ev.publico) || 0) > 0 || dirN(d.meta_inscritos) === null;
+  const metaQ = metaQdoCal ? (Number(ev.publico) || 0) : Number(d.meta_inscritos);
   const metaT = Number(d.meta_ticket) || 0;
   const metaR = metaQ * metaT;
 
@@ -12348,7 +12448,8 @@ function dirCalc(ev){
   /* despesa: só o custo total POR ATLETA (guardado em custo_previsto).
      Custo do evento = custo por atleta × atletas. A nota fiscal sai da alíquota. */
   /* se o evento tem orçamento na aba Orçamentos, o custo por atleta vem de lá (total ÷ atletas) */
-  const orc = dirOrc[id] || null;
+  let orc = dirOrc[id] || null;
+  if (orc) { const atlO = metaQ || orc.atletas; orc = Object.assign({}, orc, {atletas:atlO, custoAtl:atlO ? orc.total / atlO : 0}); }
   const custoAtl = orc ? orc.custoAtl : (Number(d.custo_previsto) || 0);
 
   const metaEnt = metaR + metaPat;
