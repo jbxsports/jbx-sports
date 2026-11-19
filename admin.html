@@ -2321,6 +2321,10 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-auto{display:block;width:max-content;margin:0 0 2px auto;font-size:9.5px;font-weight:800;letter-spacing:.3px;color:#15803d;background:#e8f7ee;border-radius:999px;padding:1px 6px;cursor:help;}
 .orc-auto.man{color:#9a3412;background:#fff4ec;cursor:pointer;}
 .orc-auto.man:hover{text-decoration:underline;}
+.orc-t tr.orc-mae td{background:#fff4ec;border-bottom:1px solid rgba(255,117,31,.25);padding-top:9px;padding-bottom:9px;color:#9a3412;}
+.orc-t tr.orc-mae td b{font-size:13px;color:#9a3412;}
+.orc-t tr.orc-mae td small{display:block;font-size:10.5px;color:#c2410c;opacity:.75;font-weight:500;}
+.orc-t tr.orc-mae .orc-num{font-weight:800;color:#FF751F;}
 </style>
 </head>
 <body>
@@ -3854,6 +3858,9 @@ function orcRenderGrupos(){
       +'<small id="orc-gs-'+gi+'"></small></div>'
       +'<div class="orc-g-tot" id="orc-gt-'+gi+'"></div></div>'
       +'<div class="orc-g-bd"><table class="orc-t"><thead><tr><th class="orc-num">#</th><th>Item</th><th class="c-desc">Descrição</th><th class="r">Qtde</th><th class="r">V. unit</th><th class="r">V. total</th><th>Fornecedor</th><th>Pagamento</th><th></th></tr></thead><tbody>';
+    if(!filtrando){ ['coord','staff'].forEach(function(t){ if(todos.filter(function(i){return orcTipoPessoa(i)===t;}).length>=2)
+      h+='<tr class="orc-mae"><td class="orc-num">Σ</td><td colspan="2"><b>'+(t==='coord'?'Total de coordenadores':'Total de staffs')+'</b><small>soma das quantidades dos itens “'+(t==='coord'?'Coordenador…':'Staff…')+'” deste grupo</small></td>'
+        +'<td class="r"><b id="orc-mq-'+t+'-'+gi+'"></b></td><td></td><td class="r"><b id="orc-mv-'+t+'-'+gi+'"></b></td><td colspan="3"></td></tr>'; }); }
     its.forEach(function(i){ h+=orcLinhaHtml(i,(gi+1)+'.'+(todos.indexOf(i)+1)); });
     if(!its.length) h+='<tr><td colspan="9" style="padding:14px;text-align:center;color:var(--muted);">Nenhum item neste grupo.</td></tr>';
     h+='</tbody></table><div class="orc-add"><button onclick="orcNovoItem('+gi+')">＋ Adicionar item</button>'
@@ -3864,8 +3871,27 @@ function orcRenderGrupos(){
   orcAtualizarTotais(); orcBotaoTodos();
 }
 
+/* linhas-mãe da equipe: total de coordenadores e de staffs (quantidade e valor) */
+function orcTipoPessoa(i){
+  const n=String(i&&i.item||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(/^coordenador/.test(n)) return 'coord';
+  if(/^staff/.test(n)) return 'staff';
+  return '';
+}
+function orcAtualizarMaes(){
+  if(!orcCab)return;
+  orcCab.grupos.forEach(function(g,gi){
+    ['coord','staff'].forEach(function(t){
+      const eq=document.getElementById('orc-mq-'+t+'-'+gi); if(!eq)return;
+      let q=0,v=0; orcGrupoItens(g).forEach(function(i){ if(orcTipoPessoa(i)!==t)return; q+=Number(i.qtde)||0; v+=orcTotalItem(i); });
+      eq.textContent=q.toLocaleString('pt-BR')+(t==='coord'?(q===1?' coordenador':' coordenadores'):(q===1?' staff':' staffs'));
+      document.getElementById('orc-mv-'+t+'-'+gi).textContent=orcR(v);
+    });
+  });
+}
 function orcAtualizarTotais(){
   if(!orcCab)return;
+  orcAtualizarMaes();
   const t=orcTotais(), atl=Number(orcCab.atletas)||0, pc=t.total?Math.round(t.pago/t.total*100):0;
   const k=document.getElementById('orc-kpis');
   if(k) k.innerHTML=
