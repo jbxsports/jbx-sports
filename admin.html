@@ -3544,24 +3544,26 @@ function orcTotalItem(i){ if(i.v_unit==null||i.v_unit==='')return 0; const q=(i.
 /* evento interno vinculado ao Calendário: os números vêm da Diretoria (mesma fonte, os dois lugares mostram igual)
    inscritos e ticket = META · patrocínio = REAL (funil + histórico) · FOTOP = projetado */
 function orcDirVals(o){
-  if(!orcLigado(o)||o.tipo_contrato!=='interno'||!dirCarregadoEm||typeof dirCalc!=='function') return null;
+  if(!orcLigado(o)||!dirCarregadoEm||typeof dirCalc!=='function') return null;
   const ev=(dirCal||[]).filter(function(e){return String(e.id)===String(o.calendario_id);})[0]; if(!ev) return null;
   const c=dirCalc(ev);
-  return {inscritos:Number(c.metaQ)||0, ticket:Number(c.metaT)||0, pat:Number(c.realPat)||0, patFunil:!!c.patFunil, foto:Number(c.fotoRec)||0};
+  return {inscritos:Number(c.metaQ)||0, ticket:Number(c.metaT)||0, pat:Number(c.realPat)||0, patFunil:!!c.patFunil, foto:Number(c.fotoRec)||0, cash:Number(c.cashRec)||0};
 }
 function orcResultado(o,custo){
   if(o.tipo_contrato==='interno'){
     /* evento nosso: inscritos × ticket médio + patrocínio + FOTOP (ou outras receitas, se não vinculado) − custo */
     const dv=orcDirVals(o);
     const q=dv?dv.inscritos:(Number(o.inscritos)||0), tk=dv?dv.ticket:(Number(o.ticket_medio)||0);
-    const pat=dv?dv.pat:0, foto=dv?dv.foto:0, ou=dv?pat+foto:(Number(o.outras_receitas)||0), ins=q*tk, rec=ins+ou;
-    return {interno:true, ligado:!!dv, tem:rec!==0, inscritos:q, ticket:tk, inscricoes:ins, pat:pat, foto:foto, outras:ou, receita:rec, custo:custo, saidas:custo,
+    const pat=dv?dv.pat:0, foto=dv?dv.foto:0, cash=dv?dv.cash:0, ou=dv?pat+foto+cash:(Number(o.outras_receitas)||0), ins=q*tk, rec=ins+ou;
+    return {interno:true, ligado:!!dv, tem:rec!==0, inscritos:q, ticket:tk, inscricoes:ins, pat:pat, foto:foto, cash:cash, outras:ou, receita:rec, custo:custo, saidas:custo,
       resultado:rec-custo, margem:rec?(rec-custo)/rec*100:null};
   }
+  /* preço global: contrato + extras + FOTOP e cashback lançados na Diretoria (orçamento verde vinculado) */
+  const dv=orcDirVals(o), foto=dv?dv.foto:0, cash=dv?dv.cash:0;
   const ct=Number(o.valor_contrato)||0, ex=Number(o.extras_valor)||0, im=Number(o.extras_imposto)||0;
-  const tem=ct!==0||ex!==0;
-  return {interno:false, tem:tem, contrato:ct, extras:ex, imposto:im, receita:ct+ex+im, custo:custo, saidas:custo+im, resultado:ct+ex-custo,
-    margem:(ct+ex)?(ct+ex-custo)/(ct+ex)*100:null};
+  const tem=ct!==0||ex!==0, base=ct+ex+foto+cash;
+  return {interno:false, ligado:!!dv, tem:tem, contrato:ct, extras:ex, imposto:im, foto:foto, cash:cash, receita:base+im, custo:custo, saidas:custo+im, resultado:base-custo,
+    margem:base?(base-custo)/base*100:null};
 }
 function orcPagoValor(i){ if(i.pago) return orcTotalItem(i); return Math.max(0,Number(i.valor_pago)||0); }
 function orcParcial(i){ return !i.pago&&Number(i.valor_pago)>0; }
@@ -3653,12 +3655,14 @@ function orcGaleria(){
         if(o.modelo||!R.tem) return '<div class="oc-pe"><div class="oc-lbl">Custo do projeto</div><div class="oc-total">'+orcR0(o.total)+'</div>'
           +'<div class="oc-pago">'+(o.modelo?(o.itens||0)+' itens':(pc>=100&&o.total>0?'✓ tudo pago':pc+'% pago')+' · '+(R.interno?'sem receita lançada':'sem contrato lançado'))+'</div>';
         if(R.interno) return '<div class="oc-pe"><div class="oc-lin"><span>Inscrições <small>'+R.inscritos.toLocaleString('pt-BR')+' × '+orcR(R.ticket)+'</small></span><b>'+orcR0(R.inscricoes)+'</b></div>'
-          +(R.ligado?'<div class="oc-lin"><span>Patrocínio <small>real</small></span><b>'+orcR0(R.pat)+'</b></div><div class="oc-lin"><span>FOTOP <small>projetado</small></span><b>'+orcR0(R.foto)+'</b></div>'
+          +(R.ligado?'<div class="oc-lin"><span>Patrocínio <small>real</small></span><b>'+orcR0(R.pat)+'</b></div><div class="oc-lin"><span>FOTOP <small>projetado</small></span><b>'+orcR0(R.foto)+'</b></div>'+(R.cash?'<div class="oc-lin"><span>Cashback</span><b>'+orcR0(R.cash)+'</b></div>':'')
             :(R.outras?'<div class="oc-lin"><span>Outras receitas</span><b>'+orcR0(R.outras)+'</b></div>':''))
           +'<div class="oc-lin"><span>Custo</span><b>'+orcR0(R.custo)+'</b></div>'
           +'<div class="oc-res '+(R.resultado<0?'neg':'pos')+'"><span>Resultado</span><b>'+orcR0(R.resultado)+'</b>'
           +(R.margem!=null?'<small>'+R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem · custo '+pc+'% pago</small>':'')+'</div>';
-        return '<div class="oc-pe"><div class="oc-lin"><span>Contrato + extras</span><b>'+orcR0(R.receita)+'</b></div>'
+        return '<div class="oc-pe"><div class="oc-lin"><span>Contrato + extras</span><b>'+orcR0(R.contrato+R.extras+R.imposto)+'</b></div>'
+          +(R.foto?'<div class="oc-lin"><span>Fotos <small>FOTOP</small></span><b>'+orcR0(R.foto)+'</b></div>':'')
+          +(R.cash?'<div class="oc-lin"><span>Cashback</span><b>'+orcR0(R.cash)+'</b></div>':'')
           +'<div class="oc-lin"><span>Custo + impostos</span><b>'+orcR0(R.saidas)+'</b></div>'
           +'<div class="oc-res '+(R.resultado<0?'neg':'pos')+'"><span>Resultado</span><b>'+orcR0(R.resultado)+'</b>'
           +(R.margem!=null?'<small>'+R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem · custo '+pc+'% pago</small>':'')+'</div>';
@@ -3773,14 +3777,15 @@ function orcRender(){
         ?(function(){ const dv=orcDirVals(c);
           return '<div class="orc-res-in"><label>Inscritos <small>meta · Diretoria</small></label><input value="'+orcEsc(dv.inscritos?dv.inscritos.toLocaleString('pt-BR'):'')+'" placeholder="0" onchange="orcDirMeta(\'q\',this)"></div>'
            +'<div class="orc-res-in"><label>Ticket médio <small>meta · Diretoria</small></label><input value="'+orcNumFmt(dv.ticket||null,2)+'" placeholder="R$ 0,00" onchange="orcDirMeta(\'t\',this)"></div>'
-           +'<div class="orc-res-in orc-res-ro"><label>Da Diretoria</label><div><span>Patrocínio real'+(dv.patFunil?' (funil)':'')+'</span><b>'+orcR(dv.pat)+'</b></div><div><span>FOTOP projetado</span><b>'+orcR(dv.foto)+'</b></div></div>'; })()
+           +'<div class="orc-res-in orc-res-ro"><label>Da Diretoria</label><div><span>Patrocínio real'+(dv.patFunil?' (funil)':'')+'</span><b>'+orcR(dv.pat)+'</b></div><div><span>FOTOP projetado</span><b>'+orcR(dv.foto)+'</b></div><div><span>Cashback</span><b>'+orcR(dv.cash)+'</b></div></div>'; })()
         :interno
         ?'<div class="orc-res-in"><label>Total de inscritos</label><input value="'+orcEsc(c.inscritos==null?'':Number(c.inscritos).toLocaleString('pt-BR'))+'" placeholder="0" onchange="orcCabInt(\'inscritos\',this)"></div>'
          +'<div class="orc-res-in"><label>Ticket médio</label><input value="'+orcNumFmt(c.ticket_medio,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'ticket_medio\',this)"></div>'
          +'<div class="orc-res-in"><label title="Patrocínio, FOTOP, cashback e outras receitas do evento">Outras receitas</label><input value="'+orcNumFmt(c.outras_receitas,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'outras_receitas\',this)"><div class="orc-res-dica">'+(c.status==='real'?'Vincule ao evento do Calendário para puxar tudo da Diretoria.':'Orçamento vermelho (estudo): números próprios, não mexe no Calendário nem na Diretoria.')+'</div></div>'
         :'<div class="orc-res-in"><label>Valor do contrato</label><input value="'+orcNumFmt(c.valor_contrato,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'valor_contrato\',this)"></div>'
          +'<div class="orc-res-in"><label>Extras</label><input value="'+orcNumFmt(c.extras_valor,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_valor\',this)"></div>'
-         +'<div class="orc-res-in"><label>Imposto dos extras</label><input value="'+orcNumFmt(c.extras_imposto,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_imposto\',this)"></div>')
+         +'<div class="orc-res-in"><label>Imposto dos extras</label><input value="'+orcNumFmt(c.extras_imposto,2)+'" placeholder="R$ 0,00" onchange="orcCabNum(\'extras_imposto\',this)"></div>'
+         +(orcDirVals(c)?'<div class="orc-res-in orc-res-ro"><label>Da Diretoria</label><div><span>Fotos (FOTOP)</span><b>'+orcR(orcDirVals(c).foto)+'</b></div><div><span>Cashback</span><b>'+orcR(orcDirVals(c).cash)+'</b></div></div>':''))
       +'<div class="orc-res-out" id="orc-res-out"></div></div>';
   }
   /* KPIs */
@@ -3875,9 +3880,9 @@ function orcAtualizarTotais(){
   const ro=document.getElementById('orc-res-out');
   if(ro){ const R=orcResultado(orcCab,t.total);
     if(R.interno) ro.innerHTML='<div><span>Faturado em inscrições</span><b>'+orcR(R.inscricoes)+'</b><small>'+R.inscritos.toLocaleString('pt-BR')+' inscritos × '+orcR(R.ticket)+'</small></div>'
-      +'<div><span>Receita total</span><b>'+orcR(R.receita)+'</b><small>'+(R.ligado?'inscrições + patrocínio real + FOTOP':'inscrições + outras receitas')+' · custo <b class="neg" style="display:inline;font-size:11px;">'+orcR(R.custo)+'</b></small></div>'
+      +'<div><span>Receita total</span><b>'+orcR(R.receita)+'</b><small>'+(R.ligado?'inscrições + patrocínio real + FOTOP + cashback':'inscrições + outras receitas')+' · custo <b class="neg" style="display:inline;font-size:11px;">'+orcR(R.custo)+'</b></small></div>'
       +'<div class="big"><span>Resultado do evento</span><b class="'+(R.resultado<0?'neg':'pos')+'">'+(R.tem?orcR(R.resultado):'—')+'</b><small>'+(R.tem&&R.margem!=null?R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem':'lance inscritos e ticket médio')+'</small></div>';
-    else ro.innerHTML='<div><span>Total a receber</span><b>'+orcR(R.receita)+'</b><small>contrato + extras + imposto dos extras</small></div>'
+    else ro.innerHTML='<div><span>Total a receber</span><b>'+orcR(R.receita)+'</b><small>contrato + extras + imposto dos extras'+(R.ligado?' + fotos + cashback':'')+'</small></div>'
       +'<div><span>Custo real + impostos</span><b class="neg">'+orcR(R.saidas)+'</b><small>itens deste orçamento'+(R.imposto?' + imposto dos extras':'')+'</small></div>'
       +'<div class="big"><span>Resultado do evento</span><b class="'+(R.resultado<0?'neg':'pos')+'">'+(R.tem?orcR(R.resultado):'—')+'</b><small>'+(R.tem&&R.margem!=null?R.margem.toLocaleString('pt-BR',{maximumFractionDigits:1})+'% de margem':'lance o valor do contrato')+'</small></div>'; }
   const it=orcLista.find(function(o){return o.id===orcAtual;}); if(it){ it.total=t.total; it.pago=t.pago; ['valor_contrato','extras_valor','extras_imposto','tipo_contrato','inscritos','ticket_medio','outras_receitas'].forEach(function(k){it[k]=orcCab[k];}); }
