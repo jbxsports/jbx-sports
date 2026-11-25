@@ -14173,7 +14173,7 @@ const MKT_OBRIG=[
 const MKT_DIAS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const MKT_MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 
-let mktData=null, mktView='mes', mktRef=new Date(), mktCarregando=false;
+let mktData=null, mktView='semana', mktRef=new Date(), mktCarregando=false;
 let mktFiltro={evento:'',pat:'',canal:'',perfil:'',tipo:'',status:'',designer:false};
 let mktPostAtual=null, mktEvAtual=null, mktPatAtual=null, mktCorSel=MKT_CORES[5];
 let mktPerfisSel=['jbx'], mktStatusSel='a_criar';
@@ -14187,6 +14187,10 @@ function mktPerfisDe(evId,patId){
 }
 
 function mktInit(){
+  /* ao entrar em Social Media abre sempre na semana atual (vista mais usada) */
+  mktView='semana'; mktRef=new Date();
+  ['mes','semana','pipe','tempo'].forEach(x=>{const b=document.getElementById('mkt-vbtn-'+x); if(b)b.classList.toggle('active',x==='semana');});
+  const nav=document.getElementById('mkt-periodo-nav'); if(nav)nav.style.display='flex';
   if(mktData){mktRender();return;}
   mktRecarregar();
 }
@@ -19523,8 +19527,8 @@ document.addEventListener('DOMContentLoaded',function(){
           </div>
           <div class="mkt-feed-btns" id="mkt-feed-btns" title="Projeção do feed do Instagram"></div>
           <div class="mkt-views">
-            <button class="mkt-view-btn active" id="mkt-vbtn-mes" onclick="mktSetView('mes')">Mês</button>
-            <button class="mkt-view-btn" id="mkt-vbtn-semana" onclick="mktSetView('semana')">Semana</button>
+            <button class="mkt-view-btn" id="mkt-vbtn-mes" onclick="mktSetView('mes')">Mês</button>
+            <button class="mkt-view-btn active" id="mkt-vbtn-semana" onclick="mktSetView('semana')">Semana</button>
             <button class="mkt-view-btn" id="mkt-vbtn-pipe" onclick="mktSetView('pipe')">Pipeline</button>
             <button class="mkt-view-btn" id="mkt-vbtn-tempo" onclick="mktSetView('tempo')">Linha do tempo</button>
           </div>
