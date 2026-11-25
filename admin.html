@@ -16696,29 +16696,21 @@ function pnlSvg(lado,cor,camada){
   const defs='<defs>'
     +'<clipPath id="'+P+'c"><path d="'+corpo+'"/></clipPath>'
     +'<filter id="'+P+'b4" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4"/></filter>'
-    +'<filter id="'+P+'b9" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="9"/></filter>'
-    +'<filter id="'+P+'sh" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-color="#000" flood-opacity=".28"/></filter>'
+    +'<filter id="'+P+'b9" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="16"/></filter>'
+    +'<filter id="'+P+'sh" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#000" flood-opacity=".18"/></filter>'
     +'<filter id="'+P+'tx" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="'+(costas?7:3)+'"/>'
       +'<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 -.18"/></filter>'
-    +'<linearGradient id="'+P+'h" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".30"/><stop offset=".2" stop-color="#000" stop-opacity=".06"/>'
-      +'<stop offset=".42" stop-color="#fff" stop-opacity=".13"/><stop offset=".6" stop-color="#fff" stop-opacity=".05"/><stop offset=".82" stop-color="#000" stop-opacity=".08"/><stop offset="1" stop-color="#000" stop-opacity=".30"/></linearGradient>'
-    +'<linearGradient id="'+P+'v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#000" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".20"/></linearGradient>'
+    +'<linearGradient id="'+P+'h" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".16"/><stop offset=".22" stop-color="#000" stop-opacity=".03"/>'
+      +'<stop offset=".45" stop-color="#fff" stop-opacity=".06"/><stop offset=".6" stop-color="#fff" stop-opacity=".03"/><stop offset=".8" stop-color="#000" stop-opacity=".03"/><stop offset="1" stop-color="#000" stop-opacity=".16"/></linearGradient>'
+    +'<linearGradient id="'+P+'v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".10"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".9" stop-color="#000" stop-opacity=".03"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>'
     +'</defs>';
-  /* dobras: [caminho, cor, opacidade, largura] */
-  const dobras=[
-    ['M318 150 C300 185 284 205 262 228','#000',.22,7],['M312 160 C296 192 280 212 258 236','#fff',.10,4],
-    ['M82 150 C100 185 116 205 138 228','#000',.22,7],['M88 160 C104 192 120 212 142 236','#fff',.10,4],
-    ['M150 406 C156 380 158 360 168 344','#000',.16,6],['M246 410 C240 384 238 362 228 346','#000',.16,6],
-    ['M200 418 C198 396 202 380 200 366','#fff',.10,5],['M110 300 C116 330 112 360 118 392','#000',.08,8],['M292 300 C286 330 290 360 284 392','#000',.08,8],
-    ['M352 74 C356 100 352 124 344 146','#000',.14,6],['M48 74 C44 100 48 124 56 146','#000',.14,6]
-  ];
-  const sombras=dobras.map(d=>'<path d="'+d[0]+'" fill="none" stroke="'+d[1]+'" stroke-opacity="'+d[2]+'" stroke-width="'+d[3]+'" stroke-linecap="round" filter="url(#'+P+'b4)"/>').join('')
-    +'<ellipse cx="318" cy="148" rx="16" ry="30" transform="rotate(-25 318 148)" fill="#000" opacity=".22" filter="url(#'+P+'b9)"/>'
-    +'<ellipse cx="82" cy="148" rx="16" ry="30" transform="rotate(25 82 148)" fill="#000" opacity=".22" filter="url(#'+P+'b9)"/>';
-  const textura='<rect x="0" y="0" width="400" height="440" filter="url(#'+P+'tx)" opacity=".22"/>';
+  /* sombreamento suave (sem riscos): axilas e um caimento leve na cintura */
+  const sombras='<ellipse cx="316" cy="160" rx="26" ry="46" transform="rotate(-18 316 160)" fill="#000" opacity=".13" filter="url(#'+P+'b9)"/>'
+    +'<ellipse cx="84" cy="160" rx="26" ry="46" transform="rotate(18 84 160)" fill="#000" opacity=".13" filter="url(#'+P+'b9)"/>';
+  const textura='';
   if(over){
     return '<svg class="pn-ov" viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">'+defs
-      +'<g clip-path="url(#'+P+'c)" opacity=".7">'+sombras+textura+'</g></svg>';
+      +'<g clip-path="url(#'+P+'c)" opacity=".45">'+sombras+'</g></svg>';
   }
   /* parte de dentro da gola (aparece o avesso das costas) */
   const avesso=costas?'':'<path d="M146 23 C174 8 226 8 254 23 C232 64 168 64 146 23 Z" fill="'+cor+'"/>'
@@ -16727,7 +16719,7 @@ function pnlSvg(lado,cor,camada){
     +'<path d="M150 21 C176 12 224 12 250 21" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="6" stroke-linecap="round"/>'
     +'<rect x="190" y="16" width="20" height="9" rx="1.5" fill="#fff" opacity=".85"/><rect x="194" y="19" width="12" height="1.4" fill="#999"/><rect x="196" y="21.5" width="8" height="1.2" fill="#bbb"/>';
   const golaRib='M150 24 '+gola;
-  const costura='fill="none" stroke="#fff" stroke-opacity=".35" stroke-width=".9" stroke-dasharray="2.4 2"';
+  const costura='fill="none" stroke="#000" stroke-opacity=".14" stroke-width=".8" stroke-dasharray="2.2 1.8"';
   const costuraEsc='fill="none" stroke="#000" stroke-opacity=".22" stroke-width="1.1"';
   return '<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">'+defs
     +avesso
@@ -16749,8 +16741,8 @@ function pnlSvg(lado,cor,camada){
     /* gola canelada */
     +'<path d="'+golaRib+'" fill="none" stroke="'+cor+'" stroke-width="11" stroke-linecap="round"/>'
     +'<path d="'+golaRib+'" fill="none" stroke="#000" stroke-opacity=".10" stroke-width="11" stroke-linecap="round"/>'
-    +'<path d="'+golaRib+'" fill="none" stroke="#000" stroke-opacity=".18" stroke-width="1" stroke-dasharray=".8 1.6" transform="translate(0 2)"/>'
-    +'<path d="'+golaRib+'" fill="none" stroke="#fff" stroke-opacity=".30" stroke-width=".9" stroke-dasharray="2.4 2" transform="translate(0 6)"/>'
+    +'<path d="'+golaRib+'" fill="none" stroke="#000" stroke-opacity=".06" stroke-width="1" stroke-dasharray=".8 1.6" transform="translate(0 2)"/>'
+    +'<path d="'+golaRib+'" fill="none" stroke="#000" stroke-opacity=".14" stroke-width=".8" stroke-dasharray="2.2 1.8" transform="translate(0 6)"/>'
     +'<path d="'+corpo+'" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="1.2" stroke-linejoin="round"/>'
     +'</svg>';
 }
