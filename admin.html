@@ -16428,9 +16428,21 @@ const PNL_GRUPOS=[
   {g:'bronze',t:'🥉 Cota Bronze'}
 ];
 const PNL_CORES=[
-  {c:'#ffffff',t:'Branca'},{c:'#1f1f1f',t:'Preta'},{c:'#ff751f',t:'Laranja'},
-  {c:'#1e3a5f',t:'Azul-marinho'},{c:'#9ca3af',t:'Cinza'},{c:'#15803d',t:'Verde'}
+  {c:'#ffffff',t:'Branca'},{c:'#1f1f1f',t:'Preta'},{c:'#9ca3af',t:'Cinza'},{c:'#ff751f',t:'Laranja'},
+  {c:'#dc2626',t:'Vermelha'},{c:'#7f1d1d',t:'Vinho'},{c:'#ec4899',t:'Rosa'},{c:'#facc15',t:'Amarela'},
+  {c:'#5e17eb',t:'Roxa'},{c:'#3b0764',t:'Roxo escuro'},{c:'#1d4ed8',t:'Azul royal'},{c:'#38bdf8',t:'Azul celeste'},
+  {c:'#1e3a5f',t:'Azul-marinho'},{c:'#15803d',t:'Verde'},{c:'#84cc16',t:'Verde-limão'},{c:'#d6c7a1',t:'Bege'}
 ];
+/* faixa de cores: clique em qualquer ponto para escolher a cor */
+function pnlFaixaCor(ev){
+  const r=ev.currentTarget.getBoundingClientRect();
+  const f=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width));
+  const fy=Math.min(1,Math.max(0,(ev.clientY-r.top)/r.height));
+  const l=Math.round(78-fy*56); /* em cima mais clara, embaixo mais escura */
+  const h=f*360, s=.9, L=l/100, a=s*Math.min(L,1-L);
+  const k=n=>{const kk=(n+h/30)%12;const v=L-a*Math.max(-1,Math.min(kk-3,9-kk,1));return Math.round(v*255).toString(16).padStart(2,'0');};
+  pnlCor('#'+k(0)+k(8)+k(4));
+}
 const PNL_EVENTO={id:'evento',t:'Logo do evento',cor:'#ff751f',w:22};
 /* posições padrão (desenho do Stephano, 25/11/2026): x,y = centro em % da camiseta; w = largura em % */
 const PNL_LAYOUT_PADRAO={
@@ -16484,6 +16496,7 @@ const PNL_CSS=
  +'.pn-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}'
  +'.pn-sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(42,37,32,.18);cursor:pointer;padding:0;}'
  +'.pn-sw.on{outline:2px solid #ff751f;outline-offset:2px;}'
+ +'.pn-faixa{display:inline-block;width:220px;height:28px;border-radius:8px;cursor:crosshair;border:2px solid rgba(42,37,32,.18);background:linear-gradient(to bottom,rgba(255,255,255,.35),rgba(255,255,255,0) 45%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45)),linear-gradient(to right,#f00,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00);}'
  +'.pn-tray{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:10px;border:1px dashed rgba(42,37,32,.18);border-radius:10px;background:#faf9f7;margin-bottom:14px;}'
  +'.pn-tray .vz{font-size:12px;color:#15803d;font-weight:700;align-self:center;}'
  +'.pn-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 10px 5px 6px;border-radius:999px;background:#fff;border:1px solid rgba(42,37,32,.14);cursor:grab;user-select:none;touch-action:none;}'
@@ -16714,6 +16727,7 @@ function pnlMockHtml(){
   let h='<div class="pn-tools"><span style="font-size:12.5px;font-weight:700;">Cor da camiseta:</span>';
   PNL_CORES.forEach(function(c){ h+='<button class="pn-sw'+(c.c.toLowerCase()===cor.toLowerCase()?' on':'')+'" title="'+c.t+'" style="background:'+c.c+'" onclick="pnlCor(\''+c.c+'\')"></button>'; });
   h+='<input type="color" value="'+patEsc(/^#[0-9a-f]{6}$/i.test(cor)?cor:'#ffffff')+'" onchange="pnlCor(this.value)" title="Escolher outra cor" class="pn-sw" style="width:28px;height:28px;border-radius:8px;padding:0;background:none;">'
+    +'<span class="pn-faixa" title="Clique para escolher a cor (em cima mais clara, embaixo mais escura)" onclick="pnlFaixaCor(event)"></span>'
     +'<span style="flex:1"></span>'
     +'<button class="mkt-btn sm" onclick="pnlResetPosicoes()" title="Volta todas as logos para o layout padrão">↺ Posições padrão</button>'
     +'<button class="mkt-btn sm" onclick="document.getElementById(\'pn-logo-file\').click()">'+(pnlDados.logo_evento?'🔄 Trocar logo do evento':'⬆ Enviar logo do evento')+'</button>'
