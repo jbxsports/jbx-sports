@@ -1716,6 +1716,23 @@ table.ck-grid tfoot textarea:focus{outline:none;border-color:var(--orange);}
 .pt-ent-subs{display:none;padding:4px 0 6px 28px;border-left:2px solid rgba(255,117,31,.35);margin:0 0 6px 8px;}
 .pt-ent-subs.aberto{display:block;}
 .pt-ent-subs .pt-ent-item label{font-size:13.5px;color:var(--muted);}
+.pt-cam-box{padding:6px 0 8px 12px;}
+.pt-cam .pn-shirts{grid-template-columns:1fr;gap:8px;max-width:430px;}
+.pt-cam-crop{overflow:hidden;aspect-ratio:400/215;border-radius:10px;background:#f3f1ee;}
+.pt-cam .pn-lado{font-size:10px;margin-bottom:2px;}
+.pt-cam-pt{position:absolute;transform:translate(-50%,-50%);aspect-ratio:3/2;border:1.5px dashed;border-radius:5px;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;cursor:pointer;container-type:inline-size;overflow:hidden;transition:transform .1s;}
+.pt-cam-pt b{font-size:34cqw;line-height:1;}
+.pt-cam-pt img{max-width:90%;max-height:85%;object-fit:contain;}
+.pt-cam-pt:hover{transform:translate(-50%,-50%) scale(1.18);z-index:2;}
+.pt-cam-pt.sug{box-shadow:0 0 0 2px #22c55e,0 0 8px rgba(34,197,94,.7);}
+.pt-cam-pt.eu{background:#ff751f;border:2px solid #ff751f!important;}
+.pt-cam-pt.eu .x{color:#fff;font-weight:900;font-size:60cqw;line-height:1;}
+.pt-cam-pt.ocup{cursor:not-allowed;opacity:.55;border-style:solid;}
+.pt-cam-info{font-size:13px;margin-top:6px;} .pt-cam-info a{color:#ff751f;margin-left:6px;font-size:12px;}
+.pt-cam-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--muted);margin-top:4px;}
+.pt-cam-leg i{display:inline-block;width:12px;height:9px;border:1.5px dashed #999;border-radius:2px;margin-right:4px;vertical-align:-1px;background:#fff;}
+.pt-cam-leg i.eu{background:#ff751f;border:1.5px solid #ff751f;} .pt-cam-leg i.sug{box-shadow:0 0 0 2px #22c55e;} .pt-cam-leg i.ocup{opacity:.5;border-style:solid;}
+.pt-cam-av{font-size:11.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:6px 9px;margin-top:6px;}
 /* ══ PACOTE CALENDÁRIO — em quais eventos a marca fechou ══ */
 .pt-pac{border:1.5px solid rgba(255,117,31,.45);border-radius:12px;padding:14px 16px;margin-bottom:14px;background:rgba(255,117,31,.05);}
 .pt-pac-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
@@ -17251,6 +17268,7 @@ function patPintarOport(m,o){
   document.getElementById('pt-op-tirar').style.display=o.novo?'none':'';
   patOportEtapaChange();
   document.getElementById('pt-op-etapa').onchange=patOportEtapaChange;
+  const cs=document.getElementById('pt-op-cota'); if(cs&&!cs._camOk){ cs._camOk=true; cs.addEventListener('change',function(){ patCamPintar(); }); }
   document.getElementById('pt-op-overlay').classList.add('open');
 }
 const PT_ENTREGAVEIS=[
@@ -17284,6 +17302,131 @@ const PT_ENTREGAVEIS=[
     {id:'cupons',t:'Cupons de desconto',qtd:'cupons'}]}
 ];
 let patEntreg={};
+/* ══════════ ENTREGÁVEIS → POSIÇÃO NA CAMISETA ══════════
+   No "Logo na camiseta" do fechamento, o mockup mostra os 14 espaços do Painel de cotas;
+   clica no local e marca com X. Ao salvar, a marca entra naquele espaço do painel do evento
+   e Frente/Costas/Manga são marcados sozinhos. */
+let patCamPainel=null; /* dados do painel do evento aberto (null = pacote/sem evento) */
+const PAT_CAM_SUGESTAO={master:['apresentador'],parceiro:['naming'],ouro:['ouro1','ouro2'],prata:['prata1','prata2'],
+  bronze:['bronze1','bronze2','bronze3','bronze4','bronze5','bronze6','bronze7','bronze8']};
+function patCamPos(slot){
+  const d=patCamPainel;
+  return (d&&d.pos&&d.pos[slot])||PNL_LAYOUT_PADRAO[slot]||null;
+}
+function patCamSubsDe(slot){
+  const p=patCamPos(slot); if(!p)return {};
+  if(p.lado==='costas') return {costas:true};
+  if(p.x<20) return {manga1:true};
+  if(p.x>80) return {manga2:true};
+  return {frente:true};
+}
+function patCamDono(slot){
+  const d=patCamPainel; const mid=d&&d.slots&&d.slots[slot];
+  if(!mid||!patOportAtual||String(mid)===String(patOportAtual.marca_id))return null;
+  return patMarca(mid)||{nome:'Outra marca'};
+}
+function patCamMockHtml(){
+  const v=(patEntreg&&patEntreg.camiseta)||{};
+  const meu=v.slot||'';
+  const cotaSel=(document.getElementById('pt-op-cota')||{}).value||'';
+  const sug=PAT_CAM_SUGESTAO[cotaSel]||[];
+  const d=patCamPainel||{};
+  const cor=d.cor_camisa||'#ffffff';
+  const lado=function(l){
+    let h='<div><div class="pn-lado">'+(l==='costas'?'Costas':'Frente')+'</div><div class="pt-cam-crop"><div class="pn-shirt pt-cam-shirt">'+pnlSvg(l,cor);
+    const pe=(d.pos&&d.pos.evento)||PNL_LAYOUT_PADRAO.evento;
+    if(pe.lado===l){
+      h+='<div class="pn-it" style="left:'+pe.x+'%;top:'+pe.y+'%;width:'+pe.w+'%;pointer-events:none;opacity:.9">'
+        +(d.logo_evento?'<img src="'+patEsc(d.logo_evento)+'" alt="">':'<div class="ph" style="border-color:#ff751f;color:#ff751f;background:#fff"><small>EVENTO</small></div>')+'</div>';
+    }
+    PNL_SLOTS.forEach(function(s){
+      const p=patCamPos(s.id); if(!p||p.lado!==l)return;
+      const dono=patCamDono(s.id), eu=(s.id===meu);
+      let cls='pt-cam-pt', inner;
+      if(eu){ cls+=' eu'; inner='<span class="x">✕</span>'; }
+      else if(dono){ cls+=' ocup'; inner=dono.logo_url?'<img src="'+patEsc(dono.logo_url)+'" alt="">':'<b style="color:'+s.cor+'">'+patEsc(patIniciais(dono.nome))+'</b>'; }
+      else { inner='<b style="color:'+s.cor+'">'+(PNL_SIGLA[s.id]||'')+'</b>'; if(sug.indexOf(s.id)!==-1)cls+=' sug'; }
+      const tit=s.t+(eu?' · escolhido':dono?' · ocupado por '+dono.nome:' · vago');
+      h+='<div class="'+cls+'" style="left:'+p.x+'%;top:'+p.y+'%;width:'+Math.max(p.w,8)+'%;border-color:'+s.cor+'" title="'+patEsc(tit)+'"'
+        +(dono?'':' onclick="patCamEscolher(\''+s.id+'\')"')+'>'+inner+'</div>';
+    });
+    return h+'</div></div></div>';
+  };
+  const s=meu?pnlSlot(meu):null, p=meu?patCamPos(meu):null;
+  const onde=s?('<b>'+patEsc(s.t)+'</b> · '+({frente:'Frente',costas:'Costas',manga1:'Manga 1',manga2:'Manga 2'}[Object.keys(patCamSubsDe(meu))[0]]||'')):'nenhuma — clique no local da logo';
+  let aviso='';
+  if(!patCamPainel&&patPacoteAtual()) aviso='<div class="pt-cam-av">Pacote: a posição escolhida vale para todos os eventos marcados (se o espaço estiver livre em cada um).</div>';
+  return '<div class="pt-cam"><div class="pn-shirts">'+lado('frente')+lado('costas')+'</div>'
+    +'<div class="pt-cam-info">Posição: '+onde+(meu?' <a href="#" onclick="patCamEscolher(\'\');return false;">limpar</a>':'')+'</div>'
+    +'<div class="pt-cam-leg"><span><i class="eu"></i>esta marca</span><span><i></i>vago</span><span><i class="sug"></i>sugerido pela cota</span><span><i class="ocup"></i>ocupado</span></div>'
+    +aviso+'</div>';
+}
+function patCamPintar(){
+  const el=document.getElementById('pt-cam-mock'); if(!el)return;
+  if(typeof pnlCss==='function') pnlCss();
+  el.innerHTML=patCamMockHtml();
+}
+function patCamEscolher(slot){
+  patEntreg.camiseta=patEntreg.camiseta||{};
+  const c=patEntreg.camiseta;
+  if(slot&&c.slot===slot) slot='';
+  if(slot){ c.slot=slot; c.on=true; c.subs=patCamSubsDe(slot);
+    if(slot==='naming'){ patEntreg.naming=patEntreg.naming||{}; patEntreg.naming.on=true; } }
+  else { delete c.slot; c.subs={}; }
+  patEntregPintar();
+}
+/* lê o painel do evento e traz a posição que a marca já ocupa */
+async function patCamCarregar(){
+  patCamPainel=null;
+  if(!patOportAtual||patPacoteAtual()||!patEvSel){ patCamPintar(); return; }
+  const ev=String(patEvSel), mid=String(patOportAtual.marca_id);
+  try{
+    const r=await rpc('pat_painel_ler',{p_evento:ev});
+    if(String(patEvSel)!==ev||!patOportAtual)return;
+    patCamPainel=(r&&r.ok&&r.dados)?r.dados:{slots:{},pos:{}};
+  }catch(e){ patCamPainel={slots:{},pos:{}}; }
+  const slots=patCamPainel.slots||{};
+  const ja=Object.keys(slots).find(k=>String(slots[k])===mid);
+  if(ja){
+    patEntreg.camiseta=patEntreg.camiseta||{};
+    if(!patEntreg.camiseta.slot){ patEntreg.camiseta.slot=ja; patEntreg.camiseta.on=true;
+      patEntreg.camiseta.subs=Object.assign({},patEntreg.camiseta.subs||{},patCamSubsDe(ja)); }
+  }
+  patEntregPintar();
+}
+/* grava a escolha no painel de um evento; devolve texto de aviso se não deu */
+async function patCamAplicar(evId,marcaId,slot){
+  let d;
+  try{ const r=await rpc('pat_painel_ler',{p_evento:String(evId)}); d=(r&&r.ok&&r.dados)?r.dados:null; }catch(e){ return 'não consegui ler o painel'; }
+  d=d||{logo_evento:'',cor_camisa:'#ffffff',slots:{},pos:pnlLayoutPadrao(),precos:{}};
+  d.slots=d.slots||{};
+  if(!d.pos||!Object.keys(d.pos).some(k=>k!=='evento')) d.pos=Object.assign(pnlLayoutPadrao(),d.pos&&d.pos.evento?{evento:d.pos.evento}:{});
+  const mid=String(marcaId);
+  if(slot&&d.slots[slot]&&String(d.slots[slot])!==mid){
+    const m=patMarca(d.slots[slot]); return (pnlSlot(slot)||{}).t+' já está com '+(m?m.nome:'outra marca');
+  }
+  const antes=JSON.stringify(d.slots);
+  Object.keys(d.slots).forEach(k=>{ if(String(d.slots[k])===mid) delete d.slots[k]; });
+  if(slot) d.slots[slot]=marcaId;
+  if(JSON.stringify(d.slots)===antes) return '';
+  try{ const r=await rpc('pat_painel_salvar',{p_evento:String(evId),p_dados:d}); if(r&&r.ok===false) return r.erro; }
+  catch(e){ return e.message||'erro ao salvar'; }
+  if(String(pnlEvSel)===String(evId)) pnlDados=null;
+  return '';
+}
+async function patCamSalvar(pac){
+  if(!patOportAtual)return;
+  const c=patEntreg&&patEntreg.camiseta;
+  const slot=(c&&c.on&&c.slot)?c.slot:'';
+  const ids=pac?Object.keys(patPac):[String(patEvSel)];
+  const avisos=[];
+  for(const id of ids){
+    if(pac&&!slot)continue; /* pacote sem posição: não mexe nos painéis */
+    const a=await patCamAplicar(id,patOportAtual.marca_id,slot);
+    if(a){ const e=patEventos.find(x=>String(x.id)===id); avisos.push((e?e.nome:id)+': '+a); }
+  }
+  if(avisos.length) alert('Posição na camiseta não aplicada em:\n\n'+avisos.join('\n')+'\n\nAjuste no Painel de cotas.');
+}
 
 function patEntregChave(){
   if(!patOportAtual)return null;
@@ -17337,7 +17480,11 @@ function patEntregPintar(){
       box.appendChild(linha);
 
       let caixaSubs=null;
-      if(it.subs){
+      if(it.id==='camiseta'){
+        caixaSubs=document.createElement('div'); caixaSubs.className='pt-ent-subs pt-cam-box'+(v.on?' aberto':'');
+        const mk=document.createElement('div'); mk.id='pt-cam-mock'; caixaSubs.appendChild(mk);
+        box.appendChild(caixaSubs);
+      } else if(it.subs){
         caixaSubs=document.createElement('div'); caixaSubs.className='pt-ent-subs'+(v.on?' aberto':'');
         it.subs.forEach(function(sb){
           const l2=document.createElement('div'); l2.className='pt-ent-item';
@@ -17370,6 +17517,7 @@ function patEntregPintar(){
     alvo.appendChild(box);
   });
   patEntregContar();
+  patCamPintar();
 }
 async function patEntregCarregar(){
   const k=patEntregChave(); if(!k)return;
@@ -17385,6 +17533,7 @@ async function patEntregCarregar(){
   const org=document.getElementById('pt-ent-origem');
   const pacOrig=patEntreg&&patEntreg._origem?PAT_PACOTES.find(p=>p.id===patEntreg._origem):null;
   if(org){ org.style.display=pacOrig?'':'none'; org.textContent=pacOrig?('Fechado via '+pacOrig.nome.replace(/^\S+\s/,'')+' — para mudar eventos ou valores, edite no funil do pacote.'):''; }
+  await patCamCarregar();
 }
 
 /* ── pacote de calendário: escolha dos eventos ── */
@@ -17538,6 +17687,7 @@ async function patSalvarOport(){
     if(etapa==='fechado')await patEntregSalvar();
     if(etapa==='fechado')await pfSalvar();
     if(pac&&etapa==='fechado')await patPacReplicar(pac,dadosBase,anteriores);
+    if(etapa==='fechado')await patCamSalvar(pac);
     patFecharOport();
     await patCarregar();
   }catch(e){alert('Erro ao salvar: '+e.message);}
