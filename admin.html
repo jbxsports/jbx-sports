@@ -16411,7 +16411,30 @@ const PNL_CORES=[
   {c:'#ffffff',t:'Branca'},{c:'#1f1f1f',t:'Preta'},{c:'#ff751f',t:'Laranja'},
   {c:'#1e3a5f',t:'Azul-marinho'},{c:'#9ca3af',t:'Cinza'},{c:'#15803d',t:'Verde'}
 ];
-const PNL_EVENTO={id:'evento',t:'Logo do evento',cor:'#ff751f',w:34};
+const PNL_EVENTO={id:'evento',t:'Logo do evento',cor:'#ff751f',w:22};
+/* posições padrão (desenho do Stephano, 25/11/2026): x,y = centro em % da camiseta; w = largura em % */
+const PNL_LAYOUT_PADRAO={
+  evento:      {lado:'frente',x:44.2,y:29.0,w:22},
+  naming:      {lado:'frente',x:64.6,y:29.0,w:11.9},
+  apresentador:{lado:'frente',x:52.3,y:22.6,w:8.7},
+  ouro1:       {lado:'frente',x:32.0,y:16.3,w:6.5},
+  ouro2:       {lado:'frente',x:72.9,y:16.7,w:6.5},
+  prata1:      {lado:'frente',x:11.4,y:26.2,w:8.3},
+  prata2:      {lado:'frente',x:88.6,y:27.0,w:8.3},
+  bronze1:     {lado:'costas',x:38.6,y:25.4,w:7.6},
+  bronze2:     {lado:'costas',x:48.5,y:25.4,w:7.6},
+  bronze3:     {lado:'costas',x:59.0,y:25.4,w:7.6},
+  bronze4:     {lado:'costas',x:69.6,y:25.4,w:7.6},
+  bronze5:     {lado:'costas',x:48.5,y:32.3,w:7.6},
+  bronze6:     {lado:'costas',x:58.8,y:32.3,w:7.6}
+};
+const PNL_SIGLA={apresentador:'AP',naming:'NR',ouro1:'O1',ouro2:'O2',prata1:'P1',prata2:'P2',bronze1:'B1',bronze2:'B2',bronze3:'B3',bronze4:'B4',bronze5:'B5',bronze6:'B6'};
+function pnlLayoutPadrao(){ return JSON.parse(JSON.stringify(PNL_LAYOUT_PADRAO)); }
+function pnlResetPosicoes(){
+  if(!pnlDados)return;
+  if(!confirm('Voltar todas as logos para as posições padrão da camiseta?'))return;
+  pnlDados.pos=pnlLayoutPadrao(); pnlRender(); pnlAgendar();
+}
 
 let pnlEvSel='', pnlDados=null, pnlTimer=null, pnlDrag=null, pnlPickSlot=null, pnlCssOk=false, pnlCarregando=false;
 
@@ -16453,7 +16476,10 @@ const PNL_CSS=
  +'.pn-shirt.alvo svg{filter:drop-shadow(0 0 6px rgba(255,117,31,.7));}'
  +'.pn-it{position:absolute;transform:translate(-50%,-50%);touch-action:none;cursor:move;}'
  +'.pn-it img{display:block;width:100%;height:auto;pointer-events:none;}'
- +'.pn-it .ph{width:100%;aspect-ratio:2/1;border:1.5px dashed;border-radius:5px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;font-weight:700;line-height:1.1;overflow:hidden;padding:2px;pointer-events:none;}'
+ +'.pn-it{container-type:inline-size;}'
+ +'.pn-it .ph{width:100%;aspect-ratio:3/2;border:1.5px solid;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:700;line-height:1;overflow:hidden;padding:1px;pointer-events:none;}'
+ +'.pn-it .ph.vg{border-style:dashed;}'
+ +'.pn-it .ph b{font-size:30cqw;} .pn-it .ph small{font-size:14cqw;margin-top:4%;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}'
  +'.pn-it.ed:hover{outline:1px dashed #ff751f;outline-offset:3px;}'
  +'.pn-it .pn-x,.pn-it .pn-rs{display:none;position:absolute;width:18px;height:18px;border-radius:50%;background:#ff751f;color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:700;}'
  +'.pn-it.ed:hover .pn-x,.pn-it.ed:hover .pn-rs{display:block;}'
@@ -16521,7 +16547,7 @@ async function pnlCarregar(){
     base.slots=(d.slots&&typeof d.slots==='object')?d.slots:{};
     base.pos=(d.pos&&typeof d.pos==='object')?d.pos:{};
   }
-  if(!base.pos.evento) base.pos.evento={lado:'frente',x:50,y:42,w:PNL_EVENTO.w};
+  if(!d||!Object.keys(base.pos).some(k=>k!=='evento')) base.pos=pnlLayoutPadrao();
   pnlDados=base; pnlCarregando=false;
   pnlRender();
 }
@@ -16606,8 +16632,8 @@ function pnlItemHtml(id,estatico){
   } else {
     const mk=pnlMarcaDoSlot(id);
     if(mk&&mk.logo_url) inner='<img src="'+patEsc(mk.logo_url)+'" alt="'+patEsc(mk.nome)+'">';
-    else inner='<div class="ph" style="border-color:'+s.cor+';color:'+s.cor+';background:'+s.cor+'1f">'+patEsc(s.t.toUpperCase())+(mk?'<br>'+patEsc(mk.nome):'')+'</div>';
-    if(mk) tag=s.t+' · '+mk.nome;
+    else inner='<div class="ph'+(mk?'':' vg')+'" style="border-color:'+s.cor+';color:'+s.cor+';background:'+(mk?'#fff':'rgba(255,255,255,.88)')+'"><b>'+(PNL_SIGLA[id]||'')+'</b><small>'+(mk?patEsc(mk.nome):'VAGO')+'</small></div>';
+    tag=s.t+' · '+(mk?mk.nome:'vago');
   }
   const st='left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;';
   if(estatico) return '<div class="pn-it" style="'+st+'">'+inner+'</div>';
@@ -16628,6 +16654,7 @@ function pnlMockHtml(){
   PNL_CORES.forEach(function(c){ h+='<button class="pn-sw'+(c.c.toLowerCase()===cor.toLowerCase()?' on':'')+'" title="'+c.t+'" style="background:'+c.c+'" onclick="pnlCor(\''+c.c+'\')"></button>'; });
   h+='<input type="color" value="'+patEsc(/^#[0-9a-f]{6}$/i.test(cor)?cor:'#ffffff')+'" onchange="pnlCor(this.value)" title="Escolher outra cor" class="pn-sw" style="width:28px;height:28px;border-radius:8px;padding:0;background:none;">'
     +'<span style="flex:1"></span>'
+    +'<button class="mkt-btn sm" onclick="pnlResetPosicoes()" title="Volta todas as logos para o layout padrão">↺ Posições padrão</button>'
     +'<button class="mkt-btn sm" onclick="document.getElementById(\'pn-logo-file\').click()">'+(pnlDados.logo_evento?'🔄 Trocar logo do evento':'⬆ Enviar logo do evento')+'</button>'
     +'<span id="pn-up-st" style="font-size:12px;color:#7a7068;"></span></div>';
   const fora=['evento'].concat(PNL_SLOTS.map(s=>s.id)).filter(id=>!pnlDados.pos[id]);
@@ -16658,7 +16685,7 @@ async function pnlUploadLogo(input){
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/png','x-upsert':'true'},body:file});
     if(!r.ok) throw new Error(await r.text());
     pnlDados.logo_evento=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
-    if(!pnlDados.pos.evento) pnlDados.pos.evento={lado:'frente',x:50,y:42,w:PNL_EVENTO.w};
+    if(!pnlDados.pos.evento) pnlDados.pos.evento=pnlLayoutPadrao().evento;
     pnlRender(); pnlAgendar();
   }catch(e){ console.error(e); const s2=document.getElementById('pn-up-st'); if(s2){ s2.textContent='Erro no upload.'; s2.style.color='#dc2626'; } }
 }
