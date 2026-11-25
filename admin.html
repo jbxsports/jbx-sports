@@ -3666,9 +3666,9 @@ function inscRender(){
   let t = '<div class="insc-wrap"><div class="insc-tab"><table class="insc-t"><thead>'
     + '<tr><th class="insc-tit" colspan="13">Planejamento — ' + inscEsc(ev.evento) + '</th></tr>'
     + '<tr><th style="text-align:left">Lote / estratégia</th><th style="text-align:left">Kit</th><th class="insc-real">Real</th><th class="insc-proj">Proj</th>'
-    + '<th>Valor</th><th>Total</th><th>Cupom</th><th>Valor cupom</th><th>Cashback</th><th>Valor cash</th><th>Total líquido</th><th></th></tr></thead><tbody>';
+    + '<th>Valor</th><th>Total</th><th>Desconto</th><th>Valor desc.</th><th>Cashback</th><th>Valor cash</th><th>Total líquido</th><th class="insc-real" title="Real × Valor com os descontos — bate com a soma do Valor Líquido do relatório">Líquido real</th><th></th></tr></thead><tbody>';
   (p.linhas || []).forEach(function(l, i){
-    const c = inscLinhaCalc(l, l.proj, p.pcd);
+    const c = inscLinhaCalc(l, l.proj, p.pcd), cr = inscLinhaCalc(l, l.real, p.pcd);
     const acima = l.real != null && l.proj != null && Number(l.real) > Number(l.proj);
     const vazio = !(Number(l.proj) > 0);
     t += '<tr class="' + (vazio ? 'insc-zero' : '') + '">'
@@ -3683,17 +3683,18 @@ function inscRender(){
       + '<td class="insc-pc"><input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(l.cash, 2) + '" onchange="inscSet(' + i + ',\'cash\',this.value)">%</td>'
       + '<td class="insc-v insc-neg">' + (c.cash ? '− ' + inscR(c.cash) : '—') + '</td>'
       + '<td class="insc-v insc-b">' + (c.bruto ? inscR(c.liq + c.pcd) : '—') + '</td>'
+      + '<td class="insc-v insc-real">' + (cr.q ? inscR(cr.liq + cr.pcd) : '—') + '</td>'
       + '<td><button class="insc-x" title="Tirar linha" onclick="inscDelLinha(' + i + ')">✕</button></td></tr>';
   });
   t += '</tbody><tfoot>'
     + '<tr class="insc-tot"><td colspan="2">Total inscritos</td><td class="insc-real">' + inscN(tr.q) + '</td><td class="insc-proj insc-meta">' + inscN(tp.q) + '</td><td></td>'
     + '<td class="insc-v">' + inscR(tp.bruto) + '</td><td></td><td class="insc-v insc-neg">− ' + inscR(tp.cupom) + '</td><td></td><td class="insc-v insc-neg">' + (tp.cash ? '− ' + inscR(tp.cash) : '—') + '</td>'
-    + '<td class="insc-v insc-b">' + inscR(tp.liq + tp.pcd) + '</td><td></td></tr>'
+    + '<td class="insc-v insc-b">' + inscR(tp.liq + tp.pcd) + '</td><td class="insc-v insc-real">' + inscR(tr.liq + tr.pcd) + '</td><td></td></tr>'
     + '<tr class="insc-pcd"><td colspan="5">PCD e idosos: <input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(p.pcd && p.pcd.pct, 2) + '" onchange="inscSetPcd(\'pct\',this.value)">% do público com '
     + '<input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(p.pcd && p.pcd.desc, 2) + '" onchange="inscSetPcd(\'desc\',this.value)">% de desconto</td>'
     + '<td colspan="5" style="text-align:right;color:var(--muted);font-size:11.5px;">≈ ' + inscN(Math.round(tp.q * ((Number(p.pcd && p.pcd.pct) || 0) / 100))) + ' inscritos (aplicado depois do cupom)</td>'
-    + '<td class="insc-v insc-neg">' + (tp.pcd ? '− ' + inscR(tp.pcd) : '—') + '</td><td></td></tr>'
-    + '<tr class="insc-liq"><td colspan="10">Receita líquida projetada</td><td class="insc-v insc-b">' + inscR(tp.liq) + '</td><td></td></tr>'
+    + '<td class="insc-v insc-neg">' + (tp.pcd ? '− ' + inscR(tp.pcd) : '—') + '</td><td class="insc-v insc-neg">' + (tr.pcd ? '− ' + inscR(tr.pcd) : '—') + '</td><td></td></tr>'
+    + '<tr class="insc-liq"><td colspan="10">Receita líquida projetada</td><td class="insc-v insc-b">' + inscR(tp.liq) + '</td><td class="insc-v insc-b">' + inscR(tr.liq) + '</td><td></td></tr>'
     + '</tfoot></table></div>';
 
   /* kits + ticket médio */
@@ -3701,8 +3702,8 @@ function inscRender(){
   if (tr.q) t += '<div class="insc-ticket insc-tk2"><span>Realizado até agora</span><b>' + inscR(tr.liq) + '</b><small>' + inscN(tr.q) + ' inscritos · ticket ' + inscR(tr.ticket) + '</small></div>';
   t += '<div class="insc-kits">';
   Object.keys(tp.kits).forEach(function(k){
-    const n = tp.kits[k];
-    t += '<div><span>Kit ' + inscEsc(k) + '</span><b>' + inscN(n) + '</b><small>' + (tp.q ? (n / tp.q * 100).toLocaleString('pt-BR', {maximumFractionDigits:1}) : 0) + '%</small></div>';
+    const n = tp.kits[k]; if (!n && k === 'Sem kit') return;
+    t += '<div><span>' + (/^kit\b/i.test(k) ? '' : 'Kit ') + inscEsc(k) + '</span><b>' + inscN(n) + '</b><small>' + (tp.q ? (n / tp.q * 100).toLocaleString('pt-BR', {maximumFractionDigits:1}) : 0) + '%</small></div>';
   });
   t += '</div></div></div>';
 
@@ -3843,10 +3844,10 @@ async function inscImportar(input){
     const temCupom = cupom && cupom !== '-';
     const ehPcd = desc > 0 && (!temCupom || /pcd|idos|60\+|melhor idade/.test(cupom));
     const k = inscNorm(lote) + '|' + inscKitNorm(kit);
-    if (!grupos[k]) { grupos[k] = {lote:lote, kit:kit, n:0, bruto:0, descCupom:0, precos:{}}; ordem.push(k); }
+    if (!grupos[k]) { grupos[k] = {lote:lote, kit:kit, n:0, bruto:0, liq:0, descCupom:0, precos:{}}; ordem.push(k); }
     const g = grupos[k]; g.n++; pagos++;
     const pr = Math.round(bruto * 100) / 100; if (pr > 0) g.precos[pr] = (g.precos[pr] || 0) + 1;
-    g.bruto += bruto;
+    g.bruto += bruto; g.liq += liq;
     if (ehPcd) { pcdN++; pcdDesc += desc; pcdBruto += bruto; }
     else if (temCupom) g.descCupom += desc;
   });
@@ -3854,7 +3855,7 @@ async function inscImportar(input){
 
   /* casa cada Lote × Kit com uma linha do planejamento; o que não casar vira linha nova */
   const linhas = p.linhas || (p.linhas = []);
-  linhas.forEach(function(l){ l.real = null; });
+  linhas.forEach(function(l){ l.real = null; delete l.liqRel; });
   const usadas = {}, novas = [];
   function casa(g){
     const a = inscNorm(g.lote), kb = inscKitNorm(g.kit);
@@ -3872,23 +3873,27 @@ async function inscImportar(input){
   ordem.forEach(function(k){
     const g = grupos[k];
     const preco = Object.keys(g.precos).sort(function(x, y){ return g.precos[y] - g.precos[x]; })[0];
-    const cupomPct = g.bruto > 0 ? Math.round(g.descCupom / g.bruto * 10000) / 100 : 0;
+    /* desconto efetivo do lote (cupom + PCD/idoso + qualquer outro): faz Real × Valor × (1 − %) bater com a soma do Valor Líquido do relatório */
+    const precoN = Number(preco) || 0;
+    const cupomPct = precoN > 0 && g.n ? (1 - g.liq / (g.n * precoN)) * 100 : 0;
     let i = casa(g);
     if (i < 0) { linhas.push({id:inscId(), nome:inscTitulo(g.lote), kit:inscTitulo(g.kit.replace(/^kit\s+/i, '')), real:null, proj:null, valor:null, cupom:0, cash:0}); i = linhas.length - 1; novas.push(linhas[i].nome + (linhas[i].kit ? ' / ' + linhas[i].kit : '')); }
     usadas[i] = 1;
     const l = linhas[i];
     l.real = g.n; l.cupom = cupomPct;
     if (preco) l.valor = Number(preco);
+    l.liqRel = Math.round(g.liq * 100) / 100;
     if (l.proj == null || Number(l.proj) < g.n) l.proj = Math.max(Number(l.proj) || 0, g.n);
   });
   let iIs = linhas.findIndex(function(l){ return inscNorm(l.nome) === 'isentos'; });
   if (isentos) {
     if (iIs < 0) { linhas.push({id:inscId(), nome:'Isentos', kit:'Isento', real:null, proj:null, valor:0, cupom:0, cash:0}); iIs = linhas.length - 1; }
-    linhas[iIs].real = isentos; linhas[iIs].valor = 0;
+    linhas[iIs].real = isentos; linhas[iIs].valor = 0; linhas[iIs].cupom = 0; linhas[iIs].liqRel = 0;
     if (Number(linhas[iIs].proj || 0) < isentos) linhas[iIs].proj = isentos;
   }
   const pagosTot = pagos;
-  p.pcd = {pct:pagosTot ? Math.round(pcdN / pagosTot * 10000) / 100 : 0, desc:pcdBruto ? Math.round(pcdDesc / pcdBruto * 10000) / 100 : (p.pcd && p.pcd.desc) || 50};
+  /* o desconto PCD/idoso já entrou no % de cada lote importado: zera o PCD geral para não descontar duas vezes */
+  p.pcd = {pct:0, desc:(p.pcd && p.pcd.desc) || 50};
   p.importacao = {em:new Date().toISOString(), arquivo:file.name, pagos:pagos, isentos:isentos, pcd:pcdN, fora:fora};
   inscRender(); inscAgendar();
   alert('Importado: ' + inscN(pagos) + ' pagas + ' + inscN(isentos) + ' isentas' + (pcdN ? ' (' + pcdN + ' com desconto PCD/idoso)' : '') + '.'
@@ -19674,18 +19679,18 @@ document.addEventListener('DOMContentLoaded',function(){
 #screen-planinsc .insc-st{font-size:12px;color:#15803d;}
 #screen-planinsc .insc-imp{font-size:12px;color:var(--muted);margin:-6px 0 12px;}
 #screen-planinsc .insc-vazio{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:26px;text-align:center;}
-#screen-planinsc .insc-grid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start;}
+#screen-planinsc .insc-grid{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:16px;align-items:start;}
 #screen-planinsc .insc-tab{overflow-x:auto;background:#fff;border:1px solid var(--border);border-radius:12px;}
 #screen-planinsc .insc-t{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap;}
-#screen-planinsc .insc-t th{background:#dbe5f6;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:7px 8px;text-align:right;color:#2a2520;}
+#screen-planinsc .insc-t th{background:#dbe5f6;font-size:10.5px;text-transform:uppercase;letter-spacing:.02em;padding:7px 5px;text-align:right;color:#2a2520;}
 #screen-planinsc .insc-t th.insc-tit{background:#ff8a00;color:#fff;text-align:left;font-size:12px;}
 #screen-planinsc .insc-t th.insc-real{background:#22c55e;color:#fff;text-align:center;} #screen-planinsc .insc-t th.insc-proj{background:#bfe3f7;text-align:center;}
-#screen-planinsc .insc-t td{padding:3px 8px;border-top:1px solid #f0ece6;text-align:right;}
+#screen-planinsc .insc-t td{padding:3px 5px;border-top:1px solid #f0ece6;text-align:right;}
 #screen-planinsc .insc-t td.insc-real{background:#fffbd6;text-align:center;} #screen-planinsc .insc-t td.insc-proj{background:#e6f6fd;text-align:center;}
 #screen-planinsc .insc-t tr.insc-zero td{color:#a8a29e;}
 #screen-planinsc .insc-t input{font-family:inherit;font-size:12.5px;border:1px solid transparent;border-radius:5px;padding:4px 5px;background:transparent;color:inherit;}
 #screen-planinsc .insc-t input:hover{border-color:var(--border);} #screen-planinsc .insc-t input:focus{border-color:#ff751f;background:#fff;outline:none;}
-#screen-planinsc .insc-txt{width:150px;text-align:left;} #screen-planinsc .insc-kit{width:90px;}
+#screen-planinsc .insc-txt{width:125px;text-align:left;} #screen-planinsc .insc-kit{width:95px;}
 #screen-planinsc .insc-n{width:62px;text-align:right;} #screen-planinsc .insc-val{width:70px;} #screen-planinsc .insc-p{width:48px;}
 #screen-planinsc .insc-real .insc-n,#screen-planinsc .insc-proj .insc-n{text-align:center;font-weight:700;}
 #screen-planinsc .insc-acima{color:#dc2626!important;}
