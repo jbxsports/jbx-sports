@@ -17724,7 +17724,8 @@ const INI_ORG=[
      {id:'planos',       rot:'Plano de Evento', ic:'📋'},
      {id:'mapas',        rot:'Mapas',           ic:'🧠'},
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
-  {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
+  {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Base de marcas', filhos:[
+     {id:'funil',        rot:'Funil de patrocínio', ic:'🎯'},
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
      {id:'painel',       rot:'Painel de cotas', ic:'🎽'},
      {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'}]},
@@ -17735,7 +17736,7 @@ let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
   if(id==='usuarios'||id==='diretoria') return !!(admUser&&admUser.master);
-  if(id==='painel'||id==='patpag'||id==='cotasglobal') return admTemAba('marcas')||admTemAba(id);
+  if(id==='funil'||id==='painel'||id==='patpag'||id==='cotasglobal') return admTemAba('marcas')||admTemAba(id);
   return admTemAba(id);
 }
 function iniCard(no,cor,filho){
