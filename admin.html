@@ -18149,6 +18149,7 @@ async function patTirarDoFunil(){
    Nó com id abre a tela; nó com "grupo" é só o título do assunto. */
 const INI_ORG=[
   {id:'calendario', rot:'Calendário',   ic:'📅', cor:'#3B82F6', sub:'Eventos e datas', filhos:[
+     {id:'planinsc',     rot:'Inscrições',      ic:'🎫', sub:'Lotes, cupons e ritmo'},
      {id:'orcamentos',   rot:'Orçamentos',      ic:'🧾'},
      {id:'propostas',    rot:'Propostas',       ic:'📝', sub:'Briefings de empresas'}]},
   {id:'dash',       rot:'Dashboard',    ic:'📊', cor:'#FF751F', sub:'Números gerais', filhos:[
@@ -18172,8 +18173,7 @@ const INI_ORG=[
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
      {id:'painel',       rot:'Painel de cotas', ic:'🎽'},
      {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'}]},
-  {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true, filhos:[
-     {id:'planinsc',     rot:'Inscrições',      ic:'🎫', sub:'Lotes, cupons e ritmo'}]},
+  {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
 let iniFeito=false;
