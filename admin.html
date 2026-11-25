@@ -16384,7 +16384,7 @@ function patSocCopiar(){
 }
 
 /* ══════════ PAINEL DE COTAS + MOCKUP DA CAMISETA ══════════
-   12 espaços por evento (Apresentador, Naming Rights, 2 Ouro, 2 Prata, 6 Bronze)
+   12 espaços por evento (Apresentador, Naming Rights, 2 Ouro, 2 Prata, 8 Bronze)
    e camiseta frente/verso onde cada logo é arrastada para a posição.
    Banco: pat_painel (evento_id, dados jsonb) via pat_painel_ler / pat_painel_salvar. */
 const PNL_SLOTS=[
@@ -16399,7 +16399,9 @@ const PNL_SLOTS=[
   {id:'bronze3',     t:'Bronze 3',      g:'bronze',cor:'#b4693e',w:12},
   {id:'bronze4',     t:'Bronze 4',      g:'bronze',cor:'#b4693e',w:12},
   {id:'bronze5',     t:'Bronze 5',      g:'bronze',cor:'#b4693e',w:12},
-  {id:'bronze6',     t:'Bronze 6',      g:'bronze',cor:'#b4693e',w:12}
+  {id:'bronze6',     t:'Bronze 6',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze7',     t:'Bronze 7',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze8',     t:'Bronze 8',      g:'bronze',cor:'#b4693e',w:12}
 ];
 const PNL_GRUPOS=[
   {g:'topo',t:'Apresentador e Naming Rights'},
@@ -16425,10 +16427,12 @@ const PNL_LAYOUT_PADRAO={
   bronze2:     {lado:'costas',x:48.5,y:25.4,w:7.6},
   bronze3:     {lado:'costas',x:59.0,y:25.4,w:7.6},
   bronze4:     {lado:'costas',x:69.6,y:25.4,w:7.6},
-  bronze5:     {lado:'costas',x:48.5,y:32.3,w:7.6},
-  bronze6:     {lado:'costas',x:58.8,y:32.3,w:7.6}
+  bronze5:     {lado:'costas',x:38.6,y:32.3,w:7.6},
+  bronze6:     {lado:'costas',x:48.5,y:32.3,w:7.6},
+  bronze7:     {lado:'costas',x:59.0,y:32.3,w:7.6},
+  bronze8:     {lado:'costas',x:69.6,y:32.3,w:7.6}
 };
-const PNL_SIGLA={apresentador:'AP',naming:'NR',ouro1:'O1',ouro2:'O2',prata1:'P1',prata2:'P2',bronze1:'B1',bronze2:'B2',bronze3:'B3',bronze4:'B4',bronze5:'B5',bronze6:'B6'};
+const PNL_SIGLA={apresentador:'AP',naming:'NR',ouro1:'O1',ouro2:'O2',prata1:'P1',prata2:'P2',bronze1:'B1',bronze2:'B2',bronze3:'B3',bronze4:'B4',bronze5:'B5',bronze6:'B6',bronze7:'B7',bronze8:'B8'};
 function pnlLayoutPadrao(){ return JSON.parse(JSON.stringify(PNL_LAYOUT_PADRAO)); }
 function pnlResetPosicoes(){
   if(!pnlDados)return;
@@ -16446,7 +16450,7 @@ const PNL_CSS=
  +'.pn-h:first-child{margin-top:0;}'
  +'.pn-cont{font-size:12.5px;color:#7a7068;margin-bottom:6px;}'
  +'.pn-slots{display:grid;gap:8px;}'
- +'.pn-slots.topo{grid-template-columns:1fr 1fr;} .pn-slots.ouro,.pn-slots.prata{grid-template-columns:1fr 1fr;} .pn-slots.bronze{grid-template-columns:1fr 1fr 1fr;}'
+ +'.pn-slots.topo{grid-template-columns:1fr 1fr;} .pn-slots.ouro,.pn-slots.prata{grid-template-columns:1fr 1fr;} .pn-slots.bronze{grid-template-columns:1fr 1fr 1fr 1fr;}'
  +'.pn-slot{border:1.5px dashed rgba(42,37,32,.22);border-radius:11px;padding:8px;text-align:center;cursor:pointer;background:#faf9f7;transition:border-color .15s,background .15s;position:relative;min-width:0;}'
  +'.pn-slot:hover{border-color:#ff751f;background:#fff7f0;}'
  +'.pn-slot.cheio{border-style:solid;background:#fff;}'
@@ -16695,7 +16699,7 @@ function pnlPuxarFunil(){
   const fech=(patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(pnlEvSel)&&o.etapa==='fechado')
     .sort((a,b)=>Number(b.valor_estimado||0)-Number(a.valor_estimado||0));
   const usadas=Object.values(pnlDados.slots).filter(Boolean).map(String);
-  const mapa={master:['apresentador'],ouro:['ouro1','ouro2'],prata:['prata1','prata2'],bronze:['bronze1','bronze2','bronze3','bronze4','bronze5','bronze6']};
+  const mapa={master:['apresentador'],ouro:['ouro1','ouro2'],prata:['prata1','prata2'],bronze:['bronze1','bronze2','bronze3','bronze4','bronze5','bronze6','bronze7','bronze8']};
   let n=0;
   fech.forEach(function(o){
     if(usadas.indexOf(String(o.marca_id))!==-1||!patMarca(o.marca_id))return;
