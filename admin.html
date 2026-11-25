@@ -18167,13 +18167,14 @@ const INI_ORG=[
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
      {id:'painel',       rot:'Painel de cotas', ic:'🎽'},
      {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'}]},
-  {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
+  {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true, filhos:[
+     {id:'planinsc',     rot:'Inscrições',      ic:'🎫', sub:'Lotes, cupons e ritmo'}]},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
 let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
-  if(id==='usuarios'||id==='diretoria') return !!(admUser&&admUser.master);
+  if(id==='usuarios'||id==='diretoria'||id==='planinsc') return !!(admUser&&admUser.master);
   if(id==='funil'||id==='painel'||id==='patpag'||id==='cotasglobal') return admTemAba('marcas')||admTemAba(id);
   return admTemAba(id);
 }
