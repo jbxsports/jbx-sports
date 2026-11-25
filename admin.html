@@ -16510,8 +16510,10 @@ async function pnlCarregar(){
   pnlCarregando=true;
   const ev=pnlEvSel;
   let d=null;
-  try{ d=await rpc('pat_painel_ler',{p_evento:ev}); }
-  catch(e){ console.error(e); pnlStatus('Não consegui ler o painel. Rode o painel_cotas.sql no Supabase.','#dc2626'); }
+  try{ const r=await rpc('pat_painel_ler',{p_evento:ev});
+    if(r&&r.ok===false) pnlStatus(r.erro==='sem_permissao'?'Sem permissão na aba Marcas.':'Erro ao ler: '+r.erro,'#dc2626');
+    else d=r&&r.dados; }
+  catch(e){ console.error(e); pnlStatus('Não consegui ler o painel.','#dc2626'); }
   if(ev!==pnlEvSel)return;
   const base=pnlVazio();
   if(d&&typeof d==='object'&&!Array.isArray(d)){
@@ -16539,7 +16541,8 @@ function pnlAgendar(){
 async function pnlSalvarAgora(){
   if(!pnlDados||!pnlEvSel)return;
   try{
-    await rpc('pat_painel_salvar',{p_evento:pnlEvSel,p_dados:pnlDados});
+    const r=await rpc('pat_painel_salvar',{p_evento:pnlEvSel,p_dados:pnlDados});
+    if(r&&r.ok===false){ pnlStatus('Não salvou: '+(r.erro==='sem_permissao'?'sem permissão na aba Marcas':r.erro),'#dc2626'); return; }
     pnlStatus('✓ Salvo','#15803d');
   }catch(e){ console.error(e); pnlStatus('Erro ao salvar — '+(e.message||'tente de novo'),'#dc2626'); }
 }
