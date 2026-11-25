@@ -2387,6 +2387,7 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
         <button class="nav-btn" id="nav-mapas" onclick="showInner('mapas')">Mapas</button>
         <button class="nav-btn" id="nav-links" onclick="showInner('links')">Links / Drives</button>
         <button class="nav-btn" id="nav-diretoria" onclick="showInner('diretoria')" style="display:none;">Diretoria</button>
+        <button class="nav-btn" id="nav-planinsc" onclick="showInner('planinsc')" style="display:none;">Inscrições</button>
         <button class="nav-btn" id="nav-usuarios" onclick="showInner('usuarios')" style="display:none;">Usuários</button>
       </nav>
       <div style="display:flex;align-items:center;gap:10px;"><div style="display:flex;align-items:center;gap:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:6px;padding:6px 12px;"><span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 6px rgba(34,197,94,0.6);"></span><span style="font-size:12px;font-weight:700;color:#16a34a;letter-spacing:0.5px;" id="hd-usuario">LOGADO</span></div><button class="admin-logout" onclick="doLogout()">Sair</button></div>
@@ -3422,7 +3423,7 @@ const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_li
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
   'admin_proposta_versao_rotulo','admin_proposta_versoes_rotulos',
-  'dir_dados','dir_evento_salvar','dir_config_salvar'];
+  'dir_dados','dir_evento_salvar','dir_config_salvar','insc_planos_listar','insc_plano_salvar','insc_plano_excluir'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -3461,6 +3462,8 @@ function admAplicarPermissoes(){
   if(bu)bu.style.display=(admUser&&admUser.master)?'':'none';
   const bdi=document.getElementById('nav-diretoria');
   if(bdi)bdi.style.display=(admUser&&admUser.master)?'':'none';
+  const bpi=document.getElementById('nav-planinsc');
+  if(bpi)bpi.style.display=(admUser&&admUser.master)?'':'none';
   /* criar tarefa é da coordenação; o funcionário só executa */
   const bc=document.getElementById('ig-btn-camp');
   if(bc)bc.style.display=(admUser&&admUser.master)?'':'none';
@@ -3511,7 +3514,7 @@ async function admRestaurarSessao(){
 function showInner(name){
   const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas','cotasglobal':'marcas'};
   const abaReq=mapa[name]||name;
-  if(abaReq==='usuarios'||abaReq==='diretoria'){if(!admUser||!admUser.master)return;}
+  if(abaReq==='usuarios'||abaReq==='diretoria'||abaReq==='planinsc'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
   document.querySelectorAll('.inner-screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -3540,12 +3543,357 @@ function showInner(name){
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
   if(name==='usuarios'){document.getElementById('nav-usuarios').classList.add('active');usrListar();}
   if(name==='diretoria'){document.getElementById('nav-diretoria').classList.add('active');dirInit();}
+  if(name==='planinsc'){document.getElementById('nav-planinsc').classList.add('active');inscInit();}
   if(name==='divulgadores'){document.getElementById('nav-divulgadores').classList.add('active');divInit();}
   if(name==='nps'){document.getElementById('nav-nps').classList.add('active');npsInit();}
   if(name==='orcamentos'){document.getElementById('nav-orcamentos').classList.add('active');orcInit();}
   if(name==='mapas'){document.getElementById('nav-mapas').classList.add('active');mapInit();}
   if(name==='links'){document.getElementById('nav-links').classList.add('active');lnkInit();}
   if(name==='propostas'){document.getElementById('nav-propostas').classList.add('active');propInit();}
+}
+
+/* ══════════════ INSCRIÇÕES — PLANEJAMENTO DE LOTES ══════════════
+   Planejamento prévio de inscrições por evento do Calendário (igual à planilha do Stephano):
+   lotes de preço × kits, cupom, cashback e desconto PCD/idoso → total líquido e ticket médio.
+   À direita: ritmo — quantas inscrições por dia faltam para bater a meta.
+   Banco: insc_planos (calendario_id, dados jsonb) via insc_planos_listar / insc_plano_salvar / insc_plano_excluir (só diretoria).
+   "Atual" vem da OTicket (dir_eventos.real_inscritos, atualizado todo dia) ou, sem ela, da soma da coluna Real. */
+var inscCal = [], inscPlanos = {}, inscDir = {}, inscSel = '', inscTimer = null, inscStatus = '';
+
+function inscEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function inscR(v){ return 'R$ ' + (Number(v) || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function inscN(v){ return (Number(v) || 0).toLocaleString('pt-BR'); }
+function inscNumInp(v, dec){ return (v === null || v === undefined || v === '') ? '' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits:dec || 0, maximumFractionDigits:2}); }
+function inscParse(txt){ const s = String(txt == null ? '' : txt).trim(); return s === '' ? null : propPcNum(s); }
+function inscHoje(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function inscDias(de, ate){ if (!de || !ate) return null; return Math.round((new Date(ate + 'T12:00:00') - new Date(de + 'T12:00:00')) / 86400000); }
+function inscDataBR(d){ if (!d) return '—'; const p = String(d).slice(0, 10).split('-'); return p[2] + '/' + p[1] + (p[0] !== String(new Date().getFullYear()) ? '/' + p[0] : ''); }
+function inscId(){ return 'l' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function inscModelo(ev){
+  const linhas = [];
+  [['Lote Promo', 99.9, 124.9], ['Lote 1', 119.9, 144.9], ['Lote 2', 129.9, 154.9], ['Lote 3', 139.9, 164.9]].forEach(function(l){
+    linhas.push({id:inscId(), nome:l[0], kit:'Essencial', real:null, proj:null, valor:l[1], cupom:0, cash:0});
+    linhas.push({id:inscId(), nome:l[0], kit:'VIP', real:null, proj:null, valor:l[2], cupom:0, cash:0});
+  });
+  let fim = '';
+  if (ev && ev.inicio) { const d = new Date(ev.inicio + 'T12:00:00'); d.setDate(d.getDate() - 3); fim = d.toISOString().slice(0, 10); }
+  return {fim:fim, inicio_vendas:'', pcd:{pct:0, desc:50}, linhas:linhas};
+}
+
+async function inscInit(){
+  const el = document.getElementById('insc-corpo');
+  if (!(admUser && admUser.master)) { el.innerHTML = '<div class="empty-state">Somente a diretoria acessa o planejamento de inscrições.</div>'; return; }
+  el.innerHTML = '<div class="empty-state">Carregando…</div>';
+  try {
+    const r = await Promise.all([rpc('admin_calendario_listar'), rpc('insc_planos_listar'), rpc('dir_dados').catch(function(){ return null; })]);
+    inscCal = (Array.isArray(r[0]) ? r[0] : []).map(function(e){ return Object.assign({}, e, {inicio:String(e.inicio || '').slice(0, 10)}); })
+      .filter(function(e){ return e.inicio && !e.historico; })
+      .sort(function(a, b){ return a.inicio < b.inicio ? -1 : 1; });
+    inscPlanos = {};
+    (Array.isArray(r[1]) ? r[1] : []).forEach(function(p){ inscPlanos[String(p.calendario_id)] = Object.assign({}, p.dados || {}, {_em:p.atualizado_em}); });
+    inscDir = {};
+    ((r[2] && r[2].eventos) || []).forEach(function(x){ inscDir[String(x.calendario_id)] = x; });
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state">Não consegui carregar o planejamento.<br><small>' + inscEsc(String(e && e.message || '').slice(0, 200)) + '</small></div>';
+    return;
+  }
+  if (!inscSel || !inscCal.some(function(e){ return String(e.id) === inscSel; })) {
+    const hoje = inscHoje();
+    const comPlano = inscCal.filter(function(e){ return inscPlanos[String(e.id)] && e.inicio >= hoje; });
+    const prox = comPlano[0] || inscCal.filter(function(e){ return e.inicio >= hoje; })[0] || inscCal[0];
+    inscSel = prox ? String(prox.id) : '';
+  }
+  inscRender();
+}
+
+function inscEv(){ return inscCal.filter(function(e){ return String(e.id) === inscSel; })[0]; }
+function inscPlano(){ return inscPlanos[inscSel]; }
+
+/* contas de uma linha, para uma quantidade (real ou projetada) */
+function inscLinhaCalc(l, qtd, pcd){
+  const q = Number(qtd) || 0, bruto = q * (Number(l.valor) || 0);
+  const cupom = bruto * (Number(l.cupom) || 0) / 100, cash = bruto * (Number(l.cash) || 0) / 100;
+  const pcdV = (bruto - cupom) * ((Number(pcd && pcd.pct) || 0) / 100) * ((Number(pcd && pcd.desc) || 0) / 100);
+  return {q:q, bruto:bruto, cupom:cupom, cash:cash, pcd:pcdV, liq:bruto - cupom - cash - pcdV};
+}
+function inscTotais(p, campo){
+  const t = {q:0, bruto:0, cupom:0, cash:0, pcd:0, liq:0, kits:{}};
+  (p.linhas || []).forEach(function(l){
+    const c = inscLinhaCalc(l, l[campo], p.pcd);
+    ['q', 'bruto', 'cupom', 'cash', 'pcd', 'liq'].forEach(function(k){ t[k] += c[k]; });
+    const kit = String(l.kit || '').trim() || 'Sem kit';
+    t.kits[kit] = (t.kits[kit] || 0) + c.q;
+  });
+  t.ticket = t.q ? t.liq / t.q : 0;
+  return t;
+}
+
+function inscRender(){
+  const el = document.getElementById('insc-corpo');
+  const ev = inscEv(), p = inscPlano(), hoje = inscHoje();
+  let h = '<div class="insc-bar"><label>Evento</label><select onchange="inscTrocar(this.value)">';
+  if (!inscCal.length) h += '<option>Nenhum evento no Calendário</option>';
+  inscCal.forEach(function(e){
+    const passou = e.inicio < hoje;
+    h += '<option value="' + inscEsc(e.id) + '"' + (String(e.id) === inscSel ? ' selected' : '') + '>'
+      + (inscPlanos[String(e.id)] ? '● ' : '') + inscDataBR(e.inicio) + ' — ' + inscEsc(e.evento) + (passou ? ' (realizado)' : '') + '</option>';
+  });
+  h += '</select><span class="insc-st" id="insc-st">' + inscEsc(inscStatus) + '</span><span style="flex:1"></span>';
+  if (p) h += '<button class="mkt-btn sm primary" onclick="inscImportarAbrir()" title="Relatório Geral de inscritos exportado da OTicket (.xlsx)">⬆ Importar inscritos da OTicket</button>'
+    + '<input type="file" id="insc-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="inscImportar(this)">'
+    + '<button class="mkt-btn sm" onclick="inscAddLinha()">+ Linha</button>'
+    + '<button class="mkt-btn sm" onclick="inscEnviarMeta()" title="Grava a meta de inscritos (Calendário) e o ticket médio (Diretoria) com os números deste planejamento">↗ Usar como meta na Diretoria</button>'
+    + '<button class="mkt-btn sm" onclick="inscExcluir()" title="Apaga o planejamento deste evento">🗑</button>';
+  h += '</div>';
+  if (!ev) { el.innerHTML = h + '<div class="empty-state">Escolha um evento.</div>'; return; }
+  if (!p) {
+    const outros = inscCal.filter(function(e){ return inscPlanos[String(e.id)] && String(e.id) !== inscSel; });
+    h += '<div class="insc-vazio"><div style="font-size:15px;font-weight:700;margin-bottom:6px;">' + inscEsc(ev.evento) + ' ainda não tem planejamento</div>'
+      + '<div style="color:var(--muted);font-size:13px;margin-bottom:14px;">Comece pelo modelo (Promo, Lote 1, 2 e 3 × kit Essencial e VIP) ou copie o de outro evento.</div>'
+      + '<button class="mkt-btn primary" onclick="inscCriar(\'\')">Criar pelo modelo</button>';
+    if (outros.length) {
+      h += ' <select id="insc-copia" style="margin-left:8px;"><option value="">Copiar de…</option>';
+      outros.forEach(function(e){ h += '<option value="' + inscEsc(e.id) + '">' + inscDataBR(e.inicio) + ' — ' + inscEsc(e.evento) + '</option>'; });
+      h += '</select> <button class="mkt-btn" onclick="inscCriar(document.getElementById(\'insc-copia\').value)">Copiar</button>';
+    }
+    el.innerHTML = h + '</div>';
+    return;
+  }
+
+  const tp = inscTotais(p, 'proj'), tr = inscTotais(p, 'real');
+  /* ── tabela ── */
+  let t = '<div class="insc-wrap"><div class="insc-tab"><table class="insc-t"><thead>'
+    + '<tr><th class="insc-tit" colspan="13">Planejamento — ' + inscEsc(ev.evento) + '</th></tr>'
+    + '<tr><th style="text-align:left">Lote / estratégia</th><th style="text-align:left">Kit</th><th class="insc-real">Real</th><th class="insc-proj">Proj</th>'
+    + '<th>Valor</th><th>Total</th><th>Cupom</th><th>Valor cupom</th><th>Cashback</th><th>Valor cash</th><th>Total líquido</th><th></th></tr></thead><tbody>';
+  (p.linhas || []).forEach(function(l, i){
+    const c = inscLinhaCalc(l, l.proj, p.pcd);
+    const acima = l.real != null && l.proj != null && Number(l.real) > Number(l.proj);
+    const vazio = !(Number(l.proj) > 0);
+    t += '<tr class="' + (vazio ? 'insc-zero' : '') + '">'
+      + '<td><input class="insc-txt" value="' + inscEsc(l.nome) + '" onchange="inscSet(' + i + ',\'nome\',this.value,true)"></td>'
+      + '<td><input class="insc-txt insc-kit" value="' + inscEsc(l.kit) + '" onchange="inscSet(' + i + ',\'kit\',this.value,true)"></td>'
+      + '<td class="insc-real"><input class="insc-n' + (acima ? ' insc-acima' : '') + '" inputmode="numeric" value="' + inscNumInp(l.real) + '" onchange="inscSet(' + i + ',\'real\',this.value)"' + (acima ? ' title="Vendeu mais que o projetado para este lote"' : '') + '></td>'
+      + '<td class="insc-proj"><input class="insc-n" inputmode="numeric" value="' + inscNumInp(l.proj) + '" onchange="inscSet(' + i + ',\'proj\',this.value)"></td>'
+      + '<td><span class="insc-pre">R$</span><input class="insc-n insc-val" inputmode="decimal" value="' + inscNumInp(l.valor, 2) + '" onchange="inscSet(' + i + ',\'valor\',this.value)"></td>'
+      + '<td class="insc-v">' + (c.bruto ? inscR(c.bruto) : '—') + '</td>'
+      + '<td class="insc-pc"><input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(l.cupom, 2) + '" onchange="inscSet(' + i + ',\'cupom\',this.value)">%</td>'
+      + '<td class="insc-v insc-neg">' + (c.cupom ? '− ' + inscR(c.cupom) : '—') + '</td>'
+      + '<td class="insc-pc"><input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(l.cash, 2) + '" onchange="inscSet(' + i + ',\'cash\',this.value)">%</td>'
+      + '<td class="insc-v insc-neg">' + (c.cash ? '− ' + inscR(c.cash) : '—') + '</td>'
+      + '<td class="insc-v insc-b">' + (c.bruto ? inscR(c.liq + c.pcd) : '—') + '</td>'
+      + '<td><button class="insc-x" title="Tirar linha" onclick="inscDelLinha(' + i + ')">✕</button></td></tr>';
+  });
+  t += '</tbody><tfoot>'
+    + '<tr class="insc-tot"><td colspan="2">Total inscritos</td><td class="insc-real">' + inscN(tr.q) + '</td><td class="insc-proj insc-meta">' + inscN(tp.q) + '</td><td></td>'
+    + '<td class="insc-v">' + inscR(tp.bruto) + '</td><td></td><td class="insc-v insc-neg">− ' + inscR(tp.cupom) + '</td><td></td><td class="insc-v insc-neg">' + (tp.cash ? '− ' + inscR(tp.cash) : '—') + '</td>'
+    + '<td class="insc-v insc-b">' + inscR(tp.liq + tp.pcd) + '</td><td></td></tr>'
+    + '<tr class="insc-pcd"><td colspan="5">PCD e idosos: <input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(p.pcd && p.pcd.pct, 2) + '" onchange="inscSetPcd(\'pct\',this.value)">% do público com '
+    + '<input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(p.pcd && p.pcd.desc, 2) + '" onchange="inscSetPcd(\'desc\',this.value)">% de desconto</td>'
+    + '<td colspan="5" style="text-align:right;color:var(--muted);font-size:11.5px;">≈ ' + inscN(Math.round(tp.q * ((Number(p.pcd && p.pcd.pct) || 0) / 100))) + ' inscritos (aplicado depois do cupom)</td>'
+    + '<td class="insc-v insc-neg">' + (tp.pcd ? '− ' + inscR(tp.pcd) : '—') + '</td><td></td></tr>'
+    + '<tr class="insc-liq"><td colspan="10">Receita líquida projetada</td><td class="insc-v insc-b">' + inscR(tp.liq) + '</td><td></td></tr>'
+    + '</tfoot></table></div>';
+
+  /* kits + ticket médio */
+  t += '<div class="insc-rodape"><div class="insc-ticket"><span>Ticket médio</span><b>' + inscR(tp.ticket) + '</b><small>projetado (' + inscN(tp.q) + ' inscritos)</small></div>';
+  if (tr.q) t += '<div class="insc-ticket insc-tk2"><span>Realizado até agora</span><b>' + inscR(tr.liq) + '</b><small>' + inscN(tr.q) + ' inscritos · ticket ' + inscR(tr.ticket) + '</small></div>';
+  t += '<div class="insc-kits">';
+  Object.keys(tp.kits).forEach(function(k){
+    const n = tp.kits[k];
+    t += '<div><span>Kit ' + inscEsc(k) + '</span><b>' + inscN(n) + '</b><small>' + (tp.q ? (n / tp.q * 100).toLocaleString('pt-BR', {maximumFractionDigits:1}) : 0) + '%</small></div>';
+  });
+  t += '</div></div></div>';
+
+  /* ── ritmo (lado direito) ── */
+  const d = inscDir[inscSel], ot = d && d.real_inscritos != null;
+  const atual = ot ? Number(d.real_inscritos) : tr.q;
+  const meta = tp.q, saldo = Math.max(0, meta - atual);
+  const fim = p.fim || '', dias = fim ? inscDias(hoje, fim) : null;
+  const porDia = dias != null && dias > 0 ? saldo / dias : null;
+  const ini = p.inicio_vendas || '', diasVend = ini ? inscDias(ini, hoje) : null;
+  const ritmo = diasVend && diasVend > 0 ? atual / diasVend : null;
+  let r = '<div class="insc-ritmo"><div class="insc-rt">Ritmo para bater a meta</div>'
+    + '<div class="insc-rl"><span>Atual <small>' + inscDataBR(hoje) + '</small></span><b>' + inscN(atual) + '</b></div>'
+    + '<div class="insc-src">' + (ot ? 'OTicket · atualizado ' + inscDataBR(String(d.atualizado_em || '').slice(0, 10)) + (tr.q && tr.q !== atual ? ' · soma do Real: ' + inscN(tr.q) : '') : 'soma da coluna Real') + '</div>'
+    + '<div class="insc-rl"><span>Meta</span><b>' + inscN(meta) + '</b></div>'
+    + '<div class="insc-rl"><span>Saldo</span><b>' + inscN(saldo) + '</b></div>'
+    + '<div class="insc-bar2"><i style="width:' + (meta ? Math.min(100, atual / meta * 100) : 0) + '%"></i></div>'
+    + '<div class="insc-src" style="text-align:right">' + (meta ? Math.round(atual / meta * 100) : 0) + '% da meta</div>'
+    + '<div class="insc-rl"><span>Fim das vendas</span><input type="date" value="' + inscEsc(fim) + '" onchange="inscSetCampo(\'fim\',this.value)"></div>'
+    + '<div class="insc-rl"><span>Saldo de dias</span><b>' + (dias == null ? '—' : inscN(Math.max(0, dias))) + '</b></div>'
+    + '<div class="insc-dia"><span>Inscrições / dia</span><b>' + (saldo === 0 && meta ? '✓' : porDia == null ? '—' : porDia.toLocaleString('pt-BR', {minimumFractionDigits:1, maximumFractionDigits:1})) + '</b>'
+    + '<small>' + (saldo === 0 && meta ? 'meta batida' : dias != null && dias <= 0 ? 'prazo de vendas encerrado' : 'necessárias até ' + inscDataBR(fim)) + '</small></div>'
+    + '<div class="insc-rl" style="margin-top:10px"><span>Início das vendas <small>(opcional)</small></span><input type="date" value="' + inscEsc(ini) + '" onchange="inscSetCampo(\'inicio_vendas\',this.value)"></div>';
+  if (ritmo != null) {
+    const ok = porDia == null || ritmo >= porDia;
+    r += '<div class="insc-rl"><span>Ritmo até hoje</span><b style="color:' + (ok ? '#15803d' : '#dc2626') + '">' + ritmo.toLocaleString('pt-BR', {maximumFractionDigits:1}) + '/dia</b></div>';
+    if (porDia != null && saldo > 0) {
+      const proj = Math.round(atual + ritmo * Math.max(0, dias));
+      r += '<div class="insc-src">Mantendo esse ritmo: ~' + inscN(proj) + ' inscritos no fim (' + (proj >= meta ? 'bate a meta' : 'faltariam ' + inscN(meta - proj)) + ')</div>';
+    }
+  }
+  r += '</div>';
+  const im = p.importacao;
+  const imTxt = im ? '<div class="insc-imp">Real importado da planilha <b>' + inscEsc(im.arquivo) + '</b> em ' + new Date(im.em).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})
+    + ' — ' + inscN(im.pagos) + ' pagas, ' + inscN(im.isentos) + ' isentas' + (im.pcd ? ', ' + inscN(im.pcd) + ' PCD/idoso' : '') + '</div>' : '';
+  el.innerHTML = h + imTxt + '<div class="insc-grid">' + t + r + '</div>';
+}
+
+/* ── edição ── */
+function inscTrocar(id){ inscSel = String(id); inscStatus = ''; inscRender(); }
+function inscSet(i, campo, val, texto){
+  const p = inscPlano(); if (!p || !p.linhas[i]) return;
+  p.linhas[i][campo] = texto ? String(val).trim() : inscParse(val);
+  inscRender(); inscAgendar();
+}
+function inscSetPcd(campo, val){ const p = inscPlano(); if (!p) return; p.pcd = p.pcd || {pct:0, desc:50}; p.pcd[campo] = inscParse(val) || 0; inscRender(); inscAgendar(); }
+function inscSetCampo(campo, val){ const p = inscPlano(); if (!p) return; p[campo] = val || ''; inscRender(); inscAgendar(); }
+function inscAddLinha(){
+  const p = inscPlano(); if (!p) return;
+  const ult = p.linhas[p.linhas.length - 1];
+  p.linhas.push({id:inscId(), nome:ult ? ult.nome : 'Novo lote', kit:ult ? ult.kit : '', real:null, proj:null, valor:ult ? ult.valor : null, cupom:0, cash:0});
+  inscRender(); inscAgendar();
+}
+function inscDelLinha(i){
+  const p = inscPlano(); if (!p) return;
+  const l = p.linhas[i];
+  if ((Number(l.real) > 0 || Number(l.proj) > 0) && !confirm('Tirar a linha "' + (l.nome || '') + ' ' + (l.kit || '') + '"?')) return;
+  p.linhas.splice(i, 1); inscRender(); inscAgendar();
+}
+function inscCriar(deId){
+  const ev = inscEv(); if (!ev) return;
+  let novo;
+  if (deId && inscPlanos[deId]) {
+    novo = JSON.parse(JSON.stringify(inscPlanos[deId])); delete novo._em;
+    novo.linhas = (novo.linhas || []).map(function(l){ return Object.assign({}, l, {id:inscId(), real:null}); });
+    novo.fim = inscModelo(ev).fim; novo.inicio_vendas = '';
+  } else novo = inscModelo(ev);
+  inscPlanos[inscSel] = novo; inscRender(); inscAgendar();
+}
+async function inscExcluir(){
+  const ev = inscEv(); if (!ev || !inscPlano()) return;
+  if (!confirm('Apagar o planejamento de inscrições de "' + ev.evento + '"? Não dá para desfazer.')) return;
+  try { await rpc('insc_plano_excluir', {p_calendario_id:inscSel}); delete inscPlanos[inscSel]; inscStatus = ''; inscRender(); }
+  catch (e) { alert('Não consegui apagar: ' + (e && e.message || e)); }
+}
+function inscAgendar(){
+  inscStatus = 'salvando…'; const st = document.getElementById('insc-st'); if (st) st.textContent = inscStatus;
+  clearTimeout(inscTimer);
+  const id = inscSel;
+  inscTimer = setTimeout(async function(){
+    const p = inscPlanos[id]; if (!p) return;
+    const dados = Object.assign({}, p); delete dados._em;
+    try {
+      const r = await rpc('insc_plano_salvar', {p_calendario_id:id, p_dados:dados});
+      inscStatus = r && r.ok ? '✓ salvo' : 'erro ao salvar';
+    } catch (e) { inscStatus = 'erro ao salvar'; }
+    const s2 = document.getElementById('insc-st'); if (s2 && id === inscSel) s2.textContent = inscStatus;
+  }, 700);
+}
+async function inscEnviarMeta(){
+  const p = inscPlano(), ev = inscEv(); if (!p || !ev) return;
+  const tp = inscTotais(p, 'proj');
+  if (!tp.q) { alert('Preencha a coluna Proj antes.'); return; }
+  const tk = Math.round(tp.ticket * 100) / 100;
+  if (!confirm('Gravar como meta de "' + ev.evento + '":\n\n• ' + inscN(tp.q) + ' inscritos (público no Calendário)\n• ticket médio ' + inscR(tk) + ' (Diretoria)')) return;
+  try {
+    if (typeof dirCarregar === 'function' && !(dirCal && dirCal.length)) await dirCarregar();
+    await dirSalvarMetaInsc(inscSel, tp.q, tk);
+    inscStatus = '✓ meta enviada à Diretoria'; inscRender();
+  } catch (e) { alert('Não consegui gravar a meta: ' + (e && e.message || e)); }
+}
+
+/* ── importar a realidade: relatório geral de inscritos da OTicket (.xlsx) ──
+   Agrupa por Lote × Kit: Real = inscrições pagas, Valor = preço cheio mais comum (líquido + desconto),
+   Cupom % = desconto dado com cupom ÷ valor cheio. Descontos sem cupom (ou cupom "PCD"/"IDOSO") viram o PCD/idoso.
+   Isentos vão para uma linha própria "Isentos" (valor 0). Canceladas e não pagas ficam fora. */
+function inscNorm(s){ return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+function inscKitNorm(s){ return inscNorm(s).replace(/\bkits?\b/g, '').replace(/\s+/g, ' ').trim(); }
+function inscTitulo(s){ return String(s || '').toLowerCase().replace(/(^|\s)\S/g, function(m){ return m.toUpperCase(); }); }
+function inscCol(row, nomes){
+  const ks = Object.keys(row);
+  for (let i = 0; i < nomes.length; i++) { const k = ks.filter(function(x){ return inscNorm(x) === inscNorm(nomes[i]); })[0]; if (k) return row[k]; }
+  for (let i = 0; i < nomes.length; i++) { const k = ks.filter(function(x){ return inscNorm(x).indexOf(inscNorm(nomes[i])) === 0; })[0]; if (k) return row[k]; }
+  return undefined;
+}
+function inscNumCel(v){ if (typeof v === 'number') return v; const s = String(v == null ? '' : v).trim(); return !s || s === '-' ? 0 : propPcNum(s); }
+
+function inscImportarAbrir(){ const f = document.getElementById('insc-file'); if (f) f.click(); }
+async function inscImportar(input){
+  const file = input.files[0]; input.value = '';
+  const p = inscPlano(), ev = inscEv(); if (!file || !p || !ev) return;
+  let rows;
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+  } catch (e) { alert('Não consegui ler a planilha: ' + (e && e.message || e)); return; }
+  if (!rows.length || inscCol(rows[0], ['Lote']) === undefined) { alert('Essa planilha não parece o "Relatório Geral" da OTicket (não achei a coluna Lote).'); return; }
+
+  const grupos = {}, ordem = []; let isentos = 0, pcdN = 0, pcdDesc = 0, pcdBruto = 0, pagos = 0, fora = 0;
+  rows.forEach(function(r){
+    const st = inscNorm(inscCol(r, ['Status do Pagamento'])), canc = inscNorm(inscCol(r, ['Cancelada']));
+    if (canc === 'sim' || canc === 'true') { fora++; return; }
+    if (st.indexOf('isent') === 0) { isentos++; return; }
+    if (st && st !== 'pago' && st !== 'aprovado' && st !== 'confirmado') { fora++; return; }
+    const lote = String(inscCol(r, ['Lote']) || '').trim() || 'Sem lote', kit = String(inscCol(r, ['Kit']) || '').trim();
+    const liq = inscNumCel(inscCol(r, ['Valor Líquido', 'Valor'])), desc = inscNumCel(inscCol(r, ['Desconto'])), bruto = liq + desc;
+    const cupom = inscNorm(inscCol(r, ['Cupom']));
+    const temCupom = cupom && cupom !== '-';
+    const ehPcd = desc > 0 && (!temCupom || /pcd|idos|60\+|melhor idade/.test(cupom));
+    const k = inscNorm(lote) + '|' + inscKitNorm(kit);
+    if (!grupos[k]) { grupos[k] = {lote:lote, kit:kit, n:0, bruto:0, descCupom:0, precos:{}}; ordem.push(k); }
+    const g = grupos[k]; g.n++; pagos++;
+    const pr = Math.round(bruto * 100) / 100; if (pr > 0) g.precos[pr] = (g.precos[pr] || 0) + 1;
+    g.bruto += bruto;
+    if (ehPcd) { pcdN++; pcdDesc += desc; pcdBruto += bruto; }
+    else if (temCupom) g.descCupom += desc;
+  });
+  if (!pagos && !isentos) { alert('Não achei inscrições pagas nessa planilha.'); return; }
+
+  /* casa cada Lote × Kit com uma linha do planejamento; o que não casar vira linha nova */
+  const linhas = p.linhas || (p.linhas = []);
+  linhas.forEach(function(l){ l.real = null; });
+  const usadas = {}, novas = [];
+  function casa(g){
+    const a = inscNorm(g.lote), kb = inscKitNorm(g.kit);
+    let melhor = -1, nota = 0;
+    linhas.forEach(function(l, i){
+      if (usadas[i] || inscNorm(l.nome) === 'isentos') return;
+      const b = inscNorm(l.nome); if (!b) return;
+      const loteOk = a === b ? 3 : (a.indexOf(b) === 0 || b.indexOf(a) === 0) ? 2 : 0; if (!loteOk) return;
+      const kl = inscKitNorm(l.kit);
+      const kitOk = kl === kb ? 3 : (!kl || !kb) ? 1 : (kl.indexOf(kb) >= 0 || kb.indexOf(kl) >= 0) ? 2 : 0; if (!kitOk) return;
+      if (loteOk + kitOk > nota) { nota = loteOk + kitOk; melhor = i; }
+    });
+    return melhor;
+  }
+  ordem.forEach(function(k){
+    const g = grupos[k];
+    const preco = Object.keys(g.precos).sort(function(x, y){ return g.precos[y] - g.precos[x]; })[0];
+    const cupomPct = g.bruto > 0 ? Math.round(g.descCupom / g.bruto * 10000) / 100 : 0;
+    let i = casa(g);
+    if (i < 0) { linhas.push({id:inscId(), nome:inscTitulo(g.lote), kit:inscTitulo(g.kit.replace(/^kit\s+/i, '')), real:null, proj:null, valor:null, cupom:0, cash:0}); i = linhas.length - 1; novas.push(linhas[i].nome + (linhas[i].kit ? ' / ' + linhas[i].kit : '')); }
+    usadas[i] = 1;
+    const l = linhas[i];
+    l.real = g.n; l.cupom = cupomPct;
+    if (preco) l.valor = Number(preco);
+    if (l.proj == null || Number(l.proj) < g.n) l.proj = Math.max(Number(l.proj) || 0, g.n);
+  });
+  let iIs = linhas.findIndex(function(l){ return inscNorm(l.nome) === 'isentos'; });
+  if (isentos) {
+    if (iIs < 0) { linhas.push({id:inscId(), nome:'Isentos', kit:'Isento', real:null, proj:null, valor:0, cupom:0, cash:0}); iIs = linhas.length - 1; }
+    linhas[iIs].real = isentos; linhas[iIs].valor = 0;
+    if (Number(linhas[iIs].proj || 0) < isentos) linhas[iIs].proj = isentos;
+  }
+  const pagosTot = pagos;
+  p.pcd = {pct:pagosTot ? Math.round(pcdN / pagosTot * 10000) / 100 : 0, desc:pcdBruto ? Math.round(pcdDesc / pcdBruto * 10000) / 100 : (p.pcd && p.pcd.desc) || 50};
+  p.importacao = {em:new Date().toISOString(), arquivo:file.name, pagos:pagos, isentos:isentos, pcd:pcdN, fora:fora};
+  inscRender(); inscAgendar();
+  alert('Importado: ' + inscN(pagos) + ' pagas + ' + inscN(isentos) + ' isentas' + (pcdN ? ' (' + pcdN + ' com desconto PCD/idoso)' : '') + '.'
+    + (novas.length ? '\n\nLinhas novas criadas (não achei no planejamento):\n• ' + novas.join('\n• ') : '')
+    + '\n\nConfira a coluna Proj: onde o Real passou do projetado, subi o Proj para o Real.');
 }
 
 /* ══════════════ ORÇAMENTOS ══════════════
@@ -19311,6 +19659,64 @@ document.addEventListener('DOMContentLoaded',function(){
           <textarea id="crz-msg" rows="3" onchange="crzSalvarMsg()" style="width:100%;max-width:760px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
         </div>
         <div id="crz-resultado"></div>
+      </div>
+
+      <div class="inner-screen" id="screen-planinsc">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;">
+          <div><h1>Inscrições</h1><div style="font-size:13px;color:var(--muted);margin-top:4px;">Planejamento de lotes, kits, cupons e descontos por evento — e quantas inscrições por dia faltam para a meta. Salva sozinho.</div></div>
+          <button class="mkt-btn" onclick="inscInit()">Atualizar</button>
+        </div>
+<style>
+#screen-planinsc .insc-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+#screen-planinsc .insc-bar label{font-size:12px;font-weight:700;color:var(--muted);}
+#screen-planinsc select{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;background:#fff;min-width:300px;}
+#screen-planinsc .insc-st{font-size:12px;color:#15803d;}
+#screen-planinsc .insc-imp{font-size:12px;color:var(--muted);margin:-6px 0 12px;}
+#screen-planinsc .insc-vazio{background:var(--card);border:1px dashed var(--border);border-radius:12px;padding:26px;text-align:center;}
+#screen-planinsc .insc-grid{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start;}
+#screen-planinsc .insc-tab{overflow-x:auto;background:#fff;border:1px solid var(--border);border-radius:12px;}
+#screen-planinsc .insc-t{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap;}
+#screen-planinsc .insc-t th{background:#dbe5f6;font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding:7px 8px;text-align:right;color:#2a2520;}
+#screen-planinsc .insc-t th.insc-tit{background:#ff8a00;color:#fff;text-align:left;font-size:12px;}
+#screen-planinsc .insc-t th.insc-real{background:#22c55e;color:#fff;text-align:center;} #screen-planinsc .insc-t th.insc-proj{background:#bfe3f7;text-align:center;}
+#screen-planinsc .insc-t td{padding:3px 8px;border-top:1px solid #f0ece6;text-align:right;}
+#screen-planinsc .insc-t td.insc-real{background:#fffbd6;text-align:center;} #screen-planinsc .insc-t td.insc-proj{background:#e6f6fd;text-align:center;}
+#screen-planinsc .insc-t tr.insc-zero td{color:#a8a29e;}
+#screen-planinsc .insc-t input{font-family:inherit;font-size:12.5px;border:1px solid transparent;border-radius:5px;padding:4px 5px;background:transparent;color:inherit;}
+#screen-planinsc .insc-t input:hover{border-color:var(--border);} #screen-planinsc .insc-t input:focus{border-color:#ff751f;background:#fff;outline:none;}
+#screen-planinsc .insc-txt{width:150px;text-align:left;} #screen-planinsc .insc-kit{width:90px;}
+#screen-planinsc .insc-n{width:62px;text-align:right;} #screen-planinsc .insc-val{width:70px;} #screen-planinsc .insc-p{width:48px;}
+#screen-planinsc .insc-real .insc-n,#screen-planinsc .insc-proj .insc-n{text-align:center;font-weight:700;}
+#screen-planinsc .insc-acima{color:#dc2626!important;}
+#screen-planinsc .insc-pre{color:var(--muted);font-size:11px;} #screen-planinsc .insc-pc{background:#fdf3e3;}
+#screen-planinsc .insc-neg{color:#dc2626;} #screen-planinsc .insc-b{font-weight:700;}
+#screen-planinsc .insc-x{border:none;background:none;color:#c9c2ba;cursor:pointer;font-size:12px;} #screen-planinsc .insc-x:hover{color:#dc2626;}
+#screen-planinsc tfoot td{background:#f6f4f1;font-weight:700;padding:7px 8px;}
+#screen-planinsc tfoot .insc-meta{background:#ff8a00!important;color:#fff;}
+#screen-planinsc tfoot .insc-pcd td{font-weight:400;font-size:12px;background:#fff;text-align:left;}
+#screen-planinsc tfoot .insc-liq td{background:#fff36b;text-align:right;}
+#screen-planinsc .insc-rodape{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+#screen-planinsc .insc-ticket{background:#fff36b;border-radius:10px;padding:10px 16px;display:flex;flex-direction:column;min-width:180px;}
+#screen-planinsc .insc-ticket.insc-tk2{background:#fffbd6;}
+#screen-planinsc .insc-ticket span,#screen-planinsc .insc-kits span{font-size:11px;font-weight:700;text-transform:uppercase;color:#57534e;}
+#screen-planinsc .insc-ticket b{font-size:22px;} #screen-planinsc .insc-ticket small,#screen-planinsc .insc-kits small{font-size:11px;color:#78716c;}
+#screen-planinsc .insc-kits{display:flex;gap:10px;flex-wrap:wrap;}
+#screen-planinsc .insc-kits div{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;min-width:110px;}
+#screen-planinsc .insc-kits b{font-size:18px;}
+#screen-planinsc .insc-ritmo{background:#dbe5f6;border-radius:12px;padding:14px 16px;position:sticky;top:12px;}
+#screen-planinsc .insc-rt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;color:#1e3a5f;}
+#screen-planinsc .insc-rl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(30,58,95,.1);font-size:13px;}
+#screen-planinsc .insc-rl b{font-size:15px;} #screen-planinsc .insc-rl small{color:#64748b;font-size:11px;}
+#screen-planinsc .insc-rl input{border:1px solid rgba(30,58,95,.2);border-radius:6px;padding:4px 6px;font-family:inherit;font-size:12px;background:#fff;}
+#screen-planinsc .insc-src{font-size:11px;color:#64748b;padding:2px 0 4px;}
+#screen-planinsc .insc-bar2{height:8px;background:rgba(30,58,95,.12);border-radius:5px;overflow:hidden;margin-top:8px;}
+#screen-planinsc .insc-bar2 i{display:block;height:100%;background:#ff751f;}
+#screen-planinsc .insc-dia{margin-top:12px;background:#fff;border-radius:10px;padding:12px;text-align:center;display:flex;flex-direction:column;}
+#screen-planinsc .insc-dia span{font-size:11px;font-weight:700;text-transform:uppercase;color:#57534e;}
+#screen-planinsc .insc-dia b{font-size:34px;color:#dc2626;line-height:1.1;} #screen-planinsc .insc-dia small{font-size:11px;color:#78716c;}
+@media(max-width:1000px){#screen-planinsc .insc-grid{grid-template-columns:1fr;}#screen-planinsc .insc-ritmo{position:static;}}
+</style>
+        <div id="insc-corpo"><div class="empty-state">Carregando…</div></div>
       </div>
 
       <div class="inner-screen" id="screen-diretoria">
