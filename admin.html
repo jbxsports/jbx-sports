@@ -3400,7 +3400,7 @@ const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_li
   'div_adm_lista','div_adm_salvar',
   'map_listar','map_abrir','map_salvar','map_excluir',
   'lnk_listar','lnk_salvar','lnk_excluir',
-  'pat_entreg_ler','pat_entreg_salvar','pat_painel_ler','pat_painel_salvar',
+  'pat_entreg_ler','pat_entreg_salvar','pat_painel_ler','pat_painel_salvar','pat_painel_listar',
   'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
@@ -3492,7 +3492,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas','cotasglobal':'marcas'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'||abaReq==='diretoria'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
@@ -3517,6 +3517,7 @@ function showInner(name){
   if(name==='funil'){document.getElementById('nav-marcas').classList.add('active');patInit('funil');}
   if(name==='patpag'){document.getElementById('nav-marcas').classList.add('active');ppInit();}
   if(name==='painel'){document.getElementById('nav-marcas').classList.add('active');pnlInit();}
+  if(name==='cotasglobal'){document.getElementById('nav-marcas').classList.add('active');pnlGlobalInit();}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
@@ -16504,7 +16505,35 @@ const PNL_CSS=
  +'#pn-pick .op .lg{width:46px;height:30px;border:1px solid rgba(42,37,32,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;color:#fff;font-size:11px;font-weight:700;}'
  +'#pn-pick .op .lg img{max-width:90%;max-height:85%;object-fit:contain;}'
  +'#pn-pick .op .n{font-size:13.5px;flex:1;min-width:0;} #pn-pick .op .n small{display:block;color:#7a7068;font-size:11px;}'
- +'#pn-pick .bts{display:flex;justify-content:space-between;gap:8px;margin-top:12px;}';
+ +'#pn-pick .bts{display:flex;justify-content:space-between;gap:8px;margin-top:12px;}'
+ +'.pn-precos{display:grid;grid-template-columns:1fr 1fr;gap:8px;}'
+ +'.pn-precos label{display:flex;flex-direction:column;gap:3px;font-size:11px;font-weight:700;}'
+ +'.pn-precos input{font-family:Ubuntu,sans-serif;font-size:13px;padding:7px 9px;border:1px solid rgba(42,37,32,.16);border-radius:8px;width:100%;}'
+ +'.pn-precos input:focus{outline:none;border-color:#ff751f;}'
+ +'.pn-tot{display:flex;gap:10px;margin:10px 0 4px;} .pn-tot div{flex:1;background:#faf9f7;border-radius:10px;padding:8px 10px;}'
+ +'.pn-tot small{display:block;font-size:10.5px;color:#7a7068;} .pn-tot b{font-size:15px;}'
+ +'.pg-scroll{overflow:auto;max-height:75vh;border:1px solid rgba(42,37,32,.10);border-radius:12px;background:#fff;}'
+ +'.pg-tab{border-collapse:separate;border-spacing:0;font-size:11px;min-width:100%;}'
+ +'.pg-tab th{position:sticky;top:0;background:#faf9f7;z-index:2;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#7a7068;padding:8px 6px;white-space:nowrap;border-bottom:1px solid rgba(42,37,32,.10);}'
+ +'.pg-tab td{border-bottom:1px solid rgba(42,37,32,.07);padding:6px;text-align:center;vertical-align:middle;}'
+ +'.pg-tab .ev{position:sticky;left:0;background:#fff;z-index:1;text-align:left;min-width:190px;max-width:230px;cursor:pointer;border-right:1px solid rgba(42,37,32,.10);}'
+ +'.pg-tab th.ev{z-index:3;background:#faf9f7;}'
+ +'.pg-tab td.ev b{display:block;font-size:12.5px;} .pg-tab td.ev small{color:#7a7068;font-size:10.5px;}'
+ +'.pg-tab td.ev:hover b{color:#ff751f;}'
+ +'.pg-tab td.c{cursor:pointer;min-width:74px;} .pg-tab td.c:hover{background:#fff7f0;}'
+ +'.pg-tab .lg{width:60px;height:30px;margin:0 auto;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;}'
+ +'.pg-tab .lg img{max-width:92%;max-height:90%;object-fit:contain;}'
+ +'.pg-tab .lg.ini{color:#fff;font-weight:700;font-size:11px;}'
+ +'.pg-tab .lg.vg{border:1.5px dashed rgba(42,37,32,.2);color:#b0a89f;font-size:10px;font-weight:700;text-transform:uppercase;}'
+ +'.pg-tab .vl{font-size:10.5px;margin-top:3px;white-space:nowrap;color:#7a7068;} .pg-tab td.ok .vl{color:#15803d;font-weight:700;} .pg-tab .vl.z{color:#c9c1b8;font-style:italic;}'
+ +'.pg-tab .tt{text-align:right;white-space:nowrap;min-width:120px;} .pg-tab td.tt b{display:block;color:#15803d;font-size:12.5px;} .pg-tab td.tt small{display:block;color:#7a7068;font-size:10.5px;}'
+ +'.pg-res{border-collapse:collapse;width:100%;font-size:13px;background:#fff;border:1px solid rgba(42,37,32,.10);border-radius:12px;overflow:hidden;}'
+ +'.pg-res th{background:#faf9f7;font-size:10px;letter-spacing:.6px;text-transform:uppercase;color:#7a7068;padding:9px 10px;text-align:left;}'
+ +'.pg-res td{padding:9px 10px;border-top:1px solid rgba(42,37,32,.07);white-space:nowrap;}'
+ +'.pg-res td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;}'
+ +'.pg-res td.v{color:#15803d;font-weight:700;} .pg-res small.av{display:block;color:#b45309;font-size:10.5px;}'
+ +'.pg-res tfoot td{font-weight:700;background:#faf9f7;}'
+ +'.pg-res .bar{display:inline-block;width:70px;height:7px;background:#eee8e2;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:6px;} .pg-res .bar span{display:block;height:100%;}';
 
 function pnlCss(){
   if(pnlCssOk)return; pnlCssOk=true;
@@ -16513,7 +16542,7 @@ function pnlCss(){
   document.addEventListener('pointerup',pnlUp);
 }
 function pnlSlot(id){ return id==='evento'?PNL_EVENTO:(PNL_SLOTS.find(s=>s.id===id)||null); }
-function pnlVazio(){ return {logo_evento:'',cor_camisa:'#ffffff',slots:{},pos:{}}; }
+function pnlVazio(){ return {logo_evento:'',cor_camisa:'#ffffff',slots:{},pos:{},precos:{}}; }
 function pnlMarcaDoSlot(id){ const mid=pnlDados&&pnlDados.slots[id]; return mid?patMarca(mid):null; }
 
 /* ── carga ── */
@@ -16549,6 +16578,7 @@ async function pnlCarregar(){
   if(d&&typeof d==='object'&&!Array.isArray(d)){
     base.logo_evento=d.logo_evento||''; base.cor_camisa=d.cor_camisa||'#ffffff';
     base.slots=(d.slots&&typeof d.slots==='object')?d.slots:{};
+    base.precos=(d.precos&&typeof d.precos==='object')?d.precos:{};
     base.pos=(d.pos&&typeof d.pos==='object')?d.pos:{};
   }
   if(!d||!Object.keys(base.pos).some(k=>k!=='evento')) base.pos=pnlLayoutPadrao();
@@ -16582,7 +16612,7 @@ function pnlRender(){
   const b=document.getElementById('pn-board'), m=document.getElementById('pn-mock');
   if(!b||!m)return;
   if(!pnlDados){ b.innerHTML='<div class="pn-cont">Carregando…</div>'; m.innerHTML=''; return; }
-  b.innerHTML=pnlBoardHtml(false);
+  b.innerHTML=pnlPrecosHtml()+pnlBoardHtml(false);
   m.innerHTML=pnlMockHtml();
 }
 function pnlLogoBox(mk){
@@ -16839,6 +16869,128 @@ function pnlImprimir(){
     +'<div class="pg"><h1>Painel de cotas — '+patEsc(ev?ev.nome:'Evento')+'</h1><div class="sub">&nbsp;</div>'+pnlBoardHtml(true)+'</div>'
     +'</body></html>';
   w.document.open(); w.document.write(html); w.document.close();
+  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
+}
+
+/* ══════════ PREÇO DAS COTAS + RESUMO GLOBAL ══════════ */
+const PNL_PRECO_GRUPOS=[
+  {k:'apresentador',t:'Apresentador',cor:'#111827'},
+  {k:'naming',t:'Naming Rights',cor:'#7c3aed'},
+  {k:'ouro',t:'Ouro (cada)',cor:'#c99a06'},
+  {k:'prata',t:'Prata (cada)',cor:'#8b95a3'},
+  {k:'bronze',t:'Bronze (cada)',cor:'#b4693e'}
+];
+function pnlGrupoPreco(s){ return s.g==='topo'?s.id:s.g; }
+function pnlBRL(v){ return 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:2}); }
+/* valor de um espaço: vago = preço da tabela; preenchido = valor fechado no funil (se houver), senão preço da tabela */
+function pnlValorSlot(dados,evId,s){
+  const precos=(dados&&dados.precos)||{};
+  const preco=Number(precos[pnlGrupoPreco(s)])||0;
+  const mid=dados&&dados.slots&&dados.slots[s.id];
+  if(!mid||!patMarca(mid)) return {preco:preco,valor:preco,vendido:false,fonte:'tabela'};
+  const op=(patDados&&patDados.oportunidades||[]).find(o=>String(o.marca_id)===String(mid)&&String(o.evento_id)===String(evId)&&o.etapa==='fechado');
+  const vf=op?Number(op.valor_estimado)||0:0;
+  return {preco:preco,valor:vf>0?vf:preco,vendido:true,fonte:vf>0?'funil':'tabela'};
+}
+function pnlTotaisEvento(dados,evId){
+  let pot=0,vend=0,n=0;
+  PNL_SLOTS.forEach(function(s){ const v=pnlValorSlot(dados,evId,s); pot+=v.preco; if(v.vendido){vend+=v.valor;n++;} });
+  return {pot:pot,vend:vend,n:n};
+}
+function pnlPrecosHtml(){
+  const p=pnlDados.precos||{}, t=pnlTotaisEvento(pnlDados,pnlEvSel);
+  let h='<div class="pn-h">💰 Valor de cada cota neste evento</div><div class="pn-precos">';
+  PNL_PRECO_GRUPOS.forEach(function(g){
+    h+='<label><span style="color:'+g.cor+'">'+g.t+'</span><input type="number" min="0" step="100" inputmode="decimal" placeholder="0" value="'+(p[g.k]?patEsc(p[g.k]):'')+'" onchange="pnlPreco(\''+g.k+'\',this.value)"></label>';
+  });
+  h+='</div><div class="pn-tot"><div><small>Potencial do evento</small><b>'+pnlBRL(t.pot)+'</b></div><div><small>Vendido ('+t.n+' de '+PNL_SLOTS.length+')</small><b style="color:#15803d">'+pnlBRL(t.vend)+'</b></div></div>';
+  return h;
+}
+function pnlPreco(k,v){
+  if(!pnlDados)return;
+  if(!pnlDados.precos) pnlDados.precos={};
+  const n=Number(String(v).replace(',','.'));
+  if(n>0) pnlDados.precos[k]=n; else delete pnlDados.precos[k];
+  pnlRender(); pnlAgendar();
+}
+
+/* ── tela: resumo global ── */
+let pnlGlobal=null, pnlGlobalPassados=false;
+async function pnlGlobalInit(){
+  pnlCss();
+  const cont=document.getElementById('pg-cont');
+  if(cont) cont.innerHTML='<div class="pn-cont" style="padding:20px">Carregando…</div>';
+  if(!patDados) await patCarregar();
+  try{
+    const r=await rpc('pat_painel_listar');
+    if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'Sem permissão na aba Marcas':r.erro);
+    pnlGlobal={};
+    ((r&&r.linhas)||[]).forEach(l=>{ pnlGlobal[String(l.evento_id)]=l.dados||{}; });
+  }catch(e){ console.error(e); if(cont) cont.innerHTML='<div class="pn-cont" style="padding:20px;color:#dc2626">Não consegui carregar: '+patEsc(e.message||e)+'</div>'; return; }
+  pnlGlobalRender();
+}
+function pnlGlobalAlternarPassados(){ pnlGlobalPassados=!pnlGlobalPassados; pnlGlobalRender(); }
+function pnlGlobalAbrir(evId){ pnlEvSel=String(evId); showInner('painel'); }
+function pnlGlobalEventos(){
+  const hj=new Date().toISOString().slice(0,10);
+  return patEventos.filter(e=>!e.pacote&&(pnlGlobalPassados||e.data>=hj||pnlGlobal[String(e.id)]));
+}
+function pnlGlobalRender(){
+  const cont=document.getElementById('pg-cont'); if(!cont||!pnlGlobal)return;
+  const evs=pnlGlobalEventos();
+  const bt=document.getElementById('pg-passados'); if(bt) bt.textContent=pnlGlobalPassados?'Esconder eventos passados':'Mostrar eventos passados';
+  /* resumo por cota */
+  const res={}; PNL_PRECO_GRUPOS.forEach(g=>{res[g.k]={esp:0,vend:0,pot:0,vv:0,semPreco:0};});
+  let h='<div class="pg-scroll"><table class="pg-tab"><thead><tr><th class="ev">Evento</th>';
+  PNL_SLOTS.forEach(s=>{ h+='<th style="border-top:3px solid '+s.cor+'">'+patEsc(s.t)+'</th>'; });
+  h+='<th class="tt">Vendido / Potencial</th></tr></thead><tbody>';
+  if(!evs.length) h+='<tr><td colspan="'+(PNL_SLOTS.length+2)+'" class="pn-cont" style="padding:20px">Nenhum evento.</td></tr>';
+  evs.forEach(function(ev){
+    const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
+    const t=pnlTotaisEvento(d,ev.id);
+    h+='<tr><td class="ev" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')" title="Abrir o painel deste evento"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small></td>';
+    PNL_SLOTS.forEach(function(s){
+      const v=pnlValorSlot(d,ev.id,s), g=res[pnlGrupoPreco(s)];
+      g.esp++; g.pot+=v.preco; if(!v.preco)g.semPreco++;
+      if(v.vendido){ g.vend++; g.vv+=v.valor; }
+      const mk=v.vendido?patMarca(d.slots[s.id]):null;
+      let lg;
+      if(mk&&mk.logo_url) lg='<div class="lg"><img src="'+patEsc(mk.logo_url)+'" alt="'+patEsc(mk.nome)+'" title="'+patEsc(mk.nome)+'"></div>';
+      else if(mk) lg='<div class="lg ini" style="background:'+patCorDe(mk.nome)+'" title="'+patEsc(mk.nome)+'">'+patEsc(patIniciais(mk.nome))+'</div>';
+      else lg='<div class="lg vg">vago</div>';
+      h+='<td class="c'+(mk?' ok':'')+'" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')">'+lg
+        +'<div class="vl'+(v.valor?'':' z')+'" title="'+(v.fonte==='funil'?'Valor fechado no funil':'Preço da tabela')+'">'+(v.valor?pnlBRL(v.valor):'sem valor')+(v.fonte==='funil'?' •':'')+'</div></td>';
+    });
+    h+='<td class="tt"><b>'+pnlBRL(t.vend)+'</b><small>de '+pnlBRL(t.pot)+'</small><small>'+t.n+'/'+PNL_SLOTS.length+' vendidas</small></td></tr>';
+  });
+  h+='</tbody></table></div>';
+
+  /* resumo financeiro por cota */
+  let tp=0,tv=0,te=0,tn=0,ts=0;
+  let r='<div class="pn-h" style="margin-top:22px">Resumo financeiro por cota'+(evs.length?' · '+evs.length+' evento(s)':'')+'</div>'
+    +'<table class="pg-res"><thead><tr><th>Cota</th><th>Espaços</th><th>Vendidos</th><th>Vagos</th><th>Total que podemos vender</th><th>Total vendido</th><th>Falta vender</th><th>% vendido</th></tr></thead><tbody>';
+  PNL_PRECO_GRUPOS.forEach(function(g){
+    const x=res[g.k]; tp+=x.pot; tv+=x.vv; te+=x.esp; tn+=x.vend; ts+=x.semPreco;
+    const pct=x.pot?Math.round(x.vv/x.pot*100):0;
+    r+='<tr><td><i style="background:'+g.cor+'"></i>'+patEsc(g.t.replace(' (cada)',''))+'</td><td>'+x.esp+'</td><td>'+x.vend+'</td><td>'+(x.esp-x.vend)+'</td>'
+      +'<td>'+pnlBRL(x.pot)+(x.semPreco?'<small class="av">'+x.semPreco+' sem preço</small>':'')+'</td><td class="v">'+pnlBRL(x.vv)+'</td><td>'+pnlBRL(Math.max(0,x.pot-x.vv))+'</td>'
+      +'<td><div class="bar"><span style="width:'+Math.min(100,pct)+'%;background:'+g.cor+'"></span></div>'+pct+'%</td></tr>';
+  });
+  const pt=tp?Math.round(tv/tp*100):0;
+  r+='</tbody><tfoot><tr><td>Total</td><td>'+te+'</td><td>'+tn+'</td><td>'+(te-tn)+'</td><td>'+pnlBRL(tp)+'</td><td class="v">'+pnlBRL(tv)+'</td><td>'+pnlBRL(Math.max(0,tp-tv))+'</td><td>'+pt+'%</td></tr></tfoot></table>'
+    +'<div class="pn-dica">“Total que podemos vender” = preço da tabela × espaços (o preço de cada cota se define dentro do Painel de cotas de cada evento). '
+    +'“Total vendido” usa o valor fechado no funil quando a marca tem negócio fechado no evento (marcado com •); senão, o preço da tabela.'
+    +(ts?' <b style="color:#b45309">'+ts+' espaço(s) estão sem preço definido.</b>':'')+'</div>';
+  cont.innerHTML=r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h;
+}
+function pnlGlobalImprimir(){
+  const cont=document.getElementById('pg-cont'); if(!cont)return;
+  const w=window.open('','_blank'); if(!w){ alert('Libere os pop-ups para imprimir.'); return; }
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Resumo global de cotas</title><style>body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:16px;}h1{font-size:20px;margin:0 0 4px;}'
+    +PNL_CSS+'.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
+    +'<h1>Resumo global de cotas</h1><div style="font-size:12px;color:#7a7068">gerado em '+new Date().toLocaleDateString('pt-BR')+'</div>'+cont.innerHTML+'</body></html>');
+  w.document.close();
   setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
 }
 
@@ -17424,7 +17576,8 @@ const INI_ORG=[
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
   {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
-     {id:'painel',       rot:'Painel de cotas', ic:'🎽'}]},
+     {id:'painel',       rot:'Painel de cotas', ic:'🎽'},
+     {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'}]},
   {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
@@ -17432,7 +17585,7 @@ let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
   if(id==='usuarios'||id==='diretoria') return !!(admUser&&admUser.master);
-  if(id==='painel'||id==='patpag') return admTemAba('marcas')||admTemAba(id);
+  if(id==='painel'||id==='patpag'||id==='cotasglobal') return admTemAba('marcas')||admTemAba(id);
   return admTemAba(id);
 }
 function iniCard(no,cor,filho){
@@ -19210,6 +19363,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="mkt-btn" onclick="showInner('patpag')">💳 Pagamentos</button>
             <button class="mkt-btn" onclick="showInner('painel')">🎽 Painel de cotas</button>
+            <button class="mkt-btn" onclick="showInner('cotasglobal')">📊 Resumo de cotas</button>
             <button class="mkt-btn" onclick="showInner('funil')">Funil de Patrocínio →</button>
             <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
           </div>
@@ -19748,6 +19902,7 @@ document.addEventListener('DOMContentLoaded',function(){
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
             <select class="pt-sel grande" id="pn-evento" onchange="pnlTrocarEvento()"></select>
+            <button class="mkt-btn" onclick="showInner('cotasglobal')">📊 Resumo global</button>
             <button class="mkt-btn" onclick="pnlPuxarFunil()" title="Coloca nos espaços vagos as marcas fechadas no funil deste evento">⤵ Puxar do funil</button>
             <button class="mkt-btn primary" onclick="pnlImprimir()">🖨 Imprimir / PDF</button>
           </div>
@@ -19757,6 +19912,21 @@ document.addEventListener('DOMContentLoaded',function(){
           <div class="pn-card" id="pn-board"></div>
           <div class="pn-card" id="pn-mock"></div>
         </div>
+      </div>
+
+      <!-- TELA: RESUMO GLOBAL DE COTAS -->
+      <div class="inner-screen" id="screen-cotasglobal">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="mkt-btn sm" onclick="showInner('painel')">← Painel de cotas</button>
+            <h1>Resumo global de cotas</h1>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="mkt-btn" id="pg-passados" onclick="pnlGlobalAlternarPassados()">Mostrar eventos passados</button>
+            <button class="mkt-btn primary" onclick="pnlGlobalImprimir()">🖨 Imprimir / PDF</button>
+          </div>
+        </div>
+        <div id="pg-cont"></div>
       </div>
 
       <!-- TELA: PAGAMENTOS DE PATROCÍNIO -->
