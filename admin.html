@@ -3400,7 +3400,7 @@ const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_li
   'div_adm_lista','div_adm_salvar',
   'map_listar','map_abrir','map_salvar','map_excluir',
   'lnk_listar','lnk_salvar','lnk_excluir',
-  'pat_entreg_ler','pat_entreg_salvar',
+  'pat_entreg_ler','pat_entreg_salvar','pat_painel_ler','pat_painel_salvar',
   'admin_propostas_listar','admin_proposta_atualizar','admin_propostas_kpis',
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
@@ -3492,7 +3492,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'||abaReq==='diretoria'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
@@ -3516,6 +3516,7 @@ function showInner(name){
   if(name==='marcas'){document.getElementById('nav-marcas').classList.add('active');patInit('marcas');}
   if(name==='funil'){document.getElementById('nav-marcas').classList.add('active');patInit('funil');}
   if(name==='patpag'){document.getElementById('nav-marcas').classList.add('active');ppInit();}
+  if(name==='painel'){document.getElementById('nav-marcas').classList.add('active');pnlInit();}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
@@ -16382,6 +16383,431 @@ function patSocCopiar(){
   else prompt('Copie o texto:',txt);
 }
 
+/* ══════════ PAINEL DE COTAS + MOCKUP DA CAMISETA ══════════
+   12 espaços por evento (Apresentador, Naming Rights, 2 Ouro, 2 Prata, 6 Bronze)
+   e camiseta frente/verso onde cada logo é arrastada para a posição.
+   Banco: pat_painel (evento_id, dados jsonb) via pat_painel_ler / pat_painel_salvar. */
+const PNL_SLOTS=[
+  {id:'apresentador',t:'Apresentador',  g:'topo',  cor:'#111827',w:30},
+  {id:'naming',      t:'Naming Rights', g:'topo',  cor:'#7c3aed',w:30},
+  {id:'ouro1',       t:'Ouro 1',        g:'ouro',  cor:'#c99a06',w:20},
+  {id:'ouro2',       t:'Ouro 2',        g:'ouro',  cor:'#c99a06',w:20},
+  {id:'prata1',      t:'Prata 1',       g:'prata', cor:'#8b95a3',w:16},
+  {id:'prata2',      t:'Prata 2',       g:'prata', cor:'#8b95a3',w:16},
+  {id:'bronze1',     t:'Bronze 1',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze2',     t:'Bronze 2',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze3',     t:'Bronze 3',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze4',     t:'Bronze 4',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze5',     t:'Bronze 5',      g:'bronze',cor:'#b4693e',w:12},
+  {id:'bronze6',     t:'Bronze 6',      g:'bronze',cor:'#b4693e',w:12}
+];
+const PNL_GRUPOS=[
+  {g:'topo',t:'Apresentador e Naming Rights'},
+  {g:'ouro',t:'🥇 Cota Ouro'},
+  {g:'prata',t:'🥈 Cota Prata'},
+  {g:'bronze',t:'🥉 Cota Bronze'}
+];
+const PNL_CORES=[
+  {c:'#ffffff',t:'Branca'},{c:'#1f1f1f',t:'Preta'},{c:'#ff751f',t:'Laranja'},
+  {c:'#1e3a5f',t:'Azul-marinho'},{c:'#9ca3af',t:'Cinza'},{c:'#15803d',t:'Verde'}
+];
+const PNL_EVENTO={id:'evento',t:'Logo do evento',cor:'#ff751f',w:34};
+
+let pnlEvSel='', pnlDados=null, pnlTimer=null, pnlDrag=null, pnlPickSlot=null, pnlCssOk=false, pnlCarregando=false;
+
+const PNL_CSS=
+  '.pn-wrap{display:grid;grid-template-columns:minmax(300px,400px) 1fr;gap:22px;align-items:start;}'
+ +'@media(max-width:1000px){.pn-wrap{grid-template-columns:1fr;}}'
+ +'.pn-card{background:#fff;border:1px solid rgba(42,37,32,.10);border-radius:14px;padding:16px 18px;}'
+ +'.pn-h{font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#ff751f;margin:16px 0 8px;}'
+ +'.pn-h:first-child{margin-top:0;}'
+ +'.pn-cont{font-size:12.5px;color:#7a7068;margin-bottom:6px;}'
+ +'.pn-slots{display:grid;gap:8px;}'
+ +'.pn-slots.topo{grid-template-columns:1fr 1fr;} .pn-slots.ouro,.pn-slots.prata{grid-template-columns:1fr 1fr;} .pn-slots.bronze{grid-template-columns:1fr 1fr 1fr;}'
+ +'.pn-slot{border:1.5px dashed rgba(42,37,32,.22);border-radius:11px;padding:8px;text-align:center;cursor:pointer;background:#faf9f7;transition:border-color .15s,background .15s;position:relative;min-width:0;}'
+ +'.pn-slot:hover{border-color:#ff751f;background:#fff7f0;}'
+ +'.pn-slot.cheio{border-style:solid;background:#fff;}'
+ +'.pn-slot .lg{height:54px;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;margin-bottom:6px;}'
+ +'.pn-slots.topo .pn-slot .lg{height:72px;} .pn-slots.bronze .pn-slot .lg{height:40px;}'
+ +'.pn-slot .lg img{max-width:90%;max-height:90%;object-fit:contain;}'
+ +'.pn-slot .lg.ini{color:#fff;font-weight:700;font-size:15px;}'
+ +'.pn-slot .lg.vago{color:#b0a89f;font-size:11.5px;font-weight:700;letter-spacing:.5px;}'
+ +'.pn-slot .tp{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}'
+ +'.pn-slot .nm{font-size:11.5px;color:#2a2520;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}'
+ +'.pn-slot .ps{font-size:9.5px;color:#7a7068;margin-top:2px;}'
+ +'.pn-slot .ps.nao{color:#b45309;}'
+ +'.pn-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px;}'
+ +'.pn-sw{width:24px;height:24px;border-radius:50%;border:2px solid rgba(42,37,32,.18);cursor:pointer;padding:0;}'
+ +'.pn-sw.on{outline:2px solid #ff751f;outline-offset:2px;}'
+ +'.pn-tray{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;padding:10px;border:1px dashed rgba(42,37,32,.18);border-radius:10px;background:#faf9f7;margin-bottom:14px;}'
+ +'.pn-tray .vz{font-size:12px;color:#15803d;font-weight:700;align-self:center;}'
+ +'.pn-chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:5px 10px 5px 6px;border-radius:999px;background:#fff;border:1px solid rgba(42,37,32,.14);cursor:grab;user-select:none;touch-action:none;}'
+ +'.pn-chip i{width:12px;height:12px;border-radius:50%;display:inline-block;}'
+ +'.pn-chip:active{cursor:grabbing;}'
+ +'.pn-ghost{position:fixed;z-index:9999;pointer-events:none;transform:translate(-50%,-50%);opacity:.9;}'
+ +'.pn-shirts{display:grid;grid-template-columns:1fr 1fr;gap:18px;}'
+ +'@media(max-width:700px){.pn-shirts{grid-template-columns:1fr;}}'
+ +'.pn-lado{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#7a7068;text-align:center;margin-bottom:6px;}'
+ +'.pn-shirt{position:relative;width:100%;aspect-ratio:400/440;user-select:none;}'
+ +'.pn-shirt svg{position:absolute;inset:0;width:100%;height:100%;}'
+ +'.pn-shirt.alvo svg{filter:drop-shadow(0 0 6px rgba(255,117,31,.7));}'
+ +'.pn-it{position:absolute;transform:translate(-50%,-50%);touch-action:none;cursor:move;}'
+ +'.pn-it img{display:block;width:100%;height:auto;pointer-events:none;}'
+ +'.pn-it .ph{width:100%;aspect-ratio:2/1;border:1.5px dashed;border-radius:5px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;font-weight:700;line-height:1.1;overflow:hidden;padding:2px;pointer-events:none;}'
+ +'.pn-it.ed:hover{outline:1px dashed #ff751f;outline-offset:3px;}'
+ +'.pn-it .pn-x,.pn-it .pn-rs{display:none;position:absolute;width:18px;height:18px;border-radius:50%;background:#ff751f;color:#fff;font-size:11px;line-height:18px;text-align:center;font-weight:700;}'
+ +'.pn-it.ed:hover .pn-x,.pn-it.ed:hover .pn-rs{display:block;}'
+ +'.pn-it .pn-x{top:-12px;right:-12px;cursor:pointer;}'
+ +'.pn-it .pn-rs{bottom:-12px;right:-12px;cursor:nwse-resize;background:#2a2520;}'
+ +'.pn-it .tg{position:absolute;left:50%;top:100%;transform:translateX(-50%);font-size:8px;font-weight:700;white-space:nowrap;color:#7a7068;margin-top:3px;pointer-events:none;display:none;}'
+ +'.pn-it.ed:hover .tg{display:block;}'
+ +'.pn-dica{font-size:12px;color:#7a7068;line-height:1.5;margin-top:10px;}'
+ +'#pn-pick{position:fixed;inset:0;background:rgba(20,16,12,.45);z-index:9000;display:none;align-items:center;justify-content:center;}'
+ +'#pn-pick.open{display:flex;}'
+ +'#pn-pick .bx{background:#fff;border-radius:14px;width:min(460px,92vw);max-height:80vh;display:flex;flex-direction:column;padding:18px;}'
+ +'#pn-pick h3{font-size:16px;margin-bottom:10px;}'
+ +'#pn-pick input{width:100%;font-family:Ubuntu,sans-serif;font-size:14px;padding:9px 12px;border:1px solid rgba(42,37,32,.18);border-radius:9px;margin-bottom:10px;}'
+ +'#pn-pick .ls{overflow:auto;flex:1;}'
+ +'#pn-pick .sc{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#ff751f;margin:10px 0 4px;}'
+ +'#pn-pick .op{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;}'
+ +'#pn-pick .op:hover{background:#fff3ea;}'
+ +'#pn-pick .op .lg{width:46px;height:30px;border:1px solid rgba(42,37,32,.1);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;color:#fff;font-size:11px;font-weight:700;}'
+ +'#pn-pick .op .lg img{max-width:90%;max-height:85%;object-fit:contain;}'
+ +'#pn-pick .op .n{font-size:13.5px;flex:1;min-width:0;} #pn-pick .op .n small{display:block;color:#7a7068;font-size:11px;}'
+ +'#pn-pick .bts{display:flex;justify-content:space-between;gap:8px;margin-top:12px;}';
+
+function pnlCss(){
+  if(pnlCssOk)return; pnlCssOk=true;
+  const s=document.createElement('style'); s.textContent=PNL_CSS; document.head.appendChild(s);
+  document.addEventListener('pointermove',pnlMove);
+  document.addEventListener('pointerup',pnlUp);
+}
+function pnlSlot(id){ return id==='evento'?PNL_EVENTO:(PNL_SLOTS.find(s=>s.id===id)||null); }
+function pnlVazio(){ return {logo_evento:'',cor_camisa:'#ffffff',slots:{},pos:{}}; }
+function pnlMarcaDoSlot(id){ const mid=pnlDados&&pnlDados.slots[id]; return mid?patMarca(mid):null; }
+
+/* ── carga ── */
+async function pnlInit(){
+  pnlCss();
+  if(!patDados) await patCarregar();
+  const reais=patEventos.filter(e=>!e.pacote);
+  if(!pnlEvSel){
+    const atual=reais.find(e=>String(e.id)===String(patEvSel));
+    const hj=new Date().toISOString().slice(0,10);
+    const ev=atual||reais.find(e=>e.data>=hj)||reais[reais.length-1];
+    pnlEvSel=ev?String(ev.id):'';
+  }
+  const sel=document.getElementById('pn-evento');
+  if(sel){
+    sel.innerHTML=reais.map(e=>'<option value="'+patEsc(e.id)+'">'+patEsc(e.nome)+(e.data?' · '+e.data.split('-').reverse().join('/'):'')+'</option>').join('');
+    sel.value=pnlEvSel;
+  }
+  await pnlCarregar();
+}
+async function pnlCarregar(){
+  pnlDados=null; pnlRender();
+  if(!pnlEvSel){ pnlDados=pnlVazio(); pnlRender(); return; }
+  pnlCarregando=true;
+  const ev=pnlEvSel;
+  let d=null;
+  try{ d=await rpc('pat_painel_ler',{p_evento:ev}); }
+  catch(e){ console.error(e); pnlStatus('Não consegui ler o painel. Rode o painel_cotas.sql no Supabase.','#dc2626'); }
+  if(ev!==pnlEvSel)return;
+  const base=pnlVazio();
+  if(d&&typeof d==='object'&&!Array.isArray(d)){
+    base.logo_evento=d.logo_evento||''; base.cor_camisa=d.cor_camisa||'#ffffff';
+    base.slots=(d.slots&&typeof d.slots==='object')?d.slots:{};
+    base.pos=(d.pos&&typeof d.pos==='object')?d.pos:{};
+  }
+  if(!base.pos.evento) base.pos.evento={lado:'frente',x:50,y:42,w:PNL_EVENTO.w};
+  pnlDados=base; pnlCarregando=false;
+  pnlRender();
+}
+async function pnlTrocarEvento(){
+  if(pnlTimer){ clearTimeout(pnlTimer); pnlTimer=null; await pnlSalvarAgora(); }
+  pnlEvSel=document.getElementById('pn-evento').value;
+  pnlCarregar();
+}
+
+/* ── salvar (automático) ── */
+function pnlStatus(t,cor){ const s=document.getElementById('pn-status'); if(s){ s.textContent=t; s.style.color=cor||'#7a7068'; } }
+function pnlAgendar(){
+  pnlStatus('Salvando…');
+  if(pnlTimer)clearTimeout(pnlTimer);
+  pnlTimer=setTimeout(function(){ pnlTimer=null; pnlSalvarAgora(); },700);
+}
+async function pnlSalvarAgora(){
+  if(!pnlDados||!pnlEvSel)return;
+  try{
+    await rpc('pat_painel_salvar',{p_evento:pnlEvSel,p_dados:pnlDados});
+    pnlStatus('✓ Salvo','#15803d');
+  }catch(e){ console.error(e); pnlStatus('Erro ao salvar — '+(e.message||'tente de novo'),'#dc2626'); }
+}
+
+/* ── render ── */
+function pnlRender(){
+  const b=document.getElementById('pn-board'), m=document.getElementById('pn-mock');
+  if(!b||!m)return;
+  if(!pnlDados){ b.innerHTML='<div class="pn-cont">Carregando…</div>'; m.innerHTML=''; return; }
+  b.innerHTML=pnlBoardHtml(false);
+  m.innerHTML=pnlMockHtml();
+}
+function pnlLogoBox(mk){
+  if(!mk) return '<div class="lg vago">VAGO</div>';
+  if(mk.logo_url) return '<div class="lg"><img src="'+patEsc(mk.logo_url)+'" alt="'+patEsc(mk.nome)+'"></div>';
+  return '<div class="lg ini" style="background:'+patCorDe(mk.nome)+'">'+patEsc(patIniciais(mk.nome))+'</div>';
+}
+function pnlPosTxt(id){
+  const p=pnlDados.pos[id];
+  if(!p) return '<div class="ps nao">sem posição na camiseta</div>';
+  return '<div class="ps">📍 '+(p.lado==='costas'?'Costas':'Frente')+'</div>';
+}
+function pnlBoardHtml(estatico){
+  const cheios=PNL_SLOTS.filter(s=>pnlDados.slots[s.id]&&patMarca(pnlDados.slots[s.id])).length;
+  let h='<div class="pn-cont"><b>'+cheios+'</b> de '+PNL_SLOTS.length+' espaços preenchidos</div>';
+  PNL_GRUPOS.forEach(function(g){
+    h+='<div class="pn-h">'+g.t+'</div><div class="pn-slots '+g.g+'">';
+    PNL_SLOTS.filter(s=>s.g===g.g).forEach(function(s){
+      const mk=pnlMarcaDoSlot(s.id);
+      h+='<div class="pn-slot'+(mk?' cheio':'')+'"'+(estatico?'':' onclick="pnlAbrirPick(\''+s.id+'\')"')+' style="'+(mk?'border-color:'+s.cor+';':'')+'">'
+        +pnlLogoBox(mk)
+        +'<div class="tp" style="color:'+s.cor+'">'+patEsc(s.t)+'</div>'
+        +'<div class="nm">'+(mk?patEsc(mk.nome):'&nbsp;')+'</div>'
+        +(estatico?'':pnlPosTxt(s.id))+'</div>';
+    });
+    h+='</div>';
+  });
+  return h;
+}
+function pnlSvg(lado,cor){
+  const pescoco=lado==='costas'?'M150 22 C172 36 228 36 250 22':'M150 22 C168 58 232 58 250 22';
+  const corpo='M150 22 '+(lado==='costas'?'C172 36 228 36 250 22':'C168 58 232 58 250 22')
+    +' L322 40 L394 106 L352 162 L318 140 L320 424 L80 424 L82 140 L48 162 L6 106 L78 40 Z';
+  const gid='pnsh'+lado;
+  return '<svg viewBox="0 0 400 440" xmlns="http://www.w3.org/2000/svg">'
+    +'<defs><linearGradient id="'+gid+'" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".10"/><stop offset=".25" stop-color="#000" stop-opacity="0"/><stop offset=".75" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".10"/></linearGradient></defs>'
+    +'<path d="'+corpo+'" fill="'+cor+'" stroke="rgba(0,0,0,.30)" stroke-width="2" stroke-linejoin="round"/>'
+    +'<path d="'+corpo+'" fill="url(#'+gid+')"/>'
+    +'<path d="'+pescoco+'" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="8" stroke-linecap="round"/>'
+    +'<path d="M78 40 L82 140 M322 40 L318 140" fill="none" stroke="rgba(0,0,0,.16)" stroke-width="1.5" stroke-dasharray="4 3"/>'
+    +'<path d="M80 414 L320 414" stroke="rgba(0,0,0,.14)" stroke-width="1.5" stroke-dasharray="4 3"/>'
+    +'</svg>';
+}
+function pnlItemHtml(id,estatico){
+  const p=pnlDados.pos[id], s=pnlSlot(id); if(!p||!s)return '';
+  let inner='', tag=s.t;
+  if(id==='evento'){
+    if(pnlDados.logo_evento) inner='<img src="'+patEsc(pnlDados.logo_evento)+'" alt="Logo do evento">';
+    else { const ev=patEventos.find(e=>String(e.id)===String(pnlEvSel));
+      inner='<div class="ph" style="border-color:#ff751f;color:#ff751f;background:rgba(255,117,31,.08)">LOGO DO EVENTO'+(ev?'<br>'+patEsc(ev.nome):'')+'</div>'; }
+  } else {
+    const mk=pnlMarcaDoSlot(id);
+    if(mk&&mk.logo_url) inner='<img src="'+patEsc(mk.logo_url)+'" alt="'+patEsc(mk.nome)+'">';
+    else inner='<div class="ph" style="border-color:'+s.cor+';color:'+s.cor+';background:'+s.cor+'1f">'+patEsc(s.t.toUpperCase())+(mk?'<br>'+patEsc(mk.nome):'')+'</div>';
+    if(mk) tag=s.t+' · '+mk.nome;
+  }
+  const st='left:'+p.x+'%;top:'+p.y+'%;width:'+p.w+'%;';
+  if(estatico) return '<div class="pn-it" style="'+st+'">'+inner+'</div>';
+  return '<div class="pn-it ed" data-id="'+id+'" style="'+st+'" onpointerdown="pnlItemDown(event,\''+id+'\')">'+inner
+    +'<span class="pn-x" title="Tirar da camiseta" onpointerdown="event.stopPropagation()" onclick="pnlTirar(\''+id+'\')">✕</span>'
+    +'<span class="pn-rs" title="Arraste para aumentar/diminuir">⤡</span>'
+    +'<span class="tg">'+patEsc(tag)+'</span></div>';
+}
+function pnlCamisaHtml(lado,estatico){
+  const ids=['evento'].concat(PNL_SLOTS.map(s=>s.id)).filter(id=>pnlDados.pos[id]&&pnlDados.pos[id].lado===lado);
+  return '<div><div class="pn-lado">'+(lado==='costas'?'Costas':'Frente')+'</div>'
+    +'<div class="pn-shirt" data-lado="'+lado+'">'+pnlSvg(lado,pnlDados.cor_camisa||'#ffffff')
+    +ids.map(id=>pnlItemHtml(id,estatico)).join('')+'</div></div>';
+}
+function pnlMockHtml(){
+  const cor=pnlDados.cor_camisa||'#ffffff';
+  let h='<div class="pn-tools"><span style="font-size:12.5px;font-weight:700;">Cor da camiseta:</span>';
+  PNL_CORES.forEach(function(c){ h+='<button class="pn-sw'+(c.c.toLowerCase()===cor.toLowerCase()?' on':'')+'" title="'+c.t+'" style="background:'+c.c+'" onclick="pnlCor(\''+c.c+'\')"></button>'; });
+  h+='<input type="color" value="'+patEsc(/^#[0-9a-f]{6}$/i.test(cor)?cor:'#ffffff')+'" onchange="pnlCor(this.value)" title="Escolher outra cor" class="pn-sw" style="width:28px;height:28px;border-radius:8px;padding:0;background:none;">'
+    +'<span style="flex:1"></span>'
+    +'<button class="mkt-btn sm" onclick="document.getElementById(\'pn-logo-file\').click()">'+(pnlDados.logo_evento?'🔄 Trocar logo do evento':'⬆ Enviar logo do evento')+'</button>'
+    +'<span id="pn-up-st" style="font-size:12px;color:#7a7068;"></span></div>';
+  const fora=['evento'].concat(PNL_SLOTS.map(s=>s.id)).filter(id=>!pnlDados.pos[id]);
+  h+='<div class="pn-h">Arraste para a camiseta</div><div class="pn-tray">';
+  if(!fora.length) h+='<span class="vz">✓ Todas as logos estão posicionadas</span>';
+  fora.forEach(function(id){
+    const s=pnlSlot(id), mk=id==='evento'?null:pnlMarcaDoSlot(id);
+    h+='<span class="pn-chip" onpointerdown="pnlChipDown(event,\''+id+'\')"><i style="background:'+s.cor+'"></i>'+patEsc(s.t)+(mk?' · <span style="font-weight:400">'+patEsc(mk.nome)+'</span>':'')+'</span>';
+  });
+  h+='</div><div class="pn-shirts">'+pnlCamisaHtml('frente',false)+pnlCamisaHtml('costas',false)+'</div>'
+    +'<div class="pn-dica">Arraste as logos para mover (dá para passar da frente para as costas e para as mangas). '
+    +'Puxe o ⤡ para mudar o tamanho e o ✕ para tirar da camiseta. Salva sozinho.</div>';
+  return h;
+}
+
+/* ── ações ── */
+function pnlCor(c){ if(!pnlDados)return; pnlDados.cor_camisa=c; pnlRender(); pnlAgendar(); }
+function pnlTirar(id){ if(!pnlDados)return; delete pnlDados.pos[id]; pnlRender(); pnlAgendar(); }
+async function pnlUploadLogo(input){
+  const file=input.files[0]; input.value='';
+  if(!file||!pnlDados)return;
+  if(file.size>5*1024*1024){ alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const st=document.getElementById('pn-up-st'); if(st) st.textContent='Enviando…';
+  const ext=(file.name.split('.').pop()||'png').toLowerCase();
+  const nome='painel_evento_'+Date.now()+'.'+ext;
+  try{
+    const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/png','x-upsert':'true'},body:file});
+    if(!r.ok) throw new Error(await r.text());
+    pnlDados.logo_evento=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
+    if(!pnlDados.pos.evento) pnlDados.pos.evento={lado:'frente',x:50,y:42,w:PNL_EVENTO.w};
+    pnlRender(); pnlAgendar();
+  }catch(e){ console.error(e); const s2=document.getElementById('pn-up-st'); if(s2){ s2.textContent='Erro no upload.'; s2.style.color='#dc2626'; } }
+}
+/* preenche os espaços vagos com as marcas fechadas no funil deste evento (Master → Apresentador; Ouro/Prata/Bronze → mesma cota) */
+function pnlPuxarFunil(){
+  if(!pnlDados||!patDados)return;
+  const fech=(patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(pnlEvSel)&&o.etapa==='fechado')
+    .sort((a,b)=>Number(b.valor_estimado||0)-Number(a.valor_estimado||0));
+  const usadas=Object.values(pnlDados.slots).filter(Boolean).map(String);
+  const mapa={master:['apresentador'],ouro:['ouro1','ouro2'],prata:['prata1','prata2'],bronze:['bronze1','bronze2','bronze3','bronze4','bronze5','bronze6']};
+  let n=0;
+  fech.forEach(function(o){
+    if(usadas.indexOf(String(o.marca_id))!==-1||!patMarca(o.marca_id))return;
+    const vaga=(mapa[o.cota_alvo]||[]).find(id=>!pnlDados.slots[id]);
+    if(vaga){ pnlDados.slots[vaga]=o.marca_id; usadas.push(String(o.marca_id)); n++; }
+  });
+  if(!n){ alert('Nenhuma marca nova para encaixar.\nO funil deste evento não tem marca fechada com cota Master, Ouro, Prata ou Bronze sobrando para os espaços vagos.'); return; }
+  pnlRender(); pnlAgendar();
+}
+
+/* ── escolher marca de um espaço ── */
+function pnlAbrirPick(id){
+  pnlPickSlot=id;
+  let ov=document.getElementById('pn-pick');
+  if(!ov){
+    ov=document.createElement('div'); ov.id='pn-pick';
+    ov.innerHTML='<div class="bx"><h3 id="pn-pick-t"></h3><input id="pn-pick-q" placeholder="Buscar marca…" oninput="pnlPickLista()"><div class="ls" id="pn-pick-ls"></div>'
+      +'<div class="bts"><button class="mkt-btn" onclick="pnlEscolher(\'\')">Deixar vago</button><button class="mkt-btn" onclick="pnlFecharPick()">Fechar</button></div></div>';
+    ov.addEventListener('click',function(e){ if(e.target===ov) pnlFecharPick(); });
+    document.body.appendChild(ov);
+  }
+  document.getElementById('pn-pick-t').textContent='Quem ocupa: '+pnlSlot(id).t;
+  document.getElementById('pn-pick-q').value='';
+  pnlPickLista();
+  ov.classList.add('open');
+  setTimeout(function(){ const q=document.getElementById('pn-pick-q'); if(q)q.focus(); },50);
+}
+function pnlFecharPick(){ const ov=document.getElementById('pn-pick'); if(ov) ov.classList.remove('open'); pnlPickSlot=null; }
+function pnlPickLista(){
+  const q=(document.getElementById('pn-pick-q').value||'').trim().toLowerCase();
+  const marcas=(patDados&&patDados.marcas||[]).filter(m=>!q||String(m.nome||'').toLowerCase().includes(q));
+  const fech={};
+  (patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(pnlEvSel)&&o.etapa==='fechado').forEach(o=>{fech[o.marca_id]=o;});
+  const ondeEsta={};
+  Object.keys(pnlDados.slots).forEach(k=>{ if(pnlDados.slots[k]) ondeEsta[pnlDados.slots[k]]=pnlSlot(k)?pnlSlot(k).t:k; });
+  const op=function(m){
+    const o=fech[m.id], cota=o?((PAT_COTAS_ORDEM.find(x=>x.id===(o.cota_alvo||''))||{}).l||''):'';
+    const lg=m.logo_url?'<div class="lg"><img src="'+patEsc(m.logo_url)+'"></div>':'<div class="lg" style="background:'+patCorDe(m.nome)+'">'+patEsc(patIniciais(m.nome))+'</div>';
+    const info=[cota, ondeEsta[m.id]&&pnlDados.slots[pnlPickSlot]!==m.id?'já em '+ondeEsta[m.id]:'', pnlDados.slots[pnlPickSlot]===m.id?'✓ escolhida':''].filter(Boolean).join(' · ');
+    return '<div class="op" onclick="pnlEscolher(\''+patEsc(String(m.id))+'\')">'+lg+'<div class="n">'+patEsc(m.nome)+(info?'<small>'+patEsc(info)+'</small>':'')+'</div></div>';
+  };
+  const a=marcas.filter(m=>fech[m.id]).sort((x,y)=>patCotaPeso(fech[x.id].cota_alvo)-patCotaPeso(fech[y.id].cota_alvo));
+  const b=marcas.filter(m=>!fech[m.id]).sort((x,y)=>String(x.nome).localeCompare(String(y.nome),'pt-BR'));
+  let h='';
+  if(a.length) h+='<div class="sc">Fechadas neste evento</div>'+a.map(op).join('');
+  if(b.length) h+='<div class="sc">Outras marcas da base</div>'+b.map(op).join('');
+  if(!h) h='<div class="pn-cont" style="padding:12px 0;">Nenhuma marca encontrada. Cadastre em Marcas → ＋ Nova marca.</div>';
+  document.getElementById('pn-pick-ls').innerHTML=h;
+}
+function pnlEscolher(mid){
+  if(!pnlPickSlot||!pnlDados)return;
+  const alvo=pnlPickSlot;
+  if(mid){
+    const m=(patDados.marcas||[]).find(x=>String(x.id)===String(mid));
+    const real=m?m.id:mid;
+    Object.keys(pnlDados.slots).forEach(k=>{ if(k!==alvo&&String(pnlDados.slots[k])===String(real)) delete pnlDados.slots[k]; });
+    pnlDados.slots[alvo]=real;
+  } else delete pnlDados.slots[alvo];
+  pnlFecharPick(); pnlRender(); pnlAgendar();
+}
+
+/* ── arrastar na camiseta ── */
+function pnlCamisaSob(x,y){
+  const cs=document.querySelectorAll('#pn-mock .pn-shirt');
+  for(let i=0;i<cs.length;i++){ const r=cs[i].getBoundingClientRect();
+    if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom) return cs[i]; }
+  return null;
+}
+function pnlMarcaAlvo(el){ document.querySelectorAll('#pn-mock .pn-shirt').forEach(c=>c.classList.toggle('alvo',c===el)); }
+function pnlItemDown(e,id){
+  if(!pnlDados||!pnlDados.pos[id])return;
+  e.preventDefault();
+  const el=e.currentTarget, shirt=el.parentElement, p=pnlDados.pos[id];
+  pnlDrag={tipo:'item',id:id,el:el,r:shirt.getBoundingClientRect(),resize:e.target.classList.contains('pn-rs'),
+    sx:e.clientX,sy:e.clientY,ox:p.x,oy:p.y,ow:p.w};
+}
+function pnlChipDown(e,id){
+  if(!pnlDados)return;
+  e.preventDefault();
+  const s=pnlSlot(id);
+  const g=document.createElement('span'); g.className='pn-chip pn-ghost';
+  g.innerHTML='<i style="background:'+s.cor+'"></i>'+patEsc(s.t);
+  g.style.left=e.clientX+'px'; g.style.top=e.clientY+'px';
+  document.body.appendChild(g);
+  pnlDrag={tipo:'chip',id:id,ghost:g};
+}
+function pnlMove(e){
+  if(!pnlDrag)return;
+  if(pnlDrag.tipo==='chip'){
+    pnlDrag.ghost.style.left=e.clientX+'px'; pnlDrag.ghost.style.top=e.clientY+'px';
+    pnlMarcaAlvo(pnlCamisaSob(e.clientX,e.clientY)); return;
+  }
+  const d=pnlDrag, p=pnlDados.pos[d.id]; if(!p)return;
+  const dx=(e.clientX-d.sx)/d.r.width*100, dy=(e.clientY-d.sy)/d.r.height*100;
+  if(d.resize){ p.w=Math.round(Math.max(4,Math.min(90,d.ow+dx*2))*10)/10; d.el.style.width=p.w+'%'; }
+  else { p.x=d.ox+dx; p.y=d.oy+dy; d.el.style.left=p.x+'%'; d.el.style.top=p.y+'%';
+    pnlMarcaAlvo(pnlCamisaSob(e.clientX,e.clientY)); }
+}
+function pnlUp(e){
+  if(!pnlDrag)return;
+  const d=pnlDrag; pnlDrag=null; pnlMarcaAlvo(null);
+  const alvo=pnlCamisaSob(e.clientX,e.clientY);
+  if(d.tipo==='chip'){
+    d.ghost.remove();
+    if(!alvo)return;
+    const r=alvo.getBoundingClientRect(), s=pnlSlot(d.id);
+    pnlDados.pos[d.id]={lado:alvo.getAttribute('data-lado'),x:Math.round((e.clientX-r.left)/r.width*1000)/10,y:Math.round((e.clientY-r.top)/r.height*1000)/10,w:s.w};
+    pnlRender(); pnlAgendar(); return;
+  }
+  const p=pnlDados.pos[d.id]; if(!p)return;
+  if(Math.abs(e.clientX-d.sx)<2&&Math.abs(e.clientY-d.sy)<2&&!d.resize)return;
+  if(!d.resize&&alvo&&alvo.getAttribute('data-lado')!==p.lado){
+    const r=alvo.getBoundingClientRect();
+    p.lado=alvo.getAttribute('data-lado'); p.x=(e.clientX-r.left)/r.width*100; p.y=(e.clientY-r.top)/r.height*100;
+  }
+  p.x=Math.round(Math.max(0,Math.min(100,p.x))*10)/10; p.y=Math.round(Math.max(0,Math.min(100,p.y))*10)/10;
+  pnlRender(); pnlAgendar();
+}
+
+/* ── imprimir / PDF para o designer ── */
+function pnlImprimir(){
+  if(!pnlDados)return;
+  const ev=patEventos.find(e=>String(e.id)===String(pnlEvSel));
+  const w=window.open('','_blank'); if(!w){ alert('Libere os pop-ups para imprimir.'); return; }
+  const leg=['evento'].concat(PNL_SLOTS.map(s=>s.id)).filter(id=>pnlDados.pos[id]).map(function(id){
+    const s=pnlSlot(id), mk=id==='evento'?null:pnlMarcaDoSlot(id), p=pnlDados.pos[id];
+    return '<tr><td><i style="background:'+s.cor+'"></i>'+patEsc(s.t)+'</td><td>'+(id==='evento'?patEsc(ev?ev.nome:''):(mk?patEsc(mk.nome):'<em>vago</em>'))+'</td><td>'+(p.lado==='costas'?'Costas':'Frente')+'</td></tr>';
+  }).join('');
+  const html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Painel de cotas — '+patEsc(ev?ev.nome:'Evento')+'</title>'
+    +'<style>body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:24px;}h1{font-size:22px;margin:0;}.sub{font-size:13px;color:#7a7068;margin:3px 0 18px;}'
+    +PNL_CSS+'.pn-shirts{max-width:760px;margin:0 auto 18px;}.pn-slot{cursor:default;}.pg{page-break-before:always;}'
+    +'table{border-collapse:collapse;width:100%;font-size:12px;margin-top:8px;}td{border-bottom:1px solid #eee;padding:5px 6px;}td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;}'
+    +'@page{size:A4;margin:12mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
+    +'<h1>Mockup da camiseta — '+patEsc(ev?ev.nome:'Evento')+'</h1><div class="sub">'+(ev&&ev.data?ev.data.split('-').reverse().join('/')+' · ':'')+'gerado em '+new Date().toLocaleDateString('pt-BR')+'</div>'
+    +'<div class="pn-shirts">'+pnlCamisaHtml('frente',true)+pnlCamisaHtml('costas',true)+'</div>'
+    +'<table>'+leg+'</table>'
+    +'<div class="pg"><h1>Painel de cotas — '+patEsc(ev?ev.nome:'Evento')+'</h1><div class="sub">&nbsp;</div>'+pnlBoardHtml(true)+'</div>'
+    +'</body></html>';
+  w.document.open(); w.document.write(html); w.document.close();
+  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
+}
+
 /* ══════════ COTAS: ordem de importância ══════════ */
 const PAT_COTAS_ORDEM=[
   {id:'master',  l:'⭐ Master'},
@@ -16963,7 +17389,8 @@ const INI_ORG=[
      {id:'mapas',        rot:'Mapas',           ic:'🧠'},
      {id:'reunioes',     rot:'Reuniões',        ic:'🤝'}]},
   {id:'marcas',     rot:'Marcas',       ic:'🏷️', cor:'#06B6D4', sub:'Funil de patrocínio', filhos:[
-     {id:'patpag',       rot:'Pagamentos',      ic:'💳'}]},
+     {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
+     {id:'painel',       rot:'Painel de cotas', ic:'🎽'}]},
   {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
@@ -16971,6 +17398,7 @@ let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
   if(id==='usuarios'||id==='diretoria') return !!(admUser&&admUser.master);
+  if(id==='painel'||id==='patpag') return admTemAba('marcas')||admTemAba(id);
   return admTemAba(id);
 }
 function iniCard(no,cor,filho){
@@ -18747,6 +19175,7 @@ document.addEventListener('DOMContentLoaded',function(){
           <h1>Marcas</h1>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
             <button class="mkt-btn" onclick="showInner('patpag')">💳 Pagamentos</button>
+            <button class="mkt-btn" onclick="showInner('painel')">🎽 Painel de cotas</button>
             <button class="mkt-btn" onclick="showInner('funil')">Funil de Patrocínio →</button>
             <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
           </div>
@@ -18815,6 +19244,7 @@ document.addEventListener('DOMContentLoaded',function(){
             <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
             <h1>Funil de Patrocínio</h1>
             <button class="mkt-btn sm" onclick="showInner('patpag')">💳 Pagamentos</button>
+            <button class="mkt-btn sm" onclick="showInner('painel')">🎽 Painel de cotas</button>
           </div>
           <select class="pt-sel grande" id="pt-evento" onchange="patTrocarEvento()"></select>
         </div>
@@ -19273,6 +19703,27 @@ document.addEventListener('DOMContentLoaded',function(){
     </div>
   </div>
 </div>
+
+      <!-- TELA: PAINEL DE COTAS + MOCKUP DA CAMISETA -->
+      <div class="inner-screen" id="screen-painel">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
+            <h1>Painel de cotas</h1>
+            <span id="pn-status" style="font-size:12.5px;color:var(--muted);"></span>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+            <select class="pt-sel grande" id="pn-evento" onchange="pnlTrocarEvento()"></select>
+            <button class="mkt-btn" onclick="pnlPuxarFunil()" title="Coloca nos espaços vagos as marcas fechadas no funil deste evento">⤵ Puxar do funil</button>
+            <button class="mkt-btn primary" onclick="pnlImprimir()">🖨 Imprimir / PDF</button>
+          </div>
+        </div>
+        <input type="file" id="pn-logo-file" accept="image/png,image/svg+xml,image/jpeg,image/webp" style="display:none" onchange="pnlUploadLogo(this)">
+        <div class="pn-wrap">
+          <div class="pn-card" id="pn-board"></div>
+          <div class="pn-card" id="pn-mock"></div>
+        </div>
+      </div>
 
       <!-- TELA: PAGAMENTOS DE PATROCÍNIO -->
       <div class="inner-screen" id="screen-patpag">
