@@ -16550,6 +16550,16 @@ const PNL_CSS=
  +'.pg-res td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;}'
  +'.pg-res td.v{color:#15803d;font-weight:700;} .pg-res small.av{display:block;color:#b45309;font-size:10.5px;}'
  +'.pg-res tfoot td{font-weight:700;background:#faf9f7;}'
+ +'.pg-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:6px;}'
+ +'@media(max-width:800px){.pg-kpis{grid-template-columns:1fr;}}'
+ +'.pg-kpis>div{background:#fff;border:1px solid rgba(42,37,32,.10);border-radius:14px;padding:14px 16px;}'
+ +'.pg-kpis small{display:block;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#7a7068;}'
+ +'.pg-kpis b{display:block;font-size:26px;letter-spacing:-.5px;margin:4px 0 2px;}'
+ +'.pg-kpis span{font-size:11.5px;color:#7a7068;}'
+ +'.pg-kpis .bar{height:7px;background:#eee8e2;border-radius:4px;overflow:hidden;margin-top:8px;} .pg-kpis .bar span{display:block;height:100%;background:#15803d;}'
+ +'.pg-tab td.tt.pot b{color:#2a2520;} .pg-tab td.tt.meta b{color:#7c3aed;}'
+ +'.pg-tab tfoot td{position:sticky;bottom:0;background:#faf9f7;border-top:1px solid rgba(42,37,32,.15);z-index:1;}'
+ +'.pg-tab tfoot td.ev{z-index:3;background:#faf9f7;}'
  +'.pg-res .bar{display:inline-block;width:70px;height:7px;background:#eee8e2;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:6px;} .pg-res .bar span{display:block;height:100%;}';
 
 function pnlCss(){
@@ -16946,6 +16956,11 @@ async function pnlGlobalInit(){
   }catch(e){ console.error(e); if(cont) cont.innerHTML='<div class="pn-cont" style="padding:20px;color:#dc2626">Não consegui carregar: '+patEsc(e.message||e)+'</div>'; return; }
   pnlGlobalRender();
 }
+function pnlRealidadeEvento(evId){
+  return (patDados&&patDados.oportunidades||[]).filter(o=>String(o.evento_id)===String(evId)&&o.etapa==='fechado')
+    .reduce((s,o)=>s+(Number(o.valor_estimado)||0),0);
+}
+function pnlPct(a,b){ return b?Math.round(a/b*100)+'%':'—'; }
 function pnlGlobalAlternarPassados(){ pnlGlobalPassados=!pnlGlobalPassados; pnlGlobalRender(); }
 function pnlGlobalAbrir(evId){ pnlEvSel=String(evId); showInner('painel'); }
 function pnlGlobalEventos(){
@@ -16960,8 +16975,9 @@ function pnlGlobalRender(){
   const res={}; PNL_PRECO_GRUPOS.forEach(g=>{res[g.k]={esp:0,vend:0,pot:0,vv:0,semPreco:0};});
   let h='<div class="pg-scroll"><table class="pg-tab"><thead><tr><th class="ev">Evento</th>';
   PNL_SLOTS.forEach(s=>{ h+='<th style="border-top:3px solid '+s.cor+'">'+patEsc(s.t)+'</th>'; });
-  h+='<th class="tt">Vendido / Potencial</th></tr></thead><tbody>';
-  if(!evs.length) h+='<tr><td colspan="'+(PNL_SLOTS.length+2)+'" class="pn-cont" style="padding:20px">Nenhum evento.</td></tr>';
+  h+='<th class="tt">Potencial</th><th class="tt">Meta ajustada</th><th class="tt">Realidade</th></tr></thead><tbody>';
+  let gPot=0,gMeta=0,gReal=0;
+  if(!evs.length) h+='<tr><td colspan="'+(PNL_SLOTS.length+4)+'" class="pn-cont" style="padding:20px">Nenhum evento.</td></tr>';
   evs.forEach(function(ev){
     const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
     const t=pnlTotaisEvento(d,ev.id);
@@ -16978,14 +16994,24 @@ function pnlGlobalRender(){
       h+='<td class="c'+(mk?' ok':'')+'" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')">'+lg
         +'<div class="vl'+(v.valor?'':' z')+'" title="'+(v.fonte==='funil'?'Valor fechado no funil':'Preço da tabela')+'">'+(v.valor?pnlBRL(v.valor):'sem valor')+(v.fonte==='funil'?' •':'')+'</div></td>';
     });
-    h+='<td class="tt"><b>'+pnlBRL(t.vend)+'</b><small>de '+pnlBRL(t.pot)+'</small><small>'+t.n+'/'+PNL_SLOTS.length+' vendidas</small></td></tr>';
+    const meta=Number(ev.meta)||0, real=pnlRealidadeEvento(ev.id);
+    gPot+=t.pot; gMeta+=meta; gReal+=real;
+    h+='<td class="tt pot"><b>'+pnlBRL(t.pot)+'</b><small>'+t.n+'/'+PNL_SLOTS.length+' vendidas</small></td>'
+      +'<td class="tt meta"><b>'+(meta?pnlBRL(meta):'—')+'</b>'+(meta?'':'<small>sem meta</small>')+'</td>'
+      +'<td class="tt"><b>'+pnlBRL(real)+'</b><small>'+(meta?pnlPct(real,meta)+' da meta':'')+'</small></td></tr>';
   });
-  h+='</tbody></table></div>';
+  h+='</tbody><tfoot><tr><td class="ev"><b>Total</b></td><td colspan="'+PNL_SLOTS.length+'"></td>'
+    +'<td class="tt pot"><b>'+pnlBRL(gPot)+'</b></td><td class="tt meta"><b>'+pnlBRL(gMeta)+'</b></td><td class="tt"><b>'+pnlBRL(gReal)+'</b><small>'+pnlPct(gReal,gMeta)+' da meta</small></td></tr></tfoot></table></div>';
+  const kpis='<div class="pg-kpis">'
+    +'<div><small>1 · Potencial</small><b>'+pnlBRL(gPot)+'</b><span>tudo que dá para vender (preço × 14 espaços)</span></div>'
+    +'<div><small>2 · Meta ajustada</small><b style="color:#7c3aed">'+pnlBRL(gMeta)+'</b><span>meta de patrocínio do Calendário · '+pnlPct(gMeta,gPot)+' do potencial</span></div>'
+    +'<div><small>3 · Realidade</small><b style="color:#15803d">'+pnlBRL(gReal)+'</b><span>fechado no funil · '+pnlPct(gReal,gMeta)+' da meta · '+pnlPct(gReal,gPot)+' do potencial</span>'
+    +'<div class="bar"><span style="width:'+(gMeta?Math.min(100,gReal/gMeta*100):0)+'%"></span></div></div></div>';
 
   /* resumo financeiro por cota */
   let tp=0,tv=0,te=0,tn=0,ts=0;
   let r='<div class="pn-h" style="margin-top:22px">Resumo financeiro por cota'+(evs.length?' · '+evs.length+' evento(s)':'')+'</div>'
-    +'<table class="pg-res"><thead><tr><th>Cota</th><th>Espaços</th><th>Vendidos</th><th>Vagos</th><th>Total que podemos vender</th><th>Total vendido</th><th>Falta vender</th><th>% vendido</th></tr></thead><tbody>';
+    +'<table class="pg-res"><thead><tr><th>Cota</th><th>Espaços</th><th>Vendidos</th><th>Vagos</th><th>Potencial</th><th>Realidade</th><th>Falta vender</th><th>% do potencial</th></tr></thead><tbody>';
   PNL_PRECO_GRUPOS.forEach(function(g){
     const x=res[g.k]; tp+=x.pot; tv+=x.vv; te+=x.esp; tn+=x.vend; ts+=x.semPreco;
     const pct=x.pot?Math.round(x.vv/x.pot*100):0;
@@ -16995,10 +17021,10 @@ function pnlGlobalRender(){
   });
   const pt=tp?Math.round(tv/tp*100):0;
   r+='</tbody><tfoot><tr><td>Total</td><td>'+te+'</td><td>'+tn+'</td><td>'+(te-tn)+'</td><td>'+pnlBRL(tp)+'</td><td class="v">'+pnlBRL(tv)+'</td><td>'+pnlBRL(Math.max(0,tp-tv))+'</td><td>'+pt+'%</td></tr></tfoot></table>'
-    +'<div class="pn-dica">“Total que podemos vender” = preço da tabela × espaços (o preço de cada cota se define dentro do Painel de cotas de cada evento). '
-    +'“Total vendido” usa o valor fechado no funil quando a marca tem negócio fechado no evento (marcado com •); senão, o preço da tabela.'
+    +'<div class="pn-dica">Potencial = preço da tabela × espaços (o preço de cada cota se define dentro do Painel de cotas de cada evento). '
+    +'Meta ajustada = meta de patrocínio do evento no Calendário. Realidade por evento = total fechado no funil; por cota = valor das marcas posicionadas na camiseta (valor do funil, marcado com •, ou preço da tabela).'
     +(ts?' <b style="color:#b45309">'+ts+' espaço(s) estão sem preço definido.</b>':'')+'</div>';
-  cont.innerHTML=r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h;
+  cont.innerHTML=kpis+r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h;
 }
 function pnlGlobalImprimir(){
   const cont=document.getElementById('pg-cont'); if(!cont)return;
