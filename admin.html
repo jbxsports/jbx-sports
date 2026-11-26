@@ -3739,7 +3739,7 @@ function inscRender(){
   const im = p.importacao;
   const imTxt = im ? '<div class="insc-imp">Real importado da planilha <b>' + inscEsc(im.arquivo) + '</b> em ' + new Date(im.em).toLocaleString('pt-BR', {day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'})
     + ' — ' + inscN(im.pagos) + ' pagas, ' + inscN(im.isentos) + ' isentas' + (im.pcd ? ', ' + inscN(im.pcd) + ' PCD/idoso' : '') + '</div>' : '';
-  el.innerHTML = h + imTxt + '<div class="insc-grid">' + t + r + '</div>';
+  el.innerHTML = h + imTxt + '<div class="insc-grid"><div style="min-width:0">' + t + inscItensHtml(p) + '</div>' + r + '</div>';
 }
 
 /* ── edição ── */
@@ -3757,6 +3757,173 @@ function inscAddLinha(){
   p.linhas.push({id:inscId(), nome:ult ? ult.nome : 'Novo lote', kit:ult ? ult.kit : '', real:null, proj:null, valor:ult ? ult.valor : null, cupom:0, cash:0});
   inscRender(); inscAgendar();
 }
+
+/* ══════════ itens do kit: o que vai em cada kit e quanto comprar por tamanho ══════════
+   p.itens = [{id, nome, tam:bool, extra:%, ajuste:{tamanho:qtd extra manual}}]
+   p.kitItens = {chaveKit:[idItem…]}   p.tamanhos = {chaveKit:{tamanho:qtd vendida}} (vem do relatório da OTicket) */
+const INSC_TAM_ORD = ['pp', 'p', 'm', 'g', 'gg', 'xg', 'xgg', 'exg', 'g1', 'g2', 'g3', 'g4'];
+function inscKitKey(s){ return inscKitNorm(String(s || '').replace(/\(.*$/, '')) || 'sem kit'; }
+function inscTamOrd(a, b){
+  const na = inscNorm(a), nb = inscNorm(b), ia = INSC_TAM_ORD.indexOf(na), ib = INSC_TAM_ORD.indexOf(nb);
+  if (ia >= 0 && ib >= 0) return ia - ib; if (ia >= 0) return -1; if (ib >= 0) return 1;
+  if (a === 'Sem tamanho') return 1; if (b === 'Sem tamanho') return -1;
+  return na < nb ? -1 : na > nb ? 1 : 0;
+}
+function inscKitsDoPlano(p){
+  const m = {}, ord = [];
+  (p.linhas || []).forEach(function(l){
+    const lab = String(l.kit || '').trim(); if (!lab) return;
+    const k = inscKitKey(lab);
+    if (!m[k]) { m[k] = {key:k, label:lab, proj:0, real:0}; ord.push(k); }
+    m[k].proj += Number(l.proj) || 0; m[k].real += Number(l.real) || 0;
+  });
+  return ord.map(function(k){ return m[k]; });
+}
+/* tamanhos vendidos de um kit: chave igual, ou uma que contenha a outra */
+const INSC_TAM_MIN = 30; /* abaixo disso a amostra do kit é pequena demais: usa a proporção geral do evento */
+function inscTamDoKit(p, key){
+  const t = p.tamanhos || {}, soma = function(o){ return Object.keys(o).reduce(function(a, s){ return a + (Number(o[s]) || 0); }, 0); };
+  let d = t[key] && Object.keys(t[key]).length ? t[key] : null;
+  if (!d) {
+    const ks = Object.keys(t).filter(function(k){ return k !== 'isento' && (k.indexOf(key) >= 0 || key.indexOf(k) >= 0) && Object.keys(t[k]).length; });
+    if (ks.length === 1) d = t[ks[0]];
+  }
+  return d && soma(d) >= INSC_TAM_MIN ? d : null;
+}
+function inscTamVendido(p, key){
+  const t = p.tamanhos || {};
+  if (t[key]) return t[key];
+  const ks = Object.keys(t).filter(function(k){ return k !== 'isento' && (k.indexOf(key) >= 0 || key.indexOf(k) >= 0); });
+  return ks.length === 1 ? t[ks[0]] : null;
+}
+function inscTamGeral(p){
+  const t = p.tamanhos || {}, out = {};
+  Object.keys(t).forEach(function(k){ Object.keys(t[k]).forEach(function(s){ out[s] = (out[s] || 0) + t[k][s]; }); });
+  return Object.keys(out).length ? out : null;
+}
+/* divide q pelos tamanhos na proporção de dist (maiores restos) */
+function inscDistribuir(q, dist){
+  q = Math.max(0, Math.round(Number(q) || 0));
+  const ks = Object.keys(dist).filter(function(s){ return dist[s] > 0; });
+  const tot = ks.reduce(function(a, s){ return a + dist[s]; }, 0), out = {};
+  ks.forEach(function(s){ out[s] = 0; });
+  if (!tot || !q) return out;
+  let soma = 0;
+  const rest = ks.map(function(s){ const v = q * dist[s] / tot, f = Math.floor(v); out[s] = f; soma += f; return [s, v - f]; });
+  rest.sort(function(a, b){ return b[1] - a[1]; });
+  for (let i = 0; i < q - soma; i++) out[rest[i % rest.length][0]]++;
+  return out;
+}
+function inscItemCalc(p, it){
+  const kits = inscKitsDoPlano(p).filter(function(k){ return ((p.kitItens || {})[k.key] || []).indexOf(it.id) >= 0; });
+  const geral = inscTamGeral(p), linhas = {}, cols = [];
+  function lin(s){ return linhas[s] || (linhas[s] = {porKit:{}, proj:0, vend:0}); }
+  kits.forEach(function(k){
+    const proprio = inscTamDoKit(p, k.key), dist = it.tam ? (proprio || geral) : null;
+    const col = {key:k.key, label:k.label, proj:k.proj, estimado:!!(it.tam && !proprio && geral)};
+    cols.push(col);
+    if (dist) {
+      const d = inscDistribuir(k.proj, dist);
+      Object.keys(d).forEach(function(s){ const L = lin(s); L.porKit[k.key] = d[s]; L.proj += d[s]; });
+      const vend = inscTamVendido(p, k.key);
+      if (vend) Object.keys(vend).forEach(function(s){ lin(s).vend += vend[s]; });
+    } else {
+      const s = it.tam ? 'Sem tamanho' : 'Único', L = lin(s);
+      L.porKit[k.key] = (L.porKit[k.key] || 0) + Math.round(k.proj); L.proj += Math.round(k.proj); L.vend += Math.round(k.real);
+    }
+  });
+  const extraPct = Number(it.extra); const pct = isNaN(extraPct) ? 3 : extraPct;
+  const tams = Object.keys(linhas).sort(inscTamOrd);
+  const tot = {proj:0, vend:0, extra:0, comprar:0};
+  const rows = tams.map(function(s){
+    const L = linhas[s], aj = it.ajuste && it.ajuste[s] != null && it.ajuste[s] !== '';
+    const extra = aj ? Number(it.ajuste[s]) || 0 : Math.ceil(L.proj * pct / 100);
+    const r = {tam:s, porKit:L.porKit, proj:L.proj, vend:L.vend, extra:extra, ajustado:aj, comprar:L.proj + extra};
+    tot.proj += r.proj; tot.vend += r.vend; tot.extra += r.extra; tot.comprar += r.comprar;
+    return r;
+  });
+  return {kits:cols, rows:rows, tot:tot, pct:pct};
+}
+function inscItensHtml(p){
+  const itens = p.itens || [], kits = inscKitsDoPlano(p), ki = p.kitItens || {};
+  let h = '<div class="insc-itens"><div class="insc-it-head"><div><b>Itens do kit</b><small>O que vai em cada kit. A compra sai da Proj de cada kit, dividida pelos tamanhos escolhidos no relatório da OTicket, mais a sobra.</small></div>'
+    + '<button class="mkt-btn sm" onclick="inscItemAdd()">+ Item</button></div>';
+  if (!itens.length) return h + '<div class="insc-it-vazio">Cadastre os itens (ex.: Camiseta roxa, Lanterna) e marque em quais kits cada um vai.</div></div>';
+
+  /* cadastro dos itens + quais kits levam cada um */
+  h += '<div class="insc-tab"><table class="insc-t insc-it-cfg"><thead><tr><th style="text-align:left">Item</th><th title="Tem tamanho (P, M, G…)">Tamanho?</th><th title="Sobra comprada além da projeção">Sobra %</th>';
+  kits.forEach(function(k){ h += '<th>' + inscEsc(k.label) + '<small>' + inscN(k.proj) + ' proj</small></th>'; });
+  h += '<th></th></tr></thead><tbody>';
+  itens.forEach(function(it){
+    h += '<tr><td style="text-align:left"><input class="insc-txt" style="width:170px" value="' + inscEsc(it.nome) + '" onchange="inscItemSet(\'' + it.id + '\',\'nome\',this.value)"></td>'
+      + '<td style="text-align:center"><input type="checkbox"' + (it.tam ? ' checked' : '') + ' onchange="inscItemSet(\'' + it.id + '\',\'tam\',this.checked)"></td>'
+      + '<td class="insc-pc"><input class="insc-n insc-p" inputmode="decimal" value="' + inscNumInp(it.extra == null ? 3 : it.extra, 2) + '" onchange="inscItemSet(\'' + it.id + '\',\'extra\',this.value)">%</td>';
+    kits.forEach(function(k){ const on = (ki[k.key] || []).indexOf(it.id) >= 0; h += '<td style="text-align:center"><input type="checkbox"' + (on ? ' checked' : '') + ' onchange="inscKitItem(\'' + inscEsc(k.key) + '\',\'' + it.id + '\',this.checked)"></td>'; });
+    h += '<td><button class="insc-x" title="Tirar item" onclick="inscItemDel(\'' + it.id + '\')">✕</button></td></tr>';
+  });
+  h += '</tbody></table></div>';
+
+  /* uma tabela por item */
+  h += '<div class="insc-it-lista">';
+  itens.forEach(function(it){
+    const c = inscItemCalc(p, it);
+    h += '<div class="insc-tab insc-it-box"><table class="insc-t"><thead><tr><th class="insc-tit" colspan="' + (c.kits.length + 5) + '">' + inscEsc(it.nome || 'Item') + ' <span class="insc-it-total">comprar ' + inscN(c.tot.comprar) + '</span></th></tr>';
+    if (!c.kits.length) { h += '</thead><tbody><tr><td class="insc-it-vazio">Marque acima em quais kits este item vai.</td></tr></tbody></table></div>'; return; }
+    h += '<tr><th style="text-align:left">' + (it.tam ? 'Tamanho' : '') + '</th>';
+    c.kits.forEach(function(k){ h += '<th' + (k.estimado ? ' title="Este kit ainda não tem tamanhos no relatório: usei a proporção geral do evento"' : '') + '>' + inscEsc(k.label) + (k.estimado ? ' *' : '') + '</th>'; });
+    h += '<th class="insc-proj">Projeção</th><th class="insc-real" title="Já vendidos, pelo último relatório">Vendido</th><th title="Sobra: ' + inscNumInp(c.pct, 2) + '% da projeção, arredondado para cima. Dá para digitar outro número.">Sobra</th><th class="insc-it-comp">Comprar</th></tr></thead><tbody>';
+    c.rows.forEach(function(r){
+      h += '<tr><td style="text-align:left;font-weight:600">' + inscEsc(r.tam) + '</td>';
+      c.kits.forEach(function(k){ h += '<td class="insc-v">' + inscN(r.porKit[k.key] || 0) + '</td>'; });
+      h += '<td class="insc-v insc-proj">' + inscN(r.proj) + '</td><td class="insc-v insc-real">' + inscN(r.vend) + '</td>'
+        + '<td style="text-align:center"><input class="insc-n' + (r.ajustado ? ' insc-it-aj' : '') + '" style="width:52px" inputmode="numeric" value="' + r.extra + '" title="' + (r.ajustado ? 'Ajustado à mão — apague para voltar ao %' : 'Sobra pelo %') + '" onchange="inscItemAjuste(\'' + it.id + '\',\'' + inscEsc(r.tam) + '\',this.value)"></td>'
+        + '<td class="insc-v insc-it-comp">' + inscN(r.comprar) + '</td></tr>';
+    });
+    h += '</tbody><tfoot><tr class="insc-tot"><td style="text-align:left">Total</td>';
+    c.kits.forEach(function(k){ h += '<td class="insc-v">' + inscN(Math.round(k.proj)) + '</td>'; });
+    h += '<td class="insc-v insc-proj">' + inscN(c.tot.proj) + '</td><td class="insc-v insc-real">' + inscN(c.tot.vend) + '</td><td class="insc-v" style="text-align:center">' + inscN(c.tot.extra) + '</td><td class="insc-v insc-it-comp">' + inscN(c.tot.comprar) + '</td></tr></tfoot></table>';
+    if (c.kits.some(function(k){ return k.estimado; })) h += '<div class="insc-it-nota">* kit com menos de ' + INSC_TAM_MIN + ' tamanhos no relatório: dividido pela proporção geral do evento.</div>';
+    h += '</div>';
+  });
+  return h + '</div></div>';
+}
+function inscItemAdd(){
+  const p = inscPlano(); if (!p) return;
+  p.itens = p.itens || [];
+  p.itens.push({id:inscId(), nome:'Camiseta', tam:true, extra:3, ajuste:{}});
+  inscRender(); inscAgendar();
+}
+function inscItemAchar(id){ const p = inscPlano(); return p && (p.itens || []).filter(function(x){ return x.id === id; })[0]; }
+function inscItemSet(id, campo, val){
+  const it = inscItemAchar(id); if (!it) return;
+  if (campo === 'nome') it.nome = String(val).trim();
+  else if (campo === 'tam') { it.tam = !!val; it.ajuste = {}; }
+  else if (campo === 'extra') { const v = inscParse(val); it.extra = v == null ? 3 : v; it.ajuste = {}; }
+  inscRender(); inscAgendar();
+}
+function inscItemAjuste(id, tam, val){
+  const it = inscItemAchar(id); if (!it) return;
+  it.ajuste = it.ajuste || {};
+  const v = inscParse(val);
+  if (v == null || String(val).trim() === '') delete it.ajuste[tam]; else it.ajuste[tam] = Math.max(0, Math.round(v));
+  inscRender(); inscAgendar();
+}
+function inscItemDel(id){
+  const p = inscPlano(), it = inscItemAchar(id); if (!p || !it) return;
+  if (!confirm('Tirar o item "' + (it.nome || '') + '"?')) return;
+  p.itens = p.itens.filter(function(x){ return x.id !== id; });
+  Object.keys(p.kitItens || {}).forEach(function(k){ p.kitItens[k] = p.kitItens[k].filter(function(x){ return x !== id; }); });
+  inscRender(); inscAgendar();
+}
+function inscKitItem(key, id, on){
+  const p = inscPlano(); if (!p) return;
+  p.kitItens = p.kitItens || {};
+  const a = (p.kitItens[key] || []).filter(function(x){ return x !== id; });
+  if (on) a.push(id);
+  p.kitItens[key] = a;
+  inscRender(); inscAgendar();
+}
+
 /* arrastar linha pela alça ⠿ para mudar a ordem */
 let inscDragDe = null;
 function inscDragIni(e, i){
@@ -3861,10 +4028,12 @@ async function inscImportar(input){
   if (!rows.length || inscCol(rows[0], ['Lote']) === undefined) { alert('Essa planilha não parece o "Relatório Geral" da OTicket (não achei a coluna Lote).'); return; }
 
   const grupos = {}, ordem = []; let isentos = 0, pcdN = 0, pcdDesc = 0, pcdBruto = 0, pagos = 0, fora = 0;
+  const tamIsentos = {};
+  function somaTam(alvo, r){ const v = String(inscCol(r, ['Variação Kit', 'Variacao Kit']) || '').trim(); if (v && v !== '-') alvo[v] = (alvo[v] || 0) + 1; }
   rows.forEach(function(r){
     const st = inscNorm(inscCol(r, ['Status do Pagamento'])), canc = inscNorm(inscCol(r, ['Cancelada']));
     if (canc === 'sim' || canc === 'true') { fora++; return; }
-    if (st.indexOf('isent') === 0) { isentos++; return; }
+    if (st.indexOf('isent') === 0) { isentos++; somaTam(tamIsentos, r); return; }
     if (st && st !== 'pago' && st !== 'aprovado' && st !== 'confirmado') { fora++; return; }
     const lote = String(inscCol(r, ['Lote']) || '').trim() || 'Sem lote', kit = String(inscCol(r, ['Kit']) || '').trim();
     const liq = inscNumCel(inscCol(r, ['Valor Líquido', 'Valor'])), desc = inscNumCel(inscCol(r, ['Desconto'])), bruto = liq + desc;
@@ -3872,8 +4041,8 @@ async function inscImportar(input){
     const temCupom = cupom && cupom !== '-';
     const ehPcd = desc > 0 && (!temCupom || /pcd|idos|60\+|melhor idade/.test(cupom));
     const k = inscNorm(lote) + '|' + inscKitNorm(kit);
-    if (!grupos[k]) { grupos[k] = {lote:lote, kit:kit, n:0, bruto:0, liq:0, descCupom:0, precos:{}}; ordem.push(k); }
-    const g = grupos[k]; g.n++; pagos++;
+    if (!grupos[k]) { grupos[k] = {lote:lote, kit:kit, n:0, bruto:0, liq:0, descCupom:0, precos:{}, tams:{}}; ordem.push(k); }
+    const g = grupos[k]; g.n++; pagos++; somaTam(g.tams, r);
     const pr = Math.round(bruto * 100) / 100; if (pr > 0) g.precos[pr] = (g.precos[pr] || 0) + 1;
     g.bruto += bruto; g.liq += liq;
     if (ehPcd) { pcdN++; pcdDesc += desc; pcdBruto += bruto; }
@@ -3881,8 +4050,23 @@ async function inscImportar(input){
   });
   if (!pagos && !isentos) { alert('Não achei inscrições pagas nessa planilha.'); return; }
 
+  /* inscrição sem kit ("-") entra no kit do mesmo lote com o mesmo preço */
+  function precoMaisComum(g){ return Object.keys(g.precos).sort(function(x, y){ return g.precos[y] - g.precos[x]; })[0]; }
+  for (let j = ordem.length - 1; j >= 0; j--) {
+    const g = grupos[ordem[j]], kn = inscKitNorm(g.kit);
+    if (kn && kn !== '-') continue;
+    const pr = precoMaisComum(g);
+    const alvo = ordem.map(function(k){ return grupos[k]; }).filter(function(x){ const kx = inscKitNorm(x.kit); return x !== g && kx && kx !== '-' && inscNorm(x.lote) === inscNorm(g.lote) && precoMaisComum(x) === pr; })[0];
+    if (!alvo) continue;
+    alvo.n += g.n; alvo.bruto += g.bruto; alvo.liq += g.liq; alvo.descCupom += g.descCupom;
+    Object.keys(g.precos).forEach(function(x){ alvo.precos[x] = (alvo.precos[x] || 0) + g.precos[x]; });
+    Object.keys(g.tams).forEach(function(x){ alvo.tams[x] = (alvo.tams[x] || 0) + g.tams[x]; });
+    ordem.splice(j, 1);
+  }
+
   /* casa cada Lote × Kit com uma linha do planejamento; o que não casar vira linha nova */
   const linhas = p.linhas || (p.linhas = []);
+  const tamanhos = {};
   linhas.forEach(function(l){ l.real = null; delete l.liqRel; });
   const usadas = {}, novas = [];
   function casa(g){
@@ -3908,6 +4092,8 @@ async function inscImportar(input){
     if (i < 0) { linhas.push({id:inscId(), nome:inscTitulo(g.lote), kit:inscTitulo(g.kit.replace(/^kit\s+/i, '')), real:null, proj:null, valor:null, cupom:0, cash:0}); i = linhas.length - 1; novas.push(linhas[i].nome + (linhas[i].kit ? ' / ' + linhas[i].kit : '')); }
     usadas[i] = 1;
     const l = linhas[i];
+    const tk = inscKitKey(l.kit); tamanhos[tk] = tamanhos[tk] || {};
+    Object.keys(g.tams).forEach(function(x){ tamanhos[tk][x] = (tamanhos[tk][x] || 0) + g.tams[x]; });
     l.real = g.n; l.cupom = cupomPct;
     if (preco) l.valor = Number(preco);
     l.liqRel = Math.round(g.liq * 100) / 100;
@@ -3918,7 +4104,9 @@ async function inscImportar(input){
     if (iIs < 0) { linhas.push({id:inscId(), nome:'Isentos', kit:'Isento', real:null, proj:null, valor:0, cupom:0, cash:0}); iIs = linhas.length - 1; }
     linhas[iIs].real = isentos; linhas[iIs].valor = 0; linhas[iIs].cupom = 0; linhas[iIs].liqRel = 0;
     if (Number(linhas[iIs].proj || 0) < isentos) linhas[iIs].proj = isentos;
+    tamanhos[inscKitKey(linhas[iIs].kit)] = tamIsentos;
   }
+  p.tamanhos = tamanhos;
   const pagosTot = pagos;
   /* o desconto PCD/idoso já entrou no % de cada lote importado: zera o PCD geral para não descontar duas vezes */
   p.pcd = {pct:0, desc:(p.pcd && p.pcd.desc) || 50};
@@ -19728,6 +19916,17 @@ document.addEventListener('DOMContentLoaded',function(){
 #screen-planinsc .insc-acima{color:#dc2626!important;}
 #screen-planinsc .insc-pre{color:var(--muted);font-size:11px;} #screen-planinsc .insc-pc{background:#fdf3e3;}
 #screen-planinsc .insc-neg{color:#dc2626;} #screen-planinsc .insc-b{font-weight:700;}
+#screen-planinsc .insc-itens{margin-top:22px;}
+#screen-planinsc .insc-it-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px;}
+#screen-planinsc .insc-it-head b{font-size:16px;display:block;} #screen-planinsc .insc-it-head small{color:var(--muted);font-size:12px;}
+#screen-planinsc .insc-it-vazio{color:var(--muted);font-size:13px;padding:14px;text-align:left !important;background:#fff;border:1px dashed var(--border);border-radius:10px;}
+#screen-planinsc .insc-it-cfg th small{display:block;font-weight:400;color:var(--muted);font-size:10.5px;text-transform:none;}
+#screen-planinsc .insc-it-lista{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px;margin-top:14px;}
+#screen-planinsc .insc-it-box{flex:0 1 auto;max-width:100%;}
+#screen-planinsc .insc-it-total{float:right;font-weight:700;}
+#screen-planinsc .insc-t .insc-it-comp{background:#dcfce7;font-weight:700;text-align:center;}
+#screen-planinsc .insc-it-aj{background:#fff7ed;border-color:#f97316 !important;}
+#screen-planinsc .insc-it-nota{font-size:11px;color:var(--muted);padding:6px 10px;}
 #screen-planinsc .insc-drag{cursor:grab;color:#cfc8bf;padding:0 5px 0 1px;user-select:none;font-size:13px;vertical-align:middle;} #screen-planinsc .insc-t tr:hover .insc-drag{color:#8a8178;} #screen-planinsc .insc-drag:active{cursor:grabbing;}
 #screen-planinsc .insc-t tr.insc-drop-a td{box-shadow:inset 0 2px 0 #f97316;} #screen-planinsc .insc-t tr.insc-drop-b td{box-shadow:inset 0 -2px 0 #f97316;} #screen-planinsc .insc-t tr.insc-arrastando{opacity:.4;}
 #screen-planinsc .insc-x{border:none;background:none;color:#c9c2ba;cursor:pointer;font-size:12px;} #screen-planinsc .insc-x:hover{color:#dc2626;}
