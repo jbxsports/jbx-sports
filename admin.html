@@ -2342,6 +2342,34 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-t tr.orc-mae td b{font-size:13px;color:#9a3412;}
 .orc-t tr.orc-mae td small{display:block;font-size:10.5px;color:#c2410c;opacity:.75;font-weight:500;}
 .orc-t tr.orc-mae .orc-num{font-weight:800;color:#FF751F;}
+#screen-cupons .cup-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+#screen-cupons .cup-bar label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+#screen-cupons .cup-bar select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff;min-width:300px;max-width:100%;}
+#screen-cupons .cup-bar .mkt-btn{margin-left:auto;}
+#screen-cupons .cup-fonte{font-size:12px;color:var(--muted);margin-bottom:16px;}
+#screen-cupons .cup-vazio{background:#fff;border:1px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;color:var(--muted);line-height:1.7;}
+#screen-cupons .cup-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px;}
+#screen-cupons .cup-kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;box-shadow:0 1px 4px rgba(42,37,32,.06);}
+#screen-cupons .cup-kpi span{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+#screen-cupons .cup-kpi b{display:block;font-size:24px;font-weight:700;color:var(--text);margin:6px 0 2px;font-variant-numeric:tabular-nums;}
+#screen-cupons .cup-kpi small{font-size:12px;color:var(--muted);}
+#screen-cupons .cup-kpi-hero{background:#fff4ec;border-color:#ffd2b3;} #screen-cupons .cup-kpi-hero b{color:var(--orange-dark);}
+#screen-cupons .cup-charts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px;}
+#screen-cupons .cup-charts h3,#screen-cupons .cup-rank h3{font-size:14px;font-weight:700;margin:0 0 12px;}
+#screen-cupons .cup-ch{position:relative;} #screen-cupons .cup-charts>.chart-card{min-width:0;}
+#screen-cupons .cup-rank{margin-bottom:16px;}
+#screen-cupons .cup-rank-hd{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+#screen-cupons .cup-rank-hd h3{margin:0;} #screen-cupons .cup-rank-hd .search-input{max-width:220px;}
+#screen-cupons .cup-t td,#screen-cupons .cup-t th{white-space:nowrap;} #screen-cupons .cup-t .num{text-align:right;font-variant-numeric:tabular-nums;}
+#screen-cupons .cup-t tbody tr:hover td{background:#fbf8f5;}
+#screen-cupons .cup-t tfoot td{border-top:2px solid var(--border);padding:8px 12px;background:#f9f7f4;}
+#screen-cupons .cup-cod{color:var(--orange-dark);letter-spacing:.3px;}
+#screen-cupons .cup-tag{font-size:10px;font-weight:700;background:#eef2ff;color:#4338ca;border-radius:999px;padding:2px 7px;margin-left:4px;}
+#screen-cupons .cup-pos{font-weight:700;color:var(--muted);width:30px;}
+#screen-cupons .cup-pos1,#screen-cupons .cup-pos2,#screen-cupons .cup-pos3{color:var(--orange-dark);}
+#screen-cupons .cup-share{display:inline-block;width:70px;height:6px;background:#f1ece6;border-radius:3px;margin-right:8px;vertical-align:middle;overflow:hidden;}
+#screen-cupons .cup-share i{display:block;height:100%;background:var(--orange);border-radius:3px;}
+@media(max-width:900px){#screen-cupons .cup-charts{grid-template-columns:1fr;} #screen-cupons .cup-bar select{min-width:0;width:100%;} #screen-cupons .cup-bar .mkt-btn{margin-left:0;}}
 </style>
 </head>
 <body>
@@ -2698,6 +2726,13 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
           <button class="back-btn" onclick="showInner('dash')">← Voltar</button>
           <h1>Cupons de Desconto</h1>
         </div>
+        <div class="ig-subtabs">
+          <button class="ig-sub active" id="cup-sub-uso" onclick="cupSubTab('uso')">📊 Uso dos cupons</button>
+          <button class="ig-sub" id="cup-sub-cad" onclick="cupSubTab('cad')">Cadastro de cupons</button>
+        </div>
+        <div id="cup-view-uso"><div id="cup-uso-corpo"><div class="empty-state">Carregando…</div></div>
+          <input type="file" id="cup-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="cupImportar(this)"></div>
+        <div id="cup-view-cad" style="display:none">
         <div class="two-col">
           <div class="panel">
             <h2>Novo Cupom</h2>
@@ -2729,6 +2764,7 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
             <h2>Cupons cadastrados</h2>
             <div id="cupons-lista"><div class="empty-state">Carregando…</div></div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -3423,7 +3459,8 @@ const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_li
   'admin_orcamento_modelo','admin_orcamento_modelo_salvar',
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
   'admin_proposta_versao_rotulo','admin_proposta_versoes_rotulos',
-  'dir_dados','dir_evento_salvar','dir_config_salvar','insc_planos_listar','insc_plano_salvar','insc_plano_excluir'];
+  'dir_dados','dir_evento_salvar','dir_config_salvar','insc_planos_listar','insc_plano_salvar','insc_plano_excluir',
+  'cupons_uso_listar','cupons_uso_salvar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -3525,7 +3562,7 @@ function showInner(name){
   if(name==='inicio'){document.getElementById('nav-inicio').classList.add('active');iniRender();}
   if(name==='dash'){document.getElementById('nav-dash').classList.add('active');loadDashboard();}
   if(name==='inscritos'){document.getElementById('nav-inscritos').classList.add('active');igInit();}
-  if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();}
+  if(name==='cupons'){document.getElementById('nav-cupons').classList.add('active');const ci=document.getElementById('c-inicio');if(ci&&!ci.value)ci.value=new Date().toISOString().split('T')[0];loadCupons();cupUsoInit();}
   if(name==='financeiro'){document.getElementById('nav-financeiro').classList.add('active');loadFinanceiro();}
   if(name==='config'){loadConfiguracoes();}
   if(name==='planos'){document.getElementById('nav-planos').classList.add('active');plListar();}
@@ -9560,6 +9597,219 @@ async function encerrarEvento(id, nome, statusAtual) {
 }
 
 /* ══ USO DO CUPOM ══ */
+/* ══════════════ CUPONS · USO (relatório da OTicket) ══════════════
+   Banco: cupons_uso (calendario_id, dados jsonb) via cupons_uso_listar / cupons_uso_salvar.
+   dados = {fonte, em, pagos, isentos, bruto, liq, com:{n,bruto,liq,desc}, sem:{n,liq}, descSemCupom,
+            cupons:[{c, n, bruto, liq, desc, pri, ult, dias:{'AAAA-MM-DD':n}}]}
+   Vem do botão "Importar relatório" (Relatório Geral .xlsx) ou da tarefa diária que lê a OTicket. */
+let cupCal = [], cupDados = {}, cupSel = '', cupOrd = {col:'n', dir:-1}, cupBusca = '', cupCharts = {};
+function cupSubTab(t){
+  ['uso', 'cad'].forEach(function(x){
+    document.getElementById('cup-sub-' + x).classList.toggle('active', x === t);
+    document.getElementById('cup-view-' + x).style.display = x === t ? '' : 'none';
+  });
+  if (t === 'uso') cupRender();
+}
+function cupEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]; }); }
+function cupPct(a, b){ return b ? (a / b * 100) : 0; }
+function cupPctTxt(v, d){ return Number(v || 0).toLocaleString('pt-BR', {minimumFractionDigits:d == null ? 1 : d, maximumFractionDigits:d == null ? 1 : d}) + '%'; }
+function cupEhPcd(c){ return /pcd|idos|60\+|melhor ?idade/i.test(c); }
+async function cupUsoInit(){
+  const el = document.getElementById('cup-uso-corpo'); if (!el) return;
+  try {
+    const r = await Promise.all([rpc('admin_calendario_listar').catch(function(){ return []; }), rpc('cupons_uso_listar')]);
+    cupCal = (Array.isArray(r[0]) ? r[0] : []).map(function(e){ return {id:String(e.id), evento:e.evento || e.nome || 'Evento', inicio:String(e.inicio || '').slice(0, 10), historico:e.historico}; })
+      .filter(function(e){ return e.inicio && !e.historico; }).sort(function(a, b){ return a.inicio < b.inicio ? -1 : 1; });
+    cupDados = {};
+    (Array.isArray(r[1]) ? r[1] : []).forEach(function(x){ cupDados[String(x.calendario_id)] = Object.assign({}, x.dados || {}, {_em:x.atualizado_em}); });
+  } catch (e) {
+    el.innerHTML = '<div class="empty-state">Não consegui carregar o uso dos cupons.<br><small>' + cupEsc(String(e && e.message || '').slice(0, 200)) + '</small></div>';
+    return;
+  }
+  if (!cupSel || (cupSel !== 'todos' && !cupCal.some(function(e){ return e.id === cupSel; }))) cupSel = Object.keys(cupDados).length ? 'todos' : ((cupCal.filter(function(e){ return e.inicio >= new Date().toISOString().slice(0, 10); })[0] || cupCal[0] || {}).id || '');
+  cupRender();
+}
+function cupEvNome(id){ const e = cupCal.filter(function(x){ return x.id === id; })[0]; return e ? e.evento : 'Evento'; }
+
+/* ── leitura do Relatório Geral da OTicket ── */
+function cupDataISO(v){
+  if (v == null || v === '' || v === '-') return '';
+  if (v instanceof Date && !isNaN(v)) return v.toISOString().slice(0, 10);
+  if (typeof v === 'number') { const d = new Date(Math.round((v - 25569) * 864e5)); return isNaN(d) ? '' : d.toISOString().slice(0, 10); }
+  const m = String(v).match(/(\d{2})\/(\d{2})\/(\d{4})/); if (m) return m[3] + '-' + m[2] + '-' + m[1];
+  const m2 = String(v).match(/(\d{4})-(\d{2})-(\d{2})/); return m2 ? m2[0] : '';
+}
+function cupAgregar(rows){
+  const cup = {}, out = {pagos:0, isentos:0, bruto:0, liq:0, com:{n:0, bruto:0, liq:0, desc:0}, sem:{n:0, liq:0}, descSemCupom:0, cupons:[]};
+  rows.forEach(function(r){
+    const st = inscNorm(inscCol(r, ['Status do Pagamento'])), canc = inscNorm(inscCol(r, ['Cancelada']));
+    if (canc === 'sim' || canc === 'true') return;
+    if (st.indexOf('isent') === 0) { out.isentos++; return; }
+    if (st && st !== 'pago' && st !== 'aprovado' && st !== 'confirmado') return;
+    const liq = inscNumCel(inscCol(r, ['Valor Líquido', 'Valor'])), desc = inscNumCel(inscCol(r, ['Desconto'])), bruto = liq + desc;
+    const c = String(inscCol(r, ['Cupom']) || '').trim().toUpperCase();
+    out.pagos++; out.bruto += bruto; out.liq += liq;
+    if (!c || c === '-') { out.sem.n++; out.sem.liq += liq; out.descSemCupom += desc; return; }
+    const dia = cupDataISO(inscCol(r, ['Data do Pagamento'])) || cupDataISO(inscCol(r, ['Data da Inscrição', 'Data da Inscricao']));
+    const x = cup[c] || (cup[c] = {c:c, n:0, bruto:0, liq:0, desc:0, pri:'', ult:'', dias:{}});
+    x.n++; x.bruto += bruto; x.liq += liq; x.desc += desc;
+    if (dia) { x.dias[dia] = (x.dias[dia] || 0) + 1; if (!x.pri || dia < x.pri) x.pri = dia; if (!x.ult || dia > x.ult) x.ult = dia; }
+    out.com.n++; out.com.bruto += bruto; out.com.liq += liq; out.com.desc += desc;
+  });
+  const r2 = function(v){ return Math.round(v * 100) / 100; };
+  out.cupons = Object.keys(cup).map(function(k){ const x = cup[k]; x.bruto = r2(x.bruto); x.liq = r2(x.liq); x.desc = r2(x.desc); return x; }).sort(function(a, b){ return b.n - a.n; });
+  out.bruto = r2(out.bruto); out.liq = r2(out.liq); out.descSemCupom = r2(out.descSemCupom);
+  ['bruto', 'liq', 'desc'].forEach(function(k){ out.com[k] = r2(out.com[k]); }); out.sem.liq = r2(out.sem.liq);
+  return out;
+}
+function cupImportarAbrir(){
+  if (!cupSel || cupSel === 'todos') { alert('Escolha o evento antes de importar o relatório.'); return; }
+  document.getElementById('cup-file').click();
+}
+async function cupImportar(input){
+  const file = input.files[0]; input.value = ''; if (!file || !cupSel || cupSel === 'todos') return;
+  let rows;
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), {type:'array'});
+    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+  } catch (e) { alert('Não consegui ler a planilha: ' + (e && e.message || e)); return; }
+  if (!rows.length || inscCol(rows[0], ['Cupom']) === undefined || inscCol(rows[0], ['Status do Pagamento']) === undefined) { alert('Essa planilha não parece o "Relatório Geral" da OTicket (não achei as colunas Cupom e Status do Pagamento).'); return; }
+  const d = cupAgregar(rows);
+  if (!d.pagos && !d.isentos) { alert('Não achei inscrições pagas nessa planilha.'); return; }
+  d.fonte = file.name; d.em = new Date().toISOString();
+  const id = cupSel;
+  try {
+    const r = await rpc('cupons_uso_salvar', {p_calendario_id:id, p_dados:d});
+    if (!r || !r.ok) throw new Error((r && r.erro) || 'erro');
+  } catch (e) { alert('Li a planilha mas não consegui salvar: ' + (e && e.message || e)); return; }
+  cupDados[id] = Object.assign({}, d, {_em:d.em});
+  cupRender();
+  alert('Importado: ' + fmt(d.pagos) + ' inscrições pagas, ' + fmt(d.com.n) + ' com cupom (' + fmt(d.cupons.length) + ' cupons diferentes).');
+}
+
+/* junta os eventos escolhidos num conjunto só */
+function cupConjunto(){
+  const ids = cupSel === 'todos' ? Object.keys(cupDados) : (cupDados[cupSel] ? [cupSel] : []);
+  const t = {pagos:0, isentos:0, bruto:0, liq:0, com:{n:0, bruto:0, liq:0, desc:0}, sem:{n:0, liq:0}, descSemCupom:0, cupons:[], ids:ids};
+  const m = {};
+  ids.forEach(function(id){
+    const d = cupDados[id];
+    t.pagos += d.pagos || 0; t.isentos += d.isentos || 0; t.bruto += d.bruto || 0; t.liq += d.liq || 0; t.descSemCupom += d.descSemCupom || 0;
+    ['n', 'bruto', 'liq', 'desc'].forEach(function(k){ t.com[k] += (d.com && d.com[k]) || 0; });
+    t.sem.n += (d.sem && d.sem.n) || 0; t.sem.liq += (d.sem && d.sem.liq) || 0;
+    (d.cupons || []).forEach(function(c){
+      const x = m[c.c] || (m[c.c] = {c:c.c, n:0, bruto:0, liq:0, desc:0, pri:'', ult:'', dias:{}, evs:[]});
+      x.n += c.n; x.bruto += c.bruto; x.liq += c.liq; x.desc += c.desc; x.evs.push(id);
+      if (c.pri && (!x.pri || c.pri < x.pri)) x.pri = c.pri; if (c.ult && (!x.ult || c.ult > x.ult)) x.ult = c.ult;
+      Object.keys(c.dias || {}).forEach(function(k){ x.dias[k] = (x.dias[k] || 0) + c.dias[k]; });
+    });
+  });
+  t.cupons = Object.keys(m).map(function(k){ const x = m[k]; x.descMed = cupPct(x.desc, x.bruto); x.ticket = x.n ? x.liq / x.n : 0; x.share = cupPct(x.n, t.com.n); return x; });
+  return t;
+}
+function cupSemana(iso){ const d = new Date(iso + 'T12:00:00'); const dw = (d.getDay() + 6) % 7; d.setDate(d.getDate() - dw); return d.toISOString().slice(0, 10); }
+
+function cupRender(){
+  const el = document.getElementById('cup-uso-corpo'); if (!el) return;
+  Object.keys(cupCharts).forEach(function(k){ try { cupCharts[k].destroy(); } catch (_) {} }); cupCharts = {};
+  const comDados = Object.keys(cupDados);
+  let opts = '<option value="todos"' + (cupSel === 'todos' ? ' selected' : '') + '>Todos os eventos com relatório (' + comDados.length + ')</option>';
+  cupCal.forEach(function(e){ opts += '<option value="' + cupEsc(e.id) + '"' + (cupSel === e.id ? ' selected' : '') + '>' + (cupDados[e.id] ? '● ' : '○ ') + fmtDS(e.inicio) + ' — ' + cupEsc(e.evento) + '</option>'; });
+  let h = '<div class="cup-bar"><label>Evento</label><select onchange="cupSel=this.value;cupRender()">' + opts + '</select>';
+  if (cupSel !== 'todos') h += '<button class="mkt-btn sm primary" onclick="cupImportarAbrir()" title="Relatório Geral de inscritos exportado da OTicket (.xlsx)">⬆ Importar relatório da OTicket</button>';
+  h += '</div>';
+  const d1 = cupSel !== 'todos' ? cupDados[cupSel] : null;
+  if (d1) h += '<div class="cup-fonte">Dados de <b>' + cupEsc(d1.fonte || 'OTicket') + '</b> · atualizado em ' + fmtData(d1.em || d1._em) + '</div>';
+  else if (cupSel === 'todos' && comDados.length) h += '<div class="cup-fonte">Somando ' + comDados.length + ' evento(s). Escolha um evento para ver só ele ou importar um relatório novo.</div>';
+
+  const t = cupConjunto();
+  if (!t.ids.length) {
+    el.innerHTML = h + '<div class="cup-vazio"><b>Sem dados de cupons ' + (cupSel === 'todos' ? 'ainda' : 'para este evento') + '.</b><br>'
+      + (cupSel === 'todos' ? 'Escolha um evento acima e importe o Relatório Geral da OTicket.' : 'Clique em <b>Importar relatório da OTicket</b> e envie o Relatório Geral (.xlsx) — ou espere a atualização automática de toda manhã.') + '</div>';
+    return;
+  }
+
+  /* KPIs */
+  const tkCom = t.com.n ? t.com.liq / t.com.n : 0, tkSem = t.sem.n ? t.sem.liq / t.sem.n : 0;
+  const rank = t.cupons.slice().sort(function(a, b){ return b.n - a.n || b.liq - a.liq; }), top = rank[0];
+  h += '<div class="cup-kpis">'
+    + '<div class="cup-kpi cup-kpi-hero"><span>Inscrições com cupom</span><b>' + fmt(t.com.n) + '</b><small>' + cupPctTxt(cupPct(t.com.n, t.pagos)) + ' das ' + fmt(t.pagos) + ' pagas</small></div>'
+    + '<div class="cup-kpi"><span>Desconto concedido</span><b>' + brl(t.com.desc) + '</b><small>' + cupPctTxt(cupPct(t.com.desc, t.com.bruto)) + ' do valor cheio dessas inscrições</small></div>'
+    + '<div class="cup-kpi"><span>Receita com cupom</span><b>' + brl(t.com.liq) + '</b><small>' + cupPctTxt(cupPct(t.com.liq, t.liq)) + ' da receita líquida</small></div>'
+    + '<div class="cup-kpi"><span>Ticket médio</span><b>' + brl(tkCom) + '</b><small>com cupom · sem cupom: ' + brl(tkSem) + '</small></div>'
+    + '<div class="cup-kpi"><span>Cupons usados</span><b>' + fmt(t.cupons.length) + '</b><small>' + (top ? 'mais usado: ' + cupEsc(top.c) + ' (' + fmt(top.n) + ')' : '—') + '</small></div>'
+    + '</div>';
+
+  /* gráficos */
+  h += '<div class="cup-charts"><div class="chart-card"><h3>Top 10 cupons por usos</h3><div class="cup-ch" style="height:' + Math.max(160, Math.min(10, rank.length) * 30 + 30) + 'px"><canvas id="cup-ch-top"></canvas></div></div>'
+    + '<div class="chart-card"><h3>Inscrições com cupom por semana</h3><div class="cup-ch" style="height:300px"><canvas id="cup-ch-sem"></canvas></div></div></div>';
+
+  /* ranking */
+  const cols = [['pos', '#', 0], ['c', 'Cupom', 0], ['n', 'Usos', 1], ['share', 'Participação', 1], ['desc', 'Desconto concedido', 1], ['descMed', 'Desc. médio', 1], ['liq', 'Receita líquida', 1], ['ticket', 'Ticket médio', 1], ['ult', 'Último uso', 1]];
+  if (cupSel === 'todos') cols.push(['evs', 'Eventos', 0]);
+  const posDe = {}; rank.forEach(function(x, i){ posDe[x.c] = i + 1; });
+  const b = inscNorm(cupBusca);
+  let lista = rank.filter(function(x){ return !b || inscNorm(x.c).indexOf(b) >= 0; });
+  if (cupOrd.col !== 'pos') lista.sort(function(x, y){ const a = x[cupOrd.col], c = y[cupOrd.col]; return (a < c ? -1 : a > c ? 1 : 0) * cupOrd.dir; });
+  else if (cupOrd.dir > 0) lista.reverse();
+  const maxN = top ? top.n : 1;
+  h += '<div class="chart-card cup-rank"><div class="cup-rank-hd"><h3>Ranking de cupons</h3><input class="search-input" placeholder="Buscar cupom…" value="' + cupEsc(cupBusca) + '" oninput="cupBusca=this.value;cupRenderRank()" id="cup-busca"></div><div id="cup-rank-tab" style="overflow-x:auto"><table class="data-table cup-t"><thead><tr>';
+  cols.forEach(function(c){ h += '<th class="' + (c[2] ? 'num' : '') + '" onclick="cupOrdenar(\'' + c[0] + '\')" style="cursor:pointer">' + c[1] + (cupOrd.col === c[0] ? (cupOrd.dir < 0 ? ' ▼' : ' ▲') : '') + '</th>'; });
+  h += '</tr></thead><tbody>';
+  lista.forEach(function(x){
+    const p = posDe[x.c];
+    h += '<tr><td class="cup-pos' + (p <= 3 ? ' cup-pos' + p : '') + '">' + p + '</td>'
+      + '<td><b class="cup-cod">' + cupEsc(x.c) + '</b>' + (cupEhPcd(x.c) ? ' <span class="cup-tag">PCD/Idoso</span>' : '') + '</td>'
+      + '<td class="num"><b>' + fmt(x.n) + '</b></td>'
+      + '<td class="num"><div class="cup-share"><i style="width:' + (x.n / maxN * 100) + '%"></i></div>' + cupPctTxt(x.share) + '</td>'
+      + '<td class="num">' + brl(x.desc) + '</td><td class="num">' + cupPctTxt(x.descMed) + '</td>'
+      + '<td class="num">' + brl(x.liq) + '</td><td class="num">' + brl(x.ticket) + '</td>'
+      + '<td class="num">' + (x.ult ? fmtDS(x.ult) : '—') + '</td>'
+      + (cupSel === 'todos' ? '<td style="font-size:12px">' + x.evs.map(function(id){ return cupEsc(cupEvNome(id)); }).join(', ') + '</td>' : '')
+      + '</tr>';
+  });
+  if (!lista.length) h += '<tr><td colspan="' + cols.length + '" style="color:var(--muted);text-align:center">Nenhum cupom encontrado.</td></tr>';
+  h += '</tbody><tfoot><tr><td></td><td><b>Total</b></td><td class="num"><b>' + fmt(t.com.n) + '</b></td><td class="num">100%</td><td class="num"><b>' + brl(t.com.desc) + '</b></td><td class="num">' + cupPctTxt(cupPct(t.com.desc, t.com.bruto)) + '</td><td class="num"><b>' + brl(t.com.liq) + '</b></td><td class="num">' + brl(tkCom) + '</td><td></td>' + (cupSel === 'todos' ? '<td></td>' : '') + '</tr></tfoot></table></div></div>';
+
+  /* por evento (visão geral) */
+  if (cupSel === 'todos') {
+    h += '<div class="chart-card cup-rank"><h3>Por evento</h3><div style="overflow-x:auto"><table class="data-table cup-t"><thead><tr><th>Evento</th><th class="num">Pagas</th><th class="num">Com cupom</th><th class="num">% com cupom</th><th class="num">Desconto concedido</th><th class="num">Receita com cupom</th><th>Cupom mais usado</th><th class="num">Atualizado</th></tr></thead><tbody>';
+    t.ids.slice().sort(function(a, b){ return (cupDados[b].com || {}).n - (cupDados[a].com || {}).n; }).forEach(function(id){
+      const d = cupDados[id], c0 = (d.cupons || [])[0];
+      h += '<tr style="cursor:pointer" onclick="cupSel=\'' + cupEsc(id) + '\';cupRender()"><td><b>' + cupEsc(cupEvNome(id)) + '</b></td><td class="num">' + fmt(d.pagos) + '</td><td class="num">' + fmt(d.com.n) + '</td><td class="num">' + cupPctTxt(cupPct(d.com.n, d.pagos)) + '</td><td class="num">' + brl(d.com.desc) + '</td><td class="num">' + brl(d.com.liq) + '</td><td>' + (c0 ? '<b class="cup-cod">' + cupEsc(c0.c) + '</b> (' + fmt(c0.n) + ')' : '—') + '</td><td class="num" style="font-size:12px">' + fmtData(d.em || d._em) + '</td></tr>';
+    });
+    h += '</tbody></table></div></div>';
+  }
+  el.innerHTML = h;
+  if (typeof Chart === 'undefined') return;
+
+  /* gráfico 1: top 10 (uma série, cor da marca) */
+  const top10 = rank.slice(0, 10);
+  const eixo = {grid:{color:'rgba(42,37,32,.07)'}, border:{display:false}, ticks:{color:'#7a7068', font:{family:'Ubuntu', size:11}}};
+  cupCharts.top = new Chart(document.getElementById('cup-ch-top'), {type:'bar',
+    data:{labels:top10.map(function(x){ return x.c; }), datasets:[{data:top10.map(function(x){ return x.n; }), backgroundColor:'#ff751f', hoverBackgroundColor:'#e05a08', borderRadius:4, borderSkipped:'start', barThickness:18}]},
+    options:{indexAxis:'y', maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:function(c){ const x = top10[c.dataIndex]; return [fmt(x.n) + ' usos (' + cupPctTxt(x.share) + ' dos cupons)', 'Desconto: ' + brl(x.desc), 'Receita: ' + brl(x.liq)]; }}}},
+      scales:{x:Object.assign({beginAtZero:true, ticks:Object.assign({}, eixo.ticks, {precision:0})}, {grid:eixo.grid, border:eixo.border}), y:{grid:{display:false}, border:{display:false}, ticks:{color:'#2a2520', font:{family:'Ubuntu', size:12, weight:'600'}}}}}});
+
+  /* gráfico 2: inscrições com cupom por semana */
+  const sem = {};
+  t.cupons.forEach(function(x){ Object.keys(x.dias).forEach(function(dia){ const w = cupSemana(dia); sem[w] = (sem[w] || 0) + x.dias[dia]; }); });
+  const ws = Object.keys(sem).sort();
+  const semanas = [];
+  if (ws.length) { const d = new Date(ws[0] + 'T12:00:00'), fim = ws[ws.length - 1]; while (d.toISOString().slice(0, 10) <= fim) { semanas.push(d.toISOString().slice(0, 10)); d.setDate(d.getDate() + 7); } }
+  cupCharts.sem = new Chart(document.getElementById('cup-ch-sem'), {type:'bar',
+    data:{labels:semanas.map(function(w){ return fmtDS(w).slice(0, 5); }), datasets:[{data:semanas.map(function(w){ return sem[w] || 0; }), backgroundColor:'#ff751f', hoverBackgroundColor:'#e05a08', borderRadius:4, borderSkipped:'start', maxBarThickness:28}]},
+    options:{maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{title:function(c){ return 'Semana de ' + fmtDS(semanas[c[0].dataIndex]); }, label:function(c){ return fmt(c.parsed.y) + ' inscrições com cupom'; }}}},
+      scales:{y:{beginAtZero:true, grid:eixo.grid, border:eixo.border, ticks:Object.assign({}, eixo.ticks, {precision:0})}, x:{grid:{display:false}, border:{display:false}, ticks:Object.assign({}, eixo.ticks, {maxRotation:0, autoSkip:true})}}}});
+}
+function cupOrdenar(col){ cupOrd = cupOrd.col === col ? {col:col, dir:-cupOrd.dir} : {col:col, dir:(col === 'c' || col === 'pos') ? 1 : -1}; cupRender(); }
+function cupRenderRank(){
+  /* busca sem perder o foco do campo */
+  const pos = document.getElementById('cup-busca') ? document.getElementById('cup-busca').selectionStart : null;
+  cupRender();
+  const i = document.getElementById('cup-busca'); if (i) { i.focus(); if (pos != null) i.setSelectionRange(pos, pos); }
+}
+
 async function abrirUsoCupom(codigo,nome){
   document.getElementById('cupom-uso-titulo').textContent=`Uso do cupom ${codigo}`;
   document.getElementById('cupom-uso-lista').innerHTML='<div style="color:var(--muted);padding:16px;">Carregando…</div>';
