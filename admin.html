@@ -3671,8 +3671,8 @@ function inscRender(){
     const c = inscLinhaCalc(l, l.proj, p.pcd), cr = inscLinhaCalc(l, l.real, p.pcd);
     const acima = l.real != null && l.proj != null && Number(l.real) > Number(l.proj);
     const vazio = !(Number(l.proj) > 0);
-    t += '<tr class="' + (vazio ? 'insc-zero' : '') + '">'
-      + '<td><input class="insc-txt" value="' + inscEsc(l.nome) + '" onchange="inscSet(' + i + ',\'nome\',this.value,true)"></td>'
+    t += '<tr class="' + (vazio ? 'insc-zero' : '') + '" ondragstart="inscDragIni(event,' + i + ')" ondragover="inscDragSobre(event,this)" ondragleave="this.classList.remove(\'insc-drop-a\',\'insc-drop-b\')" ondrop="inscDragSoltar(event,' + i + ')" ondragend="inscDragFim(this)">'
+      + '<td style="white-space:nowrap"><span class="insc-drag" title="Arraste para mudar a linha de posição" onmousedown="this.closest(\'tr\').draggable=true" onmouseup="this.closest(\'tr\').draggable=false">⠿</span><input class="insc-txt" value="' + inscEsc(l.nome) + '" onchange="inscSet(' + i + ',\'nome\',this.value,true)"></td>'
       + '<td><input class="insc-txt insc-kit" value="' + inscEsc(l.kit) + '" onchange="inscSet(' + i + ',\'kit\',this.value,true)"></td>'
       + '<td class="insc-real"><input class="insc-n' + (acima ? ' insc-acima' : '') + '" inputmode="numeric" value="' + inscNumInp(l.real) + '" onchange="inscSet(' + i + ',\'real\',this.value)"' + (acima ? ' title="Vendeu mais que o projetado para este lote"' : '') + '></td>'
       + '<td class="insc-proj"><input class="insc-n" inputmode="numeric" value="' + inscNumInp(l.proj) + '" onchange="inscSet(' + i + ',\'proj\',this.value)"></td>'
@@ -3756,6 +3756,34 @@ function inscAddLinha(){
   const ult = p.linhas[p.linhas.length - 1];
   p.linhas.push({id:inscId(), nome:ult ? ult.nome : 'Novo lote', kit:ult ? ult.kit : '', real:null, proj:null, valor:ult ? ult.valor : null, cupom:0, cash:0});
   inscRender(); inscAgendar();
+}
+/* arrastar linha pela alça ⠿ para mudar a ordem */
+let inscDragDe = null;
+function inscDragIni(e, i){
+  inscDragDe = i; e.dataTransfer.effectAllowed = 'move';
+  try { e.dataTransfer.setData('text/plain', String(i)); } catch (_) {}
+  e.currentTarget.classList.add('insc-arrastando');
+}
+function inscDragSobre(e, tr){
+  if (inscDragDe == null) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+  const r = tr.getBoundingClientRect(), baixo = e.clientY > r.top + r.height / 2;
+  tr.classList.toggle('insc-drop-b', baixo); tr.classList.toggle('insc-drop-a', !baixo);
+}
+function inscDragSoltar(e, i){
+  e.preventDefault();
+  const de = inscDragDe; inscDragDe = null;
+  const p = inscPlano(); if (!p || de == null) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  let para = e.clientY > r.top + r.height / 2 ? i + 1 : i;
+  if (para > de) para--;
+  if (para === de) { inscRender(); return; }
+  const l = p.linhas.splice(de, 1)[0]; p.linhas.splice(para, 0, l);
+  inscRender(); inscAgendar();
+}
+function inscDragFim(tr){
+  inscDragDe = null; tr.draggable = false;
+  document.querySelectorAll('#screen-planinsc .insc-t tr').forEach(function(x){ x.classList.remove('insc-drop-a', 'insc-drop-b', 'insc-arrastando'); });
 }
 function inscDelLinha(i){
   const p = inscPlano(); if (!p) return;
@@ -19700,6 +19728,8 @@ document.addEventListener('DOMContentLoaded',function(){
 #screen-planinsc .insc-acima{color:#dc2626!important;}
 #screen-planinsc .insc-pre{color:var(--muted);font-size:11px;} #screen-planinsc .insc-pc{background:#fdf3e3;}
 #screen-planinsc .insc-neg{color:#dc2626;} #screen-planinsc .insc-b{font-weight:700;}
+#screen-planinsc .insc-drag{cursor:grab;color:#cfc8bf;padding:0 5px 0 1px;user-select:none;font-size:13px;vertical-align:middle;} #screen-planinsc .insc-t tr:hover .insc-drag{color:#8a8178;} #screen-planinsc .insc-drag:active{cursor:grabbing;}
+#screen-planinsc .insc-t tr.insc-drop-a td{box-shadow:inset 0 2px 0 #f97316;} #screen-planinsc .insc-t tr.insc-drop-b td{box-shadow:inset 0 -2px 0 #f97316;} #screen-planinsc .insc-t tr.insc-arrastando{opacity:.4;}
 #screen-planinsc .insc-x{border:none;background:none;color:#c9c2ba;cursor:pointer;font-size:12px;} #screen-planinsc .insc-x:hover{color:#dc2626;}
 #screen-planinsc tfoot td{background:#f6f4f1;font-weight:700;padding:7px 8px;}
 #screen-planinsc tfoot .insc-meta{background:#ff8a00!important;color:#fff;}
