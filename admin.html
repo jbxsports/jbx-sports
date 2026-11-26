@@ -2342,10 +2342,32 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .orc-t tr.orc-mae td b{font-size:13px;color:#9a3412;}
 .orc-t tr.orc-mae td small{display:block;font-size:10.5px;color:#c2410c;opacity:.75;font-weight:500;}
 .orc-t tr.orc-mae .orc-num{font-weight:800;color:#FF751F;}
+#screen-cupons .cup-hist-busca .search-input{width:230px;}
+#screen-cupons .cup-t tr.cup-click{cursor:pointer;}
+#cup-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(20,16,12,.45);align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
+#cup-modal .cup-modal-card{background:var(--bg);border-radius:16px;padding:22px;width:100%;max-width:1100px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+#cup-modal .cup-modal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px;}
+#cup-modal .cup-modal-hd h2{font-size:24px;margin:2px 0 0;color:var(--orange-dark);letter-spacing:.3px;}
+#cup-modal .cup-modal-sub{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+#cup-modal h3{font-size:14px;font-weight:700;margin:0 0 12px;}
+#cup-modal .cup-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px;}
+#cup-modal .cup-kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+#cup-modal .cup-kpi span{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);}
+#cup-modal .cup-kpi b{display:block;font-size:24px;font-weight:700;color:var(--text);margin:6px 0 2px;font-variant-numeric:tabular-nums;}
+#cup-modal .cup-kpi small{font-size:12px;color:var(--muted);}
+#cup-modal .cup-kpi-hero{background:#fff4ec;border-color:#ffd2b3;} #cup-modal .cup-kpi-hero b{color:var(--orange-dark);}
+#cup-modal .cup-ch{position:relative;}
+#cup-modal .cup-t td,#cup-modal .cup-t th{white-space:nowrap;} #cup-modal .cup-t .num{text-align:right;font-variant-numeric:tabular-nums;}
+#cup-modal .cup-t tfoot td{border-top:2px solid var(--border);padding:8px 12px;background:#f9f7f4;}
+#cup-modal .cup-share{display:inline-block;width:60px;height:6px;background:#f1ece6;border-radius:3px;margin-right:8px;vertical-align:middle;overflow:hidden;}
+#cup-modal .cup-share i{display:block;height:100%;background:var(--orange);border-radius:3px;}
+#cup-modal .cup-tag{font-size:10px;font-weight:700;background:#eef2ff;color:#4338ca;border-radius:999px;padding:2px 7px;vertical-align:middle;}
+#cup-modal .cup-it-nota{font-size:11px;color:var(--muted);padding:8px 2px 0;}
+#cup-modal .cup-vazio{background:#fff;border:1px dashed var(--border);border-radius:12px;padding:30px;text-align:center;color:var(--muted);}
 #screen-cupons .cup-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 #screen-cupons .cup-bar label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 #screen-cupons .cup-bar select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff;min-width:300px;max-width:100%;}
-#screen-cupons .cup-bar .mkt-btn{margin-left:auto;}
+#screen-cupons .cup-bar .cup-hist-busca{margin-left:auto;}
 #screen-cupons .cup-fonte{font-size:12px;color:var(--muted);margin-bottom:16px;}
 #screen-cupons .cup-vazio{background:#fff;border:1px dashed var(--border);border-radius:12px;padding:40px 20px;text-align:center;color:var(--muted);line-height:1.7;}
 #screen-cupons .cup-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px;}
@@ -9717,6 +9739,9 @@ function cupRender(){
   cupCal.forEach(function(e){ opts += '<option value="' + cupEsc(e.id) + '"' + (cupSel === e.id ? ' selected' : '') + '>' + (cupDados[e.id] ? '● ' : '○ ') + fmtDS(e.inicio) + ' — ' + cupEsc(e.evento) + '</option>'; });
   let h = '<div class="cup-bar"><label>Evento</label><select onchange="cupSel=this.value;cupRender()">' + opts + '</select>';
   if (cupSel !== 'todos') h += '<button class="mkt-btn sm primary" onclick="cupImportarAbrir()" title="Relatório Geral de inscritos exportado da OTicket (.xlsx)">⬆ Importar relatório da OTicket</button>';
+  const todosCod = {}; Object.keys(cupDados).forEach(function(id){ (cupDados[id].cupons || []).forEach(function(c){ todosCod[c.c] = 1; }); });
+  h += '<div class="cup-hist-busca"><input class="search-input" list="cup-cod-list" placeholder="🔎 Histórico de um cupom…" onchange="if(this.value.trim()){cupHistorico(this.value);this.value=\'\';}"><datalist id="cup-cod-list">'
+    + Object.keys(todosCod).sort().map(function(c){ return '<option value="' + cupEsc(c) + '">'; }).join('') + '</datalist></div>';
   h += '</div>';
   const d1 = cupSel !== 'todos' ? cupDados[cupSel] : null;
   if (d1) h += '<div class="cup-fonte">Dados de <b>' + cupEsc(d1.fonte || 'OTicket') + '</b> · atualizado em ' + fmtData(d1.em || d1._em) + '</div>';
@@ -9758,7 +9783,7 @@ function cupRender(){
   h += '</tr></thead><tbody>';
   lista.forEach(function(x){
     const p = posDe[x.c];
-    h += '<tr><td class="cup-pos' + (p <= 3 ? ' cup-pos' + p : '') + '">' + p + '</td>'
+    h += '<tr class="cup-click" title="Ver o histórico deste cupom em todas as provas" onclick="cupHistorico(\'' + cupEsc(x.c).replace(/\\/g, '') + '\')"><td class="cup-pos' + (p <= 3 ? ' cup-pos' + p : '') + '">' + p + '</td>'
       + '<td><b class="cup-cod">' + cupEsc(x.c) + '</b>' + (cupEhPcd(x.c) ? ' <span class="cup-tag">PCD/Idoso</span>' : '') + '</td>'
       + '<td class="num"><b>' + fmt(x.n) + '</b></td>'
       + '<td class="num"><div class="cup-share"><i style="width:' + (x.n / maxN * 100) + '%"></i></div>' + cupPctTxt(x.share) + '</td>'
@@ -9802,6 +9827,63 @@ function cupRender(){
     options:{maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{title:function(c){ return 'Semana de ' + fmtDS(semanas[c[0].dataIndex]); }, label:function(c){ return fmt(c.parsed.y) + ' inscrições com cupom'; }}}},
       scales:{y:{beginAtZero:true, grid:eixo.grid, border:eixo.border, ticks:Object.assign({}, eixo.ticks, {precision:0})}, x:{grid:{display:false}, border:{display:false}, ticks:Object.assign({}, eixo.ticks, {maxRotation:0, autoSkip:true})}}}});
 }
+
+/* ── ficha de um cupom: total e por prova (todas as provas com dados) ── */
+let cupHistChart = null;
+function cupHistorico(cod){
+  cod = String(cod || '').trim().toUpperCase(); if (!cod) return;
+  const provas = [];
+  Object.keys(cupDados).forEach(function(id){
+    const d = cupDados[id], c = (d.cupons || []).filter(function(x){ return x.c === cod; })[0];
+    if (c) provas.push({id:id, nome:cupEvNome(id), inicio:(cupCal.filter(function(e){ return e.id === id; })[0] || {}).inicio || '', c:c, d:d});
+  });
+  provas.sort(function(a, b){ return a.inicio < b.inicio ? -1 : 1; });
+  const tot = {n:0, desc:0, bruto:0, liq:0, pri:'', ult:''}, dias = {};
+  provas.forEach(function(p){
+    const c = p.c; tot.n += c.n; tot.desc += c.desc; tot.bruto += c.bruto; tot.liq += c.liq;
+    if (c.pri && (!tot.pri || c.pri < tot.pri)) tot.pri = c.pri; if (c.ult && (!tot.ult || c.ult > tot.ult)) tot.ult = c.ult;
+    Object.keys(c.dias || {}).forEach(function(k){ dias[k] = (dias[k] || 0) + c.dias[k]; });
+  });
+  let h = '<div class="cup-modal-card"><div class="cup-modal-hd"><div><span class="cup-modal-sub">Histórico do cupom</span><h2>' + cupEsc(cod) + (cupEhPcd(cod) ? ' <span class="cup-tag">PCD/Idoso</span>' : '') + '</h2></div><button class="mkt-btn sm" onclick="cupHistFechar()">✕ Fechar</button></div>';
+  if (!provas.length) {
+    h += '<div class="cup-vazio">Nenhum uso de <b>' + cupEsc(cod) + '</b> nas provas com relatório.</div></div>';
+  } else {
+    h += '<div class="cup-kpis">'
+      + '<div class="cup-kpi cup-kpi-hero"><span>Usos no total</span><b>' + fmt(tot.n) + '</b><small>em ' + provas.length + ' prova' + (provas.length > 1 ? 's' : '') + '</small></div>'
+      + '<div class="cup-kpi"><span>Receita líquida</span><b>' + brl(tot.liq) + '</b><small>ticket médio ' + brl(tot.n ? tot.liq / tot.n : 0) + '</small></div>'
+      + '<div class="cup-kpi"><span>Desconto concedido</span><b>' + brl(tot.desc) + '</b><small>' + cupPctTxt(cupPct(tot.desc, tot.bruto)) + ' do valor cheio</small></div>'
+      + '<div class="cup-kpi"><span>Período</span><b style="font-size:17px">' + (tot.pri ? fmtDS(tot.pri) : '—') + '</b><small>até ' + (tot.ult ? fmtDS(tot.ult) : '—') + '</small></div></div>';
+    h += '<div class="chart-card" style="margin-bottom:14px"><h3>Usos por semana (todas as provas)</h3><div class="cup-ch" style="height:220px"><canvas id="cup-hist-ch"></canvas></div></div>';
+    h += '<div class="chart-card"><h3>Por prova</h3><div style="overflow-x:auto"><table class="data-table cup-t"><thead><tr><th>Prova</th><th class="num">Usos</th><th class="num">% dos usos do cupom</th><th class="num">% das inscrições pagas da prova</th><th class="num">Desconto</th><th class="num">Receita líquida</th><th class="num">Ticket médio</th><th class="num">Primeiro uso</th><th class="num">Último uso</th></tr></thead><tbody>';
+    provas.forEach(function(p){
+      const c = p.c;
+      h += '<tr><td><b>' + cupEsc(p.nome) + '</b>' + (p.inicio ? ' <small style="color:var(--muted)">' + fmtDS(p.inicio) + '</small>' : '') + '</td><td class="num"><b>' + fmt(c.n) + '</b></td><td class="num"><div class="cup-share"><i style="width:' + cupPct(c.n, tot.n) + '%"></i></div>' + cupPctTxt(cupPct(c.n, tot.n)) + '</td><td class="num">' + cupPctTxt(cupPct(c.n, p.d.pagos)) + '</td><td class="num">' + brl(c.desc) + '</td><td class="num">' + brl(c.liq) + '</td><td class="num">' + brl(c.n ? c.liq / c.n : 0) + '</td><td class="num">' + (c.pri ? fmtDS(c.pri) : '—') + '</td><td class="num">' + (c.ult ? fmtDS(c.ult) : '—') + '</td></tr>';
+    });
+    h += '</tbody><tfoot><tr><td><b>Total</b></td><td class="num"><b>' + fmt(tot.n) + '</b></td><td class="num">100%</td><td></td><td class="num"><b>' + brl(tot.desc) + '</b></td><td class="num"><b>' + brl(tot.liq) + '</b></td><td class="num">' + brl(tot.n ? tot.liq / tot.n : 0) + '</td><td class="num">' + (tot.pri ? fmtDS(tot.pri) : '—') + '</td><td class="num">' + (tot.ult ? fmtDS(tot.ult) : '—') + '</td></tr></tfoot></table></div>'
+      + '<div class="cup-it-nota">Conta só as provas que já têm relatório no painel (as futuras atualizam toda manhã; provas antigas entram importando o relatório delas).</div></div>';
+    h += '</div>';
+  }
+  let m = document.getElementById('cup-modal');
+  if (!m) { m = document.createElement('div'); m.id = 'cup-modal'; m.onclick = function(e){ if (e.target === m) cupHistFechar(); }; document.body.appendChild(m); }
+  m.innerHTML = h; m.style.display = 'flex'; document.body.style.overflow = 'hidden';
+  if (cupHistChart) { try { cupHistChart.destroy(); } catch (_) {} cupHistChart = null; }
+  if (provas.length && typeof Chart !== 'undefined') {
+    const sem = {}; Object.keys(dias).forEach(function(d){ const w = cupSemana(d); sem[w] = (sem[w] || 0) + dias[d]; });
+    const ws = Object.keys(sem).sort(), semanas = [];
+    if (ws.length) { const d = new Date(ws[0] + 'T12:00:00'), fim = ws[ws.length - 1]; while (d.toISOString().slice(0, 10) <= fim) { semanas.push(d.toISOString().slice(0, 10)); d.setDate(d.getDate() + 7); } }
+    const tk = {color:'#7a7068', font:{family:'Ubuntu', size:11}};
+    cupHistChart = new Chart(document.getElementById('cup-hist-ch'), {type:'bar',
+      data:{labels:semanas.map(function(w){ return fmtDS(w).slice(0, 5); }), datasets:[{data:semanas.map(function(w){ return sem[w] || 0; }), backgroundColor:'#ff751f', hoverBackgroundColor:'#e05a08', borderRadius:4, borderSkipped:'start', maxBarThickness:28}]},
+      options:{maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{title:function(c){ return 'Semana de ' + fmtDS(semanas[c[0].dataIndex]); }, label:function(c){ return fmt(c.parsed.y) + ' usos'; }}}},
+        scales:{y:{beginAtZero:true, grid:{color:'rgba(42,37,32,.07)'}, border:{display:false}, ticks:Object.assign({}, tk, {precision:0})}, x:{grid:{display:false}, border:{display:false}, ticks:Object.assign({}, tk, {maxRotation:0, autoSkip:true})}}}});
+  }
+}
+function cupHistFechar(){
+  const m = document.getElementById('cup-modal'); if (m) m.style.display = 'none';
+  document.body.style.overflow = '';
+  if (cupHistChart) { try { cupHistChart.destroy(); } catch (_) {} cupHistChart = null; }
+}
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') cupHistFechar(); });
 function cupOrdenar(col){ cupOrd = cupOrd.col === col ? {col:col, dir:-cupOrd.dir} : {col:col, dir:(col === 'c' || col === 'pos') ? 1 : -1}; cupRender(); }
 function cupRenderRank(){
   /* busca sem perder o foco do campo */
