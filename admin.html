@@ -4028,12 +4028,17 @@ async function inscImportar(input){
   if (!rows.length || inscCol(rows[0], ['Lote']) === undefined) { alert('Essa planilha não parece o "Relatório Geral" da OTicket (não achei a coluna Lote).'); return; }
 
   const grupos = {}, ordem = []; let isentos = 0, pcdN = 0, pcdDesc = 0, pcdBruto = 0, pagos = 0, fora = 0;
-  const tamIsentos = {};
+  const isG = {}, isOrd = []; /* isentas por kit: o isento também escolhe kit */
   function somaTam(alvo, r){ const v = String(inscCol(r, ['Variação Kit', 'Variacao Kit']) || '').trim(); if (v && v !== '-') alvo[v] = (alvo[v] || 0) + 1; }
   rows.forEach(function(r){
     const st = inscNorm(inscCol(r, ['Status do Pagamento'])), canc = inscNorm(inscCol(r, ['Cancelada']));
     if (canc === 'sim' || canc === 'true') { fora++; return; }
-    if (st.indexOf('isent') === 0) { isentos++; somaTam(tamIsentos, r); return; }
+    if (st.indexOf('isent') === 0) {
+      isentos++;
+      const kitI = String(inscCol(r, ['Kit']) || '').trim(), kk = inscKitNorm(kitI.replace(/\(.*$/, '')) || '-';
+      if (!isG[kk]) { isG[kk] = {kit:kitI, n:0, tams:{}}; isOrd.push(kk); }
+      isG[kk].n++; somaTam(isG[kk].tams, r); return;
+    }
     if (st && st !== 'pago' && st !== 'aprovado' && st !== 'confirmado') { fora++; return; }
     const lote = String(inscCol(r, ['Lote']) || '').trim() || 'Sem lote', kit = String(inscCol(r, ['Kit']) || '').trim();
     const liq = inscNumCel(inscCol(r, ['Valor Líquido', 'Valor'])), desc = inscNumCel(inscCol(r, ['Desconto'])), bruto = liq + desc;
@@ -4099,13 +4104,23 @@ async function inscImportar(input){
     l.liqRel = Math.round(g.liq * 100) / 100;
     if (l.proj == null || Number(l.proj) < g.n) l.proj = Math.max(Number(l.proj) || 0, g.n);
   });
-  let iIs = linhas.findIndex(function(l){ return inscNorm(l.nome) === 'isentos'; });
-  if (isentos) {
-    if (iIs < 0) { linhas.push({id:inscId(), nome:'Isentos', kit:'Isento', real:null, proj:null, valor:0, cupom:0, cash:0}); iIs = linhas.length - 1; }
-    linhas[iIs].real = isentos; linhas[iIs].valor = 0; linhas[iIs].cupom = 0; linhas[iIs].liqRel = 0;
-    if (Number(linhas[iIs].proj || 0) < isentos) linhas[iIs].proj = isentos;
-    tamanhos[inscKitKey(linhas[iIs].kit)] = tamIsentos;
-  }
+  /* isentos: uma linha "Isentos" por kit (valor 0); a antiga linha de kit "Isento" é reaproveitada */
+  function kitIgual(x, y){ const a = inscKitNorm(String(x || '').replace(/\(.*$/, '')), b = inscKitNorm(String(y || '').replace(/\(.*$/, '')); return !!(a && b && a !== '-' && b !== '-' && (a === b || a.indexOf(b) >= 0 || b.indexOf(a) >= 0)); }
+  const isLinhas = [], usadasIs = {};
+  linhas.forEach(function(l, j){ if (inscNorm(l.nome) === 'isentos') isLinhas.push(j); });
+  isOrd.forEach(function(kk){
+    const g = isG[kk];
+    const planKit = linhas.filter(function(l){ return inscNorm(l.nome) !== 'isentos' && kitIgual(l.kit, g.kit); })[0];
+    const lab = planKit ? planKit.kit : (kk !== '-' ? g.kit.replace(/\s*\(.*$/, '').trim().toUpperCase() : 'Sem kit');
+    let i = isLinhas.filter(function(j){ return !usadasIs[j] && kitIgual(linhas[j].kit, lab); })[0];
+    if (i == null) i = isLinhas.filter(function(j){ return !usadasIs[j] && ['', 'isento', 'isentos', 'sem'].indexOf(inscKitNorm(linhas[j].kit)) >= 0; })[0];
+    if (i == null) { linhas.push({id:inscId(), nome:'Isentos', kit:lab, real:null, proj:null, valor:0, cupom:0, cash:0}); i = linhas.length - 1; novas.push('Isentos / ' + lab); }
+    usadasIs[i] = 1;
+    const l = linhas[i]; l.kit = lab; l.real = g.n; l.valor = 0; l.cupom = 0; l.liqRel = 0;
+    if (Number(l.proj || 0) < g.n) l.proj = g.n;
+    const tk = inscKitKey(lab); tamanhos[tk] = tamanhos[tk] || {};
+    Object.keys(g.tams).forEach(function(x){ tamanhos[tk][x] = (tamanhos[tk][x] || 0) + g.tams[x]; });
+  });
   p.tamanhos = tamanhos;
   const pagosTot = pagos;
   /* o desconto PCD/idoso já entrou no % de cada lote importado: zera o PCD geral para não descontar duas vezes */
