@@ -17542,6 +17542,7 @@ async function pnlCarregar(){
     base.slots=(d.slots&&typeof d.slots==='object')?d.slots:{};
     base.precos=(d.precos&&typeof d.precos==='object')?d.precos:{};
     base.pos=(d.pos&&typeof d.pos==='object')?d.pos:{};
+    if(d.retirada) base.retirada=d.retirada;
   }
   if(!d||!Object.keys(base.pos).some(k=>k!=='evento')) base.pos=pnlLayoutPadrao();
   pnlDados=base; pnlCarregando=false;
@@ -17967,7 +17968,7 @@ function pnlGlobalRender(){
   evs.forEach(function(ev){
     const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
     const t=pnlTotaisEvento(d,ev.id);
-    h+='<tr><td class="ev" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')" title="Abrir o painel deste evento"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small></td>';
+    h+='<tr><td class="ev" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')" title="Abrir o painel deste evento"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small>'+pnlRetiradaSelect(ev.id,d)+'</td>';
     PNL_SLOTS.forEach(function(s){
       const v=pnlValorSlot(d,ev.id,s), g=res[pnlGrupoPreco(s)];
       g.esp++; g.pot+=v.preco; if(!v.preco)g.semPreco++;
@@ -17977,8 +17978,9 @@ function pnlGlobalRender(){
       if(mk&&mk.logo_url) lg='<div class="lg"><img src="'+patEsc(mk.logo_url)+'" alt="'+patEsc(mk.nome)+'" title="'+patEsc(mk.nome)+'"></div>';
       else if(mk) lg='<div class="lg ini" style="background:'+patCorDe(mk.nome)+'" title="'+patEsc(mk.nome)+'">'+patEsc(patIniciais(mk.nome))+'</div>';
       else lg='<div class="lg vg">vago</div>';
-      h+='<td class="c'+(mk?' ok':'')+'" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')">'+lg
-        +'<div class="vl'+(v.valor?'':' z')+'" title="'+(v.fonte==='funil'?'Valor fechado no funil':'Preço da tabela')+'">'+(v.valor?pnlBRL(v.valor):'sem valor')+(v.fonte==='funil'?' •':'')+'</div></td>';
+      const rk=d.retirada===s.id;
+      h+='<td class="c'+(mk?' ok':'')+(rk?' rk':'')+'" onclick="pnlGlobalAbrir(\''+patEsc(ev.id)+'\')"'+(rk?' title="Retirada de kit"':'')+'>'+lg
+        +'<div class="vl'+(v.valor?'':' z')+'" title="'+(v.fonte==='funil'?'Valor fechado no funil':'Preço da tabela')+'">'+(v.valor?pnlBRL(v.valor):'sem valor')+(v.fonte==='funil'?' •':'')+'</div>'+(rk?'<div class="rkt">🎽 Retirada de kit</div>':'')+'</td>';
     });
     const meta=Number(ev.meta)||0, real=pnlRealidadeEvento(ev.id);
     gPot+=t.pot; gMeta+=meta; gReal+=real;
@@ -18013,6 +18015,31 @@ function pnlGlobalRender(){
   cont.innerHTML=kpis+r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h+pprHtml(evs);
 }
 
+/* ══════════ RETIRADA DE KIT ══════════
+   Em cada evento, uma das cotas é a "Retirada de kit" (pode ser qualquer uma). Fica em pat_painel.dados.retirada
+   e pinta o card de azul nas duas tabelas (oficial e prospecção). */
+function pnlRetiradaSelect(evId,d){
+  const at=(d&&d.retirada)||'';
+  let o='<option value="">🎽 Retirada de kit: —</option>';
+  PNL_SLOTS.forEach(s=>{ o+='<option value="'+s.id+'"'+(s.id===at?' selected':'')+'>🎽 Retirada: '+patEsc(s.t)+'</option>'; });
+  return '<select class="rks" title="Qual cota é a retirada de kit neste evento" onclick="event.stopPropagation()" onchange="pnlRetiradaSalvar(\''+patEsc(evId)+'\',this.value)">'+o+'</select>';
+}
+async function pnlRetiradaSalvar(evId,slot){
+  evId=String(evId);
+  try{
+    /* lê o painel atual para não sobrescrever nada que tenha mudado */
+    const r=await rpc('pat_painel_ler',{p_evento:evId});
+    if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'sem permissão na aba Marcas':r.erro);
+    const d=(r&&r.dados&&typeof r.dados==='object'&&!Array.isArray(r.dados))?r.dados:{slots:{},precos:{}};
+    if(slot) d.retirada=slot; else delete d.retirada;
+    const s=await rpc('pat_painel_salvar',{p_evento:evId,p_dados:d});
+    if(s&&s.ok===false) throw new Error(s.erro);
+    pnlGlobal[evId]=d;
+    if(pnlDados&&String(pnlEvSel)===evId){ if(slot) pnlDados.retirada=slot; else delete pnlDados.retirada; }
+  }catch(e){ console.error(e); alert('Não consegui salvar a retirada de kit: '+(e.message||e)); }
+  pnlGlobalRender();
+}
+
 /* ══════════ MODO PROSPECÇÃO (simulação) ══════════
    Cópia do quadro "Cotas por evento" só para planejamento: a equipe clica numa vaga, põe a marca
    que está negociando e/ou muda o valor. Nada aqui mexe no painel oficial nem no funil.
@@ -18035,6 +18062,11 @@ function pprCss(){
    +'.pg-tab td.c.pr{background:#fff3e8;box-shadow:inset 0 0 0 2px #ff751f;} .pg-tab td.c.pr .vl{color:#ea580c;font-weight:700;}'
    +'.pg-tab td.c.pr .lg.vg{border-color:#ff751f;color:#ea580c;}'
    +'.pg-tab td.tt.neg b{color:#ea580c;} .pg-tab td.tt.sim b{color:#0f766e;}'
+   +'.pg-tab td.c.rk{background:#dbeafe;box-shadow:inset 0 0 0 2px #2563eb;} .pg-tab td.c.rk:hover{background:#bfdbfe;}'
+   +'.pg-tab td.c.pr.rk{box-shadow:inset 0 0 0 2px #ff751f;}'
+   +'.pg-tab td.c.rk .lg.vg{background:#fff;}'
+   +'.pg-tab .rkt{font-size:8.5px;font-weight:700;color:#1d4ed8;margin-top:2px;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px;}'
+   +'.pg-tab td.ev .rks{display:block;margin-top:4px;font-family:Ubuntu,sans-serif;font-size:10.5px;padding:2px 4px;border:1px solid rgba(37,99,235,.35);border-radius:6px;color:#1d4ed8;background:#eff6ff;max-width:100%;cursor:pointer;}'
    +'.ppr-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#7a7068;margin:4px 0 10px;} .ppr-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;}'
    +'.pg-kpis.ppr{grid-template-columns:repeat(4,1fr);} @media(max-width:900px){.pg-kpis.ppr{grid-template-columns:1fr 1fr;}}'
    +'.ppr-bg{position:fixed;inset:0;background:rgba(20,16,12,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;}'
@@ -18069,7 +18101,7 @@ function pprHtml(evs){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mkt-btn" onclick="pprZerar()">↺ Zerar simulação</button></div></div>';
   if(!pprDados) return top+'<div class="pn-cont" style="padding:14px;color:#dc2626">Não consegui carregar a simulação'+(pprErro?': '+patEsc(pprErro):'')+'.</div>';
   let gPot=0,gMeta=0,gOf=0,gNeg=0,nOf=0,nNeg=0;
-  let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Preenchida à mão na simulação</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
+  let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Preenchida à mão na simulação</span><span><i style="background:#dbeafe;border:2px solid #2563eb"></i>Retirada de kit</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
     +'<div class="pg-scroll"><table class="pg-tab"><thead><tr><th class="ev">Evento</th>';
   PNL_SLOTS.forEach(s=>{ h+='<th style="border-top:3px solid '+s.cor+'">'+patEsc(s.t)+'</th>'; });
   h+='<th class="tt">Potencial</th><th class="tt">Meta ajustada</th><th class="tt">Fechado</th><th class="tt">Em prospecção</th><th class="tt">Simulado</th></tr></thead><tbody>';
@@ -18077,17 +18109,18 @@ function pprHtml(evs){
   evs.forEach(function(ev){
     const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
     let pot=0,of=0,neg=0,no=0,nn=0;
-    h+='<tr><td class="ev" style="cursor:default"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small></td>';
+    h+='<tr><td class="ev" style="cursor:default"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small>'+pnlRetiradaSelect(ev.id,d)+'</td>';
     PNL_SLOTS.forEach(function(s){
       const c=pprCelula(d,ev,s); pot+=c.valor;
+      const rk=d.retirada===s.id;
       if(c.mk&&c.oficial){of+=c.valor;no++;} else if(c.mk&&c.manual){neg+=c.valor;nn++;}
       let lg;
       if(c.mk&&c.mk.logo_url) lg='<div class="lg"><img src="'+patEsc(c.mk.logo_url)+'" alt="'+patEsc(c.mk.nome)+'" title="'+patEsc(c.mk.nome)+'"></div>';
       else if(c.mk) lg='<div class="lg ini" style="background:'+patCorDe(c.mk.nome)+'" title="'+patEsc(c.mk.nome)+'">'+patEsc(patIniciais(c.mk.nome))+'</div>';
       else lg='<div class="lg vg">vago</div>';
-      const cls='c'+(c.manual?' pr':(c.mk?' ok':''));
+      const cls='c'+(c.manual?' pr':(c.mk?' ok':''))+(rk?' rk':'');
       h+='<td class="'+cls+'" onclick="pprAbrir(\''+patEsc(ev.id)+'\',\''+s.id+'\')" title="Clique para simular esta vaga">'+lg
-        +'<div class="vl'+(c.valor?'':' z')+'">'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div></td>';
+        +'<div class="vl'+(c.valor?'':' z')+'">'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div>'+(rk?'<div class="rkt">🎽 Retirada de kit</div>':'')+'</td>';
     });
     const meta=Number(ev.meta)||0, sim=of+neg;
     gPot+=pot; gMeta+=meta; gOf+=of; gNeg+=neg; nOf+=no; nNeg+=nn;
@@ -18216,7 +18249,7 @@ function pnlGlobalImprimir(){
   const w=window.open('','_blank'); if(!w){ alert('Libere os pop-ups para imprimir.'); return; }
   w.document.open();
   w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Resumo global de cotas</title><style>body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:16px;}h1{font-size:20px;margin:0 0 4px;}'
-    +PNL_CSS+'.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
+    +PNL_CSS+((document.getElementById('ppr-css')||{}).textContent||'')+'.pg-tab td.ev .rks{display:none;}.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
     +'<h1>Resumo global de cotas</h1><div style="font-size:12px;color:#7a7068">gerado em '+new Date().toLocaleDateString('pt-BR')+'</div>'+cont.innerHTML+'</body></html>');
   w.document.close();
   setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
