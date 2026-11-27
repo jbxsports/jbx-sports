@@ -3572,7 +3572,7 @@ async function admRestaurarSessao(){
 
 /* ── NAVEGAÇÃO ── */
 function showInner(name){
-  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas','cotasglobal':'marcas'};
+  const mapa={'fin-evento':'financeiro','config':'dash','plano-edit':'planos','funil':'marcas','patpag':'marcas','painel':'marcas','cotasglobal':'marcas','ramos':'marcas'};
   const abaReq=mapa[name]||name;
   if(abaReq==='usuarios'||abaReq==='diretoria'||abaReq==='planinsc'){if(!admUser||!admUser.master)return;}
   else if(abaReq!=='inicio'&&!admTemAba(abaReq))return;
@@ -3598,6 +3598,7 @@ function showInner(name){
   if(name==='patpag'){document.getElementById('nav-marcas').classList.add('active');ppInit();}
   if(name==='painel'){document.getElementById('nav-marcas').classList.add('active');pnlInit();}
   if(name==='cotasglobal'){document.getElementById('nav-marcas').classList.add('active');pnlGlobalInit();}
+  if(name==='ramos'){document.getElementById('nav-marcas').classList.add('active');ramInit();}
   if(name==='cruzar'){document.getElementById('nav-cruzar').classList.add('active');crzInit();}
   if(name==='campanhas'){document.getElementById('nav-campanhas').classList.add('active');cmpInit();}
   if(name==='reunioes'){document.getElementById('nav-reunioes').classList.add('active');reuInit();}
@@ -16751,6 +16752,7 @@ async function patCarregar(){
   try{
     const d=await rpc('pat_dados');
     patDados={marcas:(d&&d.marcas)||[],oportunidades:(d&&d.oportunidades)||[],contatos:(d&&d.contatos)||[]};
+    await ramoCfgCarregar();
   }catch(e){
     console.error(e);
     patDados={marcas:[],oportunidades:[],contatos:[]};
@@ -16780,14 +16782,14 @@ async function patCarregar(){
 function patSegmentos(){
   const s={};
   (patDados&&patDados.marcas||[]).forEach(m=>{if(m.segmento)s[m.segmento]=1;});
+  ((ramoCfg&&ramoCfg.extras)||[]).forEach(x=>{ if(x) s[x]=1; });
   return Object.keys(s).sort((a,b)=>a.localeCompare(b,'pt-BR'));
 }
 function patRenderMarcas(){
   const grid=document.getElementById('pt-grid');
   if(!grid||!patDados)return;
   const segs=patSegmentos();
-  const dl=document.getElementById('pt-segmentos');
-  if(dl)dl.innerHTML=segs.map(s=>'<option value="'+patEsc(s)+'">').join('');
+  ramoSelectPreencher();
   const fs=document.getElementById('pt-f-seg');
   if(fs){const v=fs.value;fs.innerHTML='<option value="">Todos os segmentos</option>'+segs.map(s=>'<option value="'+patEsc(s)+'">'+patEsc(s)+'</option>').join('');fs.value=v;}
 
@@ -16838,7 +16840,8 @@ function patAbrirMarca(id){
   const m=patMarcaAtual;
   document.getElementById('pt-form-rapido').style.display='block';
   const g=(k,v)=>{const el=document.getElementById(k);if(el)el.value=v||'';};
-  g('pt-nome',m?m.nome:''); g('pt-segmento',m?m.segmento:''); g('pt-site',m?m.site:'');
+  ramoSelectPreencher(m?m.segmento:''); g('pt-nome',m?m.nome:''); g('pt-segmento',m?m.segmento:''); g('pt-site',m?m.site:'');
+  { const bx=document.getElementById('pt-ramo-novo-box'); if(bx) bx.style.display='none'; }
   g('pt-instagram',m?m.instagram:''); g('pt-responsavel',m?m.responsavel:''); g('pt-cargo',m?m.cargo:'');
   g('pt-email',m?m.email:''); g('pt-telefone',m?m.telefone:''); g('pt-linkedin',m?m.linkedin:'');
   g('pt-observacoes',m?m.observacoes:'');
@@ -16969,7 +16972,7 @@ async function patSalvarMarca(){
       patMarcaAtual=null;
       ['pt-nome','pt-site','pt-instagram','pt-responsavel','pt-cargo','pt-email','pt-telefone','pt-linkedin','pt-observacoes','pt-logo-url']
         .forEach(k=>{document.getElementById(k).value='';});
-      document.getElementById('pt-segmento').value=seg;
+      ramoSelectPreencher(seg); document.getElementById('pt-segmento').value=seg;
       document.getElementById('pt-dup-aviso').textContent='';
       document.getElementById('pt-logo-status').textContent='';
       patPreverLogo();
@@ -17747,6 +17750,7 @@ function pnlPuxarFunil(){
   fech.forEach(function(o){
     if(usadas.indexOf(String(o.marca_id))!==-1||!patMarca(o.marca_id))return;
     const vaga=(mapa[o.cota_alvo]||[]).find(id=>!pnlDados.slots[id]);
+    if(vaga&&ramoBloqueioOficial(pnlEvSel,o.marca_id,vaga))return;
     if(vaga){ pnlDados.slots[vaga]=o.marca_id; usadas.push(String(o.marca_id)); n++; }
   });
   if(!n){ alert('Nenhuma marca nova para encaixar.\nO funil deste evento não tem marca fechada com cota Master, Ouro, Prata ou Bronze sobrando para os espaços vagos.'); return; }
@@ -17781,8 +17785,9 @@ function pnlPickLista(){
   const op=function(m){
     const o=fech[m.id], cota=o?((PAT_COTAS_ORDEM.find(x=>x.id===(o.cota_alvo||''))||{}).l||''):'';
     const lg=m.logo_url?'<div class="lg"><img src="'+patEsc(m.logo_url)+'"></div>':'<div class="lg" style="background:'+patCorDe(m.nome)+'">'+patEsc(patIniciais(m.nome))+'</div>';
-    const info=[cota, ondeEsta[m.id]&&pnlDados.slots[pnlPickSlot]!==m.id?'já em '+ondeEsta[m.id]:'', pnlDados.slots[pnlPickSlot]===m.id?'✓ escolhida':''].filter(Boolean).join(' · ');
-    return '<div class="op" onclick="pnlEscolher(\''+patEsc(String(m.id))+'\')">'+lg+'<div class="n">'+patEsc(m.nome)+(info?'<small>'+patEsc(info)+'</small>':'')+'</div></div>';
+    const blq=ramoBloqueioOficial(pnlEvSel,m.id,pnlPickSlot);
+    const info=[m.segmento||'', cota, ondeEsta[m.id]&&pnlDados.slots[pnlPickSlot]!==m.id?'já em '+ondeEsta[m.id]:'', pnlDados.slots[pnlPickSlot]===m.id?'✓ escolhida':'', blq?'⛔ ramo ocupado neste evento':''].filter(Boolean).join(' · ');
+    return '<div class="op"'+(blq?' style="opacity:.45"':'')+' onclick="pnlEscolher(\''+patEsc(String(m.id))+'\')">'+lg+'<div class="n">'+patEsc(m.nome)+(info?'<small>'+patEsc(info)+'</small>':'')+'</div></div>';
   };
   const a=marcas.filter(m=>fech[m.id]).sort((x,y)=>patCotaPeso(fech[x.id].cota_alvo)-patCotaPeso(fech[y.id].cota_alvo));
   const b=marcas.filter(m=>!fech[m.id]).sort((x,y)=>String(x.nome).localeCompare(String(y.nome),'pt-BR'));
@@ -17798,6 +17803,8 @@ function pnlEscolher(mid){
   if(mid){
     const m=(patDados.marcas||[]).find(x=>String(x.id)===String(mid));
     const real=m?m.id:mid;
+    const blq=ramoBloqueioOficial(pnlEvSel,real,alvo);
+    if(blq){ alert(blq); return; }
     Object.keys(pnlDados.slots).forEach(k=>{ if(k!==alvo&&String(pnlDados.slots[k])===String(real)) delete pnlDados.slots[k]; });
     pnlDados.slots[alvo]=real;
   } else delete pnlDados.slots[alvo];
@@ -18015,6 +18022,228 @@ function pnlGlobalRender(){
   cont.innerHTML=kpis+r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h+pprHtml(evs);
 }
 
+/* ══════════ RAMOS: uma marca por ramo em cada evento ══════════
+   Ramo = pat_marcas.segmento (lista fechada no cadastro). Configuração (ramos novos sem marca e ramos que
+   podem se repetir no mesmo evento) fica em pat_painel, linha evento_id='__ramos'.
+   Ocupação de um ramo num evento = painel oficial + funil do evento + pacote do calendário + simulação (prospecção). */
+let ramoCfg={extras:[],nao_exclusivos:[]};
+const RAMO_ABERTAS_FORA=['fechado','perdido','sem_interesse'];
+async function ramoCfgCarregar(){
+  try{ const r=await rpc('pat_painel_ler',{p_evento:'__ramos'});
+    const d=r&&r.ok!==false&&r.dados;
+    if(d&&typeof d==='object') ramoCfg={extras:Array.isArray(d.extras)?d.extras:[],nao_exclusivos:Array.isArray(d.nao_exclusivos)?d.nao_exclusivos:[]};
+  }catch(e){ console.warn('Config de ramos indisponível',e); }
+}
+async function ramoCfgSalvar(){
+  const r=await rpc('pat_painel_salvar',{p_evento:'__ramos',p_dados:ramoCfg});
+  if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'sem permissão na aba Marcas':r.erro);
+}
+function ramoNorm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+function ramoDe(mid){ const m=patMarca(mid); return (m&&m.segmento)||''; }
+function ramoExclusivo(r){ return !!r && (ramoCfg.nao_exclusivos||[]).indexOf(r)===-1; }
+/* cadastro: select fechado de ramos */
+function ramoSelectPreencher(valor){
+  const sel=document.getElementById('pt-segmento'); if(!sel)return;
+  const atual=valor!==undefined?valor:sel.value;
+  const segs=patSegmentos(); if(atual&&segs.indexOf(atual)===-1) segs.push(atual);
+  sel.innerHTML='<option value="">— escolha o ramo —</option>'+segs.map(x=>'<option value="'+patEsc(x)+'">'+patEsc(x)+'</option>').join('');
+  sel.value=atual||'';
+}
+function ramoNovoAbrir(){
+  const bx=document.getElementById('pt-ramo-novo-box'); if(!bx)return;
+  bx.style.display=bx.style.display==='none'?'block':'none';
+  document.getElementById('pt-ramo-novo-msg').textContent='';
+  if(bx.style.display==='block') setTimeout(()=>document.getElementById('pt-ramo-novo').focus(),30);
+}
+async function ramoNovoSalvar(){
+  const inp=document.getElementById('pt-ramo-novo'), msg=document.getElementById('pt-ramo-novo-msg');
+  const nome=(inp.value||'').trim().replace(/\s+/g,' ');
+  if(!nome){ msg.textContent='Digite o nome do ramo.'; return; }
+  /* compara pelo "radical" das palavras (5 letras, sem e/de/&): pega Construtora × Construtoras, Material × Materiais */
+  const rad=x=>ramoNorm(x).split(' ').filter(w=>w&&['e','de','da','do','das','dos','para'].indexOf(w)===-1).map(w=>w.slice(0,5));
+  const chave=x=>rad(x).slice().sort().join(' ');
+  const k=chave(nome);
+  const igual=patSegmentos().find(x=>chave(x)===k);
+  if(igual){ ramoSelectPreencher(igual); msg.style.color='#b45309'; msg.textContent='Já existe o ramo "'+igual+'" — selecionei ele.'; return; }
+  const rn=rad(nome).filter(w=>w.length>=4);
+  const parecido=patSegmentos().find(x=>rad(x).some(w=>w.length>=4&&rn.indexOf(w)!==-1));
+  if(parecido&&msg.dataset.conf!==k){ msg.dataset.conf=k; msg.style.color='#b45309'; msg.textContent='Parecido com "'+parecido+'". Se for o mesmo ramo, escolha ele na lista. Se for outro mesmo, clique em Criar de novo.'; return; }
+  try{
+    if(!ramoCfg.extras) ramoCfg.extras=[];
+    ramoCfg.extras.push(nome); await ramoCfgSalvar();
+    ramoSelectPreencher(nome); inp.value=''; msg.dataset.conf='';
+    msg.style.color='#15803d'; msg.textContent='✓ Ramo "'+nome+'" criado.';
+    setTimeout(()=>{ const bx=document.getElementById('pt-ramo-novo-box'); if(bx) bx.style.display='none'; },1200);
+  }catch(e){ ramoCfg.extras=(ramoCfg.extras||[]).filter(x=>x!==nome); msg.style.color='#dc2626'; msg.textContent='Não consegui criar: '+(e.message||e); }
+}
+/* quem ocupa cada ramo num evento */
+function ramoPacoteIds(){ return (typeof PAT_PACOTES!=='undefined'?PAT_PACOTES:[]).map(p=>String(p.id)); }
+function ramoOcupacao(evId,opts){
+  opts=opts||{}; evId=String(evId);
+  const pac=ramoPacoteIds(), res={};
+  const add=function(mid,est,fonte,valor){
+    if(!mid)return; const m=patMarca(mid); if(!m||!m.segmento)return;
+    const r=m.segmento, L=res[r]||(res[r]=[]);
+    let x=L.find(y=>String(y.mid)===String(mid));
+    if(!x){ x={mid:String(mid),nome:m.nome,est:est,fontes:[],valor:0}; L.push(x); }
+    if(est==='fechado') x.est='fechado';
+    if(x.fontes.indexOf(fonte)===-1) x.fontes.push(fonte);
+    x.valor+=Number(valor)||0;
+  };
+  const ops=(patDados&&patDados.oportunidades)||[];
+  if(pac.indexOf(evId)===-1){
+    const d=(opts.painel!==undefined?opts.painel:(pnlGlobal&&pnlGlobal[evId]))||null;
+    if(d&&d.slots) Object.keys(d.slots).forEach(k=>add(d.slots[k],'fechado','painel',0));
+    ops.filter(o=>String(o.evento_id)===evId).forEach(o=>{
+      if(o.etapa==='fechado') add(o.marca_id,'fechado','funil',o.valor_estimado);
+      else if(RAMO_ABERTAS_FORA.indexOf(o.etapa)===-1) add(o.marca_id,'neg','funil',o.valor_estimado);
+    });
+    if(!opts.semPacote) ops.filter(o=>pac.indexOf(String(o.evento_id))!==-1).forEach(o=>{
+      if(o.etapa==='fechado') add(o.marca_id,'fechado','pacote',0);
+      else if(RAMO_ABERTAS_FORA.indexOf(o.etapa)===-1) add(o.marca_id,'neg','pacote',0);
+    });
+    if(!opts.semSimulacao&&pprDados&&pprDados[evId]&&pprDados[evId].slots){
+      const sl=pprDados[evId].slots;
+      Object.keys(sl).forEach(k=>{ const o=sl[k]; if(o&&!o.vago&&o.marca_id) add(o.marca_id,'neg','simulação',o.valor); });
+    }
+  } else {
+    ops.filter(o=>String(o.evento_id)===evId).forEach(o=>{
+      if(o.etapa==='fechado') add(o.marca_id,'fechado','pacote',o.valor_estimado);
+      else if(RAMO_ABERTAS_FORA.indexOf(o.etapa)===-1) add(o.marca_id,'neg','pacote',o.valor_estimado);
+    });
+  }
+  return res;
+}
+function ramoConflito(lista,r){ return ramoExclusivo(r)&&lista&&lista.length>1; }
+/* painel oficial: bloqueia marca cujo ramo já está fechado com outra marca no evento */
+function ramoBloqueioOficial(evId,mid,slotAlvo){
+  const r=ramoDe(mid); if(!r||!ramoExclusivo(r))return '';
+  const painel={slots:{}}; Object.keys((pnlDados&&pnlDados.slots)||{}).forEach(k=>{ if(k!==slotAlvo) painel.slots[k]=pnlDados.slots[k]; });
+  const oc=ramoOcupacao(evId,{painel:painel,semSimulacao:true})[r]||[];
+  const outra=oc.find(x=>x.mid!==String(mid)&&x.est==='fechado');
+  return outra?'O ramo "'+r+'" já tem '+outra.nome+' fechada neste evento ('+outra.fontes.join(' + ')+').\nCada evento só pode ter uma marca por ramo.':'';
+}
+
+/* ── tela Ramos ── */
+async function ramInit(forcar){
+  pnlCss(); ramCss();
+  const cont=document.getElementById('rm-cont'); if(!cont)return;
+  cont.innerHTML='<div class="pn-cont" style="padding:20px">Carregando…</div>';
+  try{
+    if(!patDados||forcar) await patCarregar(); else await ramoCfgCarregar();
+    if(!pnlGlobal||forcar){
+      const r=await rpc('pat_painel_listar');
+      if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'Sem permissão na aba Marcas':r.erro);
+      pnlGlobal={}; ((r&&r.linhas)||[]).forEach(l=>{ pnlGlobal[String(l.evento_id)]=l.dados||{}; });
+    }
+    if(!pprDados||forcar) await pprCarregar();
+  }catch(e){ cont.innerHTML='<div class="pn-cont" style="padding:20px;color:#dc2626">Não consegui carregar: '+patEsc(e.message||e)+'</div>'; return; }
+  ramRender();
+}
+function ramCss(){
+  if(document.getElementById('rm-css'))return;
+  const s=document.createElement('style'); s.id='rm-css';
+  s.textContent='.rm-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;} @media(max-width:900px){.rm-kpis{grid-template-columns:1fr 1fr;}}'
+   +'.rm-kpis>div{background:#fff;border:1px solid rgba(42,37,32,.10);border-radius:14px;padding:14px 16px;} .rm-kpis small{display:block;font-size:10.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#7a7068;} .rm-kpis b{display:block;font-size:26px;margin:4px 0 2px;} .rm-kpis span{font-size:11.5px;color:#7a7068;}'
+   +'.rm-scroll{overflow:auto;max-height:75vh;border:1px solid rgba(42,37,32,.10);border-radius:12px;background:#fff;}'
+   +'.rm-tab{border-collapse:separate;border-spacing:0;font-size:11px;min-width:100%;}'
+   +'.rm-tab th{position:sticky;top:0;background:#faf9f7;z-index:2;font-size:9.5px;letter-spacing:.5px;text-transform:uppercase;color:#7a7068;padding:8px 6px;border-bottom:1px solid rgba(42,37,32,.10);white-space:nowrap;}'
+   +'.rm-tab th small{display:block;font-weight:400;letter-spacing:0;text-transform:none;font-size:9.5px;}'
+   +'.rm-tab td{border-bottom:1px solid rgba(42,37,32,.07);border-right:1px solid rgba(42,37,32,.05);padding:5px;vertical-align:top;min-width:92px;}'
+   +'.rm-tab .rn{position:sticky;left:0;background:#fff;z-index:1;min-width:190px;max-width:230px;border-right:1px solid rgba(42,37,32,.12);}'
+   +'.rm-tab th.rn{z-index:3;background:#faf9f7;text-align:left;}'
+   +'.rm-tab td.rn b{display:block;font-size:12.5px;} .rm-tab td.rn label{display:inline-flex;gap:4px;align-items:center;font-size:10.5px;color:#7a7068;margin-top:3px;cursor:pointer;}'
+   +'.rm-tab td.pc{background:#f5f3ff;} .rm-tab th.pc{background:#ede9fe;color:#6d28d9;}'
+   +'.rm-tab td.cf{background:#fee2e2!important;outline:2px solid #dc2626;outline-offset:-2px;}'
+   +'.rm-tab td.lv{color:#c9c1b8;text-align:center;}'
+   +'.rm-tab td.tt{text-align:right;white-space:nowrap;min-width:96px;} .rm-tab td.tt b{display:block;font-size:12px;} .rm-tab td.tt small{color:#7a7068;font-size:10px;}'
+   +'.rm-ch{display:flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:999px;margin:2px 0;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;}'
+   +'.rm-ch.f{background:#dcfce7;color:#166534;} .rm-ch.n{background:#fff;border:1.5px solid #f59e0b;color:#92400e;}'
+   +'.rm-ch i{width:7px;height:7px;border-radius:50%;flex:none;} .rm-cfw{font-size:9.5px;font-weight:700;color:#b91c1c;}'
+   +'.rm-st{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;margin-top:4px;}'
+   +'.rm-st.v{background:#dcfce7;color:#166534;} .rm-st.d{background:#fee2e2;color:#b91c1c;} .rm-st.p{background:#fef3c7;color:#92400e;} .rm-st.l{background:#f1f5f9;color:#64748b;}'
+   +'.rm-leg .rm-ch{max-width:none;}'
+   +'.rm-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#7a7068;margin:8px 0 10px;align-items:center;}'
+   +'.rm-livres{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;} .rm-livres span{font-size:11.5px;padding:3px 10px;border-radius:999px;background:#f1f5f9;color:#475569;}'
+   +'.rm-filtro{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:4px 0 10px;} .rm-filtro button.on{background:#2a2520;color:#fff;border-color:#2a2520;}';
+  document.head.appendChild(s);
+}
+let ramFiltro='ativos';
+function ramFiltrar(f){ ramFiltro=f; ramRender(); }
+async function ramExclusivo(r,on){
+  const L=ramoCfg.nao_exclusivos||(ramoCfg.nao_exclusivos=[]);
+  const i=L.indexOf(r); if(on&&i!==-1)L.splice(i,1); if(!on&&i===-1)L.push(r);
+  ramRender();
+  try{ await ramoCfgSalvar(); }catch(e){ alert('Não consegui salvar: '+(e.message||e)); }
+}
+function ramRender(){
+  const cont=document.getElementById('rm-cont'); if(!cont||!patDados)return;
+  const hj=new Date().toISOString().slice(0,10);
+  const evs=patEventos.filter(e=>!e.pacote&&e.data>=hj);
+  const pac=(typeof PAT_PACOTES!=='undefined'?PAT_PACOTES:[]);
+  const ramos=patSegmentos();
+  const occEv={}; evs.forEach(e=>{ occEv[e.id]=ramoOcupacao(e.id); });
+  const occPac={}; pac.forEach(p=>{ occPac[p.id]=ramoOcupacao(p.id); });
+  const cores=pprMapaCores();
+  const linhas=ramos.map(function(r){
+    let fech=0,neg=0,livres=0,conf=0; const marcasF={},marcasN={};
+    const cel=[];
+    pac.forEach(p=>{ const L=occPac[p.id][r]||[]; L.forEach(x=>{ if(x.est==='fechado'){fech+=x.valor;marcasF[x.nome]=1;} else {neg+=x.valor;marcasN[x.nome]=1;} }); if(ramoConflito(L,r))conf++; cel.push({L:L,pc:true}); });
+    evs.forEach(e=>{
+      const L=occEv[e.id][r]||[];
+      L.forEach(x=>{ if(x.fontes.indexOf('pacote')!==-1&&x.fontes.length===1)return; if(x.est==='fechado'){fech+=x.valor;marcasF[x.nome]=1;} else {neg+=x.valor;marcasN[x.nome]=1;} });
+      if(!L.length)livres++; if(ramoConflito(L,r))conf++;
+      cel.push({L:L});
+    });
+    const ativo=cel.some(c=>c.L.length);
+    const st=conf?{c:'d',t:'⚠ '+conf+' conflito'+(conf>1?'s':'')}:Object.keys(marcasF).length?{c:'v',t:'vendido'}:ativo?{c:'p',t:'em negociação'}:{c:'l',t:'ninguém prospectando'};
+    return {r:r,cel:cel,fech:fech,neg:neg,livres:livres,conf:conf,ativo:ativo,st:st,nF:Object.keys(marcasF).length,nN:Object.keys(marcasN).length};
+  });
+  const ativos=linhas.filter(l=>l.ativo), parados=linhas.filter(l=>!l.ativo);
+  const tF=linhas.reduce((a,l)=>a+l.fech,0), tN=linhas.reduce((a,l)=>a+l.neg,0);
+  const nConf=linhas.filter(l=>l.conf).length, nVend=linhas.filter(l=>l.nF).length;
+  let h='<div class="rm-kpis">'
+    +'<div><small>Ramos com venda</small><b style="color:#15803d">'+nVend+'</b><span>de '+linhas.length+' ramos · '+pnlBRL(tF)+' fechado</span></div>'
+    +'<div><small>Em negociação</small><b style="color:#b45309">'+pnlBRL(tN)+'</b><span>funil + simulação, por ramo</span></div>'
+    +'<div><small>Ramos em disputa</small><b style="color:#dc2626">'+nConf+'</b><span>duas marcas do mesmo ramo no mesmo evento</span></div>'
+    +'<div><small>Ninguém prospectando</small><b style="color:#64748b">'+parados.length+'</b><span>ramos sem nenhuma marca em evento</span></div></div>';
+  h+='<div class="rm-filtro"><button class="mkt-btn sm'+(ramFiltro==='ativos'?' on':'')+'" onclick="ramFiltrar(\'ativos\')">Com atividade ('+ativos.length+')</button>'
+    +'<button class="mkt-btn sm'+(ramFiltro==='conf'?' on':'')+'" onclick="ramFiltrar(\'conf\')">Só conflitos ('+nConf+')</button>'
+    +'<button class="mkt-btn sm'+(ramFiltro==='todos'?' on':'')+'" onclick="ramFiltrar(\'todos\')">Todos ('+linhas.length+')</button></div>';
+  h+='<div class="rm-leg"><span class="rm-ch f" style="display:inline-flex"><i style="background:#16a34a"></i>fechado</span><span class="rm-ch n" style="display:inline-flex"><i style="background:#f59e0b"></i>negociando (funil / simulação na cor da empresa)</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:5px"><i style="display:inline-block;width:14px;height:14px;background:#fee2e2;outline:2px solid #dc2626;outline-offset:-2px"></i>conflito</span><span>· vazio = ramo livre no evento · negociação de pacote vale para todos os eventos</span></div>';
+  let mostrar=ramFiltro==='todos'?linhas:ramFiltro==='conf'?linhas.filter(l=>l.conf):ativos;
+  mostrar=mostrar.slice().sort((a,b)=>(b.conf>0)-(a.conf>0)||(b.fech+b.neg)-(a.fech+a.neg)||a.r.localeCompare(b.r,'pt-BR'));
+  h+='<div class="rm-scroll"><table class="rm-tab"><thead><tr><th class="rn">Ramo</th>';
+  pac.forEach(p=>{ h+='<th class="pc">'+patEsc(p.nome)+'<small>pacote</small></th>'; });
+  evs.forEach(e=>{ h+='<th title="'+patEsc(e.nome)+'">'+patEsc(e.nome.length>16?e.nome.slice(0,15)+'…':e.nome)+'<small>'+e.data.split('-').reverse().slice(0,2).join('/')+'</small></th>'; });
+  h+='<th>Fechado</th><th>Negociação</th><th>Livres</th></tr></thead><tbody>';
+  if(!mostrar.length) h+='<tr><td class="rn" colspan="'+(evs.length+pac.length+4)+'" style="padding:18px;color:#7a7068">Nada para mostrar neste filtro.</td></tr>';
+  mostrar.forEach(function(l){
+    const ex=ramoExclusivo(l.r);
+    h+='<tr><td class="rn"><b>'+patEsc(l.r)+'</b><span class="rm-st '+l.st.c+'">'+l.st.t+'</span><br><label><input type="checkbox" '+(ex?'checked':'')+' onchange="ramExclusivo(\''+patEsc(l.r).replace(/'/g,"\\'")+'\',this.checked)"> exclusivo no evento</label></td>';
+    l.cel.forEach(function(c){
+      const cf=ramoConflito(c.L,l.r);
+      if(!c.L.length){ h+='<td class="lv'+(c.pc?' pc':'')+'">·</td>'; return; }
+      h+='<td class="'+(c.pc?'pc':'')+(cf?' cf':'')+'" title="'+patEsc(c.L.map(x=>x.nome+' ('+(x.est==='fechado'?'fechado':'negociando')+' · '+x.fontes.join(' + ')+')').join('\n'))+'">';
+      if(cf) h+='<div class="rm-cfw">⚠ '+c.L.length+' marcas</div>';
+      c.L.slice().sort((a,b)=>(a.est==='fechado'?0:1)-(b.est==='fechado'?0:1)).forEach(function(x){
+        const cor=cores['m:'+x.mid];
+        if(x.est==='fechado') h+='<div class="rm-ch f"><i style="background:#16a34a"></i>'+patEsc(x.nome)+'</div>';
+        else h+='<div class="rm-ch n"'+(cor?' style="border-color:'+cor+';color:'+cor+'"':'')+'><i style="background:'+(cor||'#f59e0b')+'"></i>'+patEsc(x.nome)+'</div>';
+      });
+      h+='</td>';
+    });
+    h+='<td class="tt"><b style="color:#15803d">'+pnlBRL(l.fech)+'</b><small>'+l.nF+' marca(s)</small></td>'
+      +'<td class="tt"><b style="color:#b45309">'+pnlBRL(l.neg)+'</b><small>'+l.nN+' marca(s)</small></td>'
+      +'<td class="tt"><b>'+l.livres+'/'+evs.length+'</b><small>eventos</small></td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(ramFiltro==='ativos'&&parados.length) h+='<div class="pn-h" style="margin-top:18px">Ramos sem ninguém prospectando ('+parados.length+')</div><div class="rm-livres">'+parados.map(l=>'<span>'+patEsc(l.r)+'</span>').join('')+'</div>';
+  h+='<div class="pn-dica">Ramo de cada marca = campo Ramo no cadastro (Marcas). Um ramo marcado como exclusivo só pode ter uma marca por evento, em qualquer cota. No Painel de cotas oficial o sistema bloqueia uma segunda marca fechada do mesmo ramo; na prospecção permite, mas marca o conflito. Valores: fechado e negociação vêm do funil (valor estimado) e da simulação.</div>';
+  cont.innerHTML=h;
+}
+
 /* ══════════ RETIRADA DE KIT ══════════
    Em cada evento, uma das cotas é a "Retirada de kit" (pode ser qualquer uma). Fica em pat_painel.dados.retirada
    e pinta o card de azul nas duas tabelas (oficial e prospecção). */
@@ -18088,6 +18317,7 @@ function pprCss(){
    +'.ppr-md select,.ppr-md input[type=text],.ppr-md input[type=number]{width:100%;font-family:Ubuntu,sans-serif;font-size:13px;padding:8px 10px;border:1px solid rgba(42,37,32,.18);border-radius:9px;box-sizing:border-box;}'
    +'.ppr-md .of{font-size:11.5px;color:#7a7068;background:#faf9f7;border-radius:8px;padding:7px 9px;margin-top:4px;}'
    +'.ppr-md button:disabled{opacity:.4;cursor:not-allowed;}'
+   +'.pg-tab .ppr-cf{font-size:8.5px;font-weight:700;color:#fff;background:#dc2626;border-radius:4px;padding:1px 4px;margin-top:3px;display:inline-block;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
    +'.ppr-emp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11.5px;margin:8px 0 10px;} .ppr-emp b{margin-right:4px;color:#2a2520;}'
    +'.ppr-emp span{display:inline-flex;align-items:center;gap:6px;border:1.5px solid;border-radius:999px;padding:3px 10px 3px 6px;font-weight:700;color:#2a2520;-webkit-print-color-adjust:exact;print-color-adjust:exact;} .ppr-emp i{width:11px;height:11px;border-radius:50%;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
    +'.ppr-md .bt{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:16px;}'
@@ -18138,7 +18368,7 @@ function pprHtml(evs){
   if(!evs.length) h+='<tr><td colspan="'+(PNL_SLOTS.length+6)+'" class="pn-cont" style="padding:20px">Nenhum evento.</td></tr>';
   evs.forEach(function(ev){
     const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
-    let pot=0,of=0,neg=0,no=0,nn=0;
+    let pot=0,of=0,neg=0,no=0,nn=0,occ=null;
     h+='<tr><td class="ev" style="cursor:default"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small>'+pnlRetiradaSelect(ev.id,d)+'</td>';
     PNL_SLOTS.forEach(function(s){
       const c=pprCelula(d,ev,s); pot+=c.valor;
@@ -18150,9 +18380,16 @@ function pprHtml(evs){
       else lg='<div class="lg vg">vago</div>';
       const cls='c'+(c.manual?' pr':(c.mk?' ok':''))+(rk?' rk':'');
       const cor=c.manual&&c.key?pprCorDe(c.key):'';
+      let cfT='';
+      if(c.mk&&c.mk.id&&c.mk.segmento&&ramoExclusivo(c.mk.segmento)){
+        const oc=(occ||(occ=ramoOcupacao(ev.id)))[c.mk.segmento]||[];
+        const outros=oc.filter(x=>x.mid!==String(c.mk.id));
+        if(outros.length) cfT=c.mk.segmento+': também '+outros.map(x=>x.nome+(x.est==='fechado'?' (fechado)':' (negociando)')).join(', ');
+      }
       if(cor){ const e=emp[c.key]||(emp[c.key]={nome:c.nome,cor:cor,n:0,v:0}); e.n++; e.v+=c.valor; }
       const st=cor?' style="outline-color:'+cor+';'+(rk?'':'background:'+pprTinta(cor,.13)+'!important;')+'"':'';
       h+='<td class="'+cls+'"'+st+' onclick="pprAbrir(\''+patEsc(ev.id)+'\',\''+s.id+'\')" title="'+(c.nome?patEsc(c.nome)+' · ':'')+'Clique para simular esta vaga">'+lg
+        +(cfT?'<div class="ppr-cf" title="'+patEsc(cfT)+'">⚠ conflito de ramo</div>':'')
         +'<div class="vl'+(c.valor?'':' z')+'"'+(cor?' style="color:'+cor+'!important"':'')+'>'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div>'+(rk?'<div class="rkt">🎽 Retirada de kit</div>':'')+'</td>';
     });
     const meta=Number(ev.meta)||0, sim=of+neg;
@@ -18210,12 +18447,15 @@ function pprAbrir(evId,slotId){
   const marcas=(patDados&&patDados.marcas||[]).slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
   const negIds=[...new Set((patDados&&patDados.oportunidades||[]).filter(x=>String(x.evento_id)===String(evId)&&x.etapa!=='fechado'&&x.etapa!=='perdido').map(x=>String(x.marca_id)))];
   let sel='vago'; if(o){ if(o.vago) sel='vago'; else if(o.marca_id) sel='m:'+o.marca_id; else if(o.nome) sel='outra'; else sel=offMk?'oficial':'vago'; } else if(offMk) sel='oficial';
+  const occE=ramoOcupacao(evId,{semSimulacao:true});
+  const rotM=m=>{ const r=m.segmento||''; const oc=(r&&ramoExclusivo(r)&&occE[r]||[]).filter(x=>x.mid!==String(m.id));
+    return m.nome+(r?' · '+r:'')+(oc.length?'  ⚠ ramo já tem '+oc.map(x=>x.nome).join(', '):''); };
   const opt=(v,t)=>'<option value="'+patEsc(v)+'"'+(v===sel?' selected':'')+'>'+patEsc(t)+'</option>';
   let ops=opt('vago','— Vaga (sem marca) —');
   if(offMk) ops+=opt('oficial','Oficial: '+offMk.nome);
   const neg=marcas.filter(m=>negIds.indexOf(String(m.id))!==-1);
-  if(neg.length) ops+='<optgroup label="Negociando neste evento">'+neg.map(m=>opt('m:'+m.id,m.nome)).join('')+'</optgroup>';
-  ops+='<optgroup label="Todas as marcas">'+marcas.map(m=>opt('m:'+m.id,m.nome)).join('')+'</optgroup>';
+  if(neg.length) ops+='<optgroup label="Negociando neste evento">'+neg.map(m=>opt('m:'+m.id,rotM(m))).join('')+'</optgroup>';
+  ops+='<optgroup label="Todas as marcas">'+marcas.map(m=>opt('m:'+m.id,rotM(m))).join('')+'</optgroup>';
   ops+=opt('outra','Outra marca (digitar nome)…');
   const vAtual=o&&o.valor!==undefined&&o.valor!==null&&o.valor!==''?o.valor:'';
   const bg=document.createElement('div'); bg.className='ppr-bg'; bg.id='ppr-bg';
@@ -19050,7 +19290,8 @@ const INI_ORG=[
      {id:'funil',        rot:'Funil de patrocínio', ic:'🎯'},
      {id:'patpag',       rot:'Pagamentos',      ic:'💳'},
      {id:'painel',       rot:'Painel de cotas', ic:'🎽'},
-     {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'}]},
+     {id:'cotasglobal',  rot:'Resumo de cotas', ic:'📊'},
+     {id:'ramos',        rot:'Ramos',           ic:'🧩'}]},
   {id:'diretoria',  rot:'Diretoria',    ic:'🏛️', cor:'#EAB308', sub:'Meta x real', tracejado:true, cima:true},
   {id:'usuarios',   rot:'Usuários',     ic:'🔑', cor:'#94A3B8', sub:'Acessos', tracejado:true, cima:true}
 ];
@@ -19058,7 +19299,7 @@ let iniFeito=false;
 function iniPode(id){
   if(!id)return false;
   if(id==='usuarios'||id==='diretoria'||id==='planinsc') return !!(admUser&&admUser.master);
-  if(id==='funil'||id==='painel'||id==='patpag'||id==='cotasglobal') return admTemAba('marcas')||admTemAba(id);
+  if(id==='funil'||id==='painel'||id==='patpag'||id==='cotasglobal'||id==='ramos') return admTemAba('marcas')||admTemAba(id);
   return admTemAba(id);
 }
 function iniCard(no,cor,filho){
@@ -20908,6 +21149,7 @@ document.addEventListener('DOMContentLoaded',function(){
             <button class="mkt-btn" onclick="showInner('patpag')">💳 Pagamentos</button>
             <button class="mkt-btn" onclick="showInner('painel')">🎽 Painel de cotas</button>
             <button class="mkt-btn" onclick="showInner('cotasglobal')">📊 Resumo de cotas</button>
+            <button class="mkt-btn" onclick="showInner('ramos')">🧩 Ramos</button>
             <button class="mkt-btn" onclick="showInner('funil')">Funil de Patrocínio →</button>
             <button class="mkt-btn primary" onclick="patNovaMarca()">＋ Nova marca</button>
           </div>
@@ -20927,7 +21169,7 @@ document.addEventListener('DOMContentLoaded',function(){
             <div style="flex:1;min-width:280px;">
               <div class="pt-form-l">
                 <div class="pt-fg"><label>Marca *</label><input type="text" id="pt-nome" placeholder="Ex: Café Evoluto" oninput="patChecarDuplicada()"></div>
-                <div class="pt-fg"><label>Segmento</label><input type="text" id="pt-segmento" list="pt-segmentos" placeholder="Ex: Alimentos"><datalist id="pt-segmentos"></datalist></div>
+                <div class="pt-fg"><label>Ramo</label><div style="display:flex;gap:6px"><select id="pt-segmento" style="flex:1;min-width:0"><option value="">— escolha o ramo —</option></select><button type="button" class="mkt-btn sm" onclick="ramoNovoAbrir()" title="Criar um ramo que ainda não existe">＋ novo</button></div><div id="pt-ramo-novo-box" style="display:none;margin-top:6px"><div style="display:flex;gap:6px"><input type="text" id="pt-ramo-novo" placeholder="Nome do novo ramo" style="flex:1;min-width:0" onkeydown="if(event.key==='Enter'){event.preventDefault();ramoNovoSalvar();}"><button type="button" class="mkt-btn sm primary" onclick="ramoNovoSalvar()">Criar</button></div><div id="pt-ramo-novo-msg" style="font-size:11.5px;margin-top:4px;color:#b45309"></div></div></div>
                 <div class="pt-fg"><label>Site</label><input type="text" id="pt-site" placeholder="marca.com.br"></div>
                 <div class="pt-fg"><label>Instagram</label><input type="text" id="pt-instagram" placeholder="@marca"></div>
                 <div class="pt-fg"><label>Responsável</label><input type="text" id="pt-responsavel" placeholder="Nome do contato"></div>
@@ -21459,6 +21701,21 @@ document.addEventListener('DOMContentLoaded',function(){
       </div>
 
       <!-- TELA: RESUMO GLOBAL DE COTAS -->
+      <!-- TELA: RAMOS (exclusividade por ramo em cada evento) -->
+      <div class="inner-screen" id="screen-ramos">
+        <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button class="mkt-btn sm" onclick="showInner('marcas')">← Marcas</button>
+            <h1>Ramos</h1>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="mkt-btn" onclick="showInner('cotasglobal')">📊 Resumo de cotas</button>
+            <button class="mkt-btn" onclick="ramInit(true)">↻ Atualizar</button>
+          </div>
+        </div>
+        <div id="rm-cont"></div>
+      </div>
+
       <div class="inner-screen" id="screen-cotasglobal">
         <div class="page-hd" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -21466,6 +21723,7 @@ document.addEventListener('DOMContentLoaded',function(){
             <h1>Resumo global de cotas</h1>
           </div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="mkt-btn" onclick="showInner('ramos')">🧩 Ramos</button>
             <button class="mkt-btn" id="pg-passados" onclick="pnlGlobalAlternarPassados()">Mostrar eventos passados</button>
             <button class="mkt-btn primary" onclick="pnlGlobalImprimir()">🖨 Imprimir / PDF</button>
           </div>
