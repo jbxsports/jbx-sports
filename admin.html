@@ -3482,7 +3482,8 @@ const RPC_PROTEGIDAS=['orc_status','orc_de_proposta','orc_itens_ordenar','orc_li
   'admin_proposta_versoes','admin_proposta_versao_criar','admin_proposta_versao_envio',
   'admin_proposta_versao_rotulo','admin_proposta_versoes_rotulos',
   'dir_dados','dir_evento_salvar','dir_config_salvar','insc_planos_listar','insc_plano_salvar','insc_plano_excluir',
-  'cupons_uso_listar','cupons_uso_salvar'];
+  'cupons_uso_listar','cupons_uso_salvar',
+  'pat_prosp_listar','pat_prosp_salvar','pat_prosp_zerar'];
 async function rpc(fn,params={}){
   if(RPC_PROTEGIDAS.indexOf(fn)!==-1) params=Object.assign({},params,{p_token:admToken});
   const r=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json','x-client-info':admToken||''},body:JSON.stringify(params)});
@@ -17938,6 +17939,7 @@ async function pnlGlobalInit(){
     pnlGlobal={};
     ((r&&r.linhas)||[]).forEach(l=>{ pnlGlobal[String(l.evento_id)]=l.dados||{}; });
   }catch(e){ console.error(e); if(cont) cont.innerHTML='<div class="pn-cont" style="padding:20px;color:#dc2626">Não consegui carregar: '+patEsc(e.message||e)+'</div>'; return; }
+  await pprCarregar();
   pnlGlobalRender();
 }
 function pnlRealidadeEvento(evId){
@@ -18008,7 +18010,206 @@ function pnlGlobalRender(){
     +'<div class="pn-dica">Potencial = preço da tabela × espaços (o preço de cada cota se define dentro do Painel de cotas de cada evento). '
     +'Meta ajustada = meta de patrocínio do evento no Calendário. Realidade por evento = total fechado no funil; por cota = valor das marcas posicionadas na camiseta (valor do funil, marcado com •, ou preço da tabela).'
     +(ts?' <b style="color:#b45309">'+ts+' espaço(s) estão sem preço definido.</b>':'')+'</div>';
-  cont.innerHTML=kpis+r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h;
+  cont.innerHTML=kpis+r+'<div class="pn-h" style="margin-top:22px">Cotas por evento</div>'+h+pprHtml(evs);
+}
+
+/* ══════════ MODO PROSPECÇÃO (simulação) ══════════
+   Cópia do quadro "Cotas por evento" só para planejamento: a equipe clica numa vaga, põe a marca
+   que está negociando e/ou muda o valor. Nada aqui mexe no painel oficial nem no funil.
+   Banco: pat_prosp (evento_id, dados jsonb {slots:{<slot>:{marca_id|nome,logo,valor,vago}}}) via pat_prosp_listar / pat_prosp_salvar. */
+let pprDados=null, pprErro='', pprEd=null;
+async function pprCarregar(){
+  pprErro='';
+  try{
+    const r=await rpc('pat_prosp_listar');
+    if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'Sem permissão na aba Marcas':r.erro);
+    pprDados={};
+    ((r&&r.linhas)||[]).forEach(l=>{ pprDados[String(l.evento_id)]=l.dados||{}; });
+  }catch(e){ console.error(e); pprDados=null; pprErro=String(e.message||e); }
+}
+function pprCss(){
+  if(document.getElementById('ppr-css'))return;
+  const s=document.createElement('style'); s.id='ppr-css';
+  s.textContent='.ppr-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:34px;padding-top:18px;border-top:2px dashed rgba(255,117,31,.35);}'
+   +'.ppr-hd .pn-h{margin:0 0 4px;} .ppr-sub{font-size:12px;color:#7a7068;margin-bottom:10px;}'
+   +'.pg-tab td.c.pr{background:#fff3e8;box-shadow:inset 0 0 0 2px #ff751f;} .pg-tab td.c.pr .vl{color:#ea580c;font-weight:700;}'
+   +'.pg-tab td.c.pr .lg.vg{border-color:#ff751f;color:#ea580c;}'
+   +'.pg-tab td.tt.neg b{color:#ea580c;} .pg-tab td.tt.sim b{color:#0f766e;}'
+   +'.ppr-leg{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:#7a7068;margin:4px 0 10px;} .ppr-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px;}'
+   +'.pg-kpis.ppr{grid-template-columns:repeat(4,1fr);} @media(max-width:900px){.pg-kpis.ppr{grid-template-columns:1fr 1fr;}}'
+   +'.ppr-bg{position:fixed;inset:0;background:rgba(20,16,12,.45);z-index:9000;display:flex;align-items:center;justify-content:center;padding:16px;}'
+   +'.ppr-md{background:#fff;border-radius:16px;padding:18px 20px;width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,.25);}'
+   +'.ppr-md h3{margin:0 0 2px;font-size:16px;} .ppr-md .s{font-size:12px;color:#7a7068;margin-bottom:12px;}'
+   +'.ppr-md label{display:block;font-size:11px;font-weight:700;margin:10px 0 4px;color:#2a2520;}'
+   +'.ppr-md select,.ppr-md input[type=text],.ppr-md input[type=number]{width:100%;font-family:Ubuntu,sans-serif;font-size:13px;padding:8px 10px;border:1px solid rgba(42,37,32,.18);border-radius:9px;box-sizing:border-box;}'
+   +'.ppr-md .of{font-size:11.5px;color:#7a7068;background:#faf9f7;border-radius:8px;padding:7px 9px;margin-top:4px;}'
+   +'.ppr-md .bt{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:16px;}'
+   +'.ppr-md .pv{display:flex;align-items:center;gap:10px;margin-top:6px;} .ppr-md .pv .lg{width:70px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(42,37,32,.1);color:#fff;font-weight:700;font-size:12px;}'
+   +'.ppr-md .pv .lg img{max-width:92%;max-height:90%;object-fit:contain;}';
+  document.head.appendChild(s);
+}
+/* estado de uma vaga na simulação: parte do oficial e aplica o que a equipe pôs à mão */
+function pprCelula(d,ev,s){
+  const v=pnlValorSlot(d,ev.id,s);
+  const offMk=v.vendido?patMarca(d.slots[s.id]):null;
+  const o=pprDados&&pprDados[String(ev.id)]&&pprDados[String(ev.id)].slots&&pprDados[String(ev.id)].slots[s.id];
+  if(!o) return {mk:offMk,valor:offMk?v.valor:v.preco,preco:v.preco,oficial:!!offMk,manual:false,funil:v.fonte==='funil'};
+  let mk=null;
+  if(o.vago) mk=null;
+  else if(o.marca_id) mk=patMarca(o.marca_id)||(o.nome?{nome:o.nome,logo_url:o.logo||''}:null);
+  else if(o.nome) mk={nome:o.nome,logo_url:o.logo||''};
+  else mk=offMk;
+  const temV=o.valor!==undefined&&o.valor!==null&&o.valor!=='';
+  return {mk:mk,valor:temV?Number(o.valor)||0:(mk&&offMk&&mk===offMk?v.valor:v.preco),preco:v.preco,oficial:false,manual:true,funil:false};
+}
+function pprHtml(evs){
+  pprCss();
+  let top='<div class="ppr-hd"><div><div class="pn-h">🧪 Modo prospecção · simulação</div>'
+    +'<div class="ppr-sub">Cópia do quadro acima só para planejamento. Clique numa vaga para colocar a marca que está negociando ou mudar o valor. Nada aqui altera o painel oficial nem o funil.</div></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mkt-btn" onclick="pprZerar()">↺ Zerar simulação</button></div></div>';
+  if(!pprDados) return top+'<div class="pn-cont" style="padding:14px;color:#dc2626">Não consegui carregar a simulação'+(pprErro?': '+patEsc(pprErro):'')+'.</div>';
+  let gPot=0,gMeta=0,gOf=0,gNeg=0,nOf=0,nNeg=0;
+  let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Preenchida à mão na simulação</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
+    +'<div class="pg-scroll"><table class="pg-tab"><thead><tr><th class="ev">Evento</th>';
+  PNL_SLOTS.forEach(s=>{ h+='<th style="border-top:3px solid '+s.cor+'">'+patEsc(s.t)+'</th>'; });
+  h+='<th class="tt">Potencial</th><th class="tt">Meta ajustada</th><th class="tt">Fechado</th><th class="tt">Em prospecção</th><th class="tt">Simulado</th></tr></thead><tbody>';
+  if(!evs.length) h+='<tr><td colspan="'+(PNL_SLOTS.length+6)+'" class="pn-cont" style="padding:20px">Nenhum evento.</td></tr>';
+  evs.forEach(function(ev){
+    const d=pnlGlobal[String(ev.id)]||{slots:{},precos:{}};
+    let pot=0,of=0,neg=0,no=0,nn=0;
+    h+='<tr><td class="ev" style="cursor:default"><b>'+patEsc(ev.nome)+'</b><small>'+(ev.data?ev.data.split('-').reverse().join('/'):'')+'</small></td>';
+    PNL_SLOTS.forEach(function(s){
+      const c=pprCelula(d,ev,s); pot+=c.valor;
+      if(c.mk&&c.oficial){of+=c.valor;no++;} else if(c.mk&&c.manual){neg+=c.valor;nn++;}
+      let lg;
+      if(c.mk&&c.mk.logo_url) lg='<div class="lg"><img src="'+patEsc(c.mk.logo_url)+'" alt="'+patEsc(c.mk.nome)+'" title="'+patEsc(c.mk.nome)+'"></div>';
+      else if(c.mk) lg='<div class="lg ini" style="background:'+patCorDe(c.mk.nome)+'" title="'+patEsc(c.mk.nome)+'">'+patEsc(patIniciais(c.mk.nome))+'</div>';
+      else lg='<div class="lg vg">vago</div>';
+      const cls='c'+(c.manual?' pr':(c.mk?' ok':''));
+      h+='<td class="'+cls+'" onclick="pprAbrir(\''+patEsc(ev.id)+'\',\''+s.id+'\')" title="Clique para simular esta vaga">'+lg
+        +'<div class="vl'+(c.valor?'':' z')+'">'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div></td>';
+    });
+    const meta=Number(ev.meta)||0, sim=of+neg;
+    gPot+=pot; gMeta+=meta; gOf+=of; gNeg+=neg; nOf+=no; nNeg+=nn;
+    h+='<td class="tt pot"><b>'+pnlBRL(pot)+'</b><small>'+(no+nn)+'/'+PNL_SLOTS.length+' preenchidas</small></td>'
+      +'<td class="tt meta"><b>'+(meta?pnlBRL(meta):'—')+'</b>'+(meta?'':'<small>sem meta</small>')+'</td>'
+      +'<td class="tt"><b>'+pnlBRL(of)+'</b><small>'+no+' vendida(s)</small></td>'
+      +'<td class="tt neg"><b>'+pnlBRL(neg)+'</b><small>'+nn+' na simulação</small></td>'
+      +'<td class="tt sim"><b>'+pnlBRL(sim)+'</b><small>'+(meta?pnlPct(sim,meta)+' da meta':'')+'</small></td></tr>';
+  });
+  const gSim=gOf+gNeg;
+  h+='</tbody><tfoot><tr><td class="ev"><b>Total</b></td><td colspan="'+PNL_SLOTS.length+'"></td>'
+    +'<td class="tt pot"><b>'+pnlBRL(gPot)+'</b></td><td class="tt meta"><b>'+pnlBRL(gMeta)+'</b></td>'
+    +'<td class="tt"><b>'+pnlBRL(gOf)+'</b></td><td class="tt neg"><b>'+pnlBRL(gNeg)+'</b></td>'
+    +'<td class="tt sim"><b>'+pnlBRL(gSim)+'</b><small>'+pnlPct(gSim,gMeta)+' da meta</small></td></tr></tfoot></table></div>';
+  const k='<div class="pg-kpis ppr">'
+    +'<div><small>Fechado (oficial)</small><b style="color:#15803d">'+pnlBRL(gOf)+'</b><span>'+nOf+' cota(s) vendida(s)</span></div>'
+    +'<div><small>Em prospecção</small><b style="color:#ea580c">'+pnlBRL(gNeg)+'</b><span>'+nNeg+' vaga(s) preenchida(s) à mão</span></div>'
+    +'<div><small>Simulado total</small><b style="color:#0f766e">'+pnlBRL(gSim)+'</b><span>'+pnlPct(gSim,gMeta)+' da meta · '+pnlPct(gSim,gPot)+' do potencial</span>'
+    +'<div class="bar"><span style="width:'+(gMeta?Math.min(100,gSim/gMeta*100):0)+'%;background:#0f766e"></span></div></div>'
+    +'<div><small>Falta para a meta</small><b style="color:#7c3aed">'+pnlBRL(Math.max(0,gMeta-gSim))+'</b><span>meta ajustada '+pnlBRL(gMeta)+'</span></div></div>';
+  return top+k+h;
+}
+/* ── editor de uma vaga ── */
+function pprAbrir(evId,slotId){
+  if(!pprDados){ alert('A simulação não carregou.'); return; }
+  const ev=patEventos.find(e=>String(e.id)===String(evId)); const s=PNL_SLOTS.find(x=>x.id===slotId); if(!ev||!s)return;
+  const d=pnlGlobal[String(evId)]||{slots:{},precos:{}};
+  const off=pnlValorSlot(d,evId,s), offMk=off.vendido?patMarca(d.slots[s.id]):null;
+  const o=(pprDados[String(evId)]&&pprDados[String(evId)].slots&&pprDados[String(evId)].slots[slotId])||null;
+  pprEd={ev:String(evId),slot:slotId,logo:o&&o.logo||''};
+  const marcas=(patDados&&patDados.marcas||[]).slice().sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  const negIds=[...new Set((patDados&&patDados.oportunidades||[]).filter(x=>String(x.evento_id)===String(evId)&&x.etapa!=='fechado'&&x.etapa!=='perdido').map(x=>String(x.marca_id)))];
+  let sel='vago'; if(o){ if(o.vago) sel='vago'; else if(o.marca_id) sel='m:'+o.marca_id; else if(o.nome) sel='outra'; else sel=offMk?'oficial':'vago'; } else if(offMk) sel='oficial';
+  const opt=(v,t)=>'<option value="'+patEsc(v)+'"'+(v===sel?' selected':'')+'>'+patEsc(t)+'</option>';
+  let ops=opt('vago','— Vaga (sem marca) —');
+  if(offMk) ops+=opt('oficial','Oficial: '+offMk.nome);
+  const neg=marcas.filter(m=>negIds.indexOf(String(m.id))!==-1);
+  if(neg.length) ops+='<optgroup label="Negociando neste evento">'+neg.map(m=>opt('m:'+m.id,m.nome)).join('')+'</optgroup>';
+  ops+='<optgroup label="Todas as marcas">'+marcas.map(m=>opt('m:'+m.id,m.nome)).join('')+'</optgroup>';
+  ops+=opt('outra','Outra marca (digitar nome)…');
+  const vAtual=o&&o.valor!==undefined&&o.valor!==null&&o.valor!==''?o.valor:'';
+  const bg=document.createElement('div'); bg.className='ppr-bg'; bg.id='ppr-bg';
+  bg.onclick=e=>{ if(e.target===bg) pprFechar(); };
+  bg.innerHTML='<div class="ppr-md"><h3>'+patEsc(s.t)+' · '+patEsc(ev.nome)+'</h3><div class="s">Simulação — não altera o painel oficial.</div>'
+    +'<div class="of">Oficial: '+(offMk?'<b>'+patEsc(offMk.nome)+'</b> · '+pnlBRL(off.valor):'vaga')+' · preço da tabela '+(off.preco?pnlBRL(off.preco):'—')+'</div>'
+    +'<label>Marca</label><select id="ppr-m" onchange="pprMudouMarca()">'+ops+'</select>'
+    +'<div id="ppr-outra" style="display:'+(sel==='outra'?'block':'none')+'"><label>Nome da marca</label><input type="text" id="ppr-nome" value="'+patEsc(o&&!o.marca_id&&o.nome||'')+'" placeholder="Ex.: Padaria Central" oninput="pprPrev()">'
+    +'<label>Logo (opcional)</label><input type="file" id="ppr-file" accept="image/png,image/svg+xml,image/jpeg,image/webp" onchange="pprUpload(this)"> <span id="ppr-up" style="font-size:11px;color:#7a7068"></span></div>'
+    +'<div class="pv" id="ppr-pv"></div>'
+    +'<label>Valor da cota nesta simulação (R$)</label><input type="number" id="ppr-v" min="0" step="100" inputmode="decimal" value="'+patEsc(vAtual)+'" placeholder="'+(off.vendido?off.valor:off.preco||0)+' (oficial)">'
+    +'<div class="bt"><button class="mkt-btn" onclick="pprLimpar()" title="Remove o que foi simulado nesta vaga">↺ Voltar ao oficial</button>'
+    +'<span style="display:flex;gap:8px"><button class="mkt-btn" onclick="pprFechar()">Cancelar</button><button class="mkt-btn primary" onclick="pprSalvar()">Salvar</button></span></div></div>';
+  document.body.appendChild(bg);
+  pprPrev();
+}
+function pprFechar(){ const b=document.getElementById('ppr-bg'); if(b)b.remove(); pprEd=null; }
+function pprMudouMarca(){
+  const v=document.getElementById('ppr-m').value;
+  document.getElementById('ppr-outra').style.display=v==='outra'?'block':'none';
+  /* sugere o valor que está no funil para essa marca neste evento */
+  if(v.indexOf('m:')===0&&pprEd){
+    const op=(patDados&&patDados.oportunidades||[]).find(x=>String(x.marca_id)===v.slice(2)&&String(x.evento_id)===pprEd.ev);
+    const inp=document.getElementById('ppr-v');
+    if(op&&Number(op.valor_estimado)>0&&inp&&!inp.value) inp.value=Number(op.valor_estimado);
+  }
+  pprPrev();
+}
+function pprPrev(){
+  const pv=document.getElementById('ppr-pv'); if(!pv||!pprEd)return;
+  const v=document.getElementById('ppr-m').value; let mk=null;
+  if(v.indexOf('m:')===0) mk=patMarca(v.slice(2));
+  else if(v==='outra'){ const n=document.getElementById('ppr-nome').value.trim(); if(n) mk={nome:n,logo_url:pprEd.logo}; }
+  else if(v==='oficial'){ const d=pnlGlobal[pprEd.ev]||{slots:{}}; mk=patMarca(d.slots&&d.slots[pprEd.slot]); }
+  pv.innerHTML=!mk?'':(mk.logo_url?'<div class="lg"><img src="'+patEsc(mk.logo_url)+'"></div>':'<div class="lg" style="background:'+patCorDe(mk.nome)+'">'+patEsc(patIniciais(mk.nome))+'</div>')+'<span style="font-size:12.5px;font-weight:700">'+patEsc(mk.nome)+'</span>';
+}
+async function pprUpload(input){
+  const file=input.files[0]; input.value=''; if(!file||!pprEd)return;
+  if(file.size>5*1024*1024){ alert('Arquivo muito grande. Máximo: 5MB.'); return; }
+  const st=document.getElementById('ppr-up'); if(st) st.textContent='Enviando…';
+  const ext=(file.name.split('.').pop()||'png').toLowerCase(), nome='prosp_logo_'+Date.now()+'.'+ext;
+  try{
+    const r=await fetch(SB_URL+'/storage/v1/object/'+STORAGE_BUCKET+'/'+nome,{method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type||'image/png','x-upsert':'true'},body:file});
+    if(!r.ok) throw new Error(await r.text());
+    pprEd.logo=SB_URL+'/storage/v1/object/public/'+STORAGE_BUCKET+'/'+nome;
+    if(st) st.textContent='Logo enviada.'; pprPrev();
+  }catch(e){ console.error(e); if(st){ st.textContent='Erro no upload.'; st.style.color='#dc2626'; } }
+}
+async function pprGravar(evId){
+  try{
+    const r=await rpc('pat_prosp_salvar',{p_evento:evId,p_dados:pprDados[evId]||{slots:{}}});
+    if(r&&r.ok===false) throw new Error(r.erro);
+  }catch(e){ console.error(e); alert('Não consegui salvar a simulação: '+(e.message||e)); }
+}
+async function pprSalvar(){
+  if(!pprEd)return;
+  const v=document.getElementById('ppr-m').value, val=document.getElementById('ppr-v').value;
+  const o={};
+  if(v==='vago') o.vago=true;
+  else if(v.indexOf('m:')===0){ const m=patMarca(v.slice(2)); o.marca_id=v.slice(2); if(m){ o.nome=m.nome; if(m.logo_url) o.logo=m.logo_url; } }
+  else if(v==='outra'){ const n=document.getElementById('ppr-nome').value.trim(); if(!n){ alert('Digite o nome da marca.'); return; } o.nome=n; if(pprEd.logo) o.logo=pprEd.logo; }
+  /* 'oficial' = mantém a marca oficial, só muda o valor */
+  const n=Number(String(val).replace(',','.')); if(val!==''&&n>=0) o.valor=n;
+  const ev=pprEd.ev, slot=pprEd.slot;
+  const d=pnlGlobal[ev]||{slots:{}}, offMk=patMarca(d.slots&&d.slots[slot]);
+  if(!pprDados[ev]) pprDados[ev]={slots:{}};
+  if(!pprDados[ev].slots) pprDados[ev].slots={};
+  /* nada mudou em relação ao oficial → não marca a vaga */
+  if((v==='oficial'||(v==='vago'&&!offMk))&&o.valor===undefined) delete pprDados[ev].slots[slot];
+  else pprDados[ev].slots[slot]=o;
+  pprFechar(); pnlGlobalRender(); await pprGravar(ev);
+}
+async function pprLimpar(){
+  if(!pprEd)return; const ev=pprEd.ev, slot=pprEd.slot;
+  if(pprDados[ev]&&pprDados[ev].slots) delete pprDados[ev].slots[slot];
+  pprFechar(); pnlGlobalRender(); await pprGravar(ev);
+}
+async function pprZerar(){
+  if(!pprDados)return;
+  if(!confirm('Zerar toda a simulação de prospecção? O painel oficial não é afetado.'))return;
+  try{ const r=await rpc('pat_prosp_zerar'); if(r&&r.ok===false) throw new Error(r.erro); pprDados={}; pnlGlobalRender(); }
+  catch(e){ alert('Não consegui zerar: '+(e.message||e)); }
 }
 function pnlGlobalImprimir(){
   const cont=document.getElementById('pg-cont'); if(!cont)return;
