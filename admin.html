@@ -18098,7 +18098,7 @@ function pprHtml(evs){
   pprCss();
   let top='<div class="ppr-hd"><div><div class="pn-h">🧪 Modo prospecção · simulação</div>'
     +'<div class="ppr-sub">Cópia do quadro acima só para planejamento. Clique numa vaga para colocar a marca que está negociando ou mudar o valor. Nada aqui altera o painel oficial nem o funil.</div></div>'
-    +'<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="mkt-btn" onclick="pprZerar()">↺ Zerar simulação</button></div></div>';
+    +'<div class="ppr-bts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="mkt-btn" onclick="pprZerar()">↺ Zerar simulação</button><button class="mkt-btn primary" onclick="pprImprimir()">🖨 Imprimir prospecção</button></div></div>';
   if(!pprDados) return top+'<div class="pn-cont" style="padding:14px;color:#dc2626">Não consegui carregar a simulação'+(pprErro?': '+patEsc(pprErro):'')+'.</div>';
   let gPot=0,gMeta=0,gOf=0,gNeg=0,nOf=0,nNeg=0;
   let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Preenchida à mão na simulação</span><span><i style="background:#dbeafe;border:2px solid #2563eb"></i>Retirada de kit</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
@@ -18141,7 +18141,21 @@ function pprHtml(evs){
     +'<div><small>Simulado total</small><b style="color:#0f766e">'+pnlBRL(gSim)+'</b><span>'+pnlPct(gSim,gMeta)+' da meta · '+pnlPct(gSim,gPot)+' do potencial</span>'
     +'<div class="bar"><span style="width:'+(gMeta?Math.min(100,gSim/gMeta*100):0)+'%;background:#0f766e"></span></div></div>'
     +'<div><small>Falta para a meta</small><b style="color:#7c3aed">'+pnlBRL(Math.max(0,gMeta-gSim))+'</b><span>meta ajustada '+pnlBRL(gMeta)+'</span></div></div>';
-  return top+k+h;
+  return '<div id="ppr-sec">'+top+k+h+'</div>';
+}
+/* PDF só do quadro de prospecção */
+function pprImprimir(){
+  const sec=document.getElementById('ppr-sec'); if(!sec){ alert('A simulação ainda não carregou.'); return; }
+  const w=window.open('','_blank'); if(!w){ alert('Libere os pop-ups para imprimir.'); return; }
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Prospecção de cotas</title><style>body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:16px;}h1{font-size:20px;margin:0 0 4px;}'
+    +PNL_CSS+((document.getElementById('ppr-css')||{}).textContent||'')
+    +'.ppr-hd{margin-top:8px;padding-top:0;border-top:0;}.ppr-hd .pn-h,.ppr-sub,.ppr-bts,.pg-tab td.ev .rks{display:none!important;}.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}.pg-tab td.c{cursor:default;}'
+    +'@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
+    +'<h1>Prospecção de cotas · simulação</h1><div style="font-size:12px;color:#7a7068">gerado em '+new Date().toLocaleDateString('pt-BR')+' · planejamento interno, não é o painel oficial</div>'
+    +sec.innerHTML+'</body></html>');
+  w.document.close();
+  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
 }
 /* ── editor de uma vaga ── */
 function pprAbrir(evId,slotId){
