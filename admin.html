@@ -18052,7 +18052,18 @@ async function pprCarregar(){
     if(r&&r.ok===false) throw new Error(r.erro==='sem_permissao'?'Sem permissão na aba Marcas':r.erro);
     pprDados={};
     ((r&&r.linhas)||[]).forEach(l=>{ pprDados[String(l.evento_id)]=l.dados||{}; });
-  }catch(e){ console.error(e); pprDados=null; pprErro=String(e.message||e); }
+  }catch(e){ console.error(e); pprDados=null; pprErro=String(e.message||e); return; }
+  /* empresas que já estavam na simulação sem cor ganham uma agora */
+  const keys=[];
+  Object.keys(pprDados).sort().forEach(ev=>{ if(ev==='__cores')return; const sl=(pprDados[ev]&&pprDados[ev].slots)||{};
+    Object.keys(sl).sort().forEach(k=>{ const o=sl[k]; const key=o&&!o.vago?pprChave(o):null; if(key&&keys.indexOf(key)===-1) keys.push(key); }); });
+  const falta=keys.filter(k=>!pprCorDe(k));
+  if(falta.length){
+    if(!pprDados.__cores) pprDados.__cores={cores:{}};
+    if(!pprDados.__cores.cores) pprDados.__cores.cores={};
+    falta.forEach(k=>{ pprDados.__cores.cores[k]=pprNovaCor(); });
+    pprGravar('__cores');
+  }
 }
 function pprCss(){
   if(document.getElementById('ppr-css'))return;
@@ -18076,6 +18087,9 @@ function pprCss(){
    +'.ppr-md label{display:block;font-size:11px;font-weight:700;margin:10px 0 4px;color:#2a2520;}'
    +'.ppr-md select,.ppr-md input[type=text],.ppr-md input[type=number]{width:100%;font-family:Ubuntu,sans-serif;font-size:13px;padding:8px 10px;border:1px solid rgba(42,37,32,.18);border-radius:9px;box-sizing:border-box;}'
    +'.ppr-md .of{font-size:11.5px;color:#7a7068;background:#faf9f7;border-radius:8px;padding:7px 9px;margin-top:4px;}'
+   +'.ppr-md button:disabled{opacity:.4;cursor:not-allowed;}'
+   +'.ppr-emp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11.5px;margin:8px 0 10px;} .ppr-emp b{margin-right:4px;color:#2a2520;}'
+   +'.ppr-emp span{display:inline-flex;align-items:center;gap:6px;border:1.5px solid;border-radius:999px;padding:3px 10px 3px 6px;font-weight:700;color:#2a2520;-webkit-print-color-adjust:exact;print-color-adjust:exact;} .ppr-emp i{width:11px;height:11px;border-radius:50%;display:inline-block;-webkit-print-color-adjust:exact;print-color-adjust:exact;}'
    +'.ppr-md .bt{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:16px;}'
    +'.ppr-md .pv{display:flex;align-items:center;gap:10px;margin-top:6px;} .ppr-md .pv .lg{width:70px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(42,37,32,.1);color:#fff;font-weight:700;font-size:12px;}'
    +'.ppr-md .pv .lg img{max-width:92%;max-height:90%;object-fit:contain;}';
@@ -18093,7 +18107,22 @@ function pprCelula(d,ev,s){
   else if(o.nome) mk={nome:o.nome,logo_url:o.logo||''};
   else mk=offMk;
   const temV=o.valor!==undefined&&o.valor!==null&&o.valor!=='';
-  return {mk:mk,valor:temV?Number(o.valor)||0:(mk&&offMk&&mk===offMk?v.valor:v.preco),preco:v.preco,oficial:false,manual:true,funil:false};
+  return {mk:mk,valor:temV?Number(o.valor)||0:(mk&&offMk&&mk===offMk?v.valor:v.preco),preco:v.preco,oficial:false,manual:true,funil:false,key:o.vago?null:pprChave(o),nome:mk?mk.nome:''};
+}
+/* ── uma cor diferente para cada empresa posta à mão (fica guardada na linha __cores de pat_prosp) ── */
+const PPR_PALETA=['#e11d48','#7c3aed','#0891b2','#ca8a04','#16a34a','#db2777','#ea580c','#4f46e5','#0d9488','#9333ea','#65a30d','#dc2626','#0284c7','#c2410c','#a21caf','#059669','#b45309','#be123c','#6d28d9','#15803d'];
+function pprChave(o){ if(!o)return null; if(o.marca_id)return 'm:'+o.marca_id; if(o.nome)return 'n:'+String(o.nome).trim().toLowerCase(); return null; }
+function pprMapaCores(){ return (pprDados&&pprDados.__cores&&pprDados.__cores.cores)||{}; }
+function pprCorDe(key){ return key?pprMapaCores()[key]||'':''; }
+function pprNovaCor(){
+  const usadas=Object.values(pprMapaCores());
+  const livre=PPR_PALETA.find(c=>usadas.indexOf(c)===-1); if(livre)return livre;
+  /* acabou a paleta: gira o matiz pelo ângulo de ouro para continuar diferente */
+  const h=Math.round((usadas.length*137.508)%360); return 'hsl('+h+',70%,42%)';
+}
+function pprTinta(cor,a){
+  if(cor.indexOf('hsl(')===0) return cor.replace('hsl(','hsla(').replace(')',','+a+')');
+  const n=parseInt(cor.slice(1),16); return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')';
 }
 function pprHtml(evs){
   pprCss();
@@ -18101,8 +18130,8 @@ function pprHtml(evs){
     +'<div class="ppr-sub">Cópia do quadro acima só para planejamento. Clique numa vaga para colocar a marca que está negociando ou mudar o valor. Nada aqui altera o painel oficial nem o funil.</div></div>'
     +'<div class="ppr-bts" style="display:flex;gap:8px;flex-wrap:wrap"><button class="mkt-btn" onclick="pprZerar()">↺ Zerar simulação</button><button class="mkt-btn primary" onclick="pprImprimir()">🖨 Imprimir prospecção</button></div></div>';
   if(!pprDados) return top+'<div class="pn-cont" style="padding:14px;color:#dc2626">Não consegui carregar a simulação'+(pprErro?': '+patEsc(pprErro):'')+'.</div>';
-  let gPot=0,gMeta=0,gOf=0,gNeg=0,nOf=0,nNeg=0;
-  let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Preenchida à mão na simulação</span><span><i style="background:#dbeafe;border:2px solid #2563eb"></i>Retirada de kit</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
+  let gPot=0,gMeta=0,gOf=0,gNeg=0,nOf=0,nNeg=0; const emp={};
+  let h='<div class="ppr-leg"><span><i style="background:#fff;border:1px solid #15803d"></i>Vendida (oficial)</span><span><i style="background:linear-gradient(90deg,#e11d48 33%,#7c3aed 33% 66%,#0891b2 66%)"></i>Preenchida à mão (uma cor por empresa)</span><span><i style="background:#fff3e8;border:2px solid #ff751f"></i>Só valor alterado</span><span><i style="background:#dbeafe;border:2px solid #2563eb"></i>Retirada de kit</span><span><i style="border:1.5px dashed rgba(42,37,32,.3)"></i>Vaga</span></div>'
     +'<div class="pg-scroll"><table class="pg-tab"><thead><tr><th class="ev">Evento</th>';
   PNL_SLOTS.forEach(s=>{ h+='<th style="border-top:3px solid '+s.cor+'">'+patEsc(s.t)+'</th>'; });
   h+='<th class="tt">Potencial</th><th class="tt">Meta ajustada</th><th class="tt">Fechado</th><th class="tt">Em prospecção</th><th class="tt">Simulado</th></tr></thead><tbody>';
@@ -18120,8 +18149,11 @@ function pprHtml(evs){
       else if(c.mk) lg='<div class="lg ini" style="background:'+patCorDe(c.mk.nome)+'" title="'+patEsc(c.mk.nome)+'">'+patEsc(patIniciais(c.mk.nome))+'</div>';
       else lg='<div class="lg vg">vago</div>';
       const cls='c'+(c.manual?' pr':(c.mk?' ok':''))+(rk?' rk':'');
-      h+='<td class="'+cls+'" onclick="pprAbrir(\''+patEsc(ev.id)+'\',\''+s.id+'\')" title="Clique para simular esta vaga">'+lg
-        +'<div class="vl'+(c.valor?'':' z')+'">'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div>'+(rk?'<div class="rkt">🎽 Retirada de kit</div>':'')+'</td>';
+      const cor=c.manual&&c.key?pprCorDe(c.key):'';
+      if(cor){ const e=emp[c.key]||(emp[c.key]={nome:c.nome,cor:cor,n:0,v:0}); e.n++; e.v+=c.valor; }
+      const st=cor?' style="outline-color:'+cor+';'+(rk?'':'background:'+pprTinta(cor,.13)+'!important;')+'"':'';
+      h+='<td class="'+cls+'"'+st+' onclick="pprAbrir(\''+patEsc(ev.id)+'\',\''+s.id+'\')" title="'+(c.nome?patEsc(c.nome)+' · ':'')+'Clique para simular esta vaga">'+lg
+        +'<div class="vl'+(c.valor?'':' z')+'"'+(cor?' style="color:'+cor+'!important"':'')+'>'+(c.valor?pnlBRL(c.valor):'sem valor')+(c.funil?' •':'')+'</div>'+(rk?'<div class="rkt">🎽 Retirada de kit</div>':'')+'</td>';
     });
     const meta=Number(ev.meta)||0, sim=of+neg;
     gPot+=pot; gMeta+=meta; gOf+=of; gNeg+=neg; nOf+=no; nNeg+=nn;
@@ -18142,7 +18174,9 @@ function pprHtml(evs){
     +'<div><small>Simulado total</small><b style="color:#0f766e">'+pnlBRL(gSim)+'</b><span>'+pnlPct(gSim,gMeta)+' da meta · '+pnlPct(gSim,gPot)+' do potencial</span>'
     +'<div class="bar"><span style="width:'+(gMeta?Math.min(100,gSim/gMeta*100):0)+'%;background:#0f766e"></span></div></div>'
     +'<div><small>Falta para a meta</small><b style="color:#7c3aed">'+pnlBRL(Math.max(0,gMeta-gSim))+'</b><span>meta ajustada '+pnlBRL(gMeta)+'</span></div></div>';
-  return '<div id="ppr-sec">'+top+k+h+'</div>';
+  const el=Object.values(emp).sort((a,b)=>b.v-a.v);
+  const leg=el.length?'<div class="ppr-emp"><b>Empresas na simulação:</b>'+el.map(e=>'<span style="border-color:'+e.cor+';background:'+pprTinta(e.cor,.10)+'"><i style="background:'+e.cor+'"></i>'+patEsc(e.nome)+' · '+e.n+' cota'+(e.n>1?'s':'')+' · '+pnlBRL(e.v)+'</span>').join('')+'</div>':'';
+  return '<div id="ppr-sec">'+top+k+leg+h+'</div>';
 }
 /* encolhe a página impressa para a tabela inteira caber na largura da folha (A4 deitado) */
 function pnlPrintAjustar(w){
@@ -18253,7 +18287,14 @@ async function pprSalvar(){
   /* nada mudou em relação ao oficial → não marca a vaga */
   if((v==='oficial'||(v==='vago'&&!offMk))&&o.valor===undefined) delete pprDados[ev].slots[slot];
   else pprDados[ev].slots[slot]=o;
+  const key=o.vago?null:pprChave(o); let novaCor=false;
+  if(key&&pprDados[ev].slots[slot]&&!pprCorDe(key)){
+    if(!pprDados.__cores) pprDados.__cores={cores:{}};
+    if(!pprDados.__cores.cores) pprDados.__cores.cores={};
+    pprDados.__cores.cores[key]=pprNovaCor(); novaCor=true;
+  }
   pprFechar(); pnlGlobalRender(); await pprGravar(ev);
+  if(novaCor) await pprGravar('__cores');
 }
 async function pprLimpar(){
   if(!pprEd)return; const ev=pprEd.ev, slot=pprEd.slot;
