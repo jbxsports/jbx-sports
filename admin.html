@@ -18059,11 +18059,12 @@ function pprCss(){
   const s=document.createElement('style'); s.id='ppr-css';
   s.textContent='.ppr-hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:34px;padding-top:18px;border-top:2px dashed rgba(255,117,31,.35);}'
    +'.ppr-hd .pn-h{margin:0 0 4px;} .ppr-sub{font-size:12px;color:#7a7068;margin-bottom:10px;}'
-   +'.pg-tab td.c.pr{background:#fff3e8;box-shadow:inset 0 0 0 2px #ff751f;} .pg-tab td.c.pr .vl{color:#ea580c;font-weight:700;}'
+   +'.pg-tab td.c.pr{background:#fff3e8!important;outline:2px solid #ff751f;outline-offset:-2px;} .pg-tab td.c.pr .vl{color:#ea580c!important;font-weight:700;}'
    +'.pg-tab td.c.pr .lg.vg{border-color:#ff751f;color:#ea580c;}'
    +'.pg-tab td.tt.neg b{color:#ea580c;} .pg-tab td.tt.sim b{color:#0f766e;}'
-   +'.pg-tab td.c.rk{background:#dbeafe;box-shadow:inset 0 0 0 2px #2563eb;} .pg-tab td.c.rk:hover{background:#bfdbfe;}'
-   +'.pg-tab td.c.pr.rk{box-shadow:inset 0 0 0 2px #ff751f;}'
+   +'.pg-tab td.c.rk{background:#dbeafe!important;outline:2px solid #2563eb;outline-offset:-2px;} .pg-tab td.c.rk:hover{background:#bfdbfe!important;}'
+   +'.pg-tab td.c.pr.rk{outline-color:#ff751f;}'
+   +'.pg-tab td,.pg-kpis,.pg-kpis *,.ppr-leg i{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}'
    +'.pg-tab td.c.rk .lg.vg{background:#fff;}'
    +'.pg-tab .rkt{font-size:8.5px;font-weight:700;color:#1d4ed8;margin-top:2px;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px;}'
    +'.pg-tab td.ev .rks{display:block;margin-top:4px;font-family:Ubuntu,sans-serif;font-size:10.5px;padding:2px 4px;border:1px solid rgba(37,99,235,.35);border-radius:6px;color:#1d4ed8;background:#eff6ff;max-width:100%;cursor:pointer;}'
@@ -18143,6 +18144,13 @@ function pprHtml(evs){
     +'<div><small>Falta para a meta</small><b style="color:#7c3aed">'+pnlBRL(Math.max(0,gMeta-gSim))+'</b><span>meta ajustada '+pnlBRL(gMeta)+'</span></div></div>';
   return '<div id="ppr-sec">'+top+k+h+'</div>';
 }
+/* encolhe a página impressa para a tabela inteira caber na largura da folha (A4 deitado) */
+function pnlPrintAjustar(w){
+  try{ const t=w.document.querySelector('.pg-tab'); if(!t)return;
+    const larg=1040, tw=Math.max(t.scrollWidth,w.document.body.scrollWidth);
+    if(tw>larg) w.document.body.style.zoom=(larg/tw).toFixed(3);
+  }catch(e){}
+}
 /* PDF só do quadro de prospecção */
 function pprImprimir(){
   const sec=document.getElementById('ppr-sec'); if(!sec){ alert('A simulação ainda não carregou.'); return; }
@@ -18155,7 +18163,7 @@ function pprImprimir(){
     +'<h1>Prospecção de cotas · simulação</h1><div style="font-size:12px;color:#7a7068">gerado em '+new Date().toLocaleDateString('pt-BR')+' · planejamento interno, não é o painel oficial</div>'
     +sec.innerHTML+'</body></html>');
   w.document.close();
-  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
+  setTimeout(function(){ try{ pnlPrintAjustar(w); w.focus(); w.print(); }catch(e){} },900);
 }
 /* ── editor de uma vaga ── */
 function pprAbrir(evId,slotId){
@@ -18252,9 +18260,23 @@ async function pprLimpar(){
   if(pprDados[ev]&&pprDados[ev].slots) delete pprDados[ev].slots[slot];
   pprFechar(); pnlGlobalRender(); await pprGravar(ev);
 }
-async function pprZerar(){
+/* zerar exige digitar ZERAR, para ninguém apagar a simulação sem querer */
+function pprZerar(){
   if(!pprDados)return;
-  if(!confirm('Zerar toda a simulação de prospecção? O painel oficial não é afetado.'))return;
+  let n=0; Object.values(pprDados).forEach(d=>{ n+=Object.keys((d&&d.slots)||{}).length; });
+  const bg=document.createElement('div'); bg.className='ppr-bg'; bg.id='ppr-bg';
+  bg.onclick=e=>{ if(e.target===bg) bg.remove(); };
+  bg.innerHTML='<div class="ppr-md"><h3 style="color:#dc2626">⚠️ Zerar toda a simulação?</h3>'
+    +'<div class="s">Isso apaga <b>'+n+' vaga(s)</b> preenchida(s) ou alterada(s) à mão em <b>todos os eventos</b> do modo prospecção, para toda a equipe. Não dá para desfazer. O painel oficial não é afetado.</div>'
+    +'<label>Para confirmar, digite <b>ZERAR</b></label><input type="text" id="ppr-zc" autocomplete="off" oninput="document.getElementById(\'ppr-zb\').disabled=this.value.trim().toUpperCase()!==\'ZERAR\'">'
+    +'<div class="bt"><span></span><span style="display:flex;gap:8px"><button class="mkt-btn" onclick="document.getElementById(\'ppr-bg\').remove()">Cancelar</button>'
+    +'<button class="mkt-btn" id="ppr-zb" disabled style="background:#dc2626;color:#fff;border-color:#dc2626" onclick="pprZerarConfirmado()">Zerar tudo</button></span></div></div>';
+  document.body.appendChild(bg);
+  setTimeout(()=>{ const i=document.getElementById('ppr-zc'); if(i) i.focus(); },50);
+}
+async function pprZerarConfirmado(){
+  const i=document.getElementById('ppr-zc'); if(!i||i.value.trim().toUpperCase()!=='ZERAR')return;
+  const b=document.getElementById('ppr-bg'); if(b) b.remove();
   try{ const r=await rpc('pat_prosp_zerar'); if(r&&r.ok===false) throw new Error(r.erro); pprDados={}; pnlGlobalRender(); }
   catch(e){ alert('Não consegui zerar: '+(e.message||e)); }
 }
@@ -18263,10 +18285,10 @@ function pnlGlobalImprimir(){
   const w=window.open('','_blank'); if(!w){ alert('Libere os pop-ups para imprimir.'); return; }
   w.document.open();
   w.document.write('<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Resumo global de cotas</title><style>body{font-family:Ubuntu,Arial,sans-serif;color:#2a2520;margin:16px;}h1{font-size:20px;margin:0 0 4px;}'
-    +PNL_CSS+((document.getElementById('ppr-css')||{}).textContent||'')+'.pg-tab td.ev .rks{display:none;}.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
+    +PNL_CSS+((document.getElementById('ppr-css')||{}).textContent||'')+'.pg-tab td.ev .rks,.ppr-bts{display:none!important;}.pg-scroll{overflow:visible!important;}.pg-tab{font-size:9px;}.pg-tab .lg{width:44px;height:22px;}@page{size:A4 landscape;margin:8mm;}*{-webkit-print-color-adjust:exact;print-color-adjust:exact;}</style></head><body>'
     +'<h1>Resumo global de cotas</h1><div style="font-size:12px;color:#7a7068">gerado em '+new Date().toLocaleDateString('pt-BR')+'</div>'+cont.innerHTML+'</body></html>');
   w.document.close();
-  setTimeout(function(){ try{ w.focus(); w.print(); }catch(e){} },900);
+  setTimeout(function(){ try{ pnlPrintAjustar(w); w.focus(); w.print(); }catch(e){} },900);
 }
 
 /* ══════════ COTAS: ordem de importância ══════════ */
