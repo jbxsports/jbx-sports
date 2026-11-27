@@ -1920,6 +1920,17 @@ table.dir-t{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5p
 .dir-t td.rec b{color:#0f766e;font-size:15px;font-weight:800;}
 .dir-t td.rec small{color:#0f766e;opacity:.85;}
 .dir-t thead th.rec{font-weight:800;}
+/* compacto: a tabela da Diretoria cabe na tela sem rolar para o lado */
+table.dir-t{font-size:11.5px;}
+.dir-t th,.dir-t td{padding:6px 4px;}
+.dir-t thead th{font-size:9px;letter-spacing:.2px;white-space:normal;line-height:1.15;}
+.dir-t thead tr.g th{font-size:10px;letter-spacing:.6px;}
+.dir-t td small{font-size:9.5px;}
+.dir-t .dir-c1{min-width:140px;max-width:165px;}
+.dir-t .nm{font-size:12px;} .dir-t .dt{font-size:9.5px;}
+.dir-t td.res{font-size:12px;}
+.dir-t td.rec b{font-size:13px;}
+.dir-aliq-in{width:38px;font-size:11.5px;padding:4px 4px;margin-right:2px;}
 
 /* ══ PAGAMENTOS DE PATROCÍNIO ══ */
 .pp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px;}
@@ -13824,10 +13835,10 @@ function dirRender(){
       '<td class="aliq" onclick="event.stopPropagation()"><input class="dir-aliq-in" inputmode="decimal" placeholder="—" value="' + dirAliqTxt(c.temAliq ? c.aliqPct : 0) + '" onchange="dirAliqSalvar(\'' + c.id + '\',this.value,this)" onkeydown="if(event.key===\'Enter\')this.blur()">%</td>' +
       '<td class="dsp">' + (c.projNF ? dirR(c.projNF) : '<span class="nd">—</span>') + '</td>' +
       '<td class="prs" title="' + (c.prosp ? 'Simulação: ' + dirR(c.prosp) + ' − NF ' + dirR(c.prospNF) + ' = ' + dirR(c.prosp - c.prospNF) + ' líquido' : 'Nada na simulação de prospecção') + '">' + (c.prosp ? '<b>' + dirR(c.prosp) + '</b><small>NF −' + dirR(c.prospNF) + '</small>' : '<span class="nd">—</span>') + '</td>' +
-      '<td class="aliq" onclick="event.stopPropagation()">R$ ' + dirInpExtra(c.id, 'foto_val', c.fotoVal, 66) + '</td>' +
-      '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'foto_pct', c.fotoPct, 48) + '%</td>' +
+      '<td class="aliq" onclick="event.stopPropagation()">R$ ' + dirInpExtra(c.id, 'foto_val', c.fotoVal, 50) + '</td>' +
+      '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'foto_pct', c.fotoPct, 34) + '%</td>' +
       '<td>' + (c.fotoRec ? '<b>' + dirR(c.fotoRec) + '</b><small>' + fmt(q) + ' insc.</small>' : '<span class="nd">—</span>') + '</td>' +
-      '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'cash_pct', c.cashPct, 48) + '%</td>' +
+      '<td class="aliq" onclick="event.stopPropagation()">' + dirInpExtra(c.id, 'cash_pct', c.cashPct, 34) + '%</td>' +
       '<td>' + (c.cashRec ? '<b>' + dirR(c.cashRec) + '</b><small>sobre ' + dirR(c.cashBase) + '</small>' : '<span class="nd">—</span>') + '</td>' +
       '<td class="rec" title="' + recTit + '">' + (c.projEnt ? '<b>' + dirR(c.projEnt) + '</b>' + (q ? '<small>' + dirR2(c.recAtl) + ' por atleta</small>' : '') : '<span class="nd">—</span>') + '</td>' +
       '<td class="dsp">' + (c.custoAtl ? '<b>' + dirR2(c.custoAtl) + '</b>' + (c.orc ? '<small class="dir-orc" title="Vem da aba Orçamentos: ' + propEsc(c.orc.nome) + ' — ' + propEsc(dirR(c.orc.total)) + ' ÷ ' + fmt(c.orc.atletas) + ' atletas. Clique para abrir." onclick="event.stopPropagation();dirAbrirOrc(\'' + propEsc(c.orc.id) + '\')">🧾 do orçamento</small>' : '') : '<span class="nd">a lançar</span>') + '</td>' +
